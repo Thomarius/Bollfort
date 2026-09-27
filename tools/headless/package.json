@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "@rampart/ai": "*",
+    "@rampart/analysis": "*",
     "@rampart/config": "*",
+    "@rampart/protocol": "*",
     "@rampart/sim": "*"
   }
 }
