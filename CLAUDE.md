@@ -175,7 +175,7 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-11-01; the latest release **v0.9.29**, 2026-11-01, protocol 34, recording format 4,
+**Done** (2026-11-01; the latest release **v0.9.30**, 2026-11-01, protocol 34, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
 
 - **Hessian** (ARCHIVE 15z, 2026-11-01, the user's joke): a third language, southern Hessian

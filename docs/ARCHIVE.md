@@ -11108,3 +11108,9 @@ every language must, though it follows the system's language and so never shows 
 German screen tests run in Hessian too (`german.test.ts`). Checked in screenshots with
 `&lang=hes` — the menu, Options, How to play, the lobby, a tournament, the HUD, the tower hint and
 the end screen: nothing overflows; "Dunier weiderschbiele" takes two lines in the menu's button.
+
+## 15za. v0.9.30 (2026-11-01)
+
+Since v0.9.29: Hessian, a third language — southern Hessian after Badesalz, a normal button
+beside English and Deutsch, its disclaimer German (15z). Protocol 34 and recording format 4 as
+before: a v0.9.29 page can join a v0.9.30 room, each player in their own language.
