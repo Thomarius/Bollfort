@@ -11075,3 +11075,10 @@ wall and an owner's colour clearly lighter or darker than the ground, not only a
 Left as they were: Pixel's placed walls (2.3:1 on the grass, readable), Pirates' slate-blue
 stockade (readable, a matter of taste). Before and after compared in screenshots, the same
 scenes, and Halloween and Blueprint at eight players.
+
+## 15y. v0.9.29 (2026-11-01)
+
+Since v0.9.28: walls and the piece in hand readable in every look — Halloween's crypt walls with a
+rim glowing in the owner's light, Blueprint's walls of the paper's own hue chalked round, and the
+piece in hand edged dark under light in seven styles (15x). Protocol 34 and recording format 4 as
+before: a v0.9.28 page can join a v0.9.29 room.

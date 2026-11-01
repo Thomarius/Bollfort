@@ -175,7 +175,7 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-10-30; the latest release **v0.9.28**, 2026-10-30, protocol 34, recording format 4,
+**Done** (2026-11-01; the latest release **v0.9.29**, 2026-11-01, protocol 34, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
 
 - **Walls readable in every look** (ARCHIVE 15x, 2026-11-01, the testers' feedback): every style
