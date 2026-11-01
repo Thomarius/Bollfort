@@ -7,6 +7,7 @@ import aiJson from '../../../config/ai.default.json' with { type: 'json' };
 import tournamentJson from '../../../config/tournament.default.json' with { type: 'json' };
 import enJson from '../../../config/locale/en.json' with { type: 'json' };
 import deJson from '../../../config/locale/de.json' with { type: 'json' };
+import hesJson from '../../../config/locale/hes.json' with { type: 'json' };
 
 import { RulesetSchema, type Ruleset } from './ruleset.js';
 import { TerrainConfigSchema, type TerrainConfig } from './terrain.js';
@@ -51,4 +52,5 @@ export type TextKey = keyof typeof enJson;
 export const locales: Record<Language, Locale> = {
   en: LocaleSchema.parse(enJson),
   de: LocaleSchema.parse(deJson),
+  hes: LocaleSchema.parse(hesJson),
 };

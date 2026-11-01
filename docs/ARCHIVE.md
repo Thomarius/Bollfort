@@ -11082,3 +11082,29 @@ Since v0.9.28: walls and the piece in hand readable in every look — Halloween'
 rim glowing in the owner's light, Blueprint's walls of the paper's own hue chalked round, and the
 piece in hand edged dark under light in seven styles (15x). Protocol 34 and recording format 4 as
 before: a v0.9.28 page can join a v0.9.29 room.
+
+## 15z. Hessian (2026-11-01)
+
+The user's wish, as a joke: the game in Hessian, the user's own dialect — southern Hessian, as
+the comedy group Badesalz speak it. A third language like the others, a normal third button
+**Hessisch** in Options and the pause menu (the user's choice), its texts in
+`config/locale/hes.json`, written from the German file: medium thickness — clearly Hessian
+(_isch_, _net_, _kaa_, _uff_, _iwwer_, _parat_, _fott_, _Lewe_, _Burch_, _Weg vom Fenster_,
+_Allmächd!_ among Noir's sound words) but easy to read — with thick alternatives, a sound shift
+everywhere (_Dorm_, _Kanoone_, _Schbiel_, _Bunkde_, _Deem_, _Dunier_) or a phrase each (_Druff!_,
+_Mach hinne!_), for the user to choose from a review sheet. The user chose two shifts, _Schbiel_
+and _Dunier_, applied over every Hessian text, and seven phrases: _Druff!_ for the call to fire,
+_Ei, du host gewonne, gell?_, _Abhaue_ for leaving the lobby, _Uff geht's_ for Play and
+_Duniersieg! Ei, des gibt's doch net!_. The disclaimer stays in German, as
+do the licence line, "Inspiriert von Ataris Rampart", the desktop window's fan note and the
+ordinal (the user's choice); the Windows menu path in the firewall messages as Windows writes it.
+Written in the spirit of Badesalz, never quoting them.
+
+Hessian has no language code, so `hes` inside the game, never sent anywhere; no browser asks for
+it, so it is only ever chosen. To the browser it is German (`PAGE_LANGS` in `languages.ts`): the
+page's `lang` is `de`, so uppercase writes ß as SS and a screen reader reads in a German voice,
+and `Intl` counts, lists and writes numbers as `de-DE`. The desktop window carries its texts as
+every language must, though it follows the system's language and so never shows them. The
+German screen tests run in Hessian too (`german.test.ts`). Checked in screenshots with
+`&lang=hes` — the menu, Options, How to play, the lobby, a tournament, the HUD, the tower hint and
+the end screen: nothing overflows; "Dunier weiderschbiele" takes two lines in the menu's button.

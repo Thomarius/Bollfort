@@ -1,6 +1,7 @@
 import {
   LANGUAGES,
   LANGUAGE_NAMES,
+  PAGE_LANGS,
   detectLanguage,
   isLanguage,
   locales,
@@ -22,9 +23,9 @@ let current: Language = 'en';
 
 /**
  * The tag `Intl` is given for each language: British English, as the game is written, so a
- * list of three has no comma before "and".
+ * list of three has no comma before "and"; Hessian counts, lists and writes numbers as German.
  */
-const INTL: Record<Language, string> = { en: 'en-GB', de: 'de-DE' };
+const INTL: Record<Language, string> = { en: 'en-GB', de: 'de-DE', hes: 'de-DE' };
 const listeners = new Set<(language: Language) => void>();
 
 export function language(): Language {
@@ -37,7 +38,7 @@ export function language(): Language {
  * in the right voice.
  */
 export function setLanguage(next: Language): void {
-  if (globalThis.document !== undefined) document.documentElement.lang = next;
+  if (globalThis.document !== undefined) document.documentElement.lang = PAGE_LANGS[next];
   if (next === current) return;
   current = next;
   for (const listener of listeners) listener(next);

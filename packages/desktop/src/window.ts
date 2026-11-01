@@ -1,7 +1,8 @@
-import { detectLanguage, type Language } from '@bollwerk/config/languages';
+import { PAGE_LANGS, detectLanguage, type Language } from '@bollwerk/config/languages';
 
 import de from '../../../config/locale/de.json' with { type: 'json' };
 import en from '../../../config/locale/en.json' with { type: 'json' };
+import hes from '../../../config/locale/hes.json' with { type: 'json' };
 
 import type { ControlState } from './control.js';
 import type { FirewallStatus } from './firewall.js';
@@ -28,7 +29,7 @@ const language = detectLanguage(navigator.languages);
  * every config file and its schemas into this page — 2.5 kB of script became 870 kB.
  */
 type Key = keyof typeof en;
-const TEXTS: Record<Language, Partial<Record<Key, unknown>>> = { en, de };
+const TEXTS: Record<Language, Partial<Record<Key, unknown>>> = { en, de, hes };
 
 /** A text in that language — English where it lacks one — its `{placeholders}` filled. */
 function say(key: Key, params: Record<string, string | number> = {}): string {
@@ -38,7 +39,7 @@ function say(key: Key, params: Record<string, string | number> = {}): string {
 }
 
 // The page's fixed texts, written in its language once.
-document.documentElement.lang = language;
+document.documentElement.lang = PAGE_LANGS[language];
 for (const node of Array.from(document.querySelectorAll<HTMLElement>('[data-t]'))) {
   node.textContent = say(node.dataset.t as Key);
 }

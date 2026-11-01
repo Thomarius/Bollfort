@@ -25,7 +25,7 @@ score among those still standing wins.
 - No images at all: every castle, wall, wave and explosion in all twenty-four styles is drawn by
   code at runtime, as vector shapes, so the whole game is about 2 MB of code, sharp on any
   screen, and each style is a set of drawing rules rather than a set of pictures
-- In English and German, chosen in the menu
+- In English, German and — as a joke — Hessian, chosen in the menu
 - Awards at the end of every match, and a rematch in one click
 - Played with the mouse alone; How to play in the menu shows the rules in pictures
 - An authoritative server, with a deterministic simulation shared by client, server and bots
