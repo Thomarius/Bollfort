@@ -108,7 +108,7 @@ interface Board {
 async function board(style: ArtStyle, tile: number): Promise<Board> {
   const canvas = document.createElement('canvas');
   const scene = new Scene();
-  const look = { theme: createTheme(style, SEED), art: artForStyle(defaultArtConfig, style) };
+  const look = { theme: await createTheme(style, SEED), art: artForStyle(defaultArtConfig, style) };
   await scene.init(canvas, { build: look, combat: look }, defaultArtConfig);
   const state = gapState();
   const enclosure = computeEnclosure(state);

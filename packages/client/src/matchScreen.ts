@@ -127,24 +127,27 @@ export async function runSession(
   // the pause menu may change them.
   let lookChoices = setup.styles;
   let rotation = new LookRotation(lookChoices);
-  const lookFor = (style: ArtStyle): SceneLook => {
+  const lookFor = async (style: ArtStyle): Promise<SceneLook> => {
     const own = artForStyle(art, style);
     return {
-      theme: createTheme(style, setup.seed),
+      theme: await createTheme(style, setup.seed),
       art: { ...own, players: matchPalette(own, session.state) },
     };
   };
   // One theme when both looks are the same style, so the wipe has nothing to change.
-  const looksFor = (chosen: Record<Look, ArtStyle>): Record<Look, SceneLook> => {
-    const build = lookFor(chosen.build);
-    return { build, combat: chosen.combat === chosen.build ? build : lookFor(chosen.combat) };
+  const looksFor = async (chosen: Record<Look, ArtStyle>): Promise<Record<Look, SceneLook>> => {
+    const build = await lookFor(chosen.build);
+    return {
+      build,
+      combat: chosen.combat === chosen.build ? build : await lookFor(chosen.combat),
+    };
   };
   const opening = rotation.opening();
-  await scene.init(canvas, looksFor(opening), art);
+  await scene.init(canvas, await looksFor(opening), art);
   // The build look the first "Rebuild" brings, made now behind "Preparing the board", since
   // the first round has no resolution before it to make it in.
   if (rotation.isRandom('build')) {
-    await scene.prepare('build', lookFor(rotation.next('build', opening.combat)), false);
+    await scene.prepare('build', await lookFor(rotation.next('build', opening.combat)), false);
   }
   /**
    * The next round's random looks, made a step a frame after a resolution, where nothing is
@@ -162,10 +165,10 @@ export async function runSession(
     let combat = scene.styles.combat;
     if (turn.isRandom('combat')) {
       combat = turn.next('combat', scene.styles.build);
-      await scene.prepare('combat', lookFor(combat));
+      await scene.prepare('combat', await lookFor(combat));
     }
     if (turn.isRandom('build') && turn === rotation && run === lookRuns) {
-      await scene.prepare('build', lookFor(turn.next('build', combat)));
+      await scene.prepare('build', await lookFor(turn.next('build', combat)));
     }
   };
 
@@ -392,8 +395,8 @@ export async function runSession(
               lookChoices = chosen;
               rotation = new LookRotation(chosen);
               saveStyles(chosen);
-              void scene
-                .replaceLooks(looksFor(rotation.opening()))
+              void looksFor(rotation.opening())
+                .then((looks) => scene.replaceLooks(looks))
                 .then(() => matchAudio?.restyled());
             },
           }),

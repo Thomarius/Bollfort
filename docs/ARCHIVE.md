@@ -11230,3 +11230,29 @@ Checked on the dev server: an idle seat's life lost showed the banner's reason, 
 and its leak framed; a piece over a wall moved between frames in Minimal, Pixel and Stained
 glass. Approved by the user as it is, the leak's frames partly under the banner included
 (2026-11-01).
+
+## 15zf. The styles loaded when needed, PR5 (2026-11-01)
+
+The last package of PLAN §11 item 7. `render/scene.ts` imported all 24 styles, so the client
+was one 1.58 MB file (468 KB gzipped) that every page fetched and parsed before its menu, for
+the two or three styles a menu shows. Now each style is a module of its own, fetched the first
+time it is asked for (`STYLE_MODULES`, `loadStyle`), and `createTheme` is async: the match
+screen awaits a look's module before making it (its random looks in the pause after a
+resolution, as before), as do the pictures, the gallery, the tower menu's preview and the dev
+sheets. Night comes from Pixel's module.
+
+Measured on the real server, fetched up to the menu and four seconds after: **1,987 KB of
+JavaScript before, 1,361 KB after** (−32%), the menu fetching Minimal's and Pixel's modules
+(8 and 54 KB); the main file 1,576 → 387 KB, each style 8–54 KB. The server sends files
+uncompressed, so a guest on a home connection is spared the whole 626 KB. The menu's time on
+this machine, 1.0–1.5 s, did not move measurably.
+
+**Pixi registers some render pipes as their class is first imported** — `Text`, `BitmapText`,
+`HTMLText`, `TilingSprite` and `NineSliceSprite` each import their `init` — and a renderer made
+before has no pipe for them. Fetched late, Anime, Blueprint, Parchment, Noir and the Wild West
+brought `Text` after the match's renderer was made, and its first text threw in
+`updateRenderable` (two watched matches with Random looks in three). `scene.ts` imports
+`pixi.js/text` up front; six further runs, Blueprint, Anime, Noir and the Wild West among the
+styles fetched mid-match, were clean, as were three on the old build. Checked too: the icon
+sheet (every module, 1,152 pictures), the gallery's 25 pictures and its live previews, and the
+tower menu's preview in Noir.

@@ -58,18 +58,19 @@ describe('theme helpers', () => {
 });
 
 describe('theme selection', () => {
-  it('builds the style named in the config', () => {
-    expect(createTheme('flat').id).toBe('flat');
+  it('builds the style named in the config', async () => {
+    expect((await createTheme('flat')).id).toBe('flat');
   });
 
-  it('builds the pixel style', () => {
-    expect(createTheme('pixel').id).toBe('pixel');
+  it('builds the pixel style, and Night from the same module', async () => {
+    expect((await createTheme('pixel')).id).toBe('pixel');
+    expect((await createTheme('night')).id).toBe('night');
   });
 
-  it('covers every style the config allows', () => {
+  it('covers every style the config allows', async () => {
     // A style nameable in config but missing here would be a black screen.
     for (const style of ArtStyleSchema.options) {
-      expect(createTheme(style).id).toBe(style);
+      expect((await createTheme(style)).id).toBe(style);
     }
   });
 });

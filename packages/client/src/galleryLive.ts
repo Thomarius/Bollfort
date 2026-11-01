@@ -110,9 +110,9 @@ export class LivePreview {
     });
   }
 
-  private looks(style: ArtStyle): Record<'build' | 'combat', SceneLook> {
+  private async looks(style: ArtStyle): Promise<Record<'build' | 'combat', SceneLook>> {
     const look = {
-      theme: createTheme(style, this.state.seed),
+      theme: await createTheme(style, this.state.seed),
       art: artForStyle(defaultArtConfig, style),
     };
     return { build: look, combat: look };
@@ -123,7 +123,7 @@ export class LivePreview {
     if (wanted === null || this.closed) return;
     if (this.scene === null) {
       const scene = new Scene();
-      await scene.init(this.canvas, this.looks(wanted.style), defaultArtConfig);
+      await scene.init(this.canvas, await this.looks(wanted.style), defaultArtConfig);
       scene.resize(this.state, PREVIEW_SIZE.width, PREVIEW_SIZE.height);
       scene.showLooks({ from: 'build', to: 'build', lineY: null });
       scene.drawTerrain(this.state);
@@ -133,7 +133,7 @@ export class LivePreview {
       this.scene = scene;
       this.style = wanted.style;
     } else if (this.style !== wanted.style) {
-      await this.scene.replaceLooks(this.looks(wanted.style));
+      await this.scene.replaceLooks(await this.looks(wanted.style));
       this.style = wanted.style;
     }
     // The pointer may have left, or gone on to another card, while the look was made.

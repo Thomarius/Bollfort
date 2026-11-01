@@ -537,7 +537,9 @@ which a test session needs the server rebuilt and every page reloaded for):
   PR3 built (ARCHIVE 15zd: shots panned by place, `panWidth` 0.7, the cannon's and the
   impact's pitch varied 4%), approved by the user; PR4 built (ARCHIVE 15ze: the bad piece
   shaking in every style, a spent life's pip marked, the reason and the leak shown as a life
-  goes, hover texts larger), approved by the user; next PR5, the styles loaded when needed.
+  goes, hover texts larger), approved by the user; PR5 the styles loaded when needed done
+  (ARCHIVE 15zf: each style its own module, `createTheme` async, 32% less script before the
+  menu). Item 7 is finished.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.
@@ -723,6 +725,11 @@ its header but the simulation does not — so the server stamps each header with
   in that frame — a layer of a look readied out of sight, not yet drawn at the new size — would
   show a destroyed context, which Pixi throws on (ARCHIVE 15a). `retire` empties and hides such
   stamps first; a book's shape is only ever shown through `Stamps.place`, which is what lets it.
+- **Each style is a module fetched when first asked for** (`STYLE_MODULES` in `scene.ts`,
+  ARCHIVE 15zf), so `createTheme` is async. Pixi registers the pipes of `Text`, `BitmapText`,
+  `HTMLText`, `TilingSprite` and `NineSliceSprite` as the class is first imported, and a renderer
+  made before has none: a style bringing one of them must have its `pixi.js/…` registration
+  imported up front, as `pixi.js/text` is, or its first drawing throws in `updateRenderable`.
 - **`motionReduced()` is called per particle and per point**: it once read storage and built
   a media query at every call, 48 ms a frame in Opera. It is cached in `motion.ts`; anything
   else read that often must be too.

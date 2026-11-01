@@ -102,7 +102,7 @@ async function renderBoard(
   const canvas = document.createElement('canvas');
   const scene = new Scene();
   const art = artForStyle(defaultArtConfig, style);
-  const look = { theme: createTheme(style, 5), art };
+  const look = { theme: await createTheme(style, 5), art };
   try {
     await scene.init(canvas, { build: look, combat: look }, defaultArtConfig);
     const state = previewState();
@@ -134,7 +134,7 @@ async function render(
   const canvas = document.createElement('canvas');
   const scene = new Scene();
   const art = artForStyle(defaultArtConfig, style);
-  const look = { theme: createTheme(style, 5), art };
+  const look = { theme: await createTheme(style, 5), art };
   try {
     await scene.init(canvas, { build: look, combat: look }, defaultArtConfig);
     const state = previewState();
