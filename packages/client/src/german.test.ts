@@ -9,9 +9,14 @@ import { lobbyMarkup, type LobbyView } from './lobby.js';
 import { galleryMarkup } from './looks.js';
 
 /*
- * The main screens in German (PLAN 11.20): a key or a `{placeholder}` showing through would
- * mean a text the mechanism missed, which the English tests cannot see.
+ * The main screens in German and Hessian (PLAN 11.20): a key or a `{placeholder}` showing
+ * through would mean a text the mechanism missed, which the English tests cannot see.
+ * Hessian keeps the disclaimer in German (the user's choice, 2026-11-01).
  */
+const LANGUAGES = [
+  { language: 'de', name: 'German', start: 'Spiel starten', medieval: 'Mittelalter' },
+  { language: 'hes', name: 'Hessian', start: 'Schbiel starte', medieval: 'Mittelalter' },
+] as const;
 
 function seat(playerId: number, name: string): Seat {
   return { playerId, name, isBot: false, connected: true, ready: false, special: null };
@@ -51,14 +56,14 @@ function clean(html: string): void {
   expect(html).not.toMatch(KEY);
 }
 
-describe('in German', () => {
-  beforeAll(() => setLanguage('de'));
+describe.each(LANGUAGES)('in $name', ({ language, start, medieval }) => {
+  beforeAll(() => setLanguage(language));
   afterAll(() => setLanguage('en'));
 
-  it('writes the lobby in German, for the host and for a guest', () => {
+  it('writes the lobby, for the host and for a guest', () => {
     const host = lobbyMarkup(view());
     clean(host);
-    expect(host).toContain('Spiel starten');
+    expect(host).toContain(start);
     expect(host).toContain('Team A');
     clean(
       lobbyMarkup(
@@ -70,7 +75,7 @@ describe('in German', () => {
     );
   });
 
-  it('writes the open games, the gallery and the credits in German', () => {
+  it('writes the open games, the gallery and the credits', () => {
     clean(
       gamesMarkup([
         {
@@ -87,7 +92,7 @@ describe('in German', () => {
     clean(gamesMarkup([]));
     const gallery = galleryMarkup({ build: 'pixel', combat: 'random' }, 'build');
     clean(gallery);
-    expect(gallery).toContain('Mittelalter');
+    expect(gallery).toContain(medieval);
     const credits = creditsHtml(defaultAudioManifest);
     clean(credits);
     expect(credits).toContain('Bollwerk ist ein inoffizielles Fanspiel');

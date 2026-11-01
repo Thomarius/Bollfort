@@ -65,7 +65,7 @@ leave your seat undriven on the way, so you are soon knocked out), `&speed=10`,
 `&rounds=12` for the round cap, `&specials=1` for special towers (`&tower=bertha3`, a tower at its cost, the person's),
 `&teams=2` for teams of two in seat order, `?icons=sheet` every style's cannon icon side by side
 (`?icons=boards` each style's board, for checking a refactor pixel for pixel), `?gaps=preview`
-the corner gaps' ping in every style, `&lang=de` for a
+the corner gaps' ping in every style, `&lang=de` (or `hes`) for a
 language (not saved). `?tournament=new` and `?tournament=resume` open the tournament screens,
 `?tournament=demo&seed=N` a tournament of teams of two between matches (saved as `t-demo`), and
 `&snapshot=game_over` plays a tournament's match out at once, its result counted. `?host=8` opens
@@ -177,6 +177,9 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 **Done** (2026-11-01; the latest release **v0.9.29**, 2026-11-01, protocol 34, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
+
+- **Hessian** (ARCHIVE 15z, 2026-11-01, the user's joke): a third language, southern Hessian
+  after Badesalz, a normal button beside English and Deutsch, its disclaimer German.
 
 - **Walls readable in every look** (ARCHIVE 15x, 2026-11-01, the testers' feedback): every style
   checked in the build phase; Halloween's crypt walls darker with a rim glowing in the owner's
@@ -503,7 +506,8 @@ which a test session needs the server rebuilt and every page reloaded for):
 - **Around a match**: How to play, the ranking between rounds, awards, a rematch, music
   and sounds volumes, a pause menu with Leave match; rounds of test-session feedback
   (ARCHIVE 11n–11w, 11ze, 12zl). Mouse only; Esc for pause is the one key.
-- **Languages**: English and German, every text in `config/locale/`, chosen in the menu's
+- **Languages**: English, German and Hessian (`hes`, the user's joke, southern Hessian after
+  Badesalz, its disclaimer German; ARCHIVE 15z), every text in `config/locale/`, chosen in the menu's
   Options and the pause menu, the desktop window in the system's language (M15, ARCHIVE 12g). A text is a key
   until shown (`t` in `client/src/i18n.ts`); a new text goes into every locale file, or
   `locale.test.ts` fails.

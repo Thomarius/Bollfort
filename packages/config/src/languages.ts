@@ -3,10 +3,24 @@
  * window can choose one without bundling the whole configuration (PLAN 11.20).
  */
 
-/** The languages the game speaks, by code, each named in itself for the chooser. */
-export const LANGUAGES = ['en', 'de'] as const;
+/**
+ * The languages the game speaks, by code, each named in itself for the chooser. Hessian, the
+ * south Hessian of Badesalz, is the user's joke (2026-11-01): it has no code of its own, so
+ * `hes` here, never sent anywhere, and no browser asks for it — it is only ever chosen.
+ */
+export const LANGUAGES = ['en', 'de', 'hes'] as const;
 export type Language = (typeof LANGUAGES)[number];
-export const LANGUAGE_NAMES: Record<Language, string> = { en: 'English', de: 'Deutsch' };
+export const LANGUAGE_NAMES: Record<Language, string> = {
+  en: 'English',
+  de: 'Deutsch',
+  hes: 'Hessisch',
+};
+
+/**
+ * The language a page declares in `lang`: Hessian is German to the browser, so CSS uppercase
+ * writes ß as SS and a screen reader reads in a German voice.
+ */
+export const PAGE_LANGS: Record<Language, string> = { en: 'en', de: 'de', hes: 'de' };
 
 /** Whether `code` names a language the game speaks. */
 export function isLanguage(code: string | null | undefined): code is Language {
