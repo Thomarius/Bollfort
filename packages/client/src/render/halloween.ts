@@ -52,7 +52,7 @@ import {
   type ViewTransform,
   mixed,
 } from './theme.js';
-import { outline, trace, wallGeometry, type WallBlock } from './walls.js';
+import { outline, strokePieceEdge, trace, wallGeometry, type WallBlock } from './walls.js';
 import { cannonBase } from './cannonBase.js';
 import { ShapeTheme } from './shapeTheme.js';
 import { hueNearness } from './hue.js';
@@ -150,9 +150,12 @@ const SPLASH_MS = 600;
 /**
  * How much of the owner's colour is in the crypt's stone. Dark stone with a cast, so the
  * glowing mortar carries ownership; at 0.4 over pale stone the walls were pastel tiles
- * (the style review).
+ * (the style review). At 0.38 over this stone, red walls were as bright as the dusk land
+ * round them, 1.10:1, and read by hue alone (the readability review, 2026-11-01).
  */
-const STONE_CAST = 0.38;
+const STONE_CAST = 0.55;
+/** How far the stone is sunk towards the shadow, so a wall stands darker than the land. */
+const STONE_SHADE = 0.15;
 /** How far an owner of the dusk's own hue has their stone lifted towards the light (S1). */
 const KIN_LIFT = 0.45;
 /** The share of blocks with a skull carved in them, and with ivy down their face. */
@@ -876,7 +879,11 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
     const stone = dead
       ? mixed(hex(palette.rockDark), hex(palette.rockMid), 0.5)
       : mixed(
-          mixed(hex(palette.rockDark), this.colour(player, 'base'), STONE_CAST),
+          mixed(
+            mixed(hex(palette.rockDark), this.colour(player, 'base'), STONE_CAST),
+            shadow,
+            STONE_SHADE,
+          ),
           hex(palette.rockLight),
           KIN_LIFT * kin,
         );
@@ -922,13 +929,22 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
     };
     if (!dead) {
       seams();
-      g.stroke({ width: t * 0.2, color: spirit, alpha: 0.26 * alpha });
+      g.stroke({ width: t * 0.2, color: spirit, alpha: 0.4 * alpha });
     }
     seams();
-    g.stroke({ width: Math.max(1, t * 0.06), color: spirit, alpha: 0.95 * alpha });
+    g.stroke({ width: Math.max(1, t * 0.08), color: spirit, alpha: 0.95 * alpha });
     trace(g, wall.rim);
     trace(g, wall.faceEdges);
     g.stroke({ width: this.ink(view), color: shadow, alpha: 0.8 * alpha });
+    // The wall's outline glowing over the ink, a halo spilling onto the land: dark stone with
+    // a dark rim sank into the dusk, and only the thin seams said where a wall ran.
+    if (!dead) {
+      const edge = outline(cells, joins, view);
+      trace(g, edge);
+      g.stroke({ width: t * 0.22, color: spirit, alpha: 0.22 * alpha });
+      trace(g, edge);
+      g.stroke({ width: Math.max(1.5, t * 0.09), color: spirit, alpha });
+    }
     if (alpha === 1) this.drawCryptDetail(g, view, wall.blocks, wall.face, stone, dead);
   }
 
@@ -1719,16 +1735,23 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
       const fill = ghost.valid ? this.colour(humanPlayer, 'light') : hex(palette.rockDark);
       for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
-      g.fill({ color: fill, alpha: ghost.valid ? 0.35 : 0.3 });
+      g.fill({ color: fill, alpha: ghost.valid ? 0.6 : 0.3 });
       const waver = motionReduced() ? 0 : Math.sin(now / 160) * t * 0.04;
-      for (const s of outline(cells, inPiece, view)) {
-        g.moveTo(s.x1 + waver, s.y1 - waver).lineTo(s.x2 + waver, s.y2 - waver);
-      }
-      g.stroke({
-        width: Math.max(1.5, t * 0.09),
-        color: ghost.valid ? 0xf4f0ff : hex(palette.uiInvalid),
-        alpha: 0.9,
-      });
+      const edge = outline(cells, inPiece, view).map((s) => ({
+        x1: s.x1 + waver,
+        y1: s.y1 - waver,
+        x2: s.x2 + waver,
+        y2: s.y2 - waver,
+      }));
+      // Dark under pale, so the edge shows on the dusk land and on a wall alike; pale alone
+      // over a wash of 0.35 read at 1.10:1 against the land (the readability review).
+      strokePieceEdge(
+        g,
+        edge,
+        t,
+        hex(palette.shadow),
+        ghost.valid ? 0xf4f0ff : hex(palette.uiInvalid),
+      );
       if (!ghost.valid) {
         for (const { x, y } of cells) {
           const px = tileX(view, x);

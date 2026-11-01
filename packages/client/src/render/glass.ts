@@ -53,7 +53,7 @@ import type { SceneryItem } from './scenery.js';
 import { SceneryLayer } from './sceneryLayer.js';
 import { paneOf, paneShade } from './panes.js';
 import { hash } from './noise.js';
-import { outline, trace, wallGeometry } from './walls.js';
+import { outline, strokePieceEdge, trace, wallGeometry } from './walls.js';
 import { cannonBase } from './cannonBase.js';
 import { release } from './release.js';
 import { clearDrawn } from './clearDrawn.js';
@@ -1536,6 +1536,15 @@ export class GlassTheme implements Theme {
         // The piece in hand as the glass it will be, a little see-through.
         const inPiece = new Set(cells.map((c) => `${c.x},${c.y}`));
         this.drawGlassWall(g, view, cells, (x, y) => inPiece.has(`${x},${y}`), humanPlayer, 0.7);
+        // Its edge, which the see-through wall alone did not show against the ground
+        // (the readability review, 2026-11-01).
+        strokePieceEdge(
+          g,
+          outline(cells, (x, y) => inPiece.has(`${x},${y}`), view),
+          t,
+          hex(palette.shadow),
+          hex(palette.uiInk),
+        );
         return;
       }
       // Where it does not fit: an empty lead frame and a cross in each pane — red glass

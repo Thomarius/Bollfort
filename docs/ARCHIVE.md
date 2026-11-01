@@ -11041,3 +11041,37 @@ island.
 Since v0.9.27: the Frost Cannon's snowflakes and the Subwoofer's pulsing rings and the band its
 wave will sweep on the aiming cursor, the shared glow now the Laser's alone (15v). Protocol 34 and
 recording format 4 as before: a v0.9.26 or v0.9.27 page can join a v0.9.28 room.
+
+## 15x. Walls and the piece in hand readable in every look (2026-11-01)
+
+The testers' feedback: in some looks the borders of wall pieces were hard to see against the
+ground in the build phase, Halloween above all (the user's view too). Every style was shot in the
+build phase — three players, seed 7, round 3, a piece in hand over the person's island — and each
+island compared at twice the size. Sixteen styles read well; they share a dark outline round the
+wall and an owner's colour clearly lighter or darker than the ground, not only a different hue.
+
+- **Halloween**, the worst: the crypt stone, rock with 38% of the owner's colour, was as bright as
+  the dusk land (luminance contrast 1.10:1 for red walls, 1.54:1 for blue), its dark rim lost on
+  the dusky ground and the thin glowing seams the only sign of a wall; the piece in hand, the
+  owner's light at 0.35, measured 1.10:1, a thin pale outline its only edge. The user's choice:
+  walls stay dark stone, with a glowing rim. Now `STONE_CAST` 0.55 and the stone sunk 15% towards
+  the shadow (`STONE_SHADE`), the seams wider and their halo 0.26 → 0.4, and the wall's outline
+  glowing in the owner's light over the ink, a soft halo spilling onto the land. A first try (the
+  halo 0.32 of a tile at 0.3, the line 0.12, the stone sunk 30%) read as hollow neon tubes, the
+  stone barely seen; toned down to 0.22 at 0.22 and 0.09. At eight players the violet owner's
+  walls, which had sunk into the dusk, now read as clearly as the rest.
+- **The piece in hand**: one helper, `strokePieceEdge` in `walls.ts`, a dark line under a light
+  one, so an edge shows on light ground and dark alike. Halloween's piece filled at 0.6 and edged
+  so; Pixel and Night's piece no longer one green pixel round it, its sprites at 0.9; Sakura's
+  wash 0.35 → 0.6, its paper line inside the ink opaque and wider; Noir's ink edge, black on its
+  night cobbles with paper on every other side, now paper all round over the ink, the fill 0.7;
+  Stained glass and Toy bricks, a see-through wall with no edge at all, now edged in the UI's ink
+  over shadow. Pieces that do not fit keep their own forms.
+- **Blueprint**: an owner of the paper's own hue, already washed pale (`colour`), was still pale
+  blue hatching on blue paper. In proportion to its hue's nearness (`hueNearness`, as Halloween's
+  violet), its tops fill more strongly (0.45 → up to 0.85) and its outline is chalked white over a
+  dark edge; the other owners look as they did.
+
+Left as they were: Pixel's placed walls (2.3:1 on the grass, readable), Pirates' slate-blue
+stockade (readable, a matter of taste). Before and after compared in screenshots, the same
+scenes, and Halloween and Blueprint at eight players.

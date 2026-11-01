@@ -68,6 +68,7 @@ import {
   iconFrame,
 } from './theme.js';
 import { clearDrawn } from './clearDrawn.js';
+import { outline, strokePieceEdge } from './walls.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
 
 interface Blast {
@@ -3255,26 +3256,18 @@ export class PixelTheme implements Theme {
       if (joins(x - 1, y)) mask |= W;
       const sprite = this.place(this.ghostLayer, KEY.wall(mask, 0), view, x, y);
       sprite.tint = tint;
-      sprite.alpha = ghost.valid ? 0.8 : 0.6;
+      sprite.alpha = ghost.valid ? 0.9 : 0.6;
     }
     // Round the piece's outside only; lines between its own blocks would cut up the
-    // joined wall the sprites just drew.
-    const g = this.overlayGfx;
-    for (const { x, y } of cells) {
-      const left = tileX(view, x);
-      const top = tileY(view, y);
-      const right = left + view.tile;
-      const bottom = top + view.tile;
-      if (!inPiece.has(`${x},${y - 1}`)) g.moveTo(left, top).lineTo(right, top);
-      if (!inPiece.has(`${x + 1},${y}`)) g.moveTo(right, top).lineTo(right, bottom);
-      if (!inPiece.has(`${x},${y + 1}`)) g.moveTo(left, bottom).lineTo(right, bottom);
-      if (!inPiece.has(`${x - 1},${y}`)) g.moveTo(left, top).lineTo(left, bottom);
-    }
-    g.stroke({
-      width: 1,
-      color: ghost.valid ? hex(this.art.palette.uiValid) : hex(this.art.palette.uiInvalid),
-      alpha: 0.8,
-    });
+    // joined wall the sprites just drew. Dark under light: a one-pixel line in the valid
+    // green was lost against the grass (the readability review, 2026-11-01).
+    strokePieceEdge(
+      this.overlayGfx,
+      outline(cells, (x, y) => inPiece.has(`${x},${y}`), view),
+      view.tile,
+      hex(this.art.palette.shadow),
+      ghost.valid ? hex(this.art.palette.uiValid) : hex(this.art.palette.uiInvalid),
+    );
   }
 
   /** Cycles the sea through its generated frames. */

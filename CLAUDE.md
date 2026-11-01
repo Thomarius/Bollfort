@@ -178,6 +178,11 @@ Full detail in PLAN.md §1. The parts that surprise people:
 **Done** (2026-10-30; the latest release **v0.9.28**, 2026-10-30, protocol 34, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
 
+- **Walls readable in every look** (ARCHIVE 15x, 2026-11-01, the testers' feedback): every style
+  checked in the build phase; Halloween's crypt walls darker with a rim glowing in the owner's
+  light, Blueprint's walls of the paper's hue chalked round, and the piece in hand edged dark under
+  light (`strokePieceEdge`) in Halloween, Pixel and Night, Sakura, Noir, Stained glass and Toy bricks.
+
 - **Special towers finished** (ARCHIVE 15t, 15u, 2026-10-30): the nine towers play-tested by the
   user, great; the team soaks dropped (the user's). Their balance is closed and they are **off by
   default for good** — a wacky addition, not the base game (ARCHIVE 13zw); a new tower is
