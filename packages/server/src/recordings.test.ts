@@ -129,7 +129,7 @@ describe('the recording store', () => {
     expect(lines.map((l) => l.kind)).toEqual(['header', 'tick', 'tick', 'tick']);
   });
 
-  it('stamps every header with the code it runs, whatever the browser claimed', () => {
+  it('stamps every header with the code it runs, whatever the browser claimed', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'rec-'));
     const store = new RecordingStore(dir, 1 << 20, defaultConfigBundle, undefined, 'abc123def456');
     const uploaded = '20260927-100000-local-stamp1';
@@ -139,6 +139,7 @@ describe('the recording store', () => {
     const write = store.writer();
     write(header(own));
     write(tick(1));
+    await store.flushed();
     for (const id of [uploaded, own]) {
       const first = parseRecording(readFileSync(join(dir, `${id}.jsonl`), 'utf8'))[0];
       expect(first?.kind === 'header' && first.commit).toBe('abc123def456');
@@ -172,7 +173,7 @@ describe('the recording store', () => {
     );
   });
 
-  it('never adds to a recording the server made, nor takes one claiming to be the server’s', () => {
+  it('never adds to a recording the server made, nor takes one claiming to be the server’s', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'rec-'));
     const store = new RecordingStore(dir, 1 << 20, defaultConfigBundle);
     // A room's recording, named by its start and the room's code, which anyone can see.
@@ -180,6 +181,7 @@ describe('the recording store', () => {
     const write = store.writer();
     write({ ...header(own), source: 'server' } as RecordingLine);
     write(tick(1));
+    await store.flushed();
     const before = readFileSync(join(dir, `${own}.jsonl`), 'utf8');
     expect(store.upload(own, body(tick(2), tick(3))).ok).toBe(false);
     expect(readFileSync(join(dir, `${own}.jsonl`), 'utf8')).toBe(before);
@@ -190,7 +192,7 @@ describe('the recording store', () => {
     ).toBe(false);
   });
 
-  it('writes a room’s lines to the file its header names', () => {
+  it('writes a room’s lines to the file its header names', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'rec-'));
     const store = new RecordingStore(dir, 1 << 20, defaultConfigBundle);
     const r = room(store.writer());
@@ -198,6 +200,8 @@ describe('the recording store', () => {
     r.start();
     const tickMs = 1000 / defaultConfigBundle.ruleset.tickRateHz;
     for (let i = 0; i < 200; i++) r.update(tickMs);
+    // Appended without blocking the tick: on disk once the appends have run.
+    await store.flushed();
     const files = readdirSync(dir);
     expect(files).toHaveLength(1);
     expect(files[0]).toMatch(/^\d{8}-\d{6}-server-REC123\.jsonl$/);
@@ -233,7 +237,7 @@ describe('the recording store', () => {
     expect(r.finished).toBe(true);
     // Written after the step that ended the match has gone out.
     expect(readdirSync(dir).some((f) => f.endsWith('.stats.csv'))).toBe(false);
-    await new Promise((done) => setImmediate(done));
+    await store.flushed();
     const csv = readdirSync(dir).find((f) => f.endsWith('.stats.csv'));
     expect(csv).toMatch(/^\d{8}-\d{6}-server-END123\.stats\.csv$/);
     const rows = readFileSync(join(dir, csv as string), 'utf8')
@@ -251,6 +255,52 @@ describe('the recording store', () => {
     // A whole bot match: about 3.5 s alone, and past the default 5 s in a full run beside
     // the soak tests on a slower machine, where it failed twice in four runs.
   }, 20_000);
+
+  it('stops a recording at its size cap, and begins none once the folder is full', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'rec-'));
+    const capped = (maxFileBytes: number, maxTotalBytes: number): typeof defaultConfigBundle => ({
+      ...defaultConfigBundle,
+      server: {
+        ...defaultConfigBundle.server,
+        recordings: { ...defaultConfigBundle.server.recordings, maxFileBytes, maxTotalBytes },
+      },
+    });
+    const said: string[] = [];
+    const tickBytes = Buffer.byteLength(`${JSON.stringify(tick(1))}\n`);
+    const headBytes = Buffer.byteLength(
+      `${JSON.stringify(header('20260927-100000-server-CAP1'))}\n`,
+    );
+    const store = new RecordingStore(
+      dir,
+      1 << 20,
+      capped(headBytes + 2 * tickBytes, 1 << 20),
+      (m) => said.push(m),
+    );
+    const write = store.writer();
+    write(header('20260927-100000-server-CAP1'));
+    for (let t = 1; t <= 5; t++) write(tick(t));
+    await store.flushed();
+    const kept = parseRecording(
+      readFileSync(join(dir, '20260927-100000-server-CAP1.jsonl'), 'utf8'),
+    );
+    expect(kept.map((l) => l.kind)).toEqual(['header', 'tick', 'tick']);
+    expect(said.filter((m) => m.includes('maxFileBytes'))).toHaveLength(1);
+
+    // What is there counts, and nothing of it is deleted: a store opened on the folder, now
+    // over its cap, begins no recording, the server's or a browser's.
+    const full = new RecordingStore(dir, 1 << 20, capped(1 << 20, headBytes), (m) => said.push(m));
+    const next = full.writer();
+    next(header('20260927-100000-server-CAP2'));
+    next(tick(1));
+    const local = '20260927-100000-local-cap3xx';
+    expect(full.upload(local, body(header(local), tick(1)))).toEqual({
+      ok: false,
+      reason: 'recordings full',
+    });
+    await full.flushed();
+    expect(readdirSync(dir)).toEqual(['20260927-100000-server-CAP1.jsonl']);
+    expect(said.filter((m) => m.includes('maxTotalBytes'))).toHaveLength(1);
+  });
 
   it('runs on without recording when its folder cannot be made, rather than crash', () => {
     // Beneath a plain file, which no user can make a directory in — not even root, so

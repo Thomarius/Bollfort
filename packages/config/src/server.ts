@@ -39,6 +39,14 @@ export const ServerConfigSchema = z.strictObject({
 
   reconnect: z.strictObject({
     botTakeoverDelayMs: z.number().int().nonnegative(),
+    /**
+     * How often every socket is pinged. One that has answered nothing — no pong, no message —
+     * by the next ping is dropped, so a connection silent for one to two of these reaches the
+     * bot takeover; a half-open one (Wi-Fi gone, a laptop asleep) otherwise lingered until TCP
+     * gave up, minutes in which the match waited. A browser answers a ping below its page's
+     * JavaScript, so a page in the background still does.
+     */
+    heartbeatMs: z.number().int().positive(),
   }),
 
   /** Skill level of the bots that fill empty seats and cover dropped players, 1 to 10. */
@@ -56,6 +64,16 @@ export const ServerConfigSchema = z.strictObject({
     dir: z.string().min(1),
     /** The most a browser may send in one request; it sends a little at a time. */
     maxUploadBytes: z.number().int().positive(),
+    /**
+     * The most one recording may grow to; the rest of a match past it goes unrecorded. The
+     * largest of the user's recordings was 257 KB (2026-11-01), so this only stops a runaway.
+     */
+    maxFileBytes: z.number().int().positive(),
+    /**
+     * The most the folder may hold before new recordings are refused. Nothing is deleted to
+     * make room: the folder is the user's tuning data, and what goes is theirs to choose.
+     */
+    maxTotalBytes: z.number().int().positive(),
   }),
 });
 

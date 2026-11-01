@@ -18,7 +18,8 @@
     "maxTournamentBytes": 262144
   },
   "reconnect": {
-    "botTakeoverDelayMs": 5000
+    "botTakeoverDelayMs": 5000,
+    "heartbeatMs": 5000
   },
   "lobbySettings": {
     "maxRounds": {
@@ -38,6 +39,8 @@
   "recordings": {
     "enabled": true,
     "dir": "recordings",
-    "maxUploadBytes": 1048576
+    "maxUploadBytes": 1048576,
+    "maxFileBytes": 8388608,
+    "maxTotalBytes": 1073741824
   }
 }

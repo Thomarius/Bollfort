@@ -11114,3 +11114,34 @@ the end screen: nothing overflows; "Dunier weiderschbiele" takes two lines in th
 Since v0.9.29: Hessian, a third language — southern Hessian after Badesalz, a normal button
 beside English and Deutsch, its disclaimer German (15z). Protocol 34 and recording format 4 as
 before: a v0.9.29 page can join a v0.9.30 room, each player in their own language.
+
+## 15zb. The server's robustness, PR1 (2026-11-01)
+
+The first package of PLAN §11 item 7, from a review of the whole project that day, triaged with
+the user. Server only, no protocol change:
+
+- **A heartbeat** (`reconnect.heartbeatMs`, 5000): every socket is pinged, and one that has
+  answered nothing since the last ping — no pong, no message — is terminated, so its seat goes
+  to a bot after the usual `botTakeoverDelayMs`. A half-open connection (Wi-Fi gone, a laptop
+  asleep) had been noticed only when TCP gave up, minutes in which the match waited for it. The
+  client's own pings every 2 s were answered and never watched. A browser answers a ping below
+  the page's JavaScript, so a page in the background is not dropped.
+- **`maxPayload`** on the `WebSocketServer`, three times the larger of the two character limits
+  (a character is at most three bytes in UTF-8): `ws` had taken a frame of up to 100 MiB whole
+  before the size was checked. Such a frame now closes the socket with 1009.
+- **Recordings written without blocking**: a room's lines gathered and appended by
+  `fs/promises.appendFile`, one append at a time per match and no file held open between them,
+  where `appendFileSync` had run on the rooms' tick. A browser's upload stays synchronous — a
+  request's few lines. A stop waits for the last appends (`RecordingStore.flushed`). Two caps,
+  `recordings.maxFileBytes` (8 MiB; the user's largest recording is 257 KB) and
+  `maxTotalBytes` (1 GiB): a file stops growing at the first, and past the second no new
+  recording is begun, each said once in the log. **Nothing is ever deleted to make room** — the
+  folder is the user's tuning data.
+- **The build's hash-named files kept for good**: `/assets/<name>-<8-char hash>.<ext>` is sent
+  `public, max-age=31536000, immutable` (`cacheControl`); everything else `no-cache` with its
+  `ETag` as in 14b, and the page that answers a missing asset never under that asset's name.
+  Some sixteen requests a load no longer asked again.
+
+Checked against the real server and the built client (the headers by `curl`), and by tests: a
+socket told not to answer pings dropped within a second at a 50 ms heartbeat while one that
+answers stays, a 4 MiB frame refused with 1009, both caps, and the cache headers.

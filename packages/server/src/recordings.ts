@@ -1,4 +1,13 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import { appendFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { statsCsv, statsOfRecording } from '@bollwerk/analysis';
@@ -11,8 +20,12 @@ import { RecordingLineSchema, parseRecording, type RecordingLine } from '@bollwe
  *
  * Lines are appended as the match runs, so a match abandoned halfway, or a server
  * stopped mid-game, keeps everything up to that point. The server records its own rooms
- * directly; a browser playing a match on its own sends its lines here instead, since it
- * has no disk to write to.
+ * directly, a tick's lines gathered and appended without blocking, since the rooms' ticks
+ * run on the same thread; a browser playing a match on its own sends its lines here
+ * instead, since it has no disk to write to.
+ *
+ * Bounded twice: a file stops growing at `maxFileBytes`, and once the folder holds
+ * `maxTotalBytes` no new recording is begun. Nothing is ever deleted to make room.
  *
  * When a match ends its statistics are written beside it, `<id>.stats.csv`: the same
  * per-round table `--replay` produces, by the same replay, so nothing has to be run by
@@ -20,6 +33,11 @@ import { RecordingLineSchema, parseRecording, type RecordingLine } from '@bollwe
  * reads it.
  */
 export class RecordingStore {
+  /** The folder's size, counted once at the start and kept up as files are written. */
+  private used = 0;
+  /** Appends under way, so a stop can wait for them (`flushed`). */
+  private readonly writing = new Set<Promise<void>>();
+
   constructor(
     private readonly dir: string,
     private readonly maxUploadBytes: number,
@@ -31,6 +49,35 @@ export class RecordingStore {
     private readonly commit: string | null = null,
   ) {
     mkdirSync(dir, { recursive: true });
+    for (const name of readdirSync(dir)) {
+      const stat = statSync(join(dir, name), { throwIfNoEntry: false });
+      if (stat?.isFile() === true) this.used += stat.size;
+    }
+  }
+
+  private get limits(): { maxFileBytes: number; maxTotalBytes: number } {
+    return this.bundle.server.recordings;
+  }
+
+  /** Whether the folder being full has been logged yet: once a session is enough. */
+  private saidFull = false;
+
+  /** Whether a new recording may begin, saying once a session when it may not. */
+  private roomForAnother(id: string): boolean {
+    if (this.used < this.limits.maxTotalBytes) return true;
+    if (!this.saidFull) {
+      this.log(
+        `recording ${id}: not recorded — ${this.dir} holds ${this.used} bytes, ` +
+          `the most allowed (recordings.maxTotalBytes)`,
+      );
+      this.saidFull = true;
+    }
+    return false;
+  }
+
+  /** Resolves once every append begun so far is on disk, and any statistics after it. */
+  async flushed(): Promise<void> {
+    while (this.writing.size > 0) await Promise.all(this.writing);
   }
 
   /**
@@ -39,20 +86,33 @@ export class RecordingStore {
    * the replay itself takes a fraction of a second.
    */
   private finish(id: string): void {
-    setImmediate(() => {
-      try {
-        const lines = parseRecording(readFileSync(join(this.dir, `${id}.jsonl`), 'utf8'));
-        const { rows, replay } = statsOfRecording(this.bundle, lines);
-        writeFileSync(join(this.dir, `${id}.stats.csv`), statsCsv(rows), 'utf8');
-        const exact = replay.mismatches.length === 0 && replay.refused === 0;
-        this.log(
-          `recording ${id}: ${rows.length} statistics row(s)` +
-            (exact ? '' : ' — the replay DIVERGED from the match, so these are not to be trusted'),
-        );
-      } catch (error) {
-        this.log(`recording ${id}: no statistics (${String(error).slice(0, 120)})`);
-      }
-    });
+    const done = new Promise<void>((resolve) =>
+      setImmediate(() => {
+        try {
+          const lines = parseRecording(readFileSync(join(this.dir, `${id}.jsonl`), 'utf8'));
+          const { rows, replay } = statsOfRecording(this.bundle, lines);
+          const csv = statsCsv(rows);
+          writeFileSync(join(this.dir, `${id}.stats.csv`), csv, 'utf8');
+          this.used += Buffer.byteLength(csv);
+          const exact = replay.mismatches.length === 0 && replay.refused === 0;
+          this.log(
+            `recording ${id}: ${rows.length} statistics row(s)` +
+              (exact
+                ? ''
+                : ' — the replay DIVERGED from the match, so these are not to be trusted'),
+          );
+        } catch (error) {
+          this.log(`recording ${id}: no statistics (${String(error).slice(0, 120)})`);
+        }
+        resolve();
+      }),
+    );
+    this.track(done);
+  }
+
+  private track(work: Promise<void>): void {
+    this.writing.add(work);
+    void work.finally(() => this.writing.delete(work));
   }
 
   /** A header as this server writes it: carrying its code, whatever it said before. */
@@ -62,15 +122,56 @@ export class RecordingStore {
     return this.commit === null ? rest : { ...rest, commit: this.commit };
   }
 
-  /** A writer for one match: the header names the file, every later line joins it. */
+  /**
+   * A writer for one match: the header names the file, every later line joins it. Lines
+   * wait in memory while an append is under way and go in the next one, in order; none
+   * holds a file open between appends, so a match abandoned without an end leaves nothing
+   * behind. The statistics follow the append that carried the end.
+   */
   writer(): (line: RecordingLine) => void {
     let id: string | null = null;
+    let file = '';
+    let size = 0;
+    let pending = '';
+    let ended = false;
+    let busy = false;
+    const drain = async (): Promise<void> => {
+      while (pending !== '') {
+        const chunk = pending;
+        const ends = ended;
+        pending = '';
+        ended = false;
+        try {
+          await appendFile(file, chunk);
+        } catch (error) {
+          this.log(`recording ${id}: a write failed (${String(error).slice(0, 120)})`);
+        }
+        if (ends && id !== null) this.finish(id);
+      }
+      busy = false;
+    };
     return (given) => {
       const line = this.stamped(given);
-      if (line.kind === 'header') id = line.id;
+      if (line.kind === 'header') {
+        id = this.roomForAnother(line.id) ? line.id : null;
+        file = join(this.dir, `${line.id}.jsonl`);
+      }
       if (id === null) return;
-      appendFileSync(join(this.dir, `${id}.jsonl`), `${JSON.stringify(line)}\n`);
-      if (line.kind === 'end') this.finish(id);
+      const text = `${JSON.stringify(line)}\n`;
+      const bytes = Buffer.byteLength(text);
+      if (size + bytes > this.limits.maxFileBytes) {
+        this.log(`recording ${id}: stopped at ${size} bytes (recordings.maxFileBytes)`);
+        id = null;
+        return;
+      }
+      size += bytes;
+      this.used += bytes;
+      pending += text;
+      if (line.kind === 'end') ended = true;
+      if (!busy) {
+        busy = true;
+        this.track(drain());
+      }
     };
   }
 
@@ -87,7 +188,8 @@ export class RecordingStore {
   upload(id: string, body: string): { ok: true } | { ok: false; reason: string } {
     if (!/^[A-Za-z0-9-]{8,64}$/.test(id)) return { ok: false, reason: 'bad id' };
     if (!id.includes('-local-')) return { ok: false, reason: 'not a browser recording' };
-    if (Buffer.byteLength(body) > this.maxUploadBytes) return { ok: false, reason: 'too large' };
+    const bytes = Buffer.byteLength(body);
+    if (bytes > this.maxUploadBytes) return { ok: false, reason: 'too large' };
     const lines: RecordingLine[] = [];
     try {
       for (const text of body.split('\n')) {
@@ -101,6 +203,10 @@ export class RecordingStore {
     }
     const file = join(this.dir, `${id}.jsonl`);
     const exists = existsSync(file);
+    if (!exists && !this.roomForAnother(id)) return { ok: false, reason: 'recordings full' };
+    if ((exists ? statSync(file).size : 0) + bytes > this.limits.maxFileBytes) {
+      return { ok: false, reason: 'too large' };
+    }
     for (const [i, line] of lines.entries()) {
       const opens = !exists && i === 0;
       if (line.kind === 'header' && (!opens || line.id !== id)) {
@@ -112,7 +218,11 @@ export class RecordingStore {
       if (opens && line.kind !== 'header') return { ok: false, reason: 'no header' };
     }
     if (lines.length > 0) {
-      appendFileSync(file, lines.map((line) => `${JSON.stringify(line)}\n`).join(''));
+      // Still synchronous: a request's few lines, and the next request's header check reads
+      // whether this file exists.
+      const text = lines.map((line) => `${JSON.stringify(line)}\n`).join('');
+      appendFileSync(file, text);
+      this.used += Buffer.byteLength(text);
     }
     if (lines.some((line) => line.kind === 'end')) this.finish(id);
     return { ok: true };
