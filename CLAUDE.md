@@ -529,6 +529,10 @@ which a test session needs the server rebuilt and every page reloaded for):
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the online-only states
   not yet checked with the real server — the open games listed, a room's code — and a tournament
   match's end and a person's Rematch.
+- **Polish before the first feature-ready version** (PLAN §11 item 7, triaged 2026-11-01): five
+  packages, PR1 the server's robustness done (ARCHIVE 15zb: a heartbeat, `maxPayload`,
+  recordings appended without blocking and capped, never pruned, hash-named assets `immutable`);
+  next PR2, the connection in the match, best just before the online session.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

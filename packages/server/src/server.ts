@@ -67,6 +67,8 @@ export interface ServerOptions {
   upnp?: boolean;
   /** The port opener; a real one by default, a fake in tests. */
   opener?: PortOpener;
+  /** The config's `reconnect.heartbeatMs` by default; short in tests. */
+  heartbeatMs?: number;
 }
 
 export interface RunningServer {
@@ -130,6 +132,18 @@ export function staticAnswer(
   return { status: asked.includes(etag) || asked.includes('*') ? 304 : 200, etag };
 }
 
+/**
+ * The build's own files are named by a hash of their contents (`assets/index-De-tDLdd.js`), so
+ * a new release's are new names and an old name never changes: a browser may keep them for good
+ * without asking again. Everything else — the page, the sound and music under fixed names — is
+ * asked after once a load, as `staticAnswer` says.
+ */
+export function cacheControl(rel: string): string {
+  return /^[/\\]?assets[/\\][^/\\]+-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/.test(rel)
+    ? 'public, max-age=31536000, immutable'
+    : 'no-cache';
+}
+
 export async function startServer(options: ServerOptions): Promise<StartResult> {
   const bundle = loadConfigBundle(options.root);
   const log = options.log ?? ((message: string) => console.error(message));
@@ -190,7 +204,12 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
     const url = new URL(req.url ?? '/', 'http://localhost');
     const rel = normalize(url.pathname).replace(/^(\.\.[/\\])+/, '');
     let file = join(clientDist, rel);
-    if (!existsSync(file) || statSync(file).isDirectory()) file = join(clientDist, 'index.html');
+    let kept = cacheControl(rel);
+    if (!existsSync(file) || statSync(file).isDirectory()) {
+      // The page in place of a missing file must never be kept under the file's name.
+      file = join(clientDist, 'index.html');
+      kept = 'no-cache';
+    }
 
     if (!existsSync(file)) {
       res.writeHead(503, { 'content-type': 'text/plain' });
@@ -199,7 +218,7 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
     }
     const stat = statSync(file);
     const { status, etag } = staticAnswer(stat, req.headers['if-none-match']);
-    const headers = { etag, 'cache-control': 'no-cache' };
+    const headers = { etag, 'cache-control': kept };
     if (status === 304) {
       res.writeHead(304, headers).end();
       return;
@@ -246,13 +265,36 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
   });
   if (bound !== 'ok') return { ok: false, reason: bound, port, host };
 
-  const wss = new WebSocketServer({ server: http });
+  const { maxMessageBytes, maxTournamentBytes } = bundle.server.limits;
+  // The limits below count characters; a character is at most three bytes in UTF-8. Without
+  // this `ws` took a frame of up to 100 MiB whole before the size was ever checked.
+  const wss = new WebSocketServer({
+    server: http,
+    maxPayload: 3 * Math.max(maxMessageBytes, maxTournamentBytes),
+  });
   let nextConnectionId = 0;
   /** Which room each connection is in, so later messages can be routed without a scan. */
   const joined = new Map<string, Room>();
 
+  /** Sockets heard from since the last heartbeat; see `reconnect.heartbeatMs`. */
+  const heard = new WeakSet<WebSocket>();
+  const heartbeat = setInterval(() => {
+    for (const socket of wss.clients) {
+      if (!heard.has(socket)) {
+        // Closes it at once, without the closing handshake a silent peer would never answer;
+        // its 'close' hands the seat on as any leaving does.
+        socket.terminate();
+        continue;
+      }
+      heard.delete(socket);
+      socket.ping();
+    }
+  }, options.heartbeatMs ?? bundle.server.reconnect.heartbeatMs);
+
   wss.on('connection', (socket: WebSocket) => {
     const id = `c${nextConnectionId++}`;
+    heard.add(socket);
+    socket.on('pong', () => heard.add(socket));
     let messagesThisSecond = 0;
     let windowStart = Date.now();
 
@@ -268,6 +310,7 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
     };
 
     socket.on('message', (raw: Buffer | string) => {
+      heard.add(socket);
       const now = Date.now();
       if (now - windowStart > 1000) {
         windowStart = now;
@@ -276,7 +319,6 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
       if (++messagesThisSecond > bundle.server.limits.maxMessagesPerSecond) return;
 
       const text = typeof raw === 'string' ? raw : raw.toString('utf8');
-      const { maxMessageBytes, maxTournamentBytes } = bundle.server.limits;
       if (text.length > Math.max(maxMessageBytes, maxTournamentBytes)) return;
 
       const message = decodeClientMessage(text);
@@ -412,11 +454,15 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
         ]);
         stopping ??= new Promise<void>((resolve) => {
           clearInterval(ticking);
+          clearInterval(heartbeat);
           for (const client of wss.clients) client.terminate();
           wss.close();
           http.closeAllConnections();
           http.close(() => resolve());
-        }).then(() => unmapped);
+        })
+          // A recording's last lines, appended without blocking, are on disk before stop returns.
+          .then(() => store?.flushed())
+          .then(() => unmapped);
         return stopping;
       },
     },

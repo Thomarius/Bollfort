@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { WebSocket } from 'ws';
 
 import { repoRoot } from './paths.js';
-import { startServer, staticAnswer, type RunningServer } from './server.js';
+import { cacheControl, startServer, staticAnswer, type RunningServer } from './server.js';
 import { PortOpener, type Router } from './upnp.js';
 
 /** A server on a free port, recording into a folder of its own, as the desktop app's. */
@@ -98,6 +98,45 @@ describe('a connection', () => {
   });
 });
 
+describe('a silent connection', () => {
+  it('is dropped after a heartbeat unanswered, while one that answers stays', async () => {
+    const result = await startServer({
+      root: repoRoot,
+      port: 0,
+      host: '127.0.0.1',
+      recordingsDir: mkdtempSync(join(tmpdir(), 'bollwerk-server-')),
+      commit: null,
+      log: () => undefined,
+      heartbeatMs: 50,
+    });
+    if (!result.ok) throw new Error(result.reason);
+    const url = `ws://127.0.0.1:${result.server.port}`;
+    // A peer gone half-open answers no ping, as this one, told not to, does not.
+    const silent = new WebSocket(url, { autoPong: false });
+    const live = new WebSocket(url);
+    const closed = new Promise<number>((resolve) => {
+      const opened = Date.now();
+      silent.on('close', () => resolve(Date.now() - opened));
+    });
+    expect(await closed).toBeLessThan(1000);
+    await new Promise((done) => setTimeout(done, 300));
+    expect(live.readyState).toBe(WebSocket.OPEN);
+    live.close();
+    await result.server.stop();
+  });
+
+  it('may not send a frame far beyond the largest message there is', async () => {
+    const server = await started();
+    const socket = new WebSocket(`ws://127.0.0.1:${server.port}`);
+    await new Promise((resolve) => socket.on('open', resolve));
+    const code = new Promise<number>((resolve) => socket.on('close', resolve));
+    socket.send('x'.repeat(4 << 20));
+    // 1009: "message too big", said by `ws` before it holds the frame whole.
+    expect(await code).toBe(1009);
+    await server.stop();
+  });
+});
+
 describe('opening the port to the internet', () => {
   it('puts the public address in the lobby while open, and takes it out when closed', async () => {
     const router: Router = {
@@ -172,6 +211,40 @@ describe('the static files, kept by the browser', () => {
     expect(staticAnswer(file, `W/"other", ${etag}`).status).toBe(304);
     expect(staticAnswer({ ...file, size: 9001 }, etag).status).toBe(200);
     expect(staticAnswer({ ...file, mtimeMs: file.mtimeMs + 1000 }, etag).status).toBe(200);
+  });
+
+  it('lets the browser keep the build’s hash-named files for good, and nothing else', () => {
+    expect(cacheControl('/assets/index-De-tDLdd.js')).toMatch(/immutable/);
+    expect(cacheControl('/assets/inter-latin-wght-normal-Dx4kXJAl.woff2')).toMatch(/immutable/);
+    expect(cacheControl('/index.html')).toBe('no-cache');
+    expect(cacheControl('/audio/music/menu.mp3')).toBe('no-cache');
+    expect(cacheControl('/assets/unhashed.js')).toBe('no-cache');
+    expect(cacheControl('/assets/sub/index-De-tDLdd.js')).toBe('no-cache');
+  });
+
+  it('never lets the page answering a missing asset be kept under its name', async () => {
+    const clientDir = mkdtempSync(join(tmpdir(), 'bollwerk-client-'));
+    mkdirSync(join(clientDir, 'assets'));
+    writeFileSync(join(clientDir, 'index.html'), '<!doctype html>');
+    writeFileSync(join(clientDir, 'assets', 'index-AbCd1234.js'), 'code');
+    const result = await startServer({
+      root: repoRoot,
+      port: 0,
+      host: '127.0.0.1',
+      clientDir,
+      recordingsDir: mkdtempSync(join(tmpdir(), 'bollwerk-server-')),
+      commit: null,
+      log: () => undefined,
+    });
+    if (!result.ok) throw new Error(result.reason);
+    const base = `http://127.0.0.1:${result.server.port}/assets/`;
+    const real = await fetch(`${base}index-AbCd1234.js`);
+    expect(real.headers.get('cache-control')).toMatch(/immutable/);
+    expect(await real.text()).toBe('code');
+    const missing = await fetch(`${base}index-ZzZz9999.js`);
+    expect(missing.headers.get('cache-control')).toBe('no-cache');
+    expect(await missing.text()).toBe('<!doctype html>');
+    await result.server.stop();
   });
 
   it('serves a file once, then only says it has not changed, until it has', async () => {

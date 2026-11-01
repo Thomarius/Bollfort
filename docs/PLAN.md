@@ -1822,6 +1822,42 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    the fades and caption good; the score bar taken out (2026-10-29), so it reads as a
    screensaver rather than a game keeping score. Nothing open.
 
+7. **Polish before the first feature-ready version** (from a review of 2026-11-01, triaged with
+   the user the same day). Declined in the triage: loading the styles' music after the menu (all
+   files are waited for, as in 14b), lowering the music under big moments, new sounds for now
+   (the Architect's sweep, the overtime, a breach), a harder shake for heavy hits, a colour-blind
+   palette for now, a wheel direction setting, and guidance in a first match. Five packages, in
+   this order, each a session:
+   - **PR1 — The server's robustness — done** (ARCHIVE 15zb): a heartbeat that terminates a connection silent for
+     about 10 s, so a half-open socket (Wi-Fi dropped, a laptop asleep) reaches the bot takeover
+     in seconds rather than when TCP gives up (`server.ts`, `room.ts`); `maxPayload` on the
+     `WebSocketServer` (now `ws`'s 100 MiB, read whole before the size check); recordings written
+     by an async stream rather than `appendFileSync` on the tick path, with a cap on a file's and
+     the folder's size; and `immutable` caching for the build's hashed `/assets/`, everything else
+     `no-cache` as now. Server only, no protocol change.
+   - **PR2 — The connection in the match**: a closed socket shown ("Connection lost —
+     reconnecting…", the badge red) where now the board freezes under "Online · 30 ms"; the page
+     rejoins by itself with its seat's token, which the server already honours (`room.ts` `join`)
+     but the client uses only after a reload; "Out of sync" recovered the same way, by rejoining
+     for a fresh snapshot (no protocol change, unless rejoining over a live socket proves
+     awkward); and a seat away or played by a bot marked on its score row (`SeatSchema.connected`,
+     shown now only in the lobby). New texts in all three languages. Best done just before the
+     online session, which can then check it.
+   - **PR3 — Shots heard where they land**: every shot and impact panned by its x across the
+     board (a `StereoPannerNode` per voice), and a small pitch variation (about ±4%) to try, kept
+     only if it sounds right; every shot at one volume, the player's and the rivals' alike.
+   - **PR4 — Feedback in the match**: the invalid ghost's wobble, now in seven styles (Pirates,
+     Anime, Wild West, Stadium, Mythos, Cartoon, Noir), moved into the shared `GhostMotion` for
+     all 24, pixel-rounded in Pixel; a life lost marked on its pip and the timer's last seconds
+     given a pop (Reduced motion off); the life-lost banner saying why ("No castle sealed") and
+     the leak marked briefly at the round's end; the hover texts 13 px, flipped below at the top
+     edge and shown on `:focus-visible` too.
+   - **PR5 — The styles loaded when needed**: the client is one 1.58 MB file (468 KB gzipped)
+     because `render/scene.ts` imports all 24 styles; `createTheme` made async over a registry of
+     dynamic imports, each style fetched before its look is primed (`Scene.prime`, the warm-up,
+     the gallery, the tower preview, the icon sheet, the demo). The largest change and the least
+     felt on the desktop app, so last; measure the start before and after.
+
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
 UI polish, all in ARCHIVE 11h; 11.11 the second visual pass and 11.12 the first
