@@ -72,7 +72,7 @@ export class TowerPreview {
     const state = show.state;
     if (this.scene === null) {
       const look = {
-        theme: createTheme(this.style, state.seed),
+        theme: await createTheme(this.style, state.seed),
         art: artForStyle(defaultArtConfig, this.style),
       };
       const scene = new Scene();

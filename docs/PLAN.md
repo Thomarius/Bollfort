@@ -1852,7 +1852,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      given a pop (Reduced motion off); the life-lost banner saying why ("No castle sealed") and
      the leak marked briefly at the round's end; the hover texts 13 px, flipped below at the top
      edge and shown on `:focus-visible` too.
-   - **PR5 — The styles loaded when needed**: the client is one 1.58 MB file (468 KB gzipped)
+   - **PR5 — The styles loaded when needed — done** (ARCHIVE 15zf): the client is one 1.58 MB file (468 KB gzipped)
      because `render/scene.ts` imports all 24 styles; `createTheme` made async over a registry of
      dynamic imports, each style fetched before its look is primed (`Scene.prime`, the warm-up,
      the gallery, the tower preview, the icon sheet, the demo). The largest change and the least

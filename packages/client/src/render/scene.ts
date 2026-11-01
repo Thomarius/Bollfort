@@ -1,6 +1,10 @@
 import { defaultArtConfig, type ArtConfig, type ArtStyle } from '@bollwerk/config';
 import { strikesOnFiring, type MatchState, type Shot } from '@bollwerk/sim';
 import { Application, BigPool, Container, Graphics, Rectangle, RenderTexture } from 'pixi.js';
+// The text pipe, registered before any renderer starts: Pixi registers it as `Text` is first
+// imported, which is now as a style using it is fetched (`STYLE_MODULES`), after the renderer
+// was made — and that renderer, without the pipe, threw at the first text it drew (ARCHIVE 15zf).
+import 'pixi.js/text';
 
 import type { CameraShot } from '../camera.js';
 import type { DrainWash, SealGlow } from '../seal.js';
@@ -10,30 +14,7 @@ import { withDrawBudget } from './islandParts.js';
 import { StripContainer } from './terrainStrips.js';
 import { bloomWanted, renderResolution } from '../graphics.js';
 
-import { BlueprintTheme } from './blueprint.js';
-import { BricksTheme } from './bricks.js';
-import { ChocolateTheme } from './chocolate.js';
-import { HalloweenTheme } from './halloween.js';
-import { OktoberfestTheme } from './oktoberfest.js';
-import { OfficeTheme } from './office.js';
-import { UnderseaTheme } from './undersea.js';
-import { ElectricTheme } from './electric.js';
-import { CartoonTheme } from './cartoon.js';
-import { ChristmasTheme } from './christmas.js';
-import { NoirTheme } from './noir.js';
-import { SportsTheme } from './sports.js';
-import { PiratesTheme } from './pirates.js';
-import { AnimeTheme } from './anime.js';
-import { MythologyTheme } from './mythology.js';
-import { WildWestTheme } from './wildwest.js';
-import { OperaTheme } from './opera.js';
 import { release } from './release.js';
-import { SakuraTheme } from './sakura.js';
-import { GlassTheme } from './glass.js';
-import { CyberpunkTheme } from './cyberpunk.js';
-import { FlatTheme } from './flat.js';
-import { ParchmentTheme } from './parchment.js';
-import { PixelTheme } from './pixel.js';
 import { TowerMarks } from './towerMarks.js';
 import {
   hex,
@@ -51,59 +32,58 @@ import {
 
 export type { Ghost, Theme, ViewTransform } from './theme.js';
 
-/** Every style the client can render in. */
-export function createTheme(style: ArtStyle, seed = 1): Theme {
-  switch (style) {
-    case 'flat':
-      return new FlatTheme();
-    case 'pixel':
-    case 'night':
-      // Night is the pixel style under its own palette: the same sprites, generated
-      // from different colours.
-      return new PixelTheme(seed, style);
-    case 'cyberpunk':
-      return new CyberpunkTheme(seed);
-    case 'blueprint':
-      return new BlueprintTheme();
-    case 'parchment':
-      return new ParchmentTheme(seed);
-    case 'bricks':
-      return new BricksTheme();
-    case 'glass':
-      return new GlassTheme();
-    case 'chocolate':
-      return new ChocolateTheme(seed);
-    case 'halloween':
-      return new HalloweenTheme(seed);
-    case 'sakura':
-      return new SakuraTheme(seed);
-    case 'oktoberfest':
-      return new OktoberfestTheme(seed);
-    case 'opera':
-      return new OperaTheme(seed);
-    case 'office':
-      return new OfficeTheme(seed);
-    case 'undersea':
-      return new UnderseaTheme(seed);
-    case 'electric':
-      return new ElectricTheme(seed);
-    case 'cartoon':
-      return new CartoonTheme(seed);
-    case 'christmas':
-      return new ChristmasTheme(seed);
-    case 'noir':
-      return new NoirTheme(seed);
-    case 'sports':
-      return new SportsTheme(seed);
-    case 'pirates':
-      return new PiratesTheme(seed);
-    case 'anime':
-      return new AnimeTheme(seed);
-    case 'mythology':
-      return new MythologyTheme(seed);
-    case 'wildwest':
-      return new WildWestTheme(seed);
+/** A style's theme, made for a match's seed. */
+type ThemeMaker = (seed: number) => Theme;
+
+/**
+ * Every style the client can render in, each its own module fetched the first time it is asked
+ * for (ARCHIVE 15zf): imported whole, the 24 styles were most of a 1.58 MB file every page parsed
+ * at its start, for the two or three a menu shows. Night is the pixel style under its own palette:
+ * the same sprites, generated from different colours.
+ */
+const STYLE_MODULES: Record<ArtStyle, () => Promise<ThemeMaker>> = {
+  flat: () => import('./flat.js').then((m) => () => new m.FlatTheme()),
+  pixel: () => import('./pixel.js').then((m) => (seed) => new m.PixelTheme(seed, 'pixel')),
+  night: () => import('./pixel.js').then((m) => (seed) => new m.PixelTheme(seed, 'night')),
+  cyberpunk: () => import('./cyberpunk.js').then((m) => (seed) => new m.CyberpunkTheme(seed)),
+  blueprint: () => import('./blueprint.js').then((m) => () => new m.BlueprintTheme()),
+  parchment: () => import('./parchment.js').then((m) => (seed) => new m.ParchmentTheme(seed)),
+  bricks: () => import('./bricks.js').then((m) => () => new m.BricksTheme()),
+  glass: () => import('./glass.js').then((m) => () => new m.GlassTheme()),
+  chocolate: () => import('./chocolate.js').then((m) => (seed) => new m.ChocolateTheme(seed)),
+  halloween: () => import('./halloween.js').then((m) => (seed) => new m.HalloweenTheme(seed)),
+  sakura: () => import('./sakura.js').then((m) => (seed) => new m.SakuraTheme(seed)),
+  oktoberfest: () => import('./oktoberfest.js').then((m) => (seed) => new m.OktoberfestTheme(seed)),
+  opera: () => import('./opera.js').then((m) => (seed) => new m.OperaTheme(seed)),
+  office: () => import('./office.js').then((m) => (seed) => new m.OfficeTheme(seed)),
+  undersea: () => import('./undersea.js').then((m) => (seed) => new m.UnderseaTheme(seed)),
+  electric: () => import('./electric.js').then((m) => (seed) => new m.ElectricTheme(seed)),
+  cartoon: () => import('./cartoon.js').then((m) => (seed) => new m.CartoonTheme(seed)),
+  christmas: () => import('./christmas.js').then((m) => (seed) => new m.ChristmasTheme(seed)),
+  noir: () => import('./noir.js').then((m) => (seed) => new m.NoirTheme(seed)),
+  sports: () => import('./sports.js').then((m) => (seed) => new m.SportsTheme(seed)),
+  pirates: () => import('./pirates.js').then((m) => (seed) => new m.PiratesTheme(seed)),
+  anime: () => import('./anime.js').then((m) => (seed) => new m.AnimeTheme(seed)),
+  mythology: () => import('./mythology.js').then((m) => (seed) => new m.MythologyTheme(seed)),
+  wildwest: () => import('./wildwest.js').then((m) => (seed) => new m.WildWestTheme(seed)),
+};
+
+const loaded = new Map<ArtStyle, Promise<ThemeMaker>>();
+
+/** A style's module, fetched once; asked again, the same. A failed fetch may be asked again. */
+export function loadStyle(style: ArtStyle): Promise<ThemeMaker> {
+  let maker = loaded.get(style);
+  if (maker === undefined) {
+    maker = STYLE_MODULES[style]();
+    loaded.set(style, maker);
+    maker.catch(() => loaded.delete(style));
   }
+  return maker;
+}
+
+/** A theme in `style`, its module fetched first if it has not been. */
+export async function createTheme(style: ArtStyle, seed = 1): Promise<Theme> {
+  return (await loadStyle(style))(seed);
 }
 
 /** One look: the theme that draws it, and the art in that theme's own colours. */

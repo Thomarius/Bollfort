@@ -82,7 +82,7 @@ async function draw(
   const canvas = document.createElement('canvas');
   const scene = new Scene();
   const art = artForStyle(defaultArtConfig, style);
-  const look = { theme: createTheme(style, PREVIEW_SEED), art };
+  const look = { theme: await createTheme(style, PREVIEW_SEED), art };
   try {
     await scene.init(canvas, { build: look, combat: look }, defaultArtConfig);
     const enclosure = computeEnclosure(state);
