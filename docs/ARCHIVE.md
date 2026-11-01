@@ -11256,3 +11256,16 @@ brought `Text` after the match's renderer was made, and its first text threw in
 styles fetched mid-match, were clean, as were three on the old build. Checked too: the icon
 sheet (every module, 1,152 pictures), the gallery's 25 pictures and its live previews, and the
 tower menu's preview in Noir.
+
+## 15zg. v0.9.31 (2026-11-01)
+
+Since v0.9.30, the polish before the first feature-ready version (PLAN §11 item 7), its five
+packages: the server's robustness — a heartbeat, a limit on a frame, recordings appended without
+blocking and capped, the build's hashed files kept for good (15zb); the connection in the match —
+a dropped page rejoining its seat by itself, a notice over the board, a desync mended by
+rejoining, a dropped person marked AWAY, the badge in the corner's row (15zc); shots heard where
+they land, and their pitch varied a little (15zd); the bad piece shaking in every style, a spent
+life's pip marked, the reason and the leak shown as a life goes, larger hover texts (15ze); and
+the styles loaded when needed, 32% less script before the menu (15zf). Protocol 34 and recording
+format 4 as before: a v0.9.30 page can join a v0.9.31 room, though only a v0.9.31 page rejoins by
+itself.
