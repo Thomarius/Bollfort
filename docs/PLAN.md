@@ -1843,7 +1843,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      awkward); and a seat away or played by a bot marked on its score row (`SeatSchema.connected`,
      shown now only in the lobby). New texts in all three languages. Best done just before the
      online session, which can then check it.
-   - **PR3 — Shots heard where they land**: every shot and impact panned by its x across the
+   - **PR3 — Shots heard where they land — done** (ARCHIVE 15zd), heard and approved by the user: every shot and impact panned by its x across the
      board (a `StereoPannerNode` per voice), and a small pitch variation (about ±4%) to try, kept
      only if it sounds right; every shot at one volume, the player's and the rivals' alike.
    - **PR4 — Feedback in the match**: the invalid ghost's wobble, now in seven styles (Pirates,

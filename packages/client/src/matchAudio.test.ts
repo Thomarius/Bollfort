@@ -10,11 +10,13 @@ class Recorder implements Cues {
   readonly sfx: SfxCue[] = [];
   readonly gains: number[] = [];
   readonly delays: number[] = [];
+  readonly pans: number[] = [];
   readonly tracks: (MusicTrack | null)[] = [];
-  play(cue: SfxCue, gain = 1, delayMs = 0): void {
+  play(cue: SfxCue, gain = 1, delayMs = 0, pan = 0): void {
     this.sfx.push(cue);
     this.gains.push(gain);
     this.delays.push(delayMs);
+    this.pans.push(pan);
   }
   music(cue: MusicTrack | null): void {
     this.tracks.push(cue);
@@ -559,5 +561,52 @@ describe('the styles’ own tracks', () => {
       { kind: 'game_over', tick: 9, winners: [HUMAN], draw: false, endedBy: 'elimination' },
     ]);
     expect(audio.tracks).toEqual(['style:noir', 'music_victory']);
+  });
+});
+
+describe('shots heard where they are on the board', () => {
+  const shot = (fromX: number, toX: number): MatchEvent => ({
+    kind: 'shot_fired',
+    tick: 0,
+    shot: {
+      id: 1,
+      cannonId: 1,
+      owner: 1,
+      kind: 'cannon',
+      cost: 1,
+      fromX,
+      fromY: 5,
+      toX,
+      toY: 5,
+      launchTick: 0,
+      impactTick: 30,
+    },
+  });
+  const impact = (x: number): MatchEvent => ({
+    kind: 'shot_impact',
+    tick: 30,
+    shotId: 1,
+    x,
+    y: 5,
+    destroyed: [],
+  });
+
+  it('pans a shot by its gun and its impact by where it lands, as far as the manifest says', () => {
+    const audio = new Recorder();
+    const match = new MatchAudio(audio, HUMAN, null, { width: 100, spread: 0.7 });
+    match.handle([shot(0, 99), impact(99)]);
+    expect(audio.sfx).toEqual(['cannon_fire', 'shot_impact']);
+    expect(audio.pans[0]).toBeCloseTo(-0.7 * 0.99);
+    expect(audio.pans[1]).toBeCloseTo(0.7 * 0.99);
+    // The middle of the board is the middle of the field.
+    expect(match.pan(49.5)).toBeCloseTo(0);
+    // Every shot at the same volume, wherever it is, the player's own or a rival's.
+    expect(new Set(audio.gains)).toEqual(new Set([1]));
+  });
+
+  it('plays everything in the middle without a board to place it on', () => {
+    const { audio, match } = setup();
+    match.handle([shot(0, 99), impact(99)]);
+    expect(audio.pans).toEqual([0, 0]);
   });
 });

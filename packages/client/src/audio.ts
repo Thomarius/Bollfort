@@ -255,7 +255,11 @@ export class Audio {
     }
   }
 
-  play(cue: SfxCue, gain = 1, delayMs = 0): void {
+  /**
+   * `pan`, -1 left to 1 right, places it across the stereo field at equal power, so it is
+   * heard as loud wherever it is.
+   */
+  play(cue: SfxCue, gain = 1, delayMs = 0, pan = 0): void {
     const entry = this.manifest.sfx[cue];
     // Not while the context waits for a gesture: cues started in a suspended context all
     // sounded at once as it resumed. Music may wait in it — it starts as the context does.
@@ -274,13 +278,24 @@ export class Audio {
 
     const level = this.ctx.createGain();
     level.gain.value = entry.volume * gain;
-    level.connect(this.buses?.sounds ?? this.master);
+    const out = this.buses?.sounds ?? this.master;
+    const panner = pan === 0 ? null : this.ctx.createStereoPanner();
+    if (panner === null) level.connect(out);
+    else {
+      panner.pan.value = Math.max(-1, Math.min(1, pan));
+      level.connect(panner).connect(out);
+    }
     const source = this.ctx.createBufferSource();
     source.buffer = buffer;
-    source.playbackRate.value = entry.rate ?? 1;
+    // The page's own roll: a sound is no part of the simulation.
+    const jitter = entry.jitter ?? 0;
+    source.playbackRate.value = (entry.rate ?? 1) * (1 + (Math.random() * 2 - 1) * jitter);
     source.connect(level);
     source.start(at / 1000);
-    source.addEventListener('ended', () => level.disconnect());
+    source.addEventListener('ended', () => {
+      level.disconnect();
+      panner?.disconnect();
+    });
   }
 
   /**

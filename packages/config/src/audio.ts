@@ -87,6 +87,11 @@ const SfxEntrySchema = z.strictObject({
    * until they had theirs.
    */
   rate: z.number().positive().optional(),
+  /**
+   * Each play's speed varied by up to this fraction either way, at random: a barrage of one
+   * sample, alike to the cycle, sounds like a machine.
+   */
+  jitter: z.number().min(0).max(0.25).optional(),
 });
 
 const MusicEntrySchema = z.strictObject({
@@ -145,6 +150,12 @@ export const AudioManifestSchema = z.strictObject({
   masterVolume: z.number().min(0).max(1),
   /** The game must be fully playable before a single audio file exists. */
   missingFilesAreSilent: z.boolean(),
+  /**
+   * How far to either side a sound on the board's edge is heard, 0 to 1: a shot, an impact, a
+   * strike panned by where it is across the board, at equal power, so no shot is louder than
+   * another for where it is (the user's, 2026-11-01). 0 plays them all in the middle.
+   */
+  panWidth: z.number().min(0).max(1),
   sfx: z.record(z.enum(SFX_CUES), SfxEntrySchema),
   music: z.record(z.enum(MUSIC_CUES), MusicEntrySchema),
   /**

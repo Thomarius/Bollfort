@@ -22,9 +22,9 @@ import type { Look } from './transition.js';
 export interface Cues {
   /**
    * `gain` scales the cue's own volume, for the countdown's rise; `delayMs` starts it that much
-   * later, for an Architect's double knock.
+   * later, for an Architect's double knock; `pan`, -1 to 1, where across the stereo field.
    */
-  play(cue: SfxCue, gain?: number, delayMs?: number): void;
+  play(cue: SfxCue, gain?: number, delayMs?: number, pan?: number): void;
   music(cue: MusicTrack | null): void;
 }
 
@@ -109,7 +109,16 @@ export class MatchAudio {
     private readonly audio: Cues,
     private readonly humanPlayer: number,
     private readonly styles: StyleMusic | null = null,
+    /** The board's width in tiles and the manifest's `panWidth`; none, every sound centred. */
+    private readonly stereo: { width: number; spread: number } | null = null,
   ) {}
+
+  /** Where a sound at column `x` is heard, -1 left to 1 right, by its place on the board. */
+  pan(x: number): number {
+    if (this.stereo === null || this.stereo.width <= 0) return 0;
+    const across = ((x + 0.5) / this.stereo.width) * 2 - 1;
+    return Math.max(-1, Math.min(1, across)) * this.stereo.spread;
+  }
 
   /** True when there is nobody at the keyboard, so nothing is "yours". */
   private get watching(): boolean {
@@ -132,19 +141,19 @@ export class MatchAudio {
           if (event.shot.kind === 'subwoofer') break;
           if (event.shot.kind === 'bertha') this.heavy.set(event.shot.id, 'tower_impact');
           if (event.shot.kind === 'biggest') this.heavy.set(event.shot.id, 'tower_biggest_impact');
-          this.audio.play('cannon_fire');
+          this.audio.play('cannon_fire', 1, 0, this.pan(event.shot.fromX));
           break;
 
         case 'shot_impact':
           // One explosion whatever it hits: a separate cue for a wall was planned and
           // dropped by the user, the impact's sound being enough.
-          this.audio.play(this.heavy.get(event.shotId) ?? 'shot_impact');
+          this.audio.play(this.heavy.get(event.shotId) ?? 'shot_impact', 1, 0, this.pan(event.x));
           this.heavy.delete(event.shotId);
           break;
 
         case 'lightning_struck':
           // Once a strike, however many walls it jumps to.
-          this.audio.play('lightning_strike');
+          this.audio.play('lightning_strike', 1, 0, this.pan(event.fromX));
           break;
 
         case 'gun_slept':
@@ -158,19 +167,24 @@ export class MatchAudio {
         case 'tile_frozen':
           // The freeze over the shot's own impact, which `shot_impact` has played on the same
           // tick (the user's tower_frost.mp3, 2026-10-21).
-          this.audio.play('frost_impact');
+          this.audio.play(
+            'frost_impact',
+            1,
+            0,
+            this.pan(this.stereo === null ? 0 : event.tile % this.stereo.width),
+          );
           break;
 
         case 'wave_sent':
           // Once however many Subwoofers fire on a tick, and not again within half a second.
           if (event.tick - this.wooferTick < SUBWOOFER_GAP_TICKS) break;
           this.wooferTick = event.tick;
-          this.audio.play('subwoofer');
+          this.audio.play('subwoofer', 1, 0, this.pan(event.wave.lanes[0]?.ax ?? 0));
           break;
 
         case 'laser_fired':
           // Once a beam, however many walls it burns through (the user's tower_laser.mp3).
-          this.audio.play('laser_fire');
+          this.audio.play('laser_fire', 1, 0, this.pan(event.fromX));
           break;
 
         case 'walls_repaired':
