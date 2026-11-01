@@ -59,6 +59,7 @@
     "other": "+{n} guns"
   },
   "banner.lifeLost": "Life lost",
+  "banner.noSeal": "No castle sealed",
   "banner.livesLeft": {
     "one": "{name} — {n} life left",
     "other": "{name} — {n} lives left"

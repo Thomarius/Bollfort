@@ -110,6 +110,11 @@ export class BoardEffects {
     return this.held !== null && (look === 'combat' || this.oneLook()) ? this.held : this.live;
   }
 
+  /** The walls and owners as last drawn: before a resolution's wipe, while it is under way. */
+  get drawn(): { structure: Uint8Array; owner: Uint8Array } {
+    return { structure: this.drawnStructure, owner: this.drawnOwner };
+  }
+
   /** Walls, castles and cannons, with any swept or ruined wall still standing put back. */
   drawBoard(): void {
     const board = boardWithStanding(this.state, [...this.swept, ...this.ruins]);

@@ -1919,17 +1919,19 @@ export class ChocolateTheme extends ShapeTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // The piece in hand as an empty mould, its cavities waiting to be poured; cracked
       // where it does not fit — the difference in form, since red is a player's colour.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
       const rim = ghost.valid ? this.colour(humanPlayer, 'light') : hex(palette.rockDark);
-      for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.fill({ color: rim, alpha: 0.55 });
       for (const { x, y } of cells) {
         g.roundRect(
-          tileX(view, x) + t * 0.14,
-          tileY(view, y) + t * 0.14,
+          tileX(wobbled, x) + t * 0.14,
+          tileY(wobbled, y) + t * 0.14,
           t * 0.72,
           t * 0.72,
           t * 0.12,
@@ -1937,13 +1939,13 @@ export class ChocolateTheme extends ShapeTheme implements Theme {
       }
       g.fill({ color: mixed(rim, hex(palette.shadow), 0.55), alpha: 0.7 });
       for (const { x, y } of cells) {
-        const px = tileX(view, x);
-        const py = tileY(view, y);
+        const px = tileX(wobbled, x);
+        const py = tileY(wobbled, y);
         g.moveTo(px + t * 0.2, py + t * 0.8).lineTo(px + t * 0.8, py + t * 0.8);
         g.lineTo(px + t * 0.8, py + t * 0.2);
       }
       g.stroke({ width: Math.max(1, t * 0.06), color: 0xffffff, alpha: 0.45 });
-      trace(g, outline(cells, inPiece, view));
+      trace(g, outline(cells, inPiece, wobbled));
       g.stroke({
         width: Math.max(1.5, t * 0.1),
         color: ghost.valid ? 0xffffff : hex(palette.uiInvalid),
@@ -1951,8 +1953,8 @@ export class ChocolateTheme extends ShapeTheme implements Theme {
       });
       if (!ghost.valid) {
         for (const { x, y } of cells) {
-          const px = tileX(view, x);
-          const py = tileY(view, y);
+          const px = tileX(wobbled, x);
+          const py = tileY(wobbled, y);
           g.moveTo(px + t * 0.2, py + t * 0.15).lineTo(px + t * 0.45, py + t * 0.45);
           g.lineTo(px + t * 0.35, py + t * 0.6).lineTo(px + t * 0.75, py + t * 0.88);
         }

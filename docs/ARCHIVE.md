@@ -11201,3 +11201,32 @@ try, pitch variation worth a try, and every shot at one volume.
 
 Checked in a watched four-player match: 48 sounds panned in 25 s, from −0.41 to 0.41, since the
 islands stand short of the board's edges; no errors. Heard by the user and approved as it is, the width and the pitch both (2026-11-01).
+
+## 15ze. Feedback in the match, PR4 (2026-11-01)
+
+The fourth package of PLAN §11 item 7. Display only; no sim or protocol change.
+
+- **The piece in hand shakes where it does not fit, in every style**: seven styles shook it
+  (Pirates, Anime, Wild West, Stadium, Mythos, Cartoon, Noir), the other sixteen only turned it
+  red. `GhostMotion.shaken` gives the view the piece is drawn in, side to side by 5% of a tile,
+  rounded to Pixel's own pixel there (and so Medieval's), still under Reduced motion; every style
+  without its own shake draws its piece through it, and Anime and the Wild West, which shook only
+  the fill by the same formula, now shake the whole piece. Pirates, Noir, Mythos, Stadium and
+  Cartoon keep their own, a rope, a hatch, a chalk line, a wagging head.
+- **A life spent marked on its pip**: the first hollow pip (or the count, past five) red and
+  swelling back to size over 1.6 s as the life goes (`lifePips`' `justSpent`), held still under
+  Reduced motion; and **the timer pops** at each second of the countdown, as its tick is heard.
+- **The life-lost banner says why**: "No castle sealed", in italics on a line of its own
+  (`BannerText.reason`).
+- **Where it leaked**: as the player's own round is lost, the empty tiles of the tightest wall
+  that would have sealed a castle — the bots' `cheapestPlanFor`, the statistics' `repairLeft` —
+  framed in the UI's ink and pulsing while the banner holds (`leak.ts`, `drawLeaks` in every
+  style's `drawBuildHints`), on the board as last drawn, before the wipe.
+- **Hover texts** at 13 px rather than 12, shown on a keyboard's focus too, and opening below
+  what they explain within 96 px of the window's top (`data-tip-below`, set as the pointer
+  arrives).
+
+Checked on the dev server: an idle seat's life lost showed the banner's reason, the marked pip
+and its leak framed; a piece over a wall moved between frames in Minimal, Pixel and Stained
+glass. Approved by the user as it is, the leak's frames partly under the banner included
+(2026-11-01).

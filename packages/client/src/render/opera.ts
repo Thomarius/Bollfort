@@ -1637,17 +1637,19 @@ export class OperaTheme extends ShapeTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // The piece in hand sketched in pencil on the manuscript; where it does not fit, it is
       // crossed out as a composer corrects a bar — the difference in form, since red is a
       // player's.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
-      for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.fill({
         color: ghost.valid ? this.colour(humanPlayer, 'light') : hex(palette.rockDark),
         alpha: ghost.valid ? 0.4 : 0.3,
       });
-      const edge = outline(cells, inPiece, view);
+      const edge = outline(cells, inPiece, wobbled);
       // A sketcher's line goes round twice, never quite on itself.
       for (const s of edge) {
         g.moveTo(s.x1 - 1, s.y1 + 1).lineTo(s.x2 + 1, s.y2 - 1);
@@ -1660,8 +1662,8 @@ export class OperaTheme extends ShapeTheme implements Theme {
       });
       if (!ghost.valid) {
         for (const { x, y } of cells) {
-          const px = tileX(view, x);
-          const py = tileY(view, y);
+          const px = tileX(wobbled, x);
+          const py = tileY(wobbled, y);
           g.moveTo(px + t * 0.1, py + t * 0.8);
           for (let k = 1; k <= 4; k++) {
             g.lineTo(px + t * (0.1 + 0.2 * k), py + t * (k % 2 === 0 ? 0.8 : 0.2));

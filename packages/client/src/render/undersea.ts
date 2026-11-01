@@ -1790,18 +1790,20 @@ export class UnderseaTheme extends ShapeTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // The piece in hand outlined in a string of bubbles, wobbling; where it does not fit
       // they have burst, a little star of spray in place of every other one — the
       // difference in form, since red is a player's.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
-      for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.fill({
         color: ghost.valid ? this.colour(humanPlayer, 'light') : hex(palette.rockDark),
         alpha: ghost.valid ? 0.35 : 0.4,
       });
       const still = motionReduced();
-      const edge = outline(cells, inPiece, view);
+      const edge = outline(cells, inPiece, wobbled);
       const beads = beadsAlong(edge, t / 3);
       beads.forEach(([x, y], n) => {
         const wob = still ? 0 : Math.sin(now / 260 + n * 1.3) * t * 0.04;

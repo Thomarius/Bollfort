@@ -1846,7 +1846,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    - **PR3 — Shots heard where they land — done** (ARCHIVE 15zd), heard and approved by the user: every shot and impact panned by its x across the
      board (a `StereoPannerNode` per voice), and a small pitch variation (about ±4%) to try, kept
      only if it sounds right; every shot at one volume, the player's and the rivals' alike.
-   - **PR4 — Feedback in the match**: the invalid ghost's wobble, now in seven styles (Pirates,
+   - **PR4 — Feedback in the match — done** (ARCHIVE 15ze), approved by the user: the invalid ghost's wobble, now in seven styles (Pirates,
      Anime, Wild West, Stadium, Mythos, Cartoon, Noir), moved into the shared `GhostMotion` for
      all 24, pixel-rounded in Pixel; a life lost marked on its pip and the timer's last seconds
      given a pop (Reduced motion off); the life-lost banner saying why ("No castle sealed") and

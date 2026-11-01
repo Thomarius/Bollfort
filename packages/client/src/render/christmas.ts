@@ -1198,24 +1198,26 @@ export class ChristmasTheme extends ShapeTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // The piece in hand as a present still being wrapped, a bow on it; where it does not fit,
       // unwrapped — grey, its edge broken into dashes, no bow. The difference is in form,
       // since red is a player's.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
-      for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.fill({
         color: ghost.valid ? this.colour(humanPlayer, 'base') : hex(palette.rockMid),
         alpha: ghost.valid ? 0.45 : 0.5,
       });
-      const edge = outline(cells, inPiece, view);
+      const edge = outline(cells, inPiece, wobbled);
       if (ghost.valid) {
         trace(g, edge);
         g.stroke({ width: Math.max(2, t * 0.14), color: NIGHT });
         trace(g, edge);
         g.stroke({ width: Math.max(1, t * 0.07), color: SNOW });
         const first = cells.reduce((a, b) => (b.y < a.y || (b.y === a.y && b.x < a.x) ? b : a));
-        drawBow(g, tileX(view, first.x + 0.5), tileY(view, first.y + 0.35), t * 0.28, SNOW);
+        drawBow(g, tileX(wobbled, first.x + 0.5), tileY(wobbled, first.y + 0.35), t * 0.28, SNOW);
         return;
       }
       edge.forEach((s, n) => {

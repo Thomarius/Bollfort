@@ -105,6 +105,20 @@ document.body.append(corner);
 installSoundButton();
 
 /**
+ * Our hover texts open above what they explain (`[data-tip]` in style.css), which put those
+ * of anything near the window's top out of sight: such a one opens below, decided as the
+ * pointer or the focus reaches it, wherever it is on whatever screen.
+ */
+const TIP_ROOM_PX = 96;
+const placeTip = (event: Event): void => {
+  const target = event.target instanceof Element ? event.target.closest('[data-tip]') : null;
+  if (target === null) return;
+  target.toggleAttribute('data-tip-below', target.getBoundingClientRect().top < TIP_ROOM_PX);
+};
+document.addEventListener('mouseover', placeTip);
+document.addEventListener('focusin', placeTip);
+
+/**
  * Full screen, beside Sound (PLAN §11 item 4, UP2): F11 is a key, and the game is played with
  * the mouse. The page's own, so the browser's Esc takes it back as well; left out where the
  * page may not go full screen.

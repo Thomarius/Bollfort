@@ -1931,14 +1931,16 @@ export class SakuraTheme extends ShapeTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // The piece in hand outlined in one brush stroke and faintly washed; where it does not
       // fit, the stroke breaks up dry and frayed — the difference in form, since red is a
       // player's.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
-      const edge = outline(cells, inPiece, view);
+      const edge = outline(cells, inPiece, wobbled);
       if (ghost.valid) {
-        for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+        for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
         // Washed at 0.35 with a faint paper line, the piece was a dull block on the olive
         // grass (the readability review, 2026-11-01).
         g.fill({ color: this.colour(humanPlayer, 'light'), alpha: 0.6 });
@@ -1948,7 +1950,7 @@ export class SakuraTheme extends ShapeTheme implements Theme {
         g.stroke({ width: Math.max(1.5, t * 0.07), color: PAPER, alpha: 1, cap: 'round' });
         return;
       }
-      for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.fill({ color: hex(palette.rockDark), alpha: 0.25 });
       // Dry brush: each side in broken dabs, a few bristles' lines beside them.
       for (const [n, s] of edge.entries()) {

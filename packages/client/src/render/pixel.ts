@@ -3309,7 +3309,13 @@ export class PixelTheme implements Theme {
     const colour = ghost.valid ? hex(this.art.palette.uiValid) : hex(this.art.palette.uiInvalid);
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
-      this.drawGhostWall(state, view, ghost, humanPlayer);
+      // Shaken where it does not fit, as in every style, by whole pixels of its own.
+      this.drawGhostWall(
+        state,
+        this.ghostMotion.shaken(view, ghost, view.tile / 16),
+        ghost,
+        humanPlayer,
+      );
       return;
     }
 

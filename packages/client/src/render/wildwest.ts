@@ -1063,17 +1063,18 @@ export class WildWestTheme extends ShapeTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // The piece in hand washed in the owner's colour and outlined dark; where it does not fit,
       // dust-grey and shaking — the difference in form, since red is a player's.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
-      const shake = ghost.valid ? 0 : Math.sin(now / 30) * t * 0.05;
-      for (const { x, y } of cells) g.rect(tileX(view, x) + shake, tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.fill({
         color: ghost.valid ? this.colour(humanPlayer, 'light') : hex(palette.rockMid),
         alpha: ghost.valid ? 0.65 : 0.5,
       });
-      const edge = outline(cells, inPiece, view);
+      const edge = outline(cells, inPiece, wobbled);
       trace(g, edge);
       g.stroke({ width: Math.max(2, t * 0.12), color: OUTLINE, alpha: 0.85 });
       return;

@@ -59,6 +59,7 @@
     "other": "+{n} Kanonen"
   },
   "banner.lifeLost": "Leben verloren",
+  "banner.noSeal": "Keine Burg umschlossen",
   "banner.livesLeft": {
     "one": "{name} — noch {n} Leben",
     "other": "{name} — noch {n} Leben"

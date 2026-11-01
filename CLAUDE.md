@@ -535,7 +535,9 @@ which a test session needs the server rebuilt and every page reloaded for):
   PR2 the connection in the match done (ARCHIVE 15zc: a dropped socket rejoins its seat by
   itself, a notice over the board, a desync rejoined for the server's board, AWAY on a card);
   PR3 built (ARCHIVE 15zd: shots panned by place, `panWidth` 0.7, the cannon's and the
-  impact's pitch varied 4%), approved by the user; next PR4, feedback in the match.
+  impact's pitch varied 4%), approved by the user; PR4 built (ARCHIVE 15ze: the bad piece
+  shaking in every style, a spent life's pip marked, the reason and the leak shown as a life
+  goes, hover texts larger), approved by the user; next PR5, the styles loaded when needed.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

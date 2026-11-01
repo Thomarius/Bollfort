@@ -1491,11 +1491,13 @@ export class OktoberfestTheme extends ShapeTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // The piece in hand as empty crates waiting to be filled; where it does not fit, the
       // crates are crossed out — the difference in form, since red is a player's.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
-      for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.fill({
         color: ghost.valid ? this.colour(humanPlayer, 'light') : hex(palette.rockDark),
         alpha: ghost.valid ? 0.4 : 0.3,
@@ -1503,13 +1505,13 @@ export class OktoberfestTheme extends ShapeTheme implements Theme {
       for (const { x, y } of cells) {
         for (const fx of [0.32, 0.68]) {
           for (const fy of [0.32, 0.68])
-            g.circle(tileX(view, x + fx), tileY(view, y + fy), t * 0.11);
+            g.circle(tileX(wobbled, x + fx), tileY(wobbled, y + fy), t * 0.11);
         }
       }
       g.stroke({ width: 1, color: ghost.valid ? FOAM : hex(palette.rockLight), alpha: 0.8 });
-      for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.stroke({ width: 1, color: this.brown, alpha: 0.5 });
-      trace(g, outline(cells, inPiece, view));
+      trace(g, outline(cells, inPiece, wobbled));
       g.stroke({
         width: Math.max(1.5, t * 0.1),
         color: ghost.valid ? FOAM : hex(palette.uiInvalid),
@@ -1517,8 +1519,8 @@ export class OktoberfestTheme extends ShapeTheme implements Theme {
       });
       if (!ghost.valid) {
         for (const { x, y } of cells) {
-          const px = tileX(view, x);
-          const py = tileY(view, y);
+          const px = tileX(wobbled, x);
+          const py = tileY(wobbled, y);
           g.moveTo(px + t * 0.2, py + t * 0.2).lineTo(px + t * 0.8, py + t * 0.8);
           g.moveTo(px + t * 0.8, py + t * 0.2).lineTo(px + t * 0.2, py + t * 0.8);
         }

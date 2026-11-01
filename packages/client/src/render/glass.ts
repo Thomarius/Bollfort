@@ -1531,16 +1531,18 @@ export class GlassTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       if (ghost.valid) {
         // The piece in hand as the glass it will be, a little see-through.
         const inPiece = new Set(cells.map((c) => `${c.x},${c.y}`));
-        this.drawGlassWall(g, view, cells, (x, y) => inPiece.has(`${x},${y}`), humanPlayer, 0.7);
+        this.drawGlassWall(g, wobbled, cells, (x, y) => inPiece.has(`${x},${y}`), humanPlayer, 0.7);
         // Its edge, which the see-through wall alone did not show against the ground
         // (the readability review, 2026-11-01).
         strokePieceEdge(
           g,
-          outline(cells, (x, y) => inPiece.has(`${x},${y}`), view),
+          outline(cells, (x, y) => inPiece.has(`${x},${y}`), wobbled),
           t,
           hex(palette.shadow),
           hex(palette.uiInk),
@@ -1551,11 +1553,11 @@ export class GlassTheme implements Theme {
       // would be the crimson player's own, so the difference is in form.
       trace(
         g,
-        outline(cells, (x, y) => cells.some((c) => c.x === x && c.y === y), view),
+        outline(cells, (x, y) => cells.some((c) => c.x === x && c.y === y), wobbled),
       );
       for (const { x, y } of cells) {
-        const px = tileX(view, x);
-        const py = tileY(view, y);
+        const px = tileX(wobbled, x);
+        const py = tileY(wobbled, y);
         g.moveTo(px + t * 0.25, py + t * 0.25).lineTo(px + t * 0.75, py + t * 0.75);
         g.moveTo(px + t * 0.25, py + t * 0.75).lineTo(px + t * 0.75, py + t * 0.25);
       }

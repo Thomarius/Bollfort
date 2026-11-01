@@ -184,6 +184,10 @@ describe('lives as pips', () => {
 
   it('counts a pool too big for pips beside one', () => {
     expect(lifePips(8, 6)).toBe('●<small>6</small>');
+    // The life just spent marked for its moment, the first hollow pip, or the count.
+    expect(lifePips(3, 1, true)).toBe('●<i class="spent">○</i>○');
+    expect(lifePips(3, 3, true)).toBe('●●●');
+    expect(lifePips(8, 6, true)).toBe('●<small class="spent">6</small>');
   });
 });
 

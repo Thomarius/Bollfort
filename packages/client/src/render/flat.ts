@@ -496,12 +496,14 @@ export class FlatTheme implements Theme {
     const colour = ghost.valid ? hex(this.art.palette.uiValid) : hex(this.art.palette.uiInvalid);
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       for (const [ox, oy] of ghost.cells) {
         g.rect(
-          tileX(view, ghost.tile.x + ox),
-          tileY(view, ghost.tile.y + oy),
-          view.tile,
-          view.tile,
+          tileX(wobbled, ghost.tile.x + ox),
+          tileY(wobbled, ghost.tile.y + oy),
+          wobbled.tile,
+          wobbled.tile,
         );
       }
       g.fill({ color: colour, alpha: 0.55 });
