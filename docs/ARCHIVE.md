@@ -11182,3 +11182,22 @@ gave up after 56–62 s and its button brought the menu. The recording of that m
 exact. Tests: the connection against a fake socket (rejoin, its waits, giving up, a refused
 rejoin, a close made here never reopened), a desync rejoined and held still until the snapshot
 and its limit, the notice and the badge's words.
+
+## 15zd. Shots heard where they land, PR3 (2026-11-01)
+
+The third package of PLAN §11 item 7, the user's choice from the review: panning a cool idea to
+try, pitch variation worth a try, and every shot at one volume.
+
+- **Panned by place**: every cannon's shot by its gun's column, every impact by where it lands,
+  the Lightning and Laser Towers by their tower, a Subwoofer's wave by its lanes' start and a
+  freeze by its tile — across the board's width, at equal power through a `StereoPannerNode`
+  per sound, so a shot is as loud at the edge as in the middle. How far the board's edges go is
+  the manifest's `panWidth`, 0.7: a sound never quite in one ear. Every gain unchanged, the
+  player's and the rivals' alike. `MatchAudio.pan`; the board is seen whole, so its columns are
+  the screen's.
+- **Pitch varied a little**: `jitter` on a cue in the manifest, each play's speed off by up to
+  that fraction at random — 4% on the cannon's fire and the impact, so a barrage of one sample
+  is less a machine's. The page's own roll; no sound is part of the simulation.
+
+Checked in a watched four-player match: 48 sounds panned in 25 s, from −0.41 to 0.41, since the
+islands stand short of the board's edges; no errors. Heard by the user and approved as it is, the width and the pitch both (2026-11-01).

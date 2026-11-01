@@ -534,7 +534,8 @@ which a test session needs the server rebuilt and every page reloaded for):
   recordings appended without blocking and capped, never pruned, hash-named assets `immutable`);
   PR2 the connection in the match done (ARCHIVE 15zc: a dropped socket rejoins its seat by
   itself, a notice over the board, a desync rejoined for the server's board, AWAY on a card);
-  next PR3, shots panned where they land.
+  PR3 built (ARCHIVE 15zd: shots panned by place, `panWidth` 0.7, the cannon's and the
+  impact's pitch varied 4%), approved by the user; next PR4, feedback in the match.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

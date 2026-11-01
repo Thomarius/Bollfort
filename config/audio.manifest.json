@@ -2,6 +2,7 @@
   "basePath": "audio",
   "masterVolume": 0.8,
   "missingFilesAreSilent": true,
+  "panWidth": 0.7,
   "sfx": {
     "select": {
       "file": "sfx/select.wav",
@@ -15,12 +16,14 @@
     "cannon_fire": {
       "file": "sfx/cannon_fire.ogg",
       "volume": 0.7,
-      "variants": 3
+      "variants": 3,
+      "jitter": 0.04
     },
     "shot_impact": {
       "file": "sfx/shot_impact.wav",
       "volume": 0.8,
-      "variants": 9
+      "variants": 9,
+      "jitter": 0.04
     },
     "voice_fire": {
       "file": "sfx/voice_fire.ogg",
