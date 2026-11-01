@@ -19,6 +19,8 @@ export interface IslandBanner {
   kind: BannerKind;
   title: string;
   detail: string;
+  /** Why, on a line of its own (`BannerText.reason`). */
+  reason?: string;
   urgent: boolean;
   /** Screen pixels, from `Scene.screenAt`. */
   x: number;
@@ -252,7 +254,7 @@ export class BoardLabels {
         this.bannerRoot.append(node);
         this.islandBanners.set(banner.player, node);
       }
-      const text = `${banner.title}|${banner.detail}`;
+      const text = `${banner.title}|${banner.detail}|${banner.reason ?? ''}`;
       if (node.dataset.text !== text) {
         node.dataset.text = text;
         // Points counting up change the title every frame of the tally: only its text is
@@ -279,6 +281,12 @@ export class BoardLabels {
             const detail = document.createElement('small');
             detail.textContent = banner.detail;
             node.append(detail);
+          }
+          if (banner.reason !== undefined) {
+            const reason = document.createElement('small');
+            reason.className = 'reason';
+            reason.textContent = banner.reason;
+            node.append(reason);
           }
         }
       }

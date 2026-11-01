@@ -262,8 +262,12 @@ export function yourPlace(state: MatchState, humanPlayer: number): string | null
  * roster shows them and the summary since 2026-10-28: a pool too big for pips — a team of
  * three or four — is one pip and the count.
  */
-export function lifePips(total: number, left: number): string {
-  return total > 5 ? `●<small>${left}</small>` : '●'.repeat(left) + '○'.repeat(total - left);
+export function lifePips(total: number, left: number, justSpent = false): string {
+  // The life just spent marked for its moment (`.spent`), so the loss is seen where it is kept.
+  if (total > 5) return `●<small${justSpent ? ' class="spent"' : ''}>${left}</small>`;
+  const hollow = total - left;
+  if (!justSpent || hollow === 0) return '●'.repeat(left) + '○'.repeat(hollow);
+  return '●'.repeat(left) + '<i class="spent">○</i>' + '○'.repeat(hollow - 1);
 }
 
 /**

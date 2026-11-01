@@ -1654,16 +1654,18 @@ export class OfficeTheme extends ShapeTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // The piece in hand as a selection, marching ants round it; where it does not fit, a
       // "not allowed" sign over it — the difference in form, since red is a player's.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
-      for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.fill({
         color: ghost.valid ? this.colour(humanPlayer, 'light') : hex(palette.rockDark),
         alpha: ghost.valid ? 0.35 : 0.3,
       });
-      const edge = outline(cells, inPiece, view);
+      const edge = outline(cells, inPiece, wobbled);
       trace(g, edge);
       g.stroke({ width: Math.max(1.5, t * 0.08), color: 0xffffff, alpha: 0.95 });
       const period = t * 0.5;
@@ -1679,8 +1681,8 @@ export class OfficeTheme extends ShapeTheme implements Theme {
           sx += c.x + 0.5;
           sy += c.y + 0.5;
         }
-        const cx = tileX(view, sx / cells.length);
-        const cy = tileY(view, sy / cells.length);
+        const cx = tileX(wobbled, sx / cells.length);
+        const cy = tileY(wobbled, sy / cells.length);
         const r = t * 0.55;
         g.circle(cx, cy, r);
         g.fill({ color: 0xffffff, alpha: 0.8 });

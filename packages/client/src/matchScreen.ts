@@ -52,6 +52,8 @@ import { saveStyles } from './prefs.js';
 import type { Session, Setup } from './session.js';
 import { showMenu } from './menu.js';
 import { BoardEffects } from './boardEffects.js';
+import { leakCells } from './leak.js';
+import type { Cell } from './render/theme.js';
 
 /** A match on screen: the board, the HUD, the sound and the controls, frame by frame. */
 
@@ -239,6 +241,8 @@ export async function runSession(
   const gained = new Map<number, PointsGained>();
   /** What the board points out to a player building; see `hints.ts`. */
   let hints: BuildHints = { unsealed: [], cornerGaps: [] };
+  /** Where this player's wall leaked as their last round was lost, and until when it shows. */
+  let leak: { cells: readonly Cell[]; untilTick: number } | null = null;
 
   // A top corner of each island, for its team's name; terrain never changes. Not the top
   // middle, where the big timer sits on the islands in the middle column, and of the two
@@ -712,6 +716,13 @@ export async function runSession(
             remaining: event.continuesRemaining,
             untilTick: event.tick + hold,
           });
+          // Where it leaked, on the board as it stood before the wipe, which is as last drawn.
+          if (event.player === session.humanPlayer) {
+            leak = {
+              cells: leakCells({ ...session.state, ...board.drawn }, event.player),
+              untilTick: event.tick + hold,
+            };
+          }
           // The wipe took the island's wall in one step; take it down outward instead.
           const island = session.state.players[event.player]?.islandId ?? event.player + 1;
           const centre = islandCentre.get(event.player);
@@ -901,6 +912,7 @@ export async function runSession(
       ...controls.ghost(session.tickFraction),
       ...hints,
       beat: countdownBeat(session.state, session.tickFraction),
+      leaks: leak !== null && session.state.tick < leak.untilTick ? leak.cells : [],
     };
     scene.drawOverlay(session.state, ghost, session.humanPlayer);
     drawCounters(ghost);

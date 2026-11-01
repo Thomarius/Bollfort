@@ -1650,6 +1650,8 @@ export class ParchmentTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = new Set(cells.map((c) => `${c.x},${c.y}`));
       const inside = (x: number, y: number): boolean => inPiece.has(`${x},${y}`);
@@ -1662,13 +1664,20 @@ export class ParchmentTheme implements Theme {
           y < state.height &&
           state.structure[y * state.width + x] === Structure.Wall &&
           state.owner[y * state.width + x] === humanPlayer + 1;
-        this.drawWall(g, view, cells, (x, y) => inside(x, y) || standing(x, y), humanPlayer, 0.8);
+        this.drawWall(
+          g,
+          wobbled,
+          cells,
+          (x, y) => inside(x, y) || standing(x, y),
+          humanPlayer,
+          0.8,
+        );
       } else {
         // Hollow where it does not fit, so it differs in form, not only in hue.
-        for (const c of cells) g.rect(tileX(view, c.x), tileY(view, c.y), t, t);
+        for (const c of cells) g.rect(tileX(wobbled, c.x), tileY(wobbled, c.y), t, t);
         g.fill({ color: hex(palette.uiInvalid), alpha: 0.12 });
       }
-      trace(g, outline(cells, inside, view));
+      trace(g, outline(cells, inside, wobbled));
       g.stroke(
         ghost.valid
           ? { width: 1, color: hex(palette.uiValid), alpha: 0.9 }

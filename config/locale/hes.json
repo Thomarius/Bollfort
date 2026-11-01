@@ -59,6 +59,7 @@
     "other": "+{n} Kanone"
   },
   "banner.lifeLost": "Lewe futsch",
+  "banner.noSeal": "Kaa Burch eigeschlosse",
   "banner.livesLeft": {
     "one": "{name} — noch {n} Lewe",
     "other": "{name} — noch {n} Lewe"

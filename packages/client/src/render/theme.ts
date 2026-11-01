@@ -180,6 +180,8 @@ export interface Ghost {
   unsealed: readonly { x: number; y: number; w: number; h: number }[];
   /** Leaks of the player's castles with only corner gaps left (`cornerGaps.ts`). */
   cornerGaps?: readonly CornerGap[];
+  /** What the player's wall lacked as their round was just lost (`leak.ts`), for a moment. */
+  leaks?: readonly Cell[];
   /**
    * Where the build phase's last seconds stand within the current one, 0 as a tick
    * sounds (`countdownBeat`); null or absent outside them.
@@ -456,6 +458,36 @@ function drawTowerBadges(
  * Shared by every style: it is information, not decoration, and should read the same in
  * each. It moves, so it is not mistaken for part of the board.
  */
+/**
+ * The tiles a wall lacked as its round was lost, framed in the UI's ink and pulsing while the
+ * banner says the life is gone, as the wall crumbles round them: where it leaked. Ink, not red,
+ * for the reason the unsealed castles' outline is: red is some player's.
+ */
+function drawLeaks(
+  g: Graphics,
+  view: ViewTransform,
+  leaks: readonly Cell[],
+  art: ArtConfig,
+  nowMs: number,
+): void {
+  if (leaks.length === 0) return;
+  const pulse = 0.6 + 0.4 * Math.sin(nowMs / 140);
+  const inset = Math.max(2, view.tile * 0.12);
+  for (const { x, y } of leaks) {
+    g.rect(
+      tileX(view, x) + inset,
+      tileY(view, y) + inset,
+      view.tile - inset * 2,
+      view.tile - inset * 2,
+    );
+  }
+  g.stroke({
+    width: Math.max(2, Math.round(view.tile / 8)),
+    color: hex(art.palette.uiInk),
+    alpha: pulse,
+  });
+}
+
 export function drawBuildHints(
   g: Graphics,
   view: ViewTransform,
@@ -464,6 +496,7 @@ export function drawBuildHints(
   nowMs: number,
 ): void {
   drawCornerGaps(g, view, ghost.cornerGaps ?? [], art, nowMs);
+  drawLeaks(g, view, ghost.leaks ?? [], art, nowMs);
   if (ghost.unsealed.length === 0) return;
   const pulse = 0.75 + 0.25 * Math.sin(nowMs / 180);
   // The UI's ink rather than its red: red vanished on the red player's own island, and
@@ -816,6 +849,19 @@ export class Landings {
 export class GhostMotion {
   private last: { x: number; y: number; key: string; n: number } | null = null;
   private turnedAt = Number.NEGATIVE_INFINITY;
+
+  /**
+   * The view the piece in hand is drawn in: shaken side to side while it does not fit, in every
+   * style alike (ARCHIVE 15ze) — a difference in form, not only the red, which seven styles had
+   * and the rest had not. `unit` rounds the shake to a style's own pixel (Pixel's sixteenth of a
+   * tile); still under Reduced motion, where the colour says it alone.
+   */
+  shaken(view: ViewTransform, ghost: Ghost, unit = 0): ViewTransform {
+    if (ghost.valid || ghost.cells.length === 0 || motionReduced()) return view;
+    let dx = Math.sin(performance.now() / 30) * view.tile * 0.05;
+    if (unit > 0) dx = Math.round(dx / unit) * unit;
+    return dx === 0 ? view : { ...view, originX: view.originX + dx };
+  }
 
   draw(under: Graphics, over: Graphics, view: ViewTransform, ghost: Ghost, art: ArtConfig): void {
     const tile = ghost.tile;

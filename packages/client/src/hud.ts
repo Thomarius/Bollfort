@@ -5,7 +5,7 @@ import { formatNumber, t } from './i18n.js';
 import { escape } from './html.js';
 import { defaultArtConfig, type ArtStyle, type TextKey } from '@bollwerk/config';
 
-import { showsClock } from './clock.js';
+import { COUNTDOWN_FROM, showsClock } from './clock.js';
 import { motionReduced } from './motion.js';
 
 import {
@@ -125,6 +125,9 @@ const PHASE_CALL: Record<Phase, TextKey | null> = {
 /** A phase label longer than this, in characters, is set smaller (`.phase.long`). */
 const LONG_PHASE_LABEL = 22;
 
+/** How long a life just spent stays marked on its pip (`lifePips`). */
+const SPENT_MARK_MS = 1600;
+
 /** Nobody away: a match on this computer, where nobody can drop. */
 const NOBODY: ReadonlySet<number> = new Set();
 
@@ -147,6 +150,10 @@ export class Hud {
 
   /** When the phase on screen began, so the time bar knows its whole length. */
   private phaseKey = '';
+  /** Each team's lives as last seen, and when one was last spent, for its pip's mark. */
+  private readonly livesSeen = new Map<number, { left: number; spentAt: number }>();
+  /** The second of the countdown the timer last popped on, as the tick is heard. */
+  private poppedAt = -1;
 
   private phaseStartTick = 0;
 
@@ -526,17 +533,25 @@ export class Hud {
     // Lives are pips, one per life including the one being played, spent ones hollow:
     // the team's pool, in free-for-all a team of one. A pool too big for pips — a team of
     // three or four — is one pip and the count.
+    const now = performance.now();
     const livesOf = (team: number, out: boolean): string => {
       if (out) return `<span class="lives out">${t('hud.out')}</span>`;
       const pool = state.teams[team];
       const total = (pool?.continuesAtStart ?? 0) + 1;
       const left = (pool?.continuesRemaining ?? 0) + 1;
-      const pips = lifePips(total, left);
+      const seen = this.livesSeen.get(team);
+      if (seen === undefined || left !== seen.left) {
+        this.livesSeen.set(team, {
+          left,
+          spentAt: seen !== undefined && left < seen.left ? now : (seen?.spentAt ?? -Infinity),
+        });
+      }
+      const spentAt = this.livesSeen.get(team)?.spentAt ?? -Infinity;
+      const pips = lifePips(total, left, now - spentAt < SPENT_MARK_MS);
       const title = t('hud.livesTitle', { left, total });
       return `<span class="lives${left === 1 ? ' last' : ''}" title="${title}">${pips}</span>`;
     };
     const teamed = isTeamMatch(state);
-    const now = performance.now();
     // The shape leads the figures, as large as the pips: it is what tells two greens apart.
     // The figures themselves are set by `entry`, so a tally leaves the markup alone.
     const card = (lives: string, shape: string): string =>
@@ -659,6 +674,27 @@ export class Hud {
     if (frame.timer !== null && seconds !== frame.seconds) {
       frame.seconds = seconds;
       frame.timer.textContent = seconds;
+    }
+    // A pop of the figures at each second of the countdown, as its tick is heard
+    // (`MatchAudio.frame`): the eye on the wall catches a movement where a figure goes unseen.
+    const whole = Math.ceil(
+      Math.max(0, state.phaseEndTick - state.tick) / state.ruleset.tickRateHz,
+    );
+    const counting =
+      !waiting &&
+      state.phase !== 'game_over' &&
+      showsClock(state) &&
+      whole > 0 &&
+      whole <= COUNTDOWN_FROM;
+    if (!counting) this.poppedAt = -1;
+    else if (whole !== this.poppedAt) {
+      this.poppedAt = whole;
+      if (!motionReduced()) {
+        frame.timer?.animate(
+          [{ transform: 'scale(1.35)', color: '#ff5a62' }, { transform: 'scale(1)' }],
+          { duration: 320, easing: 'ease-out' },
+        );
+      }
     }
     if (remeasure) {
       // The roster's figures are sized by the room the phase label leaves (`--phase`):

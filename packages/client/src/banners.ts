@@ -54,6 +54,8 @@ export interface BannerText {
   title: string;
   /** A line under it, or empty. */
   detail: string;
+  /** Why, on a line of its own under the detail: a life lost says what lost it. */
+  reason?: string;
   /** For a lost life: the last one, which deserves to look like it. */
   urgent: boolean;
 }
@@ -118,6 +120,8 @@ export function bannersFor(
         lost.remaining > 0
           ? t(teamed ? 'banner.teamLivesLeft' : 'banner.livesLeft', { name: player.name, n: lives })
           : t(teamed ? 'banner.lastTeamLife' : 'banner.lastLife', { name: player.name }),
+      // The one way a life goes, said, for anyone new to it (ARCHIVE 15ze).
+      reason: t('banner.noSeal'),
       urgent: lost.remaining === 0,
     });
   }

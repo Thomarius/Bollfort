@@ -1701,18 +1701,20 @@ export class ElectricTheme extends ShapeTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // The piece in hand as a live wire, current pulsing round it; where it does not fit, a
       // short circuit — the wire broken in places, sparking across the breaks. The difference
       // is in form, since red is a player's.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
       const inPiece = (x: number, y: number): boolean => cells.some((c) => c.x === x && c.y === y);
-      for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
+      for (const { x, y } of cells) g.rect(tileX(wobbled, x), tileY(wobbled, y), t, t);
       g.fill({
         color: ghost.valid ? this.colour(humanPlayer, 'light') : hex(palette.rockDark),
         alpha: ghost.valid ? 0.3 : 0.45,
       });
       const still = motionReduced();
-      const edge = outline(cells, inPiece, view);
+      const edge = outline(cells, inPiece, wobbled);
       if (ghost.valid) {
         trace(g, edge);
         g.stroke({ width: Math.max(2, t * 0.14), color: this.dark });
@@ -1726,13 +1728,13 @@ export class ElectricTheme extends ShapeTheme implements Theme {
           const across = s.y1 === s.y2;
           const u0 =
             (Math.min(across ? s.x1 : s.y1, across ? s.x2 : s.y2) -
-              (across ? view.originX : view.originY)) /
+              (across ? wobbled.originX : wobbled.originY)) /
             t;
           const length = Math.abs(across ? s.x2 - s.x1 : s.y2 - s.y1) / t;
           const first = u0 + ((((flow - u0) % 2) + 2) % 2);
           for (let u = first; u <= u0 + length; u += 2) {
-            const px = across ? view.originX + u * t : s.x1;
-            const py = across ? s.y1 : view.originY + u * t;
+            const px = across ? wobbled.originX + u * t : s.x1;
+            const py = across ? s.y1 : wobbled.originY + u * t;
             g.circle(px, py, Math.max(1.5, t * 0.09));
           }
         }

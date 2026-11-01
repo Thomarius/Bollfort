@@ -1513,6 +1513,8 @@ export class BlueprintTheme implements Theme {
     const anchor = ghost.tile;
 
     if (state.phase === 'build' && ghost.cells.length > 0) {
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
       // Proposed construction, drawn dashed as a plan draws it: hatched in the player's
       // ink where it fits, and crossed out in red where it does not.
       const cells = ghost.cells.map(([ox, oy]) => ({ x: anchor.x + ox, y: anchor.y + oy }));
@@ -1521,7 +1523,7 @@ export class BlueprintTheme implements Theme {
       const colour = ghost.valid ? this.colour(humanPlayer, 'light') : hex(palette.uiInvalid);
       const fill: Segment[] = [];
       for (const { x, y } of cells) {
-        const rect = { x: tileX(view, x), y: tileY(view, y), w: t, h: t };
+        const rect = { x: tileX(wobbled, x), y: tileY(wobbled, y), w: t, h: t };
         if (ghost.valid) fill.push(...hatch(rect, t * this.style.hatchTiles, '\\'));
         else {
           fill.push({ x1: rect.x, y1: rect.y, x2: rect.x + t, y2: rect.y + t });
@@ -1532,7 +1534,7 @@ export class BlueprintTheme implements Theme {
       g.stroke({ width: 1, color: colour, alpha: 0.7 });
       trace(
         g,
-        outline(cells, inside, view).flatMap((s) => dashed(s, t * 0.3, t * 0.15)),
+        outline(cells, inside, wobbled).flatMap((s) => dashed(s, t * 0.3, t * 0.15)),
       );
       g.stroke({ width: this.style.lineWidthPx, color: colour });
       return;

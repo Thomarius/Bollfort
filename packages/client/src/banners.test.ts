@@ -24,6 +24,8 @@ describe('island banners', () => {
         kind: 'life',
         title: 'Life lost',
         detail: 'Ada — 2 lives left',
+        // Why, for anyone new to it: the one way a life goes.
+        reason: 'No castle sealed',
         urgent: false,
       },
     ]);

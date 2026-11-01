@@ -2312,7 +2312,9 @@ export class CyberpunkTheme implements Theme {
     if (!ghost.tile) return;
     const colour = ghost.valid ? hex(this.art.palette.uiValid) : hex(this.art.palette.uiInvalid);
     if (state.phase === 'build' && ghost.cells.length > 0) {
-      this.drawGhostWall(state, view, ghost, humanPlayer);
+      // Shaken where it does not fit, as in every style.
+      const wobbled = this.ghostMotion.shaken(view, ghost);
+      this.drawGhostWall(state, wobbled, ghost, humanPlayer);
       return;
     }
     if (state.phase === 'cannon_place' && ghost.footprint) {
