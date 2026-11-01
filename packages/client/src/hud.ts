@@ -125,6 +125,9 @@ const PHASE_CALL: Record<Phase, TextKey | null> = {
 /** A phase label longer than this, in characters, is set smaller (`.phase.long`). */
 const LONG_PHASE_LABEL = 22;
 
+/** Nobody away: a match on this computer, where nobody can drop. */
+const NOBODY: ReadonlySet<number> = new Set();
+
 /** How long a ranking's entries take to come in before their scores start counting. */
 const RANK_COUNT_DELAY_MS = 450;
 
@@ -487,7 +490,13 @@ export class Hud {
    * `placingTower`: whether the right button has switched the cannon ghost to the player's
    * special tower, for the tower's line in a cannon phase.
    */
-  update(state: MatchState, humanPlayer: number, status = '', placingTower = false): void {
+  update(
+    state: MatchState,
+    humanPlayer: number,
+    status = '',
+    placingTower = false,
+    away: ReadonlySet<number> = NOBODY,
+  ): void {
     const waiting = state.phase === 'intermission';
     const shown = waiting ? (state.pendingPhase ?? state.phase) : state.phase;
     this.markFinalRound(inFinalRound(state));
@@ -533,11 +542,22 @@ export class Hud {
     const card = (lives: string, shape: string): string =>
       `<span class="line">${shape}<em class="score"></em>${lives}</span>`;
     const playerItem = (p: (typeof state.players)[number]): string => {
-      const classes = ['player', p.eliminated ? 'out' : '', p.id === humanPlayer ? 'you' : '']
+      const gone = away.has(p.id) && !p.eliminated;
+      const classes = [
+        'player',
+        p.eliminated ? 'out' : '',
+        p.id === humanPlayer ? 'you' : '',
+        gone ? 'away' : '',
+      ]
         .filter(Boolean)
         .join(' ');
       const colour = playerCssColour(p.id);
-      const name = `<bdi title="${escape(p.name)}">${escape(p.name)}</bdi>`;
+      // A person dropped online: marked by the name, a bot playing the seat meanwhile. A
+      // `title`, as the name's and the lives' are: the card clips a hover text of our own.
+      const tag = gone
+        ? `<i class="away-tag" title="${t('hud.awayTitle')}">${t('hud.away')}</i>`
+        : '';
+      const name = `<bdi title="${escape(p.name)}">${escape(p.name)}</bdi>${tag}`;
       // A team's members carry only their names: the score and lives are the team's.
       return teamed
         ? `<li class="${classes}" style="--who:${colour}"><b></b>${name}</li>`

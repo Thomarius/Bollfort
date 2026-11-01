@@ -939,6 +939,29 @@ body {
   font-size: 0.85em;
 }
 
+/* A person dropped online, a bot playing for them: tagged in the card's corner, its edge
+   broken (net/connection.ts, ARCHIVE 15zc). */
+.roster .player.away {
+  position: relative;
+  border-left-style: dashed;
+}
+
+.roster .away-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0 0.3rem;
+  border-radius: var(--radius-s);
+  background: #e0a030;
+  color: #1a1206;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 /* The last life is the loudest thing in the roster. */
 .roster .lives.last {
   color: #ff5a62;
@@ -2350,6 +2373,12 @@ body.hud-bricks #hud .roster .line .shape path {
   color: var(--ink);
 }
 
+/* Over the whole board, so a click cannot reach it while nothing moves; the connection's
+   notice (connectionNotice.ts) above the pause menu, which a dropped page cannot leave. */
+.connection-overlay {
+  z-index: 6;
+}
+
 /* Over the whole board, so a click cannot reach it while nothing moves. */
 .pause-overlay {
   position: fixed;
@@ -2452,12 +2481,11 @@ body.hud-bricks #hud .roster .line .shape path {
 
 /* The connection, beside Pause, online only (network.ts): a dot that turns amber, then
    red, and says why. */
+/* In the corner's row after Pause (network.ts): placed at a fixed 10.6rem it lay over Full
+   screen and Pause once the row grew, in German by half a button. */
 #network {
-  position: fixed;
-  left: 10.6rem;
-  bottom: 0.6rem;
-  z-index: 5;
   display: flex;
+  align-self: center;
   gap: 0.45rem;
   align-items: center;
   padding: 0.25rem 0.6rem;
@@ -2887,12 +2915,14 @@ body.reduced-motion .phase-call .ranking .gain {
 }
 
 /* Three wall blocks laid one after another, as a piece goes down. */
-.preparing .blocks {
+.preparing .blocks,
+.connection-overlay .blocks {
   display: flex;
   gap: 4px;
 }
 
-.preparing .blocks i {
+.preparing .blocks i,
+.connection-overlay .blocks i {
   width: 14px;
   height: 14px;
   background: var(--accent);
@@ -2900,11 +2930,13 @@ body.reduced-motion .phase-call .ranking .gain {
   animation: preparing-block 900ms ease-in-out infinite;
 }
 
-.preparing .blocks i:nth-child(2) {
+.preparing .blocks i:nth-child(2),
+.connection-overlay .blocks i:nth-child(2) {
   animation-delay: 150ms;
 }
 
-.preparing .blocks i:nth-child(3) {
+.preparing .blocks i:nth-child(3),
+.connection-overlay .blocks i:nth-child(3) {
   animation-delay: 300ms;
 }
 
@@ -2914,7 +2946,8 @@ body.reduced-motion .phase-call .ranking .gain {
   }
 }
 
-body.reduced-motion .preparing .blocks i {
+body.reduced-motion .preparing .blocks i,
+body.reduced-motion .connection-overlay .blocks i {
   animation: none;
   opacity: 0.7;
 }

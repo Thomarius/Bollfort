@@ -272,7 +272,14 @@ function playOnline(open: Open, room: TournamentRoom, progress: Progress): void 
     if (started) return;
     started = true;
     void runSession(
-      networkSession(room.match, room.connection, false, () => true),
+      networkSession(
+        room.match,
+        room.connection,
+        false,
+        () => true,
+        () => true,
+        () => room.people,
+      ),
       setup,
       {
         ...exits,

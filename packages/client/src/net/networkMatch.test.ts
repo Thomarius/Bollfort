@@ -91,3 +91,60 @@ describe('a network match keeping up with the server', () => {
     expect(Math.max(...stepped.slice(8))).toBe(1);
   });
 });
+
+describe('a network match out of sync', () => {
+  /** A client whose connection counts its rejoins, as `rejoin` would ask the server. */
+  function watched(
+    host: { state: MatchState },
+    limit: number,
+  ): { match: NetworkMatch; rejoins: () => number } {
+    let rejoins = 0;
+    const connection = { send: () => undefined, rejoin: () => rejoins++ };
+    const match = new NetworkMatch(connection as unknown as ServerConnection, limit);
+    match.receive({ type: 'snapshot', snapshot: captureSnapshot(host.state) });
+    return { match, rejoins: () => rejoins };
+  }
+
+  /** A commit whose hash cannot be the page's, as a desync's is not. */
+  function wrongCommit(host: { state: MatchState }, match: NetworkMatch): void {
+    const tick = host.state.tick;
+    step(host.state);
+    match.receive({ type: 'commit', tick, actions: [], hash: 'not-this-board' });
+  }
+
+  it('rejoins for the server’s board, holds still until it comes, then plays on from it', () => {
+    const host = server();
+    const { match, rejoins } = watched(host, 3);
+    wrongCommit(host, match);
+    match.advance(tickMs);
+    expect(rejoins()).toBe(1);
+    expect(match.desynced).toBe(false);
+    // Held still: the commits still arriving are played on a board known to be wrong.
+    const held = match.state?.tick;
+    host.commit(match);
+    match.advance(tickMs * 4);
+    expect(match.state?.tick).toBe(held);
+
+    // The rejoin's snapshot: the board replaced, the screen told to draw it again.
+    expect(match.takeResynced()).toBe(false);
+    match.receive({ type: 'snapshot', snapshot: captureSnapshot(host.state) });
+    expect(match.takeResynced()).toBe(true);
+    expect(match.takeResynced()).toBe(false);
+    host.commit(match);
+    match.advance(tickMs);
+    expect(match.state?.tick).toBe(host.state.tick);
+    expect(hashMatchState(match.state as MatchState)).toBe(hashMatchState(host.state));
+  });
+
+  it('stops rejoining past its limit, and says it is out of sync', () => {
+    const host = server();
+    const { match, rejoins } = watched(host, 1);
+    wrongCommit(host, match);
+    match.advance(tickMs);
+    match.receive({ type: 'snapshot', snapshot: captureSnapshot(host.state) });
+    wrongCommit(host, match);
+    match.advance(tickMs);
+    expect(rejoins()).toBe(1);
+    expect(match.desynced).toBe(true);
+  });
+});

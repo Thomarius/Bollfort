@@ -579,6 +579,8 @@ function roomLobby(
   /** Whether the host is still at the table, as the room last said: gone, nobody calls the next match. */
   let hostHere = true;
   let started = false;
+  /** An error from the room is on screen, which a lost connection must not cover. */
+  let refused = false;
   /** Takes the match down, for a rematch bringing the room back to its lobby. */
   let endMatch: (() => void) | null = null;
   /** The host's tournament as they last sent it, at a tournament's table, and where it stands. */
@@ -738,6 +740,7 @@ function roomLobby(
               watching,
               () => match.humanPlayer === hostId,
               () => hostHere,
+              () => view?.seats ?? [],
             ),
             setup,
             // The next match is the host's to send from their tournament.
@@ -749,6 +752,7 @@ function roomLobby(
         }
         break;
       case 'error':
+        refused = true;
         showError(
           t('error.refused', { code: message.code }),
           refusalText(message.code, message.message),
@@ -757,6 +761,14 @@ function roomLobby(
       default:
         break;
     }
+  });
+
+  // A drop in a match is got back by rejoining the seat, which the server keeps through the
+  // match and its summary; in the lobby a seat left is gone, so a drop there is the end.
+  connection.rejoinWhile(() => started);
+  connection.onLost(() => {
+    // In a match the screen says so over the board (`connectionNotice.ts`).
+    if (!started && !refused) showMenu(t('connection.lobbyLost'));
   });
 
   // The tower this person chose last, for the room to know before anything is changed.

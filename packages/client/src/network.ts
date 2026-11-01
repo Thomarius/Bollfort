@@ -13,6 +13,8 @@ export interface NetworkReading {
   /** Ticks the page trails what the server has confirmed. */
   behind: number;
   desynced: boolean;
+  /** The socket: up, being got back after a drop, or lost for good. */
+  link: 'open' | 'reconnecting' | 'lost';
 }
 
 export type NetworkLevel = 'good' | 'slow' | 'bad';
@@ -23,6 +25,8 @@ export function netHealth(
   tickRateHz: number,
   limits: ArtConfig['hud']['network'] = defaultArtConfig.hud.network,
 ): { level: NetworkLevel; text: string } {
+  if (reading.link === 'lost') return { level: 'bad', text: t('network.lost') };
+  if (reading.link === 'reconnecting') return { level: 'bad', text: t('network.reconnecting') };
   if (reading.desynced) return { level: 'bad', text: t('network.desynced') };
   const seconds = formatNumber(reading.behind / tickRateHz, 1);
   const ms = reading.latencyMs;
@@ -52,7 +56,8 @@ export class NetworkBadge {
       this.node.title = t('network.title');
       this.shown = '';
     });
-    document.body.append(this.node);
+    // In the corner's row, after Pause, so it moves as the buttons before it change width.
+    (document.querySelector('#corner') ?? document.body).append(this.node);
   }
 
   update(reading: NetworkReading, tickRateHz: number): void {

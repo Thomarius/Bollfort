@@ -25,6 +25,7 @@ import { bannersFor, type LifeLost, type PointsGained } from './banners.js';
 import { matchPalette, playerCssColour, useMatchPalette } from './colours.js';
 import { matchShapes, playerShape, useMatchShapes } from './shapes.js';
 import { NetworkBadge } from './network.js';
+import { ConnectionNotice, noticeFor } from './connectionNotice.js';
 import { WatchingStrip } from './watching.js';
 import { onGraphics, storedGraphics } from './graphics.js';
 import { LookRotation, openLookGallery } from './looks.js';
@@ -410,6 +411,8 @@ export async function runSession(
   globalThis.addEventListener('focus', onFocus);
   // Beside Pause, online only: the connection, where a player will see it.
   const badge = session.network() === null ? null : new NetworkBadge();
+  // Over the board while that connection is down, and the way out once it is lost.
+  const notice = session.network() === null ? null : new ConnectionNotice(leaveMatch);
   // Out, and watching, with the way back to the menu (PLAN 11.18 Y3).
   const watching = new WatchingStrip(leaveMatch);
 
@@ -421,6 +424,7 @@ export async function runSession(
     globalThis.removeEventListener('blur', onBlur);
     globalThis.removeEventListener('focus', onFocus);
     badge?.destroy();
+    notice?.destroy();
     perf.detach();
     watching.destroy();
     hud.useSkin(null);
@@ -724,6 +728,11 @@ export async function runSession(
           break;
       }
     }
+    // A rejoin's snapshot replaced the board: everything drawn from the old one again.
+    if (session.takeResynced?.() === true) {
+      structuresChanged = true;
+      territoryChanged = true;
+    }
     const sealing = board.refresh(structuresChanged, territoryChanged);
     if (sealing !== null) {
       matchAudio?.sealed(session.state, sealing.sealedBefore, sealing.sealedAfter);
@@ -846,10 +855,14 @@ export async function runSession(
       session.humanPlayer,
       demo ? '' : session.status(),
       controls.placingTower,
+      session.away?.(),
     );
     watching.update(session.state, session.humanPlayer);
     const reading = session.network();
-    if (reading !== null) badge?.update(reading, session.state.ruleset.tickRateHz);
+    if (reading !== null) {
+      badge?.update(reading, session.state.ruleset.tickRateHz);
+      notice?.update(noticeFor(reading.link, session.finished));
+    }
 
     board.crumbleRuins();
     perf.end('hud');

@@ -4,8 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { netHealth } from './network.js';
 
 const limits = defaultArtConfig.hud.network;
-const read = (latencyMs: number, behind = 0, desynced = false) =>
-  netHealth({ latencyMs, behind, desynced }, 30, limits);
+const read = (
+  latencyMs: number,
+  behind = 0,
+  desynced = false,
+  link: 'open' | 'reconnecting' | 'lost' = 'open',
+) => netHealth({ latencyMs, behind, desynced, link }, 30, limits);
 
 describe('the connection badge', () => {
   it('reads online with the round trip while all is well', () => {
@@ -35,5 +39,10 @@ describe('the connection badge', () => {
     expect(read(500, 30, true)).toEqual({ level: 'bad', text: 'Out of sync' });
     expect(read(limits.badPingMs, limits.slowBehindTicks).text).toMatch(/^Slow link/);
     expect(read(limits.slowPingMs, limits.badBehindTicks).text).toMatch(/^Behind/);
+  });
+
+  it('says a dropped connection is being got back, and when it is lost, over all else', () => {
+    expect(read(45, 0, true, 'reconnecting')).toEqual({ level: 'bad', text: 'Reconnecting…' });
+    expect(read(45, 0, false, 'lost')).toEqual({ level: 'bad', text: 'Connection lost' });
   });
 });
