@@ -1365,6 +1365,17 @@ export const ArtConfigSchema = z
         badPingMs: z.number().int().positive(),
         slowBehindTicks: z.number().int().positive(),
         badBehindTicks: z.number().int().positive(),
+        /**
+         * The waits before each try to get a dropped connection back in a match, the last
+         * repeated; and how many tries before it is given up for lost (`net/connection.ts`).
+         */
+        reconnectDelaysMs: z.array(z.number().int().nonnegative()).min(1),
+        reconnectTries: z.number().int().positive(),
+        /**
+         * How many times a page out of sync rejoins for a fresh snapshot before it stops and
+         * says so: a desync that comes back at once each time is a bug no rejoining mends.
+         */
+        resyncLimit: z.number().int().nonnegative(),
       }),
     }),
     /** The menu's title, split between the two chosen looks at a banner's line. */

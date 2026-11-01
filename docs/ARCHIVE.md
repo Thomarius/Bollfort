@@ -11145,3 +11145,40 @@ the user. Server only, no protocol change:
 Checked against the real server and the built client (the headers by `curl`), and by tests: a
 socket told not to answer pings dropped within a second at a 50 ms heartbeat while one that
 answers stays, a 4 MiB frame refused with 1009, both caps, and the cache headers.
+
+## 15zc. The connection in the match, PR2 (2026-11-01)
+
+The second package of PLAN §11 item 7. Client only: the server already handed a seat back to
+anyone joining with its token (`Room.join`), with a fresh snapshot, but the page did so only
+after a reload. No protocol change.
+
+- **A dropped socket rejoins by itself** (`ServerConnection`): through a match and its summary
+  (`rejoinWhile` — the room's `started`, as the room last said), a socket that closes without
+  being closed here is opened again after `art.hud.network.reconnectDelaysMs` (0.5, 1, 2, 4,
+  then every 5 s), joining with the seat's token, for `reconnectTries` (15) tries, about a
+  minute; the listeners stay the same, so the match sees only a welcome and a snapshot arrive.
+  A rejoin refused (the room gone) ends the trying at once and is not passed on, which the
+  lobby would have shown as an error over the match. In a lobby a drop is the end — a seat left
+  there is gone — and the menu says so (`connection.lobbyLost`), where the page had sat still.
+  Nothing is sent while reconnecting.
+- **Shown** (`connectionNotice.ts`): over the board while it is down, "Connection lost" and that
+  a bot plays meanwhile, with the preparing screen's three blocks; once given up, the way back
+  to the menu. Never over the summary. The badge says Reconnecting… or Connection lost. Before,
+  the board froze under "Online · 30 ms".
+- **Out of sync mended the same way**: a hash mismatch rejoins for the server's board, the page
+  held still meanwhile, up to `resyncLimit` (3) times a match; past that "Out of sync" stays.
+  A snapshot replacing a board on screen tells the match screen to draw everything from the new
+  one (`takeResynced`), since the board is redrawn only on events.
+- **A person away marked on their score card**, AWAY in the corner and the edge dashed, from
+  the room's `seats[].connected`, shown till now only in the lobby.
+- And the **badge moved into the corner's row** after Pause: placed at a fixed 10.6rem since
+  before Full screen joined the row (UP2), it lay over Full screen and Pause, in German by half
+  a button.
+
+Checked with two pages on the real server (Playwright, a host and a guest in a room's match): a
+socket closed under the guest showed the notice and the badge, rejoined within a second, the
+host's card said AWAY meanwhile, and no desync followed; with every rejoin refused the notice
+gave up after 56–62 s and its button brought the menu. The recording of that match replayed
+exact. Tests: the connection against a fake socket (rejoin, its waits, giving up, a refused
+rejoin, a close made here never reopened), a desync rejoined and held still until the snapshot
+and its limit, the notice and the badge's words.

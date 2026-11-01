@@ -532,7 +532,9 @@ which a test session needs the server rebuilt and every page reloaded for):
 - **Polish before the first feature-ready version** (PLAN §11 item 7, triaged 2026-11-01): five
   packages, PR1 the server's robustness done (ARCHIVE 15zb: a heartbeat, `maxPayload`,
   recordings appended without blocking and capped, never pruned, hash-named assets `immutable`);
-  next PR2, the connection in the match, best just before the online session.
+  PR2 the connection in the match done (ARCHIVE 15zc: a dropped socket rejoins its seat by
+  itself, a notice over the board, a desync rejoined for the server's board, AWAY on a card);
+  next PR3, shots panned where they land.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

@@ -67,10 +67,14 @@ export class TournamentRoom {
   /** Called as a match starts: the snapshot has come. */
   onSnapshot: (() => void) | null = null;
   private readonly pinging: ReturnType<typeof setInterval>;
+  /** A match under way or over in the room, as it last said: the seat is kept through both. */
+  private playing = false;
 
   private constructor(readonly connection: ServerConnection) {
     this.match = new NetworkMatch(connection);
     connection.onMessage((message) => this.receive(message));
+    // A drop in a match is got back by rejoining; between matches the seat is not kept.
+    connection.rejoinWhile(() => this.playing);
     this.pinging = setInterval(() => {
       if (connection.state === 'closed') clearInterval(this.pinging);
       else connection.ping();
@@ -153,11 +157,13 @@ export class TournamentRoom {
         this.code = message.code;
         this.hostId = message.hostId;
         this.people = message.seats;
+        this.playing = message.started;
         this.invite =
           message.internet === null ? null : `${message.internet}/?join=${message.code}`;
         if (!message.started) this.onChange?.();
         return;
       case 'snapshot':
+        this.playing = true;
         this.onSnapshot?.();
         return;
       default:

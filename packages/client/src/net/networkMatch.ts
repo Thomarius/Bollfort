@@ -1,3 +1,4 @@
+import { defaultArtConfig } from '@bollwerk/config';
 import { applySnapshot, type ServerMessage } from '@bollwerk/protocol';
 import {
   applyAction,
@@ -40,12 +41,35 @@ export class NetworkMatch {
   private tickMs = 1000 / 30;
 
   humanPlayer = -1;
+  /**
+   * Out of sync, and no longer rejoining for a fresh start: a desync is mended by rejoining
+   * (`connection.rejoin`), the server's snapshot replacing the board, up to `resyncLimit`
+   * times a match; past that it stays, and says so.
+   */
   desynced = false;
+  /** Rejoins for a desync so far, and whether one is under way. */
+  private resyncs = 0;
+  private resyncing = false;
+  /**
+   * A snapshot has replaced a board already being shown — a rejoin — so whatever the screen
+   * drew from the old one is to be drawn again (`takeResynced`).
+   */
+  private replaced = false;
   lastRejection: Rejection | null = null;
   /** Who paused the match, as the server last said; null while it runs. */
   pausedBy: number | null = null;
 
-  constructor(private readonly connection: ServerConnection) {}
+  constructor(
+    private readonly connection: ServerConnection,
+    private readonly resyncLimit = defaultArtConfig.hud.network.resyncLimit,
+  ) {}
+
+  /** Whether the board was replaced since last asked, as a rejoin replaces it. */
+  takeResynced(): boolean {
+    const replaced = this.replaced;
+    this.replaced = false;
+    return replaced;
+  }
 
   get ready(): boolean {
     return this.state !== null;
@@ -85,7 +109,11 @@ export class NetworkMatch {
           })),
         });
         applySnapshot(base, message.snapshot);
+        this.replaced = this.state !== null;
         this.state = base;
+        this.resyncing = false;
+        this.pendingHash = null;
+        this.events = [];
         this.tickMs = 1000 / base.ruleset.tickRateHz;
         this.confirmed = message.snapshot.tick - 1;
         this.buffered.clear();
@@ -131,7 +159,8 @@ export class NetworkMatch {
    */
   advance(elapsedMs: number): MatchEvent[] {
     const state = this.state;
-    if (state === null) return [];
+    // A board known to be wrong is held still until the server's replaces it.
+    if (state === null || this.resyncing) return [];
 
     // Paused, the server sends no commits, so the client runs out of confirmed ticks on
     // its own; what it must not do is bank the pause as time to catch up on after.
@@ -160,13 +189,29 @@ export class NetworkMatch {
       budget--;
 
       if (this.pendingHash !== null && this.pendingHash.tick === tick) {
-        if (hashMatchState(state) !== this.pendingHash.hash) this.desynced = true;
+        const mismatch = hashMatchState(state) !== this.pendingHash.hash;
         this.pendingHash = null;
+        if (mismatch) {
+          this.resync();
+          break;
+        }
       }
     }
 
     const events = this.events;
     this.events = [];
     return events;
+  }
+
+  /** Out of step with the server: rejoined for its board while the limit allows. */
+  private resync(): void {
+    if (this.resyncing) return;
+    if (this.resyncs >= this.resyncLimit) {
+      this.desynced = true;
+      return;
+    }
+    this.resyncs++;
+    this.resyncing = true;
+    this.connection.rejoin();
   }
 }

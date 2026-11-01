@@ -1835,7 +1835,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      by an async stream rather than `appendFileSync` on the tick path, with a cap on a file's and
      the folder's size; and `immutable` caching for the build's hashed `/assets/`, everything else
      `no-cache` as now. Server only, no protocol change.
-   - **PR2 — The connection in the match**: a closed socket shown ("Connection lost —
+   - **PR2 — The connection in the match — done** (ARCHIVE 15zc): a closed socket shown ("Connection lost —
      reconnecting…", the badge red) where now the board freezes under "Online · 30 ms"; the page
      rejoins by itself with its seat's token, which the server already honours (`room.ts` `join`)
      but the client uses only after a reload; "Out of sync" recovered the same way, by rejoining

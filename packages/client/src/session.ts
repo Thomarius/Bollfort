@@ -10,6 +10,7 @@ import {
   type BotTower,
   type TowerVariant,
 } from '@bollwerk/config';
+import type { Seat } from '@bollwerk/protocol';
 import { type Action, type MatchEvent, type MatchState } from '@bollwerk/sim';
 
 import { type NetworkReading } from './network.js';
@@ -45,6 +46,13 @@ export interface Session {
   status(): string;
   /** The connection, for the badge beside Pause; null for a match on this computer. */
   network(): NetworkReading | null;
+  /**
+   * Whether the board was replaced since last asked — a rejoin after a drop or a desync —
+   * so what was drawn from the old one is drawn again. Online only.
+   */
+  takeResynced?(): boolean;
+  /** The players whose person has dropped, a bot playing for them until they are back. */
+  away?(): ReadonlySet<number>;
   /**
    * Leaving for the menu: online the connection closes, so the seat goes to a bot after
    * the grace a dropped player gets (§6), and no ping is left running behind the menu.
@@ -179,7 +187,11 @@ export function networkSession(
   watching = false,
   isHost: () => boolean = () => false,
   hostHere: () => boolean = () => true,
+  seats: () => readonly Seat[] = () => [],
 ): Session {
+  // Kept until the seats change, since the HUD asks every frame.
+  let seen: readonly Seat[] | null = null;
+  let away: ReadonlySet<number> = new Set();
   return {
     get state() {
       if (match.state === null) throw new Error('match has no state yet');
@@ -209,7 +221,21 @@ export function networkSession(
       latencyMs: connection.latencyMs,
       behind: match.behind,
       desynced: match.desynced,
+      link: connection.lost
+        ? 'lost'
+        : connection.state === 'reconnecting'
+          ? 'reconnecting'
+          : 'open',
     }),
+    takeResynced: () => match.takeResynced(),
+    away: () => {
+      const now = seats();
+      if (now !== seen) {
+        seen = now;
+        away = new Set(now.filter((seat) => !seat.connected).map((seat) => seat.playerId));
+      }
+      return away;
+    },
     leave: () => connection.close(),
     // The host gone, or the room, nobody will call the next match: the summary keeps only
     // its way back to the menu, where a guest once waited on the button for good.
