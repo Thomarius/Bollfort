@@ -801,8 +801,17 @@ export class BlueprintTheme implements Theme {
   ): void {
     const t = view.tile;
     const wall = wallGeometry(cells, joins, view, this.faceFraction());
+    // An owner of the paper's own hue, washed pale (`colour`), was still pale blue hatching on
+    // blue paper: its tops filled more strongly and its outline chalked white over a dark
+    // edge, in proportion, so the other owners look as they did (the readability review,
+    // 2026-11-01).
+    const kin = hueNearness(
+      playerColour(this.art, player, 'base'),
+      hex(this.art.palette.grassMid),
+      45,
+    );
     for (const r of wall.tops) g.rect(r.x, r.y, r.w, r.h);
-    g.fill({ color: this.colour(player, 'dark'), alpha: 0.45 * alpha });
+    g.fill({ color: this.colour(player, 'dark'), alpha: (0.45 + 0.4 * kin) * alpha });
     for (const r of wall.faces) g.rect(r.x, r.y, r.w, r.h);
     g.fill({ color: this.colour(player, 'dark'), alpha: 0.85 * alpha });
 
@@ -815,6 +824,17 @@ export class BlueprintTheme implements Theme {
     g.stroke({ width: 1, color: this.colour(player, 'base'), alpha: 0.7 * alpha });
     trace(g, wall.rim);
     g.stroke({ width: this.style.lineWidthPx, color: this.colour(player, 'light'), alpha });
+    if (kin > 0) {
+      const edge = outline(cells, joins, view);
+      trace(g, edge);
+      g.stroke({
+        width: this.style.lineWidthPx + 2,
+        color: hex(this.art.palette.shadow),
+        alpha: 0.7 * kin * alpha,
+      });
+      trace(g, edge);
+      g.stroke({ width: this.style.lineWidthPx, color: 0xffffff, alpha: kin * alpha });
+    }
   }
 
   // ------------------------------------------------------------------ events

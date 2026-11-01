@@ -1939,11 +1939,13 @@ export class SakuraTheme extends ShapeTheme implements Theme {
       const edge = outline(cells, inPiece, view);
       if (ghost.valid) {
         for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
-        g.fill({ color: this.colour(humanPlayer, 'light'), alpha: 0.35 });
+        // Washed at 0.35 with a faint paper line, the piece was a dull block on the olive
+        // grass (the readability review, 2026-11-01).
+        g.fill({ color: this.colour(humanPlayer, 'light'), alpha: 0.6 });
         trace(g, edge);
-        g.stroke({ width: Math.max(2, t * 0.14), color: this.sumi, alpha: 0.85, cap: 'round' });
+        g.stroke({ width: Math.max(2, t * 0.16), color: this.sumi, alpha: 0.9, cap: 'round' });
         trace(g, edge);
-        g.stroke({ width: Math.max(1, t * 0.04), color: PAPER, alpha: 0.6, cap: 'round' });
+        g.stroke({ width: Math.max(1.5, t * 0.07), color: PAPER, alpha: 1, cap: 'round' });
         return;
       }
       for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);

@@ -53,7 +53,7 @@ import {
   type ThemeLayers,
   type ViewTransform,
 } from './theme.js';
-import { outline, trace, wallGeometry } from './walls.js';
+import { outline, strokePieceEdge, trace, wallGeometry } from './walls.js';
 import { ShapeTheme } from './shapeTheme.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
@@ -1313,17 +1313,13 @@ export class NoirTheme extends ShapeTheme implements Theme {
       for (const { x, y } of cells) g.rect(tileX(view, x), tileY(view, y), t, t);
       g.fill({
         color: ghost.valid ? this.colour(humanPlayer, 'base') : hex(palette.rockMid),
-        alpha: ghost.valid ? 0.5 : 0.45,
+        alpha: ghost.valid ? 0.7 : 0.45,
       });
       const edge = outline(cells, inPiece, view);
       if (ghost.valid) {
-        trace(g, edge);
-        g.stroke({ width: Math.max(2, t * 0.14), color: NOIR_INK });
-        edge.forEach((s, n) => {
-          if (n % 2 === 1) return;
-          g.moveTo(s.x1, s.y1).lineTo(s.x2, s.y2);
-        });
-        g.stroke({ width: Math.max(1, t * 0.06), color: NOIR_PAPER });
+        // Paper all the way round over the ink: the ink alone, with paper on every other
+        // side, was black on the night's cobbles (the readability review, 2026-11-01).
+        strokePieceEdge(g, edge, t, NOIR_INK, NOIR_PAPER);
         return;
       }
       const shake = Math.sin(now / 30) * t * 0.05;

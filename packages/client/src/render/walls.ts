@@ -183,3 +183,25 @@ export function outline(
   }
   return out;
 }
+
+/**
+ * A piece in hand's edge, twice: a dark line under a light one, so it shows on a light ground
+ * and a dark one alike. A single line in either tone vanished on some ground — Noir's ink on
+ * its night cobbles, Sakura's ink on its olive grass (the readability review, 2026-11-01).
+ */
+export function strokePieceEdge(
+  g: {
+    moveTo(x: number, y: number): unknown;
+    lineTo(x: number, y: number): unknown;
+    stroke(style: { width: number; color: number; alpha?: number }): unknown;
+  },
+  segments: readonly Segment[],
+  tile: number,
+  dark: number,
+  light: number,
+): void {
+  trace(g, segments);
+  g.stroke({ width: Math.max(3, tile * 0.18), color: dark, alpha: 0.85 });
+  trace(g, segments);
+  g.stroke({ width: Math.max(1.5, tile * 0.08), color: light, alpha: 0.95 });
+}

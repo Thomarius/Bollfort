@@ -60,7 +60,7 @@ import {
 import { BricksSeaLife } from './seaLife.js';
 import type { SceneryItem } from './scenery.js';
 import { SceneryLayer } from './sceneryLayer.js';
-import { outline, trace, wallGeometry } from './walls.js';
+import { outline, strokePieceEdge, trace, wallGeometry } from './walls.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
@@ -1511,6 +1511,15 @@ export class BricksTheme implements Theme {
         // The piece in hand as the bricks it will be, a little see-through.
         const inPiece = new Set(cells.map((c) => `${c.x},${c.y}`));
         this.drawBricks(g, view, cells, (x, y) => inPiece.has(`${x},${y}`), humanPlayer, 0.7);
+        // Its edge, which the see-through wall alone did not show against the ground
+        // (the readability review, 2026-11-01).
+        strokePieceEdge(
+          g,
+          outline(cells, (x, y) => inPiece.has(`${x},${y}`), view),
+          t,
+          hex(palette.shadow),
+          hex(palette.uiInk),
+        );
         return;
       }
       // Where it does not fit: hollow, a red outline and a cross in each cell — a red
