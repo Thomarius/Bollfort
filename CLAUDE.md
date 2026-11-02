@@ -541,6 +541,9 @@ which a test session needs the server rebuilt and every page reloaded for):
   (ARCHIVE 15zf: each style its own module, `createTheme` async, 32% less script before the
   menu). Item 7 is finished.
 
+- **Steam** (PLAN §11 item 8, decided 2026-11-02): a free release after the online session,
+  a supporter DLC later; the design and its packages in `docs/STEAM.md`, nothing built yet.
+
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.
 
@@ -550,10 +553,11 @@ server. This is a fan project with no budget: propose nothing that costs money t
 **Working with the user**: every match they play is recorded in `recordings/`; they send
 compiled feedback, which is triaged with them before anything is built, and design
 questions are asked before coding. Commits and pushes are theirs to approve, each time.
-**Mouse only** (their rule): everything is played with the two mouse buttons and the
+**Mouse, or a controller through the same actions** (their rule, amended 2026-11-02 for
+the Steam Deck, STEAM.md §8): everything is played with the two mouse buttons and the
 wheel — the right button or the wheel turns the piece — and every other action has
-something on screen to click. No keyboard shortcuts; Esc for pause is the one agreed
-exception, beside its button.
+something on screen to click; a controller only ever does what the mouse already can. No
+keyboard shortcuts; Esc for pause is the one agreed exception, beside its button.
 
 ## Making a release
 

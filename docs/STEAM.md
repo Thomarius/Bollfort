@@ -1,238 +1,390 @@
-# Bollwerk on Steam — a plan to think about
+# Bollwerk on Steam — the design and its packages
 
-**Not decided.** The user is weighing whether to release Bollwerk on Steam (2026-11-02); this
-file gathers what was worked out so the decision can be made on it, and so nothing is built
-before it is made. If it goes ahead, this file becomes the design and its packages, as
-`SPECIAL_TOWERS.md` was; if not, it is retired into the ARCHIVE with the reasons.
+**Decided** (2026-11-02, the user's, in three rounds of questions): Bollwerk goes to Steam as a
+**free game**, after the first feature-ready version (PLAN §11 item 5). A small **supporter DLC**
+comes later, once the game works and people play it. The supporter DLC is only a way for people
+to give a small donation, not a store. The browser game, the portable builds on GitHub and the
+desktop app's link stay as they are, and Steam is one more way to play. This file is the design;
+once built, it is retired into the ARCHIVE, as `SPECIAL_TOWERS.md` will be.
 
-What Valve's documentation says was checked against its current pages on 2026-11-02
+What Valve's documentation says was checked against its live pages on 2026-11-02
 (partner.steamgames.com, `steamworks.js` on GitHub). Some long pages came back summarised rather
-than verbatim; those points are marked _(to confirm)_ and are to be read on the live page before
-anything is built on them. Points that are our own reasoning or memory are marked _(unchecked)_.
+than verbatim; those points are marked _(to confirm)_ and are read on the live page before
+anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 
 ---
 
-## 1. The decision so far
+## 1. The decisions
 
-- **Free, if at all.** A free game is the lowest risk: no Gewerbe needed for sales, no price to
-  justify, and a smaller target for the trademark's owner (§2).
-- **A supporter DLC** as the way to give money, if any is wanted (§4).
-- **Public and private lobbies**, friends invited directly, public games in the games list and
-  open to anyone (§5). This brings back the Public / Private choice taken out on 2026-10-28
-  (ARCHIVE 15j), for a reason: Steam has no room codes, so without private lobbies there is no
-  match "without strangers".
-- **The browser game, the portable builds on GitHub and the desktop app's link stay** as they
-  are; Steam is one more way to find each other, not a replacement.
+**Scope and money**
 
-## 2. Is it allowed
+- **When**: after the online session (PLAN §11 item 5), as the game's 1.0 on Steam.
+- **The Steam Direct fee** (US$100, one-off) is accepted: a one-off cost, not a running one.
+- **The rights**: a private project; no employer has a claim.
+- **The trademark**: Rampart is named nowhere on Steam — not in the store page, its tags or its
+  art. The "inspired by" line stays in the game's Credits, the README and the release notes, and
+  is left off the Steam page. Similar paid games stand closer to the original; Bollwerk's changes
+  and additions are substantial.
+- **The supporter DLC**: Halloween and Christmas, their music, and a supporter's badge by the name.
+  Wallpapers perhaps, if they turn out to work. The price is decided later (€1.99 in mind). It
+  ships later than the game (§6).
 
-- **The trademark.** Rules and mechanics are not protected, and nothing of the original is used
-  — no code, graphics or sound. But on Steam a rights holder's complaint takes a game down first
-  and is argued afterwards, and money makes the game a likelier target. So: no "Rampart" in the
-  store page, its tags or its art; weigh whether the "inspired by" line belongs on the Steam
-  page at all (it stays in the game's Credits); and if anything is ever sold, a short
-  consultation with an IP lawyer first.
-- **Audio** (checked in `config/audio.manifest.json`): CC0, CC-BY 3.0 and 4.0, and the Pixabay
-  Content License — none NonCommercial, all fine in a game given away or sold. `CREDITS.md`
-  gives CC-BY its attribution. **Not** fine: selling the music on its own, as a soundtrack (§4).
-- **Fonts**: Inter and Rubik, SIL Open Font License, which allows bundling.
-- **AI disclosure.** Steam's content survey asks about AI-generated content that ships with the
-  game or is generated while it runs, and says "Efficiency gains through the use of these tools
-  is not the focus of this section." Code written with an assistant is that; there is likely
-  nothing to declare, as long as no graphics, text or sound are generated.
-- **Rights in the work**: if any of it was done as part of a job (the university), who owns it
-  is to be checked before publishing under one's own name _(unchecked)_.
+**Builds**
 
-## 3. Costs and paperwork
+- **One codebase, one desktop app**, with Steam switched on by a flag at packaging for the Steam
+  depots only (§3). The GitHub builds never start Steam, even with Steam running and the game
+  owned. They keep the link, UPnP, the LAN and every style.
+- **The Steam build has only Steam's online services**: Steam lobbies, no link, no UPnP, no LAN,
+  so that nothing competes with Steam's own services.
+- **No recordings in any packaged build**, Steam or GitHub. Recordings are for tuning and are not
+  part of a release. `npm start` on the user's own server still records test sessions.
+- **Windows and Linux** depots; no macOS (PLAN §12).
+- **Native controller support**, for the Steam Deck (§8): native, by grid positions and buttons,
+  a cursor only in combat; one button for everything the left button does, one for everything
+  the right does (in combat, held, it speeds the cursor up), Start for Esc, all reconfigurable. The mouse-only rule is amended to
+  "mouse, or a controller through the same actions" (the user's, 2026-11-02). There are still no
+  keyboard shortcuts.
 
-- **The Steam Direct fee**: US$100 per app, not refundable, no exception for free games. It is
-  paid back once the app has US$1,000 of _Adjusted Gross Revenue_ — which a free game with a
-  supporter DLC may never reach. A one-off cost, not a running one; still the user's decision
-  under the no-budget rule. Whether DLC costs another fee is not stated _(to confirm)_.
-- **Waiting**: after paying, Valve's pages disagree — 30 days (the Steam Direct page) or 21
-  (onboarding) before the first few titles may be released. A first game may also request keys
-  only three weeks after its App ID is made.
-- **The store page** must show as Coming Soon for at least two weeks before release; submit it
-  for review at least 7 working days before it should go live.
-- **Valve's review** checks the store page (features "available at launch", a readable title on
-  the capsules, screenshots only of play) and the build (it starts on every system listed, every
-  feature named is in it). Nothing says multiplayer is tested. 3–5 working days; plan for 7.
-- **Tax**: onboarding asks citizens of treaty countries for "information similar to" form
-  W-8BEN; without the treaty 30% would be withheld. Any income — DLC sales — is income in
-  Germany; with regular sales probably a Gewerbe, the Kleinunternehmer rule perhaps sparing the
-  VAT (_unchecked_; a Steuerberater or the Finanzamt).
-- **Revenue share**: from memory 30% _(unchecked)_; it is in the Steam Distribution Agreement,
-  not in the pages read.
-- **Signing**: a Steam install does not meet Windows' unknown-publisher warning, so PLAN §12's
-  signing question falls away for Steam players (not for the GitHub builds).
+**Lobbies and the browser**
 
-## 4. Money: a supporter DLC
+- **Three lobby types** under Steam: **Public** (in the games list), **Friends** (friends join
+  from their friends list, not listed) and **Invite only**. Friends is the default.
+- **Outside Steam rooms stay public**, as now. This was the easier option, and the protocol's
+  unused `public: false` is left as it is.
+- **The host can kick** a guest in the lobby, never during a match. A kicked player cannot rejoin
+  that lobby or room (§5). There is no chat.
+- **One games browser**, its source set by the build: Steam's lobbies in the Steam build, the
+  server's rooms everywhere else. The two are never mixed (§4).
+- **No quick match**, for now.
+- **Steam extras at launch**: Steam names and avatars on the seat cards, rich presence with Join
+  from the friends list, and the game's language from Steam's. English and German are the listed
+  languages; Hessian stays an in-game joke. Achievements and Steam Cloud come later, perhaps.
 
-Steam has no tip button. The ways a free game takes money:
+**The store**
 
-- **A supporter DLC** — the recommended one. Valve: DLC "can have actual files that you
-  distribute to customers, or it can also just be a license entitlement", and names artbooks and
-  wallpapers as DLC "that does not show up in-game". Nothing read requires gameplay content, and
-  nothing names supporter or donation DLC either — **ask Valve's support** before relying on it.
-  Give it something small anyway: wallpapers of the 24 looks, a little artbook, a supporter's mark
-  by the name in the lobby. **Never anything that plays** — no tower, look or level for money in a
-  multiplayer game among friends.
-- **Not a soundtrack**: the music is the Pixabay and OpenGameArt authors', licensed for use in
-  the game, not for selling on its own.
-- **No donation button in the game**: "Your product must use Steam Wallet for any in-game
-  transactions… your product cannot link to other store pages that does not offer Steam
-  Wallet." Whether a voluntary donation counts is not said; expect it to fail review.
-- **No links in the store page's description** ("No links… even implied URLs"); the store page
-  editor's link fields take "common social media platforms or your own website". A website with
-  a donation page is fine; whether Ko-fi or Patreon may be linked directly is not said.
-- **Outside Steam**: GitHub Sponsors or Ko-fi on the repository and the website, as now.
+- **The name**: another game called BOLLWERK (BOLLWERK Games, a new indie studio, planned for 2027) makes ours need a subtitle or a new name. This is package N, before the store page.
+- **The capsules and logo** are composed from the game's own art, rendered by a tool. Pixel and
+  Medieval are tried first, as the most basic and iconic styles. The DLC's two styles never
+  appear in the store's art.
+- **Updates**: every `v*` tag uploads to a password-protected beta branch, and the user promotes
+  it to the public branch by hand in Steamworks. There is no Steam Playtest; testers get keys for
+  the beta branch.
 
-## 5. Finding each other: Steam lobbies
+## 2. The packages, in order
 
-### 5.1 What the players see
+| Package | What                                                    | Needs Steam | Before paying |
+| ------- | ------------------------------------------------------- | ----------- | ------------- |
+| **N**   | The name: trademark search, a subtitle or a new name    | no          | yes           |
+| **R**   | No recordings in packaged builds                        | no          | yes           |
+| **K**   | The host's kick, every room                             | no          | yes           |
+| **B**   | The games browser with filters, every build             | no          | yes           |
+| **T**   | The transport interface, the fake, the tests            | no          | yes           |
+| **C**   | Native controller support                               | no          | yes           |
+| **S1**  | The spike on App ID 480, two accounts, two machines     | 480         | yes           |
+| **S2**  | The Steam build: the flag, the binding, no launcher     | 480         | yes           |
+| **S3**  | Steam lobbies, invites, presence, names and avatars     | 480         | yes           |
+| **D1**  | Styles by entitlement: the DLC's two hidden, seasons    | no          | yes           |
+| **S4**  | The store: fee, store page, capsules, depots, release   | the app     | it is paying  |
+| **S5**  | The users' test on the beta branch, Deck review, launch | the app     | —             |
+| **D2**  | Later: the supporter DLC itself                         | the app     | —             |
 
-- **Play** opens a table with bots, as now. Under Steam it is also a **lobby**, **private** by
-  default or **public** by the host's choice in the lobby screen, changeable until the start.
-- **Private**: no one can join but by an invite — a solo match, or friends only. The host invites
-  through Steam's own friend picker in the overlay, from a button in the lobby (mouse only).
-- **Public**: listed in the **games list** and joined by anyone with a click; friends can still
-  be invited.
-- **Quick match** (to consider): joins the fullest public lobby that fits, or hosts one. Bots
-  fill every empty seat, so a lobby is worth joining even with few people online — and a game
-  with a small player base must never feel empty: Play with bots stays the main path, the list
-  an addition.
-- **At the start** the lobby closes to joins; a match is never joined in progress, as now.
-- No ranking and no skill matchmaking: no players for it, and it would need a server.
+N, R, K, B, T, C and D1 need no Steam and can be built in any order, each tested in
+`npm run check`. S1 comes before the fee is paid, and its answers decide S3's binding work.
 
-### 5.2 How Steam provides it
+## 3. The Steam build (S1, S2)
 
-- **Lobby types** (`ISteamMatchmaking`, _to confirm_ the exact wording): `Private` — "The only way
-  to join the lobby is from an invite"; `FriendsOnly` — "Joinable by friends and invitees, but
-  does not show up in the lobby list"; `Public` — "Returned by search and visible to friends";
-  `Invisible`. Ours are `Private` and `Public`.
-- **Changing it**: `SetLobbyType`, "can only be set by the owner of the lobby" — the host.
-- **Closing it**: `SetLobbyJoinable(false)` — "no players can join, even if they are a friend or
-  have been invited."
-- **Lobby data**: key/value pairs the host sets (`SetLobbyData`): a game tag, the **protocol
-  version**, free seats, players, teams, special towers on or off. The list is filtered on them
-  (`AddRequestLobbyListStringFilter`, `AddRequestLobbyListFilterSlotsAvailable`) and by distance
-  (`AddRequestLobbyListDistanceFilter`: Close, Default, Far, Worldwide). Lockstep cares about
-  latency, but a small player base needs Worldwide or the list is empty — perhaps nearest first.
-- **Invites**: `ActivateGameOverlayInviteDialog(lobby)` opens the overlay's picker. A player not
-  running the game who accepts is started with `+connect_lobby <id>` (read it with
-  `GetLaunchCommandLine`); one already playing gets `GameLobbyJoinRequested`. Both to handle.
-- **Who may invite**: whether a guest, not only the owner, may call `InviteUserToLobby` is not
-  documented. To test in S1. If only the owner may, a guest's invite goes through the host's app.
-- **A lobby is a meeting point, not a server**: "Once all users have left a lobby, it is
-  automatically destroyed."
+### 3.1 The flag and the binding
 
-### 5.3 Underneath: the host is still the server
+- **`steamworks.js`** (MIT, Rust) in the desktop app's **main process**, behind the preload, as
+  every other desktop feature is; never in the page, which would need `contextIsolation: false`
+  and `nodeIntegration: true`. `electronEnableSteamOverlay()` for the overlay.
+- **A build flag** (`BOLLWERK_STEAM`, set by the Steam depot's packaging) decides whether the app
+  calls Steam at all. Without it, the binding is never loaded. With it, the app initialises Steam
+  as it starts.
+- **Steam not running** under the Steam build: Steam normally starts the game itself. If
+  initialisation fails anyway, the app plays locally — bots, tournaments — with a notice that
+  online play needs Steam. It never crashes. Whether to call `RestartAppIfNecessary` is S1's
+  question _(to confirm)_.
+- **No launcher under Steam**: the desktop app's control window (start, stop, ports, the link,
+  UPnP, the firewall) is a launcher, which Deck Verified refuses. The Steam build opens the game's
+  window directly, its server started in the background on a free local port, never offered to
+  the network.
+- **`steam_appid.txt`** with 480 while developing only. It is never shipped, and the release job
+  checks this.
 
-The host's app runs Bollwerk's authoritative server as the desktop app does today (`packages/
-server`, `room.ts`); only the **transport** changes, Steam's peer-to-peer channel in place of a
-WebSocket, the host found by the lobby's owner. The protocol, the seats, Ready, the snapshot, the
-hashes every 30 ticks, the rejoin after a dropped connection (ARCHIVE 15zc) and the recordings
-stay as they are. So:
+### 3.2 What `steamworks.js` lacks, and the fork
 
-- **A transport interface** on both ends (`client/src/net/connection.ts`, the server's
-  connection handling), with the WebSocket and Steam behind it, and an in-memory fake for tests.
-- **The host leaving** ends the match, as now. Lockstep would allow handing the server to a guest
-  — every client holds the state and the input log — but that is a package of its own, later.
-- **Trust**: a modified host could cheat. Accepted for a free game without rankings.
-- **Versions**: Steam updates everyone, but not at once; the protocol version in the lobby data
-  keeps old and new apart.
-- **Without Steam running**, the app starts as now — local play, the LAN, the link — never a
-  crash.
+From its `client.d.ts`: no `ISteamNetworkingMessages` or `ISteamNetworkingSockets` (only the old
+P2P: `sendP2PPacket`, `readP2PPacket`, `acceptP2PSession`), no `setLobbyType`, and no filters on
+`getLobbies()`. Each is a small extension in its Rust code. **If S1 shows we need them, we fork**
+(the user's), offer the changes upstream, and add Rust to the release workflow for Windows and
+Linux.
 
-### 5.4 `steamworks.js`, the binding
+- `setLobbyType` is needed for the type to be changeable in the lobby screen. Without it, the type
+  is fixed when the lobby is made, and changing it means making a new lobby.
+- Filters are not needed while lobbies are few, since the browser filters on the client (§4).
+- The newer networking (Valve's relay, `FakePacket*` for testing bad networks) is needed only if
+  the old P2P does not carry a match well. That is S1's main question. Whether the relay is free
+  is not stated _(to confirm)_.
 
-The likely binding for Electron (MIT, Rust). What it has, from its `client.d.ts`:
-`createLobby(type, maxMembers)` with all four types, `joinLobby`, `getLobbies()`, a `Lobby` with
-`setData`/`getData`/`getFullData`, `setJoinable`, `getMembers`, `getOwner`, `openInviteDialog`,
-`leave`; `overlay.activateInviteDialog(lobbyId)`; the `GameLobbyJoinRequested` callback; and
-`electronEnableSteamOverlay()` for the overlay in Electron (used in the renderer it needs
-`contextIsolation: false` and `nodeIntegration: true` — better kept in the main process, behind
-the preload, as the desktop app's other features are).
+### 3.3 S1, the spike
 
-What it lacks:
+A day or two on App ID 480 (Spacewar), nothing paid, two accounts on two machines (the user's).
+It answers:
 
-- **The newer networking.** Its `networking` is only the old P2P interface (`sendP2PPacket`,
-  `readP2PPacket`, `acceptP2PSession`, `isP2PPacketAvailable`) — not `ISteamNetworkingSockets` or
-  `ISteamNetworkingMessages`, the API with Valve's relay (SDR) and the simulated bad networks.
-  Whether the old one carries a match well enough is S1's main question.
-- **Changing a lobby's type** after creating it (no `setLobbyType`).
-- **Filters** on the lobby list: `getLobbies()` takes none — no data, slots or distance filter.
-- Each is a small extension in its Rust code, upstream or in a fork; or we filter on the client
-  while lobbies are few.
+1. Does the binding build for our Electron, on Windows and on Linux?
+2. Does the overlay show over the game's window, and its invite dialog?
+3. Does the old P2P carry an eight-seat match with no hash mismatch, at the 30-tick hash rate?
+4. May a guest, not only the owner, invite (`InviteUserToLobby`)?
+5. Does an invite with the game closed start it with `+connect_lobby <id>`, and with the game
+   running arrive as `GameLobbyJoinRequested`?
+6. Does `RestartAppIfNecessary` belong in our start-up?
 
-Also: whether Valve's relay is free is not stated ("contact us… to talk about the fine print"),
-and the open-source GameNetworkingSockets is "a subset" of the API without access to the relay.
+Our lobbies on 480 are tagged with a lobby data key, since every developer shares that App ID.
+The spike's code is thrown away. S2 and S3 build the real thing on what it found.
 
-## 6. Testing
+## 4. The games browser (B)
 
-Three layers, the Steam code as thin as it can be.
+One screen in every build, its source by build: the server's rooms at `/api/rooms` in the
+browser game and the GitHub builds, Steam's public lobbies in the Steam build. A row's data is
+one shape whichever the source, so the screen, its filters and its tests do not know the source.
 
-1. **Without Steam, in `npm run check`**: the lobby logic (who hosts, who sits where, the host
-   leaving, an invite arriving at start-up or in play) as pure functions over a scripted fake
-   Steam, as `lobby.ts` is tested now; one suite of tests for every transport — WebSocket and an
-   in-memory fake that delays, reorders, drops and disconnects. A match that ends with no hash
-   mismatch and replays exactly from its recording has passed. CI can never run real Steam: it
-   needs a client running and logged in.
-2. **Real Steam before paying**: App ID 480, Valve's Spacewar example, which has lobbies and
-   networking; a `steam_appid.txt` with the App ID while developing ("You should not ship this
-   with your builds"). Tag our lobbies, since every developer shares 480. Two accounts on two
-   machines (_unchecked_ that one account cannot be online twice; and what an account that never
-   spent money may not do — the help page did not load). The newer networking's
-   `k_ESteamNetworkingConfig_FakePacketLoss_Send`/`_Recv`, `FakePacketLag_*`, `FakePacketReorder_*`
-   and `FakePacketDup_*` simulate a bad network — only if the binding gains that API. A written
-   checklist in the repo, run before each Steam build: host and invite; join from the overlay's
-   invite with the game closed and with it running; the host quits; a guest drops and comes back;
-   the overlay over the match; eight seats with bots; a tournament across matches; Steam not
-   running.
-3. **After paying**: builds uploaded with SteamPipe (`steamcmd`) to a password-protected beta
-   branch, chosen by testers under Properties → Game Versions & Betas — the real install, launch
-   options and Linux runtime, where a native module and the overlay are likeliest to break. Keys
-   for testers are free (up to 2,500 for testing before release). **Steam Playtest**, a free child
-   App ID, for a wider test: players sign up and are picked at random, keys optional.
+- **A row**: the host's name (and avatar under Steam), the team mode (free-for-all, teams of two,
+  …), free seats against all seats, special towers on or off, and Join. No map preview.
+- **Filters**: players (2–8), at least N free seats, free-for-all or teams, special towers
+  on / off / either, match or tournament, and "has people" (more than the host among bots). Under
+  Steam there is also distance, nearest first and worldwide by default, with friends' games
+  always at the top.
+- **Hidden always**: games on another protocol, games that have started, and full games.
+- **Empty**: "No open games", with one button that hosts a **public table full of bots** that
+  people may join. A small player base never meets an empty screen with nothing to do.
+- **The listing** gains `towers: boolean`; the free seats are `playerCount − people`, as now.
+  Under Steam the same fields travel as lobby data: protocol, players, team size, towers,
+  tournament and people.
+- **Filtering** is on the client, a pure function over the rows (`browser.ts`, tested as now).
+  Steam's own filters are used only once the fork has them and lobbies are many.
 
-## 7. Smaller points
+## 5. The kick (K)
 
-- **Steam Deck**: Verified needs the default controller layout to "access all content"; a
-  mouse-only game would most likely be **Playable**, which is no bar to the store. The mouse-only
-  rule stays.
-- **Linux**: a Steam build runs under the Steam Linux Runtime; the AppImage is not what Steam
-  ships, the unpacked app is. To try in the beta branch.
-- **Achievements and Steam Cloud** (a tournament's save) are possible, not needed.
-- **The release workflow** gains a job that builds the Steam depots (the binding's native module
-  for Windows and Linux, without `steam_appid.txt`) and uploads them with `steamcmd`, its
-  credentials as repository secrets.
-- **PLAN §12** defers quick match and matchmaking for v1; Steam lobbies would be the free way to
-  have them, with no server of our own.
+- In the lobby, the host's seat card for each guest gains **Remove**. A guest removed is told so,
+  sent back to the menu, and their seat becomes a bot's again.
+- **Lobby only**: once the match starts, there is no kick. A guest who leaves mid-match is
+  handled as now.
+- **No rejoin**: the server keeps the removed for the room's life — by the connection's rejoin
+  token everywhere, and by Steam ID under Steam, where the host also refuses the lobby's join.
+- In the server (`room.ts`), so every room has it; a protocol message, so a protocol bump. The
+  server checks the sender is the host, as it owns identity.
 
-## 8. Packages, if it goes ahead
+## 6. Styles by entitlement (D1, D2)
 
-- **S0 — Decide.** The user's: whether at all, free or with a supporter DLC, the store page's
-  wording about the original. Pay the fee only after S1.
-- **S1 — The spike, on App ID 480** (a day or two, nothing paid): `steamworks.js` in the desktop
-  app's main process, a lobby made, listed and joined, an invite with the game closed and open,
-  and one match between two machines over the old P2P interface. Answers: does the binding build
-  for our Electron on both systems, does the overlay show, does the old P2P carry a match, may a
-  guest invite.
-- **S2 — The transport**: the interface, the fake, the tests; the WebSocket behind it unchanged.
-- **S3 — Steam lobbies**: Private and Public in the lobby screen, invites, the games list from
-  Steam's lobbies, closing at the start, Steam not running; the binding extended where S1 found
-  it short (lobby type, filters, perhaps the newer networking).
-- **S4 — The store**: the Steamworks account, the fee, the store page and its art, the content
-  survey, the depots and the release job, a beta branch for the users.
-- **S5 — The users' test** on the beta branch, then Coming Soon for two weeks, then release.
-- **Later, perhaps**: Quick match, the supporter DLC, the host handed on, achievements.
+### 6.1 D1, at launch
 
-## 9. Open questions
+- **One function decides which styles a page may show**: `availableStyles(build, owned, date)`.
+  It is pure and tested. In the browser game and the GitHub builds, it returns every style. In the
+  Steam build, it returns every style but Halloween and Christmas, plus each one that is owned or
+  in its season.
+- **The seasons**, by the player's own clock: **Halloween October 1–31**, **Christmas December 1
+  to January 6**. In its season a style is like any other: in the gallery, in Random, among the
+  favourites.
+- **Hidden before the DLC exists**: until D2, the two styles appear on Steam only in their
+  seasons. Nothing is shown locked, and nothing is taken away after launch.
+- **Everything that draws from the styles** asks the function: the gallery, Random every round,
+  the favourites, each window in the next look (`menuLook.ts`), the styles' music, the tower
+  preview, the end screen's and pause menu's looks, a `&style=` parameter, and a style saved in
+  prefs that is no longer available (it falls back to Random).
+- **The demo never shows the two**, in season or owned.
 
-- Whether to do it at all, and when — after the first feature-ready version?
-- The store page's wording about the original, and whether a lawyer is consulted.
-- Whether a supporter DLC is wanted, what goes in it, and Valve's word that it is acceptable.
-- Whether the old P2P interface is enough, or the binding must gain the newer networking.
-- Whether guests may invite.
-- The distance filter's default for the list, given few players.
-- The _unchecked_ and _to confirm_ points above, before each is relied on.
+### 6.2 D2, later
+
+- **The DLC** on Steam: a separate App ID with no Steam Direct fee _(to confirm)_. Valve's support
+  is asked first whether a supporter DLC is acceptable (nothing read forbids or names it).
+- **The gallery shows the two styles locked**, with a supporter badge and a button that opens the
+  DLC's store page in the overlay. Owned, they are like any other style all year.
+- **Ownership** via `isDlcInstalled` in the main process, passed to the page. It works offline,
+  since Steam caches licences _(to confirm)_.
+- **The supporter's badge**, a small heart by the name on the seat card, in the score bar and on
+  the end screen. Each player's app reports its own ownership, **unverified**: faking a badge harms
+  no one, and verifying it would need Steam's auth tickets. It travels with the seat, so it needs a
+  protocol field.
+- **Wallpapers**, if they work: renders of the 24 looks, made by the same tool as the capsules.
+- **The music**: Halloween's and Christmas's tracks are Pixabay's, licensed for use in a work, not
+  for sale alone. Inside a style they are part of the work. No soundtrack DLC.
+
+## 7. Steam lobbies (T, S3)
+
+### 7.1 The transport (T)
+
+The host's app runs Bollwerk's authoritative server as now (`packages/server`, `room.ts`). Only
+the transport changes: Steam's peer-to-peer channel in place of a WebSocket, with the host found
+as the lobby's owner. The protocol, the seats, Ready, the snapshot, the hashes, the rejoin
+(ARCHIVE 15zc) and tournaments stay as they are.
+
+- **A transport interface** at both ends (`client/src/net/connection.ts`, the server's connection
+  handling), with the WebSocket behind it unchanged.
+- **An in-memory fake** that delays, reorders, drops and disconnects. One suite of tests runs
+  over every transport: a match that ends with no hash mismatch, and whose input log matches the
+  server's, has passed.
+- **Without Steam**: built and tested in `npm run check`, before S1.
+
+### 7.2 What the players see (S3)
+
+- **Play** opens a table with bots, as now. Under Steam it is also a lobby, **Friends** by
+  default; the host chooses Public, Friends or Invite only in the lobby screen until the start.
+- **Invite**: a button in the lobby opens Steam's friend picker in the overlay. An invite accepted
+  with the game closed starts it into the lobby (`+connect_lobby`); with the game running it joins
+  from wherever the player is, after asking if they are in a match.
+- **Join from the friends list**, through rich presence, for Friends and Public lobbies.
+- **Rich presence**: "In the lobby", "In a match, round 5 of 10", "In a tournament", in English
+  and German _(the localisation file's format to confirm)_.
+- **Names and avatars**: a seat's name is the Steam name, so there is no name field under Steam.
+  The avatar is on the seat card and in the browser.
+- **At the start** the lobby closes to joins (`setJoinable(false)`). A match is never joined in
+  progress.
+- **The host leaving** ends the match, as now. Handing the server to a guest is for later.
+- **Trust**: a modified host could cheat. This is accepted for a free game without rankings.
+- **Versions**: the protocol version is in the lobby data. A lobby on another version is hidden.
+- **The language** from Steam's (`getCurrentGameLanguage`) on first start, then the player's own
+  choice.
+
+## 8. Controller support (C)
+
+Native, through the browser's **Gamepad API** in the page — Electron's Chromium has it — for every
+build, not only Steam. Under Steam the default Steam Input configuration presents the Deck and any
+controller as an Xbox pad, which the Gamepad API reads _(to confirm in S1 or the beta: whether
+Steam Input must be set to pass the pad through)_. The mouse stays first: every action a
+controller does is an action the mouse already has, and a controller is noticed the moment it is
+touched, the mouse the moment it moves.
+
+**Two buttons, the mouse's two** (the user's, 2026-11-02): the controller's actions are the
+mouse buttons' actions, one button each, but it moves the way a controller does. It moves by
+grid positions in the build and cannon phases, by buttons in the menus, and with a free cursor
+only in combat, as in the original arcade game.
+
+- **Accept** (default **A**) is everything the left button does: place a piece or a cannon, fire,
+  choose a castle, and press the focused button in a menu.
+- **Turn / Back** (default **B**) is everything the right button does: turn the piece, switch
+  between a cannon and the special tower in the cannon phase, and go back in a menu (the window's
+  Back or Close). In combat, where the right button does nothing, **holding it speeds the cursor
+  up**.
+- **Menu** (default **Start**) is Esc: the pause menu, and back out of it.
+- **Movement**: the d-pad and the left stick, in every phase and every window.
+
+**In the match**
+
+- **The build phase, no cursor**: the piece in hand moves a grid position a press, repeating
+  while held (a delay, then a rate, both in the client's config). The stick moves it the same way,
+  stepping faster the further it is pushed. Accept places and Turn turns, and the ghost shows red
+  or green where it stands, as now.
+- **The cannon phase, no cursor**: the cannon ghost, or the tower's, moves by grid positions in
+  the same way. Turn switches to the tower where one may be bought.
+- **Choosing a castle**: the d-pad and stick jump from castle to castle in the direction pushed,
+  the castle chosen marked as the mouse's hover marks it, and Accept chooses.
+- **Combat, a cursor**: the reticle moves freely, its speed following how far the stick is
+  pushed, and the d-pad moves it at a fixed speed. Holding Turn multiplies the speed (a factor in
+  the config, 2.5 to start, tuned in play), so the cursor can cross the map and still aim finely.
+  Accept fires as the left click does, a ready impact tower first.
+- **Where it starts**: the ghost starts each phase where the mouse's would, at the island's
+  centre. The reticle starts each combat phase over the player's own island, then stays where it
+  was left.
+- **The same actions**: a pure mapping from pad state and the board to the moves the mouse makes
+  (`gamepad.ts`, tested with ASCII boards): a grid position to hover, a commit, a turn, a switch.
+  So `controls.ts` keeps one path for both, and the sim and the protocol never know.
+
+**In the menus**
+
+- **Focus moves between buttons**: the d-pad and stick move it spatially to the nearest enabled
+  control in that direction. Accept presses it; Turn / Back goes back. The focused control is
+  ringed in the look's colour, and its hover text shows, as `:focus-visible` already does (PR4).
+- **No cursor**: the mouse's pointer hides while the pad is in use, and is back the moment the
+  mouse moves.
+- **The controls that are not buttons**: the steppers, switches and choice rows (`choices.ts`)
+  take left and right on the pad to change, up and down to leave. The volume sliders do the same.
+  The looks' cards and the seat cards are buttons in a grid.
+- **Every window** is walked through with a pad in the package: menu, Options, How to play, the
+  gallery, the lobby, the browser, the tower menu, the tournament screens, the pause menu and the
+  end screen. A window opening focuses its main button; a window closing returns focus to what
+  opened it.
+- **Text entry**: under Steam there is none, since names are Steam's. Elsewhere, the name field
+  opens Steam's on-screen keyboard where it can (`ShowGamepadTextInput`) _(the binding's support
+  to confirm)_, or is left to the mouse.
+
+**Reconfigurable**
+
+- **Options gains a Controller section**, in the settings column (`settingsRows.ts`): Accept,
+  Turn / Back and Menu, each showing the buttons bound to it. Choosing an action, then pressing a
+  button, binds it. A button may be bound to only one action, so binding it elsewhere moves it;
+  Accept and Menu always keep one button, so the pad cannot lock itself out.
+- **Beside them**: the combat cursor's speed, and Restore defaults. Saved in prefs, the page's own.
+- **The d-pad and stick** move and are not rebound.
+
+**Glyphs and the Deck**
+
+- **Button glyphs** for the bound buttons, shown in the hints and in How to play while a pad is
+  in use, a remapped button shown as bound; Xbox's shapes by default, PlayStation's when the pad
+  says so.
+- **1280 × 800**: the HUD, the menus and the hover texts checked at the Deck's resolution, with
+  text legible at arm's length (Valve's minimum size _to confirm_).
+- **Deck review** is asked for in S5, aiming at Verified: every window and phase reached with the
+  controller, no launcher, no text entry under Steam.
+
+## 9. The store (N, S4)
+
+### 9.1 The name (N)
+
+- **A trademark search** at the DPMA, the EUIPO and WIPO for "Bollwerk" in class 9 and 41
+  (games), and among Steam's titles. And whether BOLLWERK Games has registered it.
+- **Then a choice**: a subtitle ("Bollwerk: …") if the search finds the name free to use, or a new
+  name if not. A new name changes everywhere, as the Rampart rename did (ARCHIVE 11zw): the menu,
+  the window, the README, the releases, the repository.
+- **Before S4**, since the store page, the capsules and the DLC need it.
+
+### 9.2 The store page (S4)
+
+- **The Steamworks account**: onboarding, the fee, the tax form (W-8BEN or its equivalent, so the
+  US withholding is not 30%), and the waiting period (30 or 21 days, Valve's pages disagree).
+- **The store page**: the description in the game's own words, English and German; tags; free; the
+  screenshots only of play, made by `tools/screenshots.sh`; no links in the description; the
+  content survey (no AI content ships in the game; the code's assistance is not what the survey
+  asks about); the IARC rating.
+- **The capsules and logo**: a tool renders them from the game's own art at Steam's sizes — the
+  menu's title lettering over a board scene in Pixel, then Medieval. Several tried, the user
+  choosing. A readable title on every capsule (Valve's review checks it).
+- **Coming Soon** for at least two weeks; submitted for review at least 7 working days before.
+- **The depots**: Windows and Linux, the unpacked app (not the AppImage) under the Steam Linux
+  Runtime, the binding's native module for each, no `steam_appid.txt`.
+- **The release job**: `release.yml` gains a job that packages the Steam build and uploads it with
+  `steamcmd` to the beta branch, its credentials as repository secrets. The user promotes it by
+  hand. The GitHub release goes on as now.
+
+### 9.3 The users' test and the launch (S5)
+
+- **Keys** for the testers (up to 2,500 for testing, free), on the password-protected beta branch.
+- **The checklist** in the repo (`docs/STEAM_CHECKLIST.md`), run before every Steam build:
+  - host and invite, in each lobby type;
+  - join from an invite with the game closed and with it running;
+  - join from the friends list, and from the browser;
+  - kick, and the kicked player trying to rejoin;
+  - the host quits; a guest drops and comes back;
+  - the overlay over the match;
+  - eight seats with bots;
+  - a tournament across matches;
+  - Steam not running;
+  - a controller through every window and a whole match;
+  - the Deck, if one is at hand;
+  - the seasons, by the system clock.
+- **Deck review** requested, then Coming Soon, then release.
+
+## 10. Later, perhaps
+
+The supporter DLC (D2), once people play. Achievements. Steam Cloud for tournament saves. Quick
+match (still PLAN §12). The host handed to a guest when the host leaves.
+
+## 11. Still to confirm on the live pages
+
+- Whether DLC costs a Steam Direct fee, and whether a supporter DLC is acceptable (Valve's support).
+- The revenue share in the Steam Distribution Agreement, and the German side of any income (a
+  Gewerbe, the Kleinunternehmer rule), before D2.
+- Whether Valve's relay is free, if the newer networking is needed.
+- Steam Input passing the pad through to the Gamepad API, and the Deck's minimum text size.
+- `ShowGamepadTextInput` and `isDlcInstalled` in the binding; licences cached offline.
+- The rich presence localisation format.
