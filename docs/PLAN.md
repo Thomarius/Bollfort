@@ -1859,6 +1859,14 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      the gallery, the tower preview, the icon sheet, the demo). The largest change and the least
      felt on the desktop app, so last; measure the start before and after.
 
+8. **Steam — to think about, not decided** (2026-11-02): whether to release Bollwerk on Steam,
+   free, perhaps with a supporter DLC; Steam lobbies, private by default or public in the games
+   list, friends invited through the overlay, the host's app still the server over Steam's
+   peer-to-peer channel; how it would be tested, starting with a spike on Valve's test App ID 480
+   before anything is paid. What Valve's documentation says was checked on 2026-11-02. Nothing is
+   to be built before the user decides. The plan, its costs, risks and open questions are in
+   [`STEAM.md`](./STEAM.md).
+
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
 UI polish, all in ARCHIVE 11h; 11.11 the second visual pass and 11.12 the first
