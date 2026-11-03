@@ -148,35 +148,55 @@ The spike's code is thrown away. S2 and S3 build the real thing on what it found
 
 ## 4. The games browser (B)
 
-One screen in every build, its source by build: the server's rooms at `/api/rooms` in the
-browser game and the GitHub builds, Steam's public lobbies in the Steam build. A row's data is
-one shape whichever the source, so the screen, its filters and its tests do not know the source.
+**Decided** (2026-11-03, the user's, with K): one window in every build, **Find a game**, its
+source by build — the rooms of the server the page came from (`/api/rooms`) in the browser game
+and the GitHub builds, Steam's public lobbies in the Steam build. A row's data is one shape
+whichever the source, so the window, its filters and its tests do not know the source.
 
+- **Outside Steam there is no shared list**, and that is accepted: the window lists the games on
+  the server the page came from — a LAN party, or friends sent the host's address or link, as
+  now. No LAN discovery and no directory (a hosted one is declined for budget, PLAN §12).
+- **Its own window**, opened by a **Find a game** button in the menu, in place of the menu's
+  list of open games; the menu shows no count. Joining by code stays in the menu.
 - **A row**: the host's name (and avatar under Steam), the team mode (free-for-all, teams of two,
-  …), free seats against all seats, special towers on or off, and Join. No map preview.
-- **Filters**: players (2–8), at least N free seats, free-for-all or teams, special towers
-  on / off / either, match or tournament, and "has people" (more than the host among bots). Under
-  Steam there is also distance, nearest first and worldwide by default, with friends' games
-  always at the top.
+  …), free seats against all seats, special towers on or off, a tournament's team where it is
+  one, and Join. No map preview, no rounds (the config's, no longer chosen).
+- **Filters, kept simple**: free-for-all or teams (or either), special towers on / off / either,
+  remembered between visits. Under Steam also distance, nearest first and worldwide by default,
+  with friends' games always at the top. Player count, match or tournament, free seats and
+  "more people than the host" were weighed and left out: few players online would mostly see an
+  empty list, and every room listed has its host and a free seat anyway.
 - **Hidden always**: games on another protocol, games that have started, and full games.
-- **Empty**: "No open games", with one button that hosts a **public table full of bots** that
-  people may join. A small player base never meets an empty screen with nothing to do.
-- **The listing** gains `towers: boolean`; the free seats are `playerCount − people`, as now.
-  Under Steam the same fields travel as lobby data: protocol, players, team size, towers,
-  tournament and people.
+- **Empty**: "No open games", with one button, **Host a single match**, beneath it a line that
+  it is public — anyone can find it here and join. It does what the menu's Single match does,
+  with the lobby public (always so outside Steam; under Steam the lobby's type is set to Public
+  rather than the default Friends): the host waits in a lobby with bots in the other seats. A
+  match once started takes nobody new; taking over a bot's seat mid-match was weighed and left
+  as an idea (§10).
+- **The listing** gains `towers: boolean` and drops `maxRounds`; the free seats are
+  `playerCount − people`, as now. Under Steam the same fields travel as lobby data: protocol,
+  players, team size, towers, tournament and people. One protocol bump with K.
 - **Filtering** is on the client, a pure function over the rows (`browser.ts`, tested as now).
   Steam's own filters are used only once the fork has them and lobbies are many.
 
 ## 5. The kick (K)
 
-- In the lobby, the host's seat card for each guest gains **Remove**. A guest removed is told so,
-  sent back to the menu, and their seat becomes a bot's again.
-- **Lobby only**: once the match starts, there is no kick. A guest who leaves mid-match is
-  handled as now.
-- **No rejoin**: the server keeps the removed for the room's life — by the connection's rejoin
-  token everywhere, and by Steam ID under Steam, where the host also refuses the lobby's join.
-- In the server (`room.ts`), so every room has it; a protocol message, so a protocol bump. The
-  server checks the sender is the host, as it owns identity.
+**Decided** (2026-11-03, the user's):
+
+- In the lobby, the host's seat card for each guest gains **Remove**, confirmed by a second click
+  ("Remove Bo?"). The guest removed is sent back to the menu with a notice — "The host removed
+  you from this game." — and their seat becomes a bot's again. In a tournament's room the same:
+  the host's teammate becomes a bot of the host's team.
+- **Lobby only**: once the match starts, there is no kick; the lobby after a match, before a
+  rematch, is a lobby. A guest who leaves mid-match is handled as now.
+- **No rejoin**, for the room's life: under Steam by Steam ID (the host also refuses the lobby's
+  join); elsewhere by a **browser ID** — a random ID kept in the browser's storage
+  (`bollfort.browserId`) and sent with every join. The seat's rejoin token lasts only the tab,
+  so a new tab would get round it; an address is unusable, since every guest through the
+  tunnel arrives from Cloudflare's and a household shares one. Outside Steam this is a deterrent,
+  not security: clearing the browser's data or another browser gets round it.
+- In the server (`room.ts`), so every room has it; a protocol message, so a protocol bump (one
+  with B). The server checks the sender is the host, as it owns identity.
 
 ## 6. Styles by entitlement (D1, D2)
 
@@ -443,7 +463,8 @@ in progress are lost once, and the desktop app's old data folder stays behind.
 ## 10. Later, perhaps
 
 The supporter DLC (D2), once people play. Achievements. Steam Cloud for tournament saves. Quick
-match (still PLAN §12). The host handed to a guest when the host leaves.
+match (still PLAN §12). The host handed to a guest when the host leaves. Joining a running
+match by taking over a bot's seat, so the browser could list games already under way (§4).
 
 ## 11. Still to confirm on the live pages
 
