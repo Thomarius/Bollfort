@@ -339,3 +339,23 @@ describe('the invitation over the internet', () => {
     expect(html).toContain('id="copy-invite"');
   });
 });
+
+describe('the host removing a guest', () => {
+  const table = (over: Partial<LobbyView> = {}): LobbyView =>
+    view({ seats: [seat(0, 'Ada'), seat(1, 'Bo'), seat(2, 'Cy')], ...over });
+  const removes = (html: string): string[] =>
+    rows(html).map((row) => /class="remove-seat[^"]*"[^>]*>([^<]*)</.exec(row)?.[1] ?? '');
+
+  it('gives the host a Remove on each guest’s card, never their own, nor a bot’s', () => {
+    expect(removes(lobbyMarkup(table()))).toEqual(['', 'Remove', 'Remove', '']);
+  });
+
+  it('gives a guest none, and a table without a server none', () => {
+    expect(removes(lobbyMarkup(table({ humanPlayer: 1 })))).toEqual(['', '', '', '']);
+    expect(removes(lobbyMarkup(table({ code: null })))).toEqual(['', '', '', '']);
+  });
+
+  it('asks to be sure, by name, once clicked', () => {
+    expect(removes(lobbyMarkup(table({ removing: 2 })))).toEqual(['', 'Remove', 'Remove Cy?', '']);
+  });
+});

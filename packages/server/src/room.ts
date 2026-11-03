@@ -55,6 +55,8 @@ export interface Seat {
   graceTicks: number;
   /** The special tower the person here chose, or null; a bot's seat brings its draw. */
   special: TowerVariant | null;
+  /** The ID the person's browser sent, or null; kept to refuse them once removed. */
+  browserId: string | null;
 }
 
 export interface RoomOptions {
@@ -129,6 +131,11 @@ export class Room {
   private tournament: TournamentTable | null = null;
   /** The host's tournament as it stands, as JSON, for the teammates' pages; never read here. */
   private tournamentSave: string | null = null;
+  /**
+   * Whom the host has removed, for the room's life (STEAM.md §5): by their browser's ID, which
+   * outlasts a tab, and by their seat's token, for a page that sent no ID.
+   */
+  private readonly removed = new Set<string>();
 
   constructor(options: RoomOptions) {
     this.options = options;
@@ -169,7 +176,7 @@ export class Room {
       people: this.seats.length,
       playerCount: this.playerCount,
       teamSize: this.settings.teamSize,
-      maxRounds: this.settings.maxRounds,
+      towers: this.settings.specials,
       tournament: this.tournament?.teamNames[this.tournament.seats[this.hostId]?.team ?? 0] ?? null,
     };
   }
@@ -193,7 +200,15 @@ export class Room {
 
   // ---------------------------------------------------------------- membership
 
-  join(connection: Connection, name: string, token?: string): number | null {
+  /** Whether the host has removed whoever joins with this browser ID or token. */
+  refuses(browserId?: string, token?: string): boolean {
+    return (
+      (browserId !== undefined && this.removed.has(`id:${browserId}`)) ||
+      (token !== undefined && this.removed.has(`token:${token}`))
+    );
+  }
+
+  join(connection: Connection, name: string, token?: string, browserId?: string): number | null {
     if (token !== undefined) {
       const seat = this.seats.find((s) => s.token === token);
       if (seat) {
@@ -227,6 +242,7 @@ export class Room {
       bot: false,
       graceTicks: 0,
       special: null,
+      browserId: browserId ?? null,
     };
     this.seats.push(seat);
     if (this.seats.length === 1) this.hostId = seat.playerId;
@@ -281,6 +297,19 @@ export class Room {
         if (!this.everyoneReady) return;
         this.start();
         return;
+      case 'remove': {
+        // The host, in the lobby only — a lobby after a match too, never a match under way —
+        // and never themselves (STEAM.md §5). The seat left is a bot's, as a guest leaving.
+        if (seat.playerId !== this.hostId || this.match !== null) return;
+        const guest = this.seats.find((s) => s.playerId === message.seat);
+        if (guest === undefined || guest === seat) return;
+        this.removed.add(`token:${guest.token}`);
+        if (guest.browserId !== null) this.removed.add(`id:${guest.browserId}`);
+        this.seats.splice(this.seats.indexOf(guest), 1);
+        guest.connection?.send({ type: 'removed' });
+        this.broadcastRoom();
+        return;
+      }
       case 'rematch':
         // A tournament's next match is its host's to send, not this one again.
         if (seat.playerId === this.hostId && this.tournament === null) this.rematch();
@@ -534,6 +563,7 @@ export class Room {
         bot: true,
         graceTicks: 0,
         special: null,
+        browserId: null,
       });
     }
 

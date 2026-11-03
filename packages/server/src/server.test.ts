@@ -129,6 +129,52 @@ describe('a connection', () => {
     expect(open.rooms).toHaveLength(1);
     await server.stop();
   });
+
+  it('from a browser its room’s host removed is refused, in a new tab too', async () => {
+    const server = await started();
+    type Reply = { type: string; code?: string; playerId?: number };
+    /** A socket that sends `first` once open, and keeps what it is told. */
+    const open = async (first: object): Promise<{ socket: WebSocket; replies: Reply[] }> => {
+      const socket = new WebSocket(`ws://127.0.0.1:${server.port}`);
+      const replies: Reply[] = [];
+      socket.on('message', (data) => replies.push(JSON.parse(String(data)) as Reply));
+      await new Promise<void>((resolve, reject) => {
+        socket.on('error', reject);
+        socket.on('open', () => {
+          socket.send(JSON.stringify(first));
+          resolve();
+        });
+      });
+      return { socket, replies };
+    };
+    const until = async (replies: Reply[], type: string): Promise<Reply> => {
+      for (let i = 0; i < 200; i++) {
+        const found = replies.find((r) => r.type === type);
+        if (found !== undefined) return found;
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      throw new Error(`no ${type}`);
+    };
+    const base = { protocol: PROTOCOL_VERSION, players: 3 };
+    const host = await open({ ...base, type: 'create', name: 'Ada', browserId: 'browser-ada' });
+    const welcome = (await until(host.replies, 'welcome')) as Reply & { code: string };
+    const join = { type: 'join', protocol: PROTOCOL_VERSION, code: welcome.code };
+    const guest = await open({ ...join, name: 'Bo', browserId: 'browser-bo' });
+    const seat = (await until(guest.replies, 'welcome')).playerId;
+
+    host.socket.send(JSON.stringify({ type: 'remove', seat }));
+    await until(guest.replies, 'removed');
+    guest.socket.close();
+
+    // A new tab: a new socket, no token, the same browser.
+    const again = await open({ ...join, name: 'Bo', browserId: 'browser-bo' });
+    expect(await until(again.replies, 'error')).toMatchObject({ code: 'removed' });
+    // Another browser is welcome.
+    const other = await open({ ...join, name: 'Cy', browserId: 'browser-cy' });
+    expect((await until(other.replies, 'welcome')).type).toBe('welcome');
+    for (const s of [host.socket, again.socket, other.socket]) s.close();
+    await server.stop();
+  });
 });
 
 describe('a silent connection', () => {

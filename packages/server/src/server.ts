@@ -357,7 +357,7 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
           connection.send({ type: 'error', code: 'no_capacity', message: 'server is full' });
           return;
         }
-        room.join(connection, message.name);
+        room.join(connection, message.name, undefined, message.browserId);
         joined.set(connection.id, room);
         return;
       }
@@ -368,7 +368,12 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
           connection.send({ type: 'error', code: 'no_room', message: 'no room with that code' });
           return;
         }
-        if (room.join(connection, message.name, message.token) === null) {
+        // Removed by its host (STEAM.md §5): by this browser's ID, or the seat's token.
+        if (room.refuses(message.browserId, message.token)) {
+          connection.send({ type: 'error', code: 'removed', message: 'removed by the host' });
+          return;
+        }
+        if (room.join(connection, message.name, message.token, message.browserId) === null) {
           connection.send({ type: 'error', code: 'room_full', message: 'that room is full' });
           return;
         }

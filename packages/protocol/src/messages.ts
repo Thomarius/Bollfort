@@ -18,9 +18,11 @@ import { SnapshotSchema } from './snapshot.js';
  * snapshot's freezes (2026-10-21). 31: the Lullaby Tower, the same and a gun's sleep (2026-10-21).
  * 32: the bots' towers, set by the host in the lobby (2026-10-25). 33: a tournament's bots'
  * towers, fixed for its whole length and sent with its table (2026-10-28). 34: the Subwoofer,
- * its variants, its ruleset key and the snapshot's waves (2026-10-30).
+ * its variants, its ruleset key and the snapshot's waves (2026-10-30). 35: the host's Remove, a
+ * browser's ID on joining, and the games browser's listing with towers and without rounds
+ * (STEAM.md K and B, 2026-11-03).
  */
-export const PROTOCOL_VERSION = 34;
+export const PROTOCOL_VERSION = 35;
 
 /**
  * A player's intent. The server overwrites `player` with the sender's own seat before
@@ -54,6 +56,13 @@ export const ActionSchema = z.discriminatedUnion('kind', [
     special: z.literal(true).optional(),
   }),
 ]);
+
+/**
+ * A browser's own random ID, kept in its storage and sent with every create and join: how a room
+ * knows a guest its host removed when they come back in a new tab (STEAM.md §5). Outside Steam
+ * a deterrent, not security — clearing the browser's data gets round it.
+ */
+export const BrowserIdSchema = z.string().min(8).max(64);
 
 export const SeatSchema = z.strictObject({
   playerId: z.number().int().nonnegative(),
@@ -120,6 +129,7 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
      * code alone. Chosen once, as the room is made.
      */
     public: z.boolean().optional(),
+    browserId: BrowserIdSchema.optional(),
   }),
   z.strictObject({
     type: z.literal('join'),
@@ -128,6 +138,7 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
     code: z.string().min(4).max(12),
     /** Presenting a token reclaims a seat instead of taking a new one. */
     token: z.string().optional(),
+    browserId: BrowserIdSchema.optional(),
   }),
   z.strictObject({ type: z.literal('ready'), ready: z.boolean() }),
   /**
@@ -167,6 +178,11 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
       .optional(),
   }),
   z.strictObject({ type: z.literal('start') }),
+  /**
+   * Host only, in the lobby: the person in `seat` is sent back to the menu, their seat a bot's
+   * again, and may not join this room again (STEAM.md §5).
+   */
+  z.strictObject({ type: z.literal('remove'), seat: z.number().int().nonnegative().max(7) }),
   /**
    * The host, once a match is over, brings everyone still at the table back to its lobby
    * as it was, with a new map (PLAN 11.18 Y6).
@@ -283,6 +299,8 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
    * table, and to whoever joins, so a teammate's lobby shows what the host's does.
    */
   z.strictObject({ type: z.literal('tournamentSave'), save: z.string() }),
+  /** To a guest the host has removed: back to the menu, and no rejoining this room. */
+  z.strictObject({ type: z.literal('removed') }),
   z.strictObject({ type: z.literal('error'), code: z.string(), message: z.string() }),
 ]);
 export type ServerMessage = z.infer<typeof ServerMessageSchema>;
@@ -298,7 +316,8 @@ export const RoomListingSchema = z.strictObject({
   people: z.number().int().nonnegative(),
   playerCount: z.number().int().min(2).max(8),
   teamSize: z.number().int().min(1),
-  maxRounds: z.number().int().positive(),
+  /** Special towers played at this table. */
+  towers: z.boolean(),
   /** The tournament team whose room it is, or null for a match of its own. */
   tournament: z.string().nullable(),
 });
