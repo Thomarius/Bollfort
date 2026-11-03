@@ -1,4 +1,4 @@
-import { defaultConfigBundle, defaultSettings, defaultTeams, type TextKey } from '@bollwerk/config';
+import { defaultConfigBundle, defaultSettings, defaultTeams, type TextKey } from '@bollfort/config';
 
 import { t } from './i18n.js';
 import type { LookChoices } from './looks.js';

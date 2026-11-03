@@ -1,5 +1,5 @@
-import type { ArtConfig, CyberpunkStyleConfig } from '@bollwerk/config';
-import { Rng, Structure, Terrain, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, CyberpunkStyleConfig } from '@bollfort/config';
+import { Rng, Structure, Terrain, type MatchState, type Shot } from '@bollfort/sim';
 import {
   BlurFilter,
   Container,

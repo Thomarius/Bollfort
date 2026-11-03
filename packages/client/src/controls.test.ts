@@ -1,4 +1,4 @@
-import { defaultTerrainConfig } from '@bollwerk/config';
+import { defaultTerrainConfig } from '@bollfort/config';
 import {
   Rng,
   applyAction,
@@ -13,7 +13,7 @@ import {
   step,
   withSpecials,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import {

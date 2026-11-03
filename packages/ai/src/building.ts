@@ -1,4 +1,4 @@
-import { defaultAiConfig, type BotProfile, type FitWeights } from '@bollwerk/config';
+import { defaultAiConfig, type BotProfile, type FitWeights } from '@bollfort/config';
 import {
   Structure,
   cannonReward,
@@ -15,7 +15,7 @@ import {
   type EnclosureResult,
   type MatchState,
   type Rng,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { ticksFor } from './botTurn.js';
 import { coverable } from './coverage.js';

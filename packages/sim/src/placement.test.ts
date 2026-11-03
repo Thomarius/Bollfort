@@ -1,4 +1,4 @@
-import { defaultTerrainConfig } from '@bollwerk/config';
+import { defaultTerrainConfig } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { applyEnclosure } from './enclosure.js';

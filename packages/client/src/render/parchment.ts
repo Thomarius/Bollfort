@@ -1,4 +1,4 @@
-import type { ArtConfig, ParchmentStyleConfig } from '@bollwerk/config';
+import type { ArtConfig, ParchmentStyleConfig } from '@bollfort/config';
 import {
   Rng,
   Structure,
@@ -7,7 +7,7 @@ import {
   type Castle,
   type MatchState,
   type Shot,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 import { Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 
 import { motionReduced } from '../motion.js';

@@ -1,4 +1,4 @@
-import type { Ruleset, SpecialKind, TerrainConfig, TowerVariant } from '@bollwerk/config';
+import type { Ruleset, SpecialKind, TerrainConfig, TowerVariant } from '@bollfort/config';
 
 export const Terrain = { Water: 0, Land: 1 } as const;
 export type TerrainKind = (typeof Terrain)[keyof typeof Terrain];

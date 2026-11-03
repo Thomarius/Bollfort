@@ -1,4 +1,4 @@
-import type { MatchState, PlayerState } from '@bollwerk/sim';
+import type { MatchState, PlayerState } from '@bollfort/sim';
 
 import { isTeamMatch, teamName } from './scores.js';
 import { t } from './i18n.js';

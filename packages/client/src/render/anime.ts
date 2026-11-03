@@ -1,4 +1,4 @@
-import type { AnimeStyleConfig, ArtConfig } from '@bollwerk/config';
+import type { AnimeStyleConfig, ArtConfig } from '@bollfort/config';
 import {
   isLoaded,
   Structure,
@@ -6,7 +6,7 @@ import {
   type Castle,
   type MatchState,
   type Shot,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 import {
   Container,
   FillPattern,

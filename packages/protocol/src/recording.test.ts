@@ -1,4 +1,4 @@
-import { defaultTerrainConfig } from '@bollwerk/config';
+import { defaultTerrainConfig } from '@bollfort/config';
 import {
   applyAction,
   beginMatch,
@@ -9,7 +9,7 @@ import {
   withSpecials,
   type Action,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import {

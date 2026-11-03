@@ -1,4 +1,4 @@
-import type { ArtStyle } from '@bollwerk/config';
+import type { ArtStyle } from '@bollfort/config';
 
 /**
  * The HUD in each look (PLAN 11.11 W7): the bar, the clock and the cannon count,

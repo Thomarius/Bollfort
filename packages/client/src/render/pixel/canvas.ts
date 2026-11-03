@@ -1,4 +1,4 @@
-import type { Rng } from '@bollwerk/sim';
+import type { Rng } from '@bollfort/sim';
 import { Rectangle, Texture } from 'pixi.js';
 
 /**
@@ -128,7 +128,7 @@ export class Atlas {
 
     const base = Texture.from(sheet.canvas);
     base.source.scaleMode = 'nearest';
-    base.source.label = 'bollwerk-pixel-atlas';
+    base.source.label = 'bollfort-pixel-atlas';
 
     const textures = new Map<string, Texture>();
     for (const [key, frame] of frames) {

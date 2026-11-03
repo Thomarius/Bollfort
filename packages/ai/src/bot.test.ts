@@ -1,5 +1,5 @@
-import { defaultRuleset } from '@bollwerk/config';
-import { Rng, applyEnclosure, stateFromAscii, withoutContinues } from '@bollwerk/sim';
+import { defaultRuleset } from '@bollfort/config';
+import { Rng, applyEnclosure, stateFromAscii, withoutContinues } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { bot, play } from './testing.js';

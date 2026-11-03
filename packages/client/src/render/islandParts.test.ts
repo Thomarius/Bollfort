@@ -1,4 +1,4 @@
-import { stateFromAscii, type MatchState } from '@bollwerk/sim';
+import { stateFromAscii, type MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { IslandParts, withDrawBudget } from './islandParts.js';

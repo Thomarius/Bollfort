@@ -1,4 +1,4 @@
-import { defaultRuleset } from '@bollwerk/config';
+import { defaultRuleset } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { applyEnclosure } from './enclosure.js';

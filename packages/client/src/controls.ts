@@ -1,4 +1,4 @@
-import { variantCost, variantKind, type SpecialKind } from '@bollwerk/config';
+import { variantCost, variantKind, type SpecialKind } from '@bollfort/config';
 import {
   barrelsOf,
   canPlaceAnyCannon,
@@ -21,7 +21,7 @@ import {
   type Cannon,
   type MatchState,
   type Shot,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import type { Ghost, Scene } from './render/scene.js';
 import type { Cell, NextTower, TowerBadge } from './render/theme.js';

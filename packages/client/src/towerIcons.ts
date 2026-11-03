@@ -1,4 +1,4 @@
-import type { SpecialKind } from '@bollwerk/config';
+import type { SpecialKind } from '@bollfort/config';
 
 /**
  * The towers' emblems and the cannon's icon, as shapes in a unit box: drawn on the board by

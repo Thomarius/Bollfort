@@ -8,7 +8,7 @@ import {
   type MatchSettings,
   type SettingBounds,
   type Table,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 
 import { store, stored } from './storage.js';
 
@@ -27,7 +27,7 @@ export interface RememberedTable extends Table {
   hostSeat: number;
 }
 
-const KEY = 'bollwerk.table';
+const KEY = 'bollfort.table';
 
 export function saveTable(table: RememberedTable): void {
   store(

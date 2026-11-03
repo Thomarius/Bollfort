@@ -3,7 +3,7 @@ import { playerShape, shapeSvg } from './shapes.js';
 import { HUD_SKIN } from './skins.js';
 import { formatNumber, t } from './i18n.js';
 import { escape } from './html.js';
-import { defaultArtConfig, type ArtStyle, type TextKey } from '@bollwerk/config';
+import { defaultArtConfig, type ArtStyle, type TextKey } from '@bollfort/config';
 
 import { COUNTDOWN_FROM, showsClock } from './clock.js';
 import { motionReduced } from './motion.js';
@@ -20,7 +20,7 @@ import {
   type AnnouncementLine,
   type RankEntry,
 } from './scores.js';
-import { owesCastleChoice, teamScore, type MatchState, type Phase } from '@bollwerk/sim';
+import { owesCastleChoice, teamScore, type MatchState, type Phase } from '@bollfort/sim';
 import { BoardLabels } from './boardLabels.js';
 import { EndScreen } from './endScreen.js';
 import { towerLine } from './towers.js';

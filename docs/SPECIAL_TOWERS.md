@@ -24,7 +24,7 @@ keeps only what is open.
 
 ## 1. What was decided
 
-- **All towers available from the start.** No experience points or unlocks for now: Bollwerk is
+- **All towers available from the start.** No experience points or unlocks for now: Bollfort is
   played among friends of very different skill, and unlocks earned by playing would give the
   stronger player more options as well as more skill. Unlocks may come back later as variety,
   never as power.
@@ -519,9 +519,9 @@ Built in ST5 and ST6 together (2026-10-14), so people can play with towers; the 
 
 - **Lobby** (`lobby.ts`, `lobbyFlow.ts`): the host's switch, **Special towers** On/Off, beside lives
   and rounds, remembered for the next table, a room created and a tournament's setup alike
-  (`bollwerk.specials`, off until first set; 2026-10-23); a guest reads it in the table's statement. While on, a person's own seat has a button
+  (`bollfort.specials`, off until first set; 2026-10-23); a guest reads it in the table's statement. While on, a person's own seat has a button
   showing their choice — its emblem, name and a pip a cannon it costs — remembered for the next
-  table (`towers.ts`, `bollwerk.tower`), and never chosen, drawn at random once a visit, not saved
+  table (`towers.ts`, `bollfort.tower`), and never chosen, drawn at random once a visit, not saved
   (as is one saved before the costs, a bare kind that names no variant), and sent to a room as it
   opens; anyone else's seat shows their choice, as the button is drawn but not to be pressed
   ("Brings", the user's, 2026-10-23; it had been a line of text). Each bot's seat shows its tower
@@ -535,7 +535,7 @@ Built in ST5 and ST6 together (2026-10-14), so people can play with towers; the 
   tower still to come; a bot's menu has Random above them, its draw's card marked dashed, not
   chosen — its emblem and name (a line on its role, offence or defence, went: the user's, 2026-10-17) — a switch for the chosen tower's
   cost, a cost the rules do not offer greyed, a card's click keeping the cost chosen, tower and cost
-  independent — the last cost chosen when none was (`bollwerk.towerCost`), else the cheapest; a
+  independent — the last cost chosen when none was (`bollfort.towerCost`), else the cheapest; a
   cost remembered by tower had switched back as its card was clicked, which confused the users
   (2026-10-17); what the variant does by its own numbers
   (`towerWhat`: the Architect's reach, the Rapid's barrels, Bertha's shell against a cannon's —

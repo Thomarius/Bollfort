@@ -6,7 +6,7 @@ import {
   type Specials,
   type TerrainConfig,
   type TowerVariant,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import {
   applyAction,
   seatOrder,
@@ -15,7 +15,7 @@ import {
   type MatchState,
   type Rejection,
   type Rng,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import type { Bot } from './bot.js';
 import { dealPersonalities } from './personality.js';

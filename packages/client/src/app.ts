@@ -1,4 +1,4 @@
-import { defaultConfigBundle, validateConfigBundle } from '@bollwerk/config';
+import { defaultConfigBundle, validateConfigBundle } from '@bollfort/config';
 
 import { Audio } from './audio.js';
 import { onLanguageChange, setLanguage, startingLanguage, t } from './i18n.js';
@@ -158,4 +158,4 @@ export const timeScale = Math.max(1, Number(params.get('speed') ?? 1));
 perf.enabled = params.get('perf') === '1';
 
 // For a script driving the page, which reads the figures rather than clicking Copy.
-if (perf.enabled) Object.assign(globalThis, { bollwerkPerf: perf });
+if (perf.enabled) Object.assign(globalThis, { bollfortPerf: perf });

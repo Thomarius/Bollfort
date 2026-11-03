@@ -10,7 +10,7 @@ import { store, stored } from './storage.js';
  */
 export type StyleMusicSetting = 'always' | 'half' | 'never';
 
-const KEY = 'bollwerk.styleMusic';
+const KEY = 'bollfort.styleMusic';
 
 export const STYLE_MUSIC_SETTINGS: readonly StyleMusicSetting[] = ['always', 'half', 'never'];
 

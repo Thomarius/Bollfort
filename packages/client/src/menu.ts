@@ -1,5 +1,5 @@
-import { defaultConfigBundle, type ArtLook } from '@bollwerk/config';
-import { type RoomListing } from '@bollwerk/protocol';
+import { defaultConfigBundle, type ArtLook } from '@bollfort/config';
+import { type RoomListing } from '@bollfort/protocol';
 
 import { howToPlaySeen, openHowToPlay } from './howToPlay.js';
 import { withIcon } from './icons.js';

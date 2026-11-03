@@ -1,4 +1,4 @@
-import type { Action } from '@bollwerk/sim';
+import type { Action } from '@bollfort/sim';
 
 import type { BotDriver } from './driver.js';
 import {

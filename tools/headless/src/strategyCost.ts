@@ -15,7 +15,7 @@ import {
   rollOutBuild,
   scoreOf,
   strategiesFor,
-} from '@bollwerk/ai';
+} from '@bollfort/ai';
 import { Builder } from '../../../packages/ai/src/building.js';
 import {
   botProfile,
@@ -23,8 +23,8 @@ import {
   defaultRuleset,
   defaultTerrainConfig,
   type BotSetup,
-} from '@bollwerk/config';
-import { Rng, applyAction, createMatch, drainEvents, step } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { Rng, applyAction, createMatch, drainEvents, step } from '@bollfort/sim';
 
 const { values } = parseArgs({
   options: {

@@ -1,5 +1,5 @@
-import type { BotSetup } from '@bollwerk/config';
-import type { MatchState } from '@bollwerk/sim';
+import type { BotSetup } from '@bollfort/config';
+import type { MatchState } from '@bollfort/sim';
 
 /**
  * How one match ended, one row per match beside the per-round table.

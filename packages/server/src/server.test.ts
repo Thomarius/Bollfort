@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { PROTOCOL_VERSION } from '@bollwerk/protocol';
+import { PROTOCOL_VERSION } from '@bollfort/protocol';
 import { describe, expect, it } from 'vitest';
 import { WebSocket } from 'ws';
 
@@ -16,7 +16,7 @@ async function started(port = 0): Promise<RunningServer> {
     root: repoRoot,
     port,
     host: '127.0.0.1',
-    recordingsDir: mkdtempSync(join(tmpdir(), 'bollwerk-server-')),
+    recordingsDir: mkdtempSync(join(tmpdir(), 'bollfort-server-')),
     commit: null,
     log: () => undefined,
   });
@@ -54,7 +54,7 @@ describe('the server as something a program starts and stops', () => {
       root: repoRoot,
       port: server.port,
       host: '127.0.0.1',
-      recordingsDir: mkdtempSync(join(tmpdir(), 'bollwerk-server-')),
+      recordingsDir: mkdtempSync(join(tmpdir(), 'bollfort-server-')),
       commit: null,
       log: () => undefined,
     });
@@ -104,7 +104,7 @@ describe('a silent connection', () => {
       root: repoRoot,
       port: 0,
       host: '127.0.0.1',
-      recordingsDir: mkdtempSync(join(tmpdir(), 'bollwerk-server-')),
+      recordingsDir: mkdtempSync(join(tmpdir(), 'bollfort-server-')),
       commit: null,
       log: () => undefined,
       heartbeatMs: 50,
@@ -159,7 +159,7 @@ describe('opening the port to the internet', () => {
       root: repoRoot,
       port: 0,
       host: '127.0.0.1',
-      recordingsDir: mkdtempSync(join(tmpdir(), 'bollwerk-server-')),
+      recordingsDir: mkdtempSync(join(tmpdir(), 'bollfort-server-')),
       commit: null,
       log: () => undefined,
       opener,
@@ -223,7 +223,7 @@ describe('the static files, kept by the browser', () => {
   });
 
   it('never lets the page answering a missing asset be kept under its name', async () => {
-    const clientDir = mkdtempSync(join(tmpdir(), 'bollwerk-client-'));
+    const clientDir = mkdtempSync(join(tmpdir(), 'bollfort-client-'));
     mkdirSync(join(clientDir, 'assets'));
     writeFileSync(join(clientDir, 'index.html'), '<!doctype html>');
     writeFileSync(join(clientDir, 'assets', 'index-AbCd1234.js'), 'code');
@@ -232,7 +232,7 @@ describe('the static files, kept by the browser', () => {
       port: 0,
       host: '127.0.0.1',
       clientDir,
-      recordingsDir: mkdtempSync(join(tmpdir(), 'bollwerk-server-')),
+      recordingsDir: mkdtempSync(join(tmpdir(), 'bollfort-server-')),
       commit: null,
       log: () => undefined,
     });
@@ -248,7 +248,7 @@ describe('the static files, kept by the browser', () => {
   });
 
   it('serves a file once, then only says it has not changed, until it has', async () => {
-    const clientDir = mkdtempSync(join(tmpdir(), 'bollwerk-client-'));
+    const clientDir = mkdtempSync(join(tmpdir(), 'bollfort-client-'));
     mkdirSync(join(clientDir, 'audio'));
     const path = join(clientDir, 'audio', 'track.mp3');
     writeFileSync(path, 'first');
@@ -257,7 +257,7 @@ describe('the static files, kept by the browser', () => {
       port: 0,
       host: '127.0.0.1',
       clientDir,
-      recordingsDir: mkdtempSync(join(tmpdir(), 'bollwerk-server-')),
+      recordingsDir: mkdtempSync(join(tmpdir(), 'bollfort-server-')),
       commit: null,
       log: () => undefined,
     });

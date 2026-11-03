@@ -1,5 +1,5 @@
-import type { TournamentConfig } from '@bollwerk/config';
-import type { Rng } from '@bollwerk/sim';
+import type { TournamentConfig } from '@bollfort/config';
+import type { Rng } from '@bollfort/sim';
 
 import type { Team } from './save.js';
 

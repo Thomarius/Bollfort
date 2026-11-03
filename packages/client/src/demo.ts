@@ -1,4 +1,4 @@
-import { defaultConfigBundle } from '@bollwerk/config';
+import { defaultConfigBundle } from '@bollfort/config';
 
 import { app, showError } from './app.js';
 import { demoSetup, idleDue, rollDemoTable, tableCaption } from './demoTable.js';

@@ -1,5 +1,5 @@
-import { replayRecording, type RecordingLine } from '@bollwerk/protocol';
-import { Rng, type Action } from '@bollwerk/sim';
+import { replayRecording, type RecordingLine } from '@bollfort/protocol';
+import { Rng, type Action } from '@bollfort/sim';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LocalMatch, type LocalMatchOptions } from '../localMatch.js';

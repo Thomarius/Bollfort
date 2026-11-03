@@ -1,5 +1,5 @@
 {
-  "name": "@bollwerk/ai",
+  "name": "@bollfort/ai",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@bollwerk/config": "*",
-    "@bollwerk/sim": "*"
+    "@bollfort/config": "*",
+    "@bollfort/sim": "*"
   }
 }

@@ -3,14 +3,14 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { networkInterfaces } from 'node:os';
 import { extname, join, normalize } from 'node:path';
 
-import { loadConfigBundle } from '@bollwerk/config/node';
+import { loadConfigBundle } from '@bollfort/config/node';
 import {
   PROTOCOL_VERSION,
   decodeClientMessage,
   encode,
   type RoomList,
   type ServerMessage,
-} from '@bollwerk/protocol';
+} from '@bollfort/protocol';
 import { WebSocketServer, type WebSocket } from 'ws';
 
 import { openableUrls } from './addresses.js';
@@ -213,7 +213,7 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
 
     if (!existsSync(file)) {
       res.writeHead(503, { 'content-type': 'text/plain' });
-      res.end('client not built — run: npm run build -w @bollwerk/client');
+      res.end('client not built — run: npm run build -w @bollfort/client');
       return;
     }
     const stat = statSync(file);

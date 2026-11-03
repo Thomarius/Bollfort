@@ -16,9 +16,9 @@ import {
   type Personality,
   type Ruleset,
   type TowerVariant,
-} from '@bollwerk/config';
-import { loadConfigBundle } from '@bollwerk/config/node';
-import { Bot, PlanningSlots, dealPersonalities, drawnSpecial, takeBotTurns } from '@bollwerk/ai';
+} from '@bollfort/config';
+import { loadConfigBundle } from '@bollfort/config/node';
+import { Bot, PlanningSlots, dealPersonalities, drawnSpecial, takeBotTurns } from '@bollfort/ai';
 import {
   Rng,
   createMatch,
@@ -30,8 +30,8 @@ import {
   step,
   type Action,
   type MatchState,
-} from '@bollwerk/sim';
-import { MatchRecorder } from '@bollwerk/protocol';
+} from '@bollfort/sim';
+import { MatchRecorder } from '@bollfort/protocol';
 
 import { repoRoot, usageError, wholeNumber } from './cli.js';
 import { replayAll } from './replay.js';
@@ -44,7 +44,7 @@ import {
   statsCsv,
   type MatchOutcome,
   type StatRow,
-} from '@bollwerk/analysis';
+} from '@bollfort/analysis';
 
 /**
  * Headless harness: runs matches with no renderer.
@@ -170,11 +170,11 @@ function parsePersonalities(value: string | undefined): (Personality | 'dealt')[
 }
 
 const USAGE =
-  'usage: npm start -w @bollwerk/headless -- [--matches N] [--players N] [--seed N] ' +
+  'usage: npm start -w @bollfort/headless -- [--matches N] [--players N] [--seed N] ' +
   '[--max-ticks N] [--max-rounds N|none] [--teams N] [--level 1-10[,...]] ' +
   '[--personality offensive|dealt|...[,...]] [--specials on|off] [--special bertha2|bertha3|architect2|architect3|rapid2|rapid3|lightning2|lightning3|biggest2|biggest3|laser2|laser3|frost2|frost3|lullaby2|lullaby3|subwoofer2|subwoofer3|none|random[,...]] [--plans 1,0[,...]] [--set path=json ...] [--stats FILE] [--outcomes FILE] [--record DIR] [--map]\n' +
-  '       npm start -w @bollwerk/headless -- --replay recordings/ [more files or dirs] [--stats FILE]\n' +
-  '       npm start -w @bollwerk/headless -- --tournament [--help for its flags]';
+  '       npm start -w @bollfort/headless -- --replay recordings/ [more files or dirs] [--stats FILE]\n' +
+  '       npm start -w @bollfort/headless -- --tournament [--help for its flags]';
 
 /**
  * The flags, refused whole when one is unknown, lacks its value or is not a number: they

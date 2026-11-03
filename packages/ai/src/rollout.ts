@@ -5,7 +5,7 @@ import {
   type MatchState,
   type Rng,
   type RoundResult,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { type Builder, type Strategy } from './building.js';
 

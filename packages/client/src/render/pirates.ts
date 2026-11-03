@@ -1,5 +1,5 @@
-import type { ArtConfig, PiratesStyleConfig } from '@bollwerk/config';
-import { isLoaded, Structure, Terrain, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, PiratesStyleConfig } from '@bollfort/config';
+import { isLoaded, Structure, Terrain, type MatchState, type Shot } from '@bollfort/sim';
 import { Container, Graphics, type GraphicsContext } from 'pixi.js';
 
 import { motionReduced } from '../motion.js';

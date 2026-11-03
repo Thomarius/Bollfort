@@ -3,7 +3,7 @@ import {
   defaultRuleset,
   defaultTerrainConfig,
   type Personality,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { dealPersonalities } from './personality.js';

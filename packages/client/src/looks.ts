@@ -6,7 +6,7 @@ import {
   type ArtStyle,
   type ArtStyles,
   type TextKey,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 
 import { LivePreview } from './galleryLive.js';
 import { t } from './i18n.js';
@@ -82,7 +82,7 @@ export function chooseLook(
 }
 
 /** Where the hearted styles are kept: the page's own, as the looks are. */
-const FAVOURITES_KEY = 'bollwerk.favourites';
+const FAVOURITES_KEY = 'bollfort.favourites';
 
 /** The hearted styles, in the styles' own order; anything stale or hand-typed dropped. */
 export function storedFavourites(): ArtStyle[] {

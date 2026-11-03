@@ -1,5 +1,5 @@
-import type { ArtConfig } from '@bollwerk/config';
-import { Rng } from '@bollwerk/sim';
+import type { ArtConfig } from '@bollfort/config';
+import { Rng } from '@bollfort/sim';
 
 import type { Texture } from 'pixi.js';
 

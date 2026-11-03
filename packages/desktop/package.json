@@ -1,5 +1,5 @@
 {
-  "name": "@bollwerk/desktop",
+  "name": "@bollfort/desktop",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,14 +12,14 @@
     "package": "node build.js && node package.js"
   },
   "devDependencies": {
-    "@bollwerk/config": "*",
-    "@bollwerk/server": "*",
+    "@bollfort/config": "*",
+    "@bollfort/server": "*",
     "electron": "44.5.1",
     "electron-builder": "^26.15.3"
   },
   "build": {
-    "appId": "io.github.thomarius.bollwerk",
-    "productName": "Bollwerk",
+    "appId": "io.github.thomarius.bollfort",
+    "productName": "Bollfort",
     "directories": {
       "output": "release"
     },
@@ -49,7 +49,7 @@
     },
     "portable": {
       "artifactName": "${productName}-${version}-windows.${ext}",
-      "unpackDirName": "Bollwerk",
+      "unpackDirName": "Bollfort",
       "splashImage": "splash.bmp"
     },
     "linux": {
@@ -57,7 +57,7 @@
         "AppImage"
       ],
       "category": "Game",
-      "executableName": "bollwerk",
+      "executableName": "bollfort",
       "syncDesktopName": true
     },
     "appImage": {
@@ -65,5 +65,5 @@
     }
   },
   "author": "Thomas Arnold",
-  "desktopName": "bollwerk.desktop"
+  "desktopName": "bollfort.desktop"
 }

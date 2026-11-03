@@ -35,7 +35,7 @@ describe('the locales', () => {
     // credits.ts marks them in the text by pattern.
     for (const language of LANGUAGES) {
       const text = locales[language]['credits.disclaimer'];
-      expect(text).toMatch(/Bollwerk/);
+      expect(text).toMatch(/Bollfort/);
       expect(text).toMatch(/Rampart/);
     }
   });

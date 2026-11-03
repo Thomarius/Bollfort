@@ -1,4 +1,4 @@
-import { variantCost, variantKind } from '@bollwerk/config';
+import { variantCost, variantKind } from '@bollfort/config';
 
 import {
   Structure,

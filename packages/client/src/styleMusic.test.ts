@@ -1,4 +1,4 @@
-import { ArtStyleSchema, type ArtStyle } from '@bollwerk/config';
+import { ArtStyleSchema, type ArtStyle } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { chooseStyleTrack, type StylePauses, type StyleTrackRules } from './styleMusic.js';

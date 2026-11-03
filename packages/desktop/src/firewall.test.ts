@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { coversPort, firewallVerdict, type FirewallReport } from './firewall.js';
 
 const ALL = 0x7fffffff;
-const exe = 'C:\\Users\\a\\AppData\\Local\\Temp\\Bollwerk\\Bollwerk.exe';
+const exe = 'C:\\Users\\a\\AppData\\Local\\Temp\\Bollfort\\Bollfort.exe';
 
 /** A machine on a public network with the firewall on and inbound blocked, and these rules. */
 function report(rules: Partial<FirewallReport['rules'][number]>[], current = 4): FirewallReport {

@@ -1,5 +1,5 @@
-import { defaultConfigBundle, type TowerVariant } from '@bollwerk/config';
-import type { Seat, ServerMessage, TournamentTable } from '@bollwerk/protocol';
+import { defaultConfigBundle, type TowerVariant } from '@bollfort/config';
+import type { Seat, ServerMessage, TournamentTable } from '@bollfort/protocol';
 import {
   HOST_TEAM,
   mapSeed,
@@ -7,7 +7,7 @@ import {
   matchTable,
   type Progress,
   type Save,
-} from '@bollwerk/tournament';
+} from '@bollfort/tournament';
 
 import { ServerConnection } from './net/connection.js';
 import { seatTowers, sentTower } from './tournamentTowers.js';

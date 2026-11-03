@@ -1,5 +1,5 @@
-import type { ArtConfig, ArtStyle, SpecialKind, TowerVariant } from '@bollwerk/config';
-import { findReadyCannon, type Cannon, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, ArtStyle, SpecialKind, TowerVariant } from '@bollfort/config';
+import { findReadyCannon, type Cannon, type MatchState, type Shot } from '@bollfort/sim';
 import { Graphics, type Container } from 'pixi.js';
 
 import type { CornerGap } from '../cornerGaps.js';

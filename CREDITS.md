@@ -1,6 +1,6 @@
 # Credits
 
-_Bollwerk_ is an unofficial fan game inspired by _Rampart_ (Atari Games, 1990). It is not affiliated with or endorsed by Warner Bros. Entertainment, which owns the _Rampart_ trademark. It uses no code, graphics or sound from the original; the audio is from OpenGameArt.org and Pixabay, under the licences listed below.
+_Bollfort_ is an unofficial fan game inspired by _Rampart_ (Atari Games, 1990). It is not affiliated with or endorsed by Warner Bros. Entertainment, which owns the _Rampart_ trademark. It uses no code, graphics or sound from the original; the audio is from OpenGameArt.org and Pixabay, under the licences listed below.
 
 The code is under the MIT licence.
 

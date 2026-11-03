@@ -5,14 +5,14 @@ import {
   defaultConfigBundle,
   type BotTower,
   type TournamentLength,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import {
   settingsProblems,
   teamLimits,
   unbeatenRoad,
   type SettingLimits,
   type TournamentSettings,
-} from '@bollwerk/tournament';
+} from '@bollfort/tournament';
 
 import { escape } from './html.js';
 import { withIcon } from './icons.js';

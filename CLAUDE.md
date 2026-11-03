@@ -1,11 +1,13 @@
-# Bollwerk
+# Bollfort
 
 Multiplayer-only recreation of the 1990 Atari arcade game _Rampart_, in TypeScript.
 Shoot down opponents' castle walls, then race to rebuild your own before the next
 barrage. Fail to seal a castle and you spend a life; run out of lives and you are out.
 
-**The name is Bollwerk, never Rampart** (renamed 2026-10-02, ARCHIVE 11zw; the repository
-is `Thomarius/Bollwerk`, the local folder still `RampartRemake`). Rampart is a trademark
+**The name is Bollfort, never Rampart nor Bollwerk** (Rampart renamed Bollwerk 2026-10-02,
+ARCHIVE 11zw; Bollwerk renamed Bollfort 2026-11-03, ARCHIVE 15zh, since another game of that
+name is coming and the word is a live mark in games' classes; the repository is
+`Thomarius/Bollfort`, the local folder still `RampartRemake`). Rampart is a trademark
 of Warner Bros. Entertainment: the game names it only to say what it is inspired by
 (`INSPIRED_BY` and `DISCLAIMER` in `packages/config/src/credits.ts`, shown in the menu,
 the Credits, the desktop window, the README and the release notes). In the docs "the
@@ -33,22 +35,22 @@ npm run check                       # format, lint, typecheck, test — must pas
 npm run credits                     # CREDITS.md, from the audio manifest's credits
 npm run soak                        # the weekend soak again (ARCHIVE 12h), resumable; --list, --trial, --summary
 npm run build                       # client + server bundles, both needed by the image
-npm run dev   -w @bollwerk/client   # play offline at http://localhost:5173
-npm start     -w @bollwerk/server   # serves the built client at http://localhost:8080
-npm start     -w @bollwerk/headless -- --matches 8 --players 3 --level 5 --stats out.csv
-npm start     -w @bollwerk/headless -- --map --players 3 --seed 2   # print a map as ASCII
-npm start     -w @bollwerk/headless -- --replay recordings/ --stats human.csv   # recorded human play
-npm start     -w @bollwerk/headless -- --matches 4 --level 6 --record /tmp/rec   # bot matches as recordings
+npm run dev   -w @bollfort/client   # play offline at http://localhost:5173
+npm start     -w @bollfort/server   # serves the built client at http://localhost:8080
+npm start     -w @bollfort/headless -- --matches 8 --players 3 --level 5 --stats out.csv
+npm start     -w @bollfort/headless -- --map --players 3 --seed 2   # print a map as ASCII
+npm start     -w @bollfort/headless -- --replay recordings/ --stats human.csv   # recorded human play
+npm start     -w @bollfort/headless -- --matches 4 --level 6 --record /tmp/rec   # bot matches as recordings
 npx tsx tools/headless/src/placements.ts [/tmp/rec]   # where each piece's cells ended, people or bots
-npm start     -w @bollwerk/headless -- --tournament --count 400 --league --double  # tournaments by rolls
+npm start     -w @bollfort/headless -- --tournament --count 400 --league --double  # tournaments by rolls
 npx tsx tools/headless/src/shotStats.ts recordings/   # every shot: accuracy, misses, guns' tempo, range
 npx tsx tools/headless/src/shotStats.ts --bots 1,5,10 --matches 4 --players 4  # the same for bot tables
 npx tsx tools/headless/src/towerSoak.ts --out soaks/x --pairs architect3:none --levels 3,5,8  # tower balance, resumable
 npx tsx tools/headless/src/buildStats.ts recordings/ --alias You=Thomas  # castles, ground, guns firing, pieces, by round
 npx tsx tools/headless/src/botReplay.ts recordings/<id>.jsonl --watch 2 --rounds 4-7  # a local match again, live bots
 tools/screenshots.sh /tmp/shots [scene...]   # client in fixed states, against the dev server
-npm start     -w @bollwerk/desktop  # the desktop app, after npm run build
-npm run package -w @bollwerk/desktop # its portable file for this system, into packages/desktop/release/
+npm start     -w @bollfort/desktop  # the desktop app, after npm run build
+npm run package -w @bollfort/desktop # its portable file for this system, into packages/desktop/release/
 ```
 
 `npm run check` takes a few minutes, mostly bot matches. Run it in the background and
@@ -177,6 +179,11 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 **Done** (2026-11-01; the latest release **v0.9.31**, 2026-11-01, protocol 34, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
+
+- **Renamed Bollfort** (ARCHIVE 15zh, 2026-11-03, STEAM.md §9.1, the user's): Bollwerk is a live
+  mark in games' classes and another game of the name is coming, so everything is Bollfort — the
+  title (its F and T new bitmaps), the texts, `@bollfort/*`, `BOLLFORT_*`, the browser's
+  `bollfort.*` keys (no migration: testers' settings are lost once), the desktop app's ID and files.
 
 - **Hessian** (ARCHIVE 15z, 2026-11-01, the user's joke): a third language, southern Hessian
   after Badesalz, a normal button beside English and Deutsch, its disclaimer German.
@@ -567,15 +574,15 @@ never for every change.
 on their own systems: run it by hand from the Actions tab with a version to get the two
 files as the run's artifacts, to try first; push a tag `v1.2.3` to build them and publish
 a GitHub release of that version. Locally, `npm run build` then
-`npm run package -w @bollwerk/desktop` makes the file for this machine. Both are unsigned:
+`npm run package -w @bollfort/desktop` makes the file for this machine. Both are unsigned:
 Windows warns of an unknown publisher on first start, and an AppImage must be marked
-executable. Electron's own binary, for `npm start -w @bollwerk/desktop`, is fetched by
+executable. Electron's own binary, for `npm start -w @bollfort/desktop`, is fetched by
 `node node_modules/electron/install.js` when `npm install` has not; CI and the image skip
 it (`ELECTRON_SKIP_BINARY_DOWNLOAD`).
 
 ## Measuring the bots
 
-`npm start -w @bollwerk/headless -- --stats FILE` writes a row per player per round,
+`npm start -w @bollfort/headless -- --stats FILE` writes a row per player per round,
 sampled at the resolution that ends each build phase — castles sealed, cannons owned and
 active, cannon room, pockets, wall tiles, pieces placed against the pieces the level had
 time for; each row names the seat's `level` and `personality`.
@@ -697,7 +704,7 @@ its header but the simulation does not — so the server stamps each header with
   element through the music bus. Decoded, the thirteen minutes of shared music took 277 MB of the
   page's memory; with the styles' tracks there are 57. The server's `ETag` and 304s let the browser keep every file between visits.
 - **Check nothing stale is answering.** A git worktree sharing the main checkout's
-  `node_modules` resolves `@bollwerk/*` back into the working tree and measures the new
+  `node_modules` resolves `@bollfort/*` back into the working tree and measures the new
   code twice; a server left running on 8080 answers instead of the one you just built.
   Identical state hashes either side of a change mean the code did not load.
 - **The HUD's banner layer holds more than the announcement**: island banners, team tags,

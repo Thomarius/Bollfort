@@ -4,9 +4,9 @@ import {
   BALANCED,
   type BotSetup,
   type ConfigBundle,
-} from '@bollwerk/config';
-import { cannonRoom, cheapestPlanFor, coverable, pocketCount } from '@bollwerk/ai';
-import { Structure, isFrozen, type MatchEvent, type MatchState } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { cannonRoom, cheapestPlanFor, coverable, pocketCount } from '@bollfort/ai';
+import { Structure, isFrozen, type MatchEvent, type MatchState } from '@bollfort/sim';
 
 /** Who played a seat: a bot's level and personality, or a person, from a recording. */
 export type Tier = BotSetup | 'human';

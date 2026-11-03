@@ -1,4 +1,4 @@
-import type { MatchOutcome, StatRow } from '@bollwerk/analysis';
+import type { MatchOutcome, StatRow } from '@bollfort/analysis';
 import { describe, expect, it } from 'vitest';
 
 import { chunksOf, soakPlan, CHUNK_MATCHES } from './soakPlan.js';

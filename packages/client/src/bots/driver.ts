@@ -1,6 +1,6 @@
-import { defaultAiConfig, BALANCED, type BotSetup } from '@bollwerk/config';
-import { Bot, tableSlots } from '@bollwerk/ai';
-import { Rng, type Action, type MatchState } from '@bollwerk/sim';
+import { defaultAiConfig, BALANCED, type BotSetup } from '@bollfort/config';
+import { Bot, tableSlots } from '@bollfort/ai';
+import { Rng, type Action, type MatchState } from '@bollfort/sim';
 
 import { botTurns } from './botTurns.js';
 

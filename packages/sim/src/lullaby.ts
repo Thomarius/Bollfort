@@ -1,4 +1,4 @@
-import type { LullabyVariant, TowerCost } from '@bollwerk/config';
+import type { LullabyVariant, TowerCost } from '@bollfort/config';
 
 import { gunsWorth, isLoaded } from './specials.js';
 import { sameTeam } from './teams.js';

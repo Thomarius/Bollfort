@@ -1,5 +1,5 @@
-import { ArtStyleSchema, artForStyle, defaultArtConfig, type ArtStyle } from '@bollwerk/config';
-import { computeEnclosure } from '@bollwerk/sim';
+import { ArtStyleSchema, artForStyle, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { computeEnclosure } from '@bollfort/sim';
 
 import { createTheme, Scene } from './render/scene.js';
 import { PREVIEW_SIZE, previewState } from './stylePreview.js';

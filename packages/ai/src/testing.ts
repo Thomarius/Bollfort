@@ -8,7 +8,7 @@ import {
   defaultTerrainConfig,
   tierSetup,
   type DifficultyName,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import {
   Rng,
   applyAction,
@@ -18,7 +18,7 @@ import {
   Structure,
   type MatchState,
   type Rejection,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { Bot } from './bot.js';
 import { PlanningSlots } from './planning.js';

@@ -1,7 +1,7 @@
-import { BALANCED, defaultConfigBundle } from '@bollwerk/config';
+import { BALANCED, defaultConfigBundle } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
-import { setupOfRecorded } from '@bollwerk/protocol';
+import { setupOfRecorded } from '@bollfort/protocol';
 
 import { piecesBudget, rowLabel, statsCsv, type StatRow } from './stats.js';
 

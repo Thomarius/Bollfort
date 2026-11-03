@@ -1,5 +1,5 @@
-import type { ArtConfig } from '@bollwerk/config';
-import type { MatchState } from '@bollwerk/sim';
+import type { ArtConfig } from '@bollfort/config';
+import type { MatchState } from '@bollfort/sim';
 
 /**
  * Where the camera looks (PLAN 11.11 W6), as pure functions so they are tested rather than

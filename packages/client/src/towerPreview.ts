@@ -5,14 +5,14 @@ import {
   variantKind,
   type ArtStyle,
   type TowerVariant,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import {
   computeEnclosure,
   craterTilesOf,
   inFlight,
   strikesOnFiring,
   type MatchEvent,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { LookRotation } from './looks.js';
 import { motionReduced } from './motion.js';

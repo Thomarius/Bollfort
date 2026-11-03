@@ -1,4 +1,4 @@
-import { HOST_TEAM, stepsOf, type Progress, type Save, type Step } from '@bollwerk/tournament';
+import { HOST_TEAM, stepsOf, type Progress, type Save, type Step } from '@bollfort/tournament';
 
 /**
  * The knockout as a tree of matches, laid out (the test session's request, 2026-10-08): its

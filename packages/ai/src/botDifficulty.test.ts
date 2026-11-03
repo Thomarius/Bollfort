@@ -1,5 +1,5 @@
-import { defaultRuleset } from '@bollwerk/config';
-import { withoutRoundCap } from '@bollwerk/sim';
+import { defaultRuleset } from '@bollfort/config';
+import { withoutRoundCap } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { play, type Difficulty } from './testing.js';

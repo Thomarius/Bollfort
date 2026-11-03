@@ -3,8 +3,8 @@ import {
   TOURNAMENT_LENGTHS,
   TOWER_VARIANTS,
   variantKind,
-} from '@bollwerk/config';
-import { Rng, type MatchState } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { Rng, type MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { chunk, seedBracket, separate, snake } from './bracket.js';

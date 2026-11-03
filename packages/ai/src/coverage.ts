@@ -5,7 +5,7 @@ import {
   pieceById,
   poolForRound,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 type Ruleset = MatchState['ruleset'];
 

@@ -2,9 +2,9 @@ import { playerCssColour } from './colours.js';
 import { SHAPE_PATHS, playerShape, shapeSvg } from './shapes.js';
 import { awardCandidates, drawAwards, type Award } from './awards.js';
 import { t } from './i18n.js';
-import type { TextKey } from '@bollwerk/config';
+import type { TextKey } from '@bollfort/config';
 import { escape } from './html.js';
-import { defaultArtConfig } from '@bollwerk/config';
+import { defaultArtConfig } from '@bollfort/config';
 import { AWARD_ICONS, ICONS, withIcon } from './icons.js';
 import { motionReduced } from './motion.js';
 
@@ -20,7 +20,7 @@ import {
   teamStandings,
   yourPlace,
 } from './scores.js';
-import { type MatchState } from '@bollwerk/sim';
+import { type MatchState } from '@bollfort/sim';
 
 /** How long the points count up from nought as the summary arrives. */
 const COUNT_MS = 1200;

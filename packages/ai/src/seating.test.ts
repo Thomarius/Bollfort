@@ -1,4 +1,4 @@
-import { TOWER_VARIANTS, defaultRuleset, defaultTerrainConfig } from '@bollwerk/config';
+import { TOWER_VARIANTS, defaultRuleset, defaultTerrainConfig } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { dealSeats, drawnSpecial } from './seating.js';

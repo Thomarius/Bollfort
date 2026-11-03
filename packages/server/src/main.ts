@@ -1,5 +1,5 @@
-import { loadConfigBundle } from '@bollwerk/config/node';
-import { PROTOCOL_VERSION } from '@bollwerk/protocol';
+import { loadConfigBundle } from '@bollfort/config/node';
+import { PROTOCOL_VERSION } from '@bollfort/protocol';
 
 import { repoRoot } from './paths.js';
 import { startServer } from './server.js';
@@ -45,7 +45,7 @@ if (!started.ok) {
 const { server } = started;
 const [first, ...others] = server.urls;
 console.error(
-  `bollwerk server on ${first} (protocol ${PROTOCOL_VERSION}, ${loadConfigBundle(repoRoot).ruleset.tickRateHz}Hz)`,
+  `bollfort server on ${first} (protocol ${PROTOCOL_VERSION}, ${loadConfigBundle(repoRoot).ruleset.tickRateHz}Hz)`,
 );
 for (const url of others) console.error(`  on the network at ${url}`);
 if (upnp) {

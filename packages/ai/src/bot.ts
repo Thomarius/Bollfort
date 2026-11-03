@@ -5,7 +5,7 @@ import {
   type AiConfig,
   type BotProfile,
   type BotSetup,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import {
   Rng,
   Structure,
@@ -16,7 +16,7 @@ import {
   pieceById,
   type Action,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { Builder } from './building.js';
 import {

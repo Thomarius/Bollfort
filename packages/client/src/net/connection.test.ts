@@ -3,7 +3,7 @@ import {
   encode,
   type ClientMessage,
   type ServerMessage,
-} from '@bollwerk/protocol';
+} from '@bollfort/protocol';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ServerConnection, retryDelay, type RetryPolicy } from './connection.js';

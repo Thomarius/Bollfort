@@ -64,8 +64,8 @@ describe('Rng', () => {
   });
 
   it('hashes strings stably', () => {
-    expect(hashString('bollwerk')).toBe(hashString('bollwerk'));
-    expect(hashString('bollwerk')).not.toBe(hashString('bollwerks'));
+    expect(hashString('bollfort')).toBe(hashString('bollfort'));
+    expect(hashString('bollfort')).not.toBe(hashString('bollforts'));
   });
 });
 

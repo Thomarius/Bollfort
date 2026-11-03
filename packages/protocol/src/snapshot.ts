@@ -3,8 +3,8 @@ import {
   SPECIAL_KINDS,
   TerrainConfigSchema,
   TowerVariantSchema,
-} from '@bollwerk/config';
-import { PHASES, type MatchState } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { PHASES, type MatchState } from '@bollfort/sim';
 import { z } from 'zod';
 
 /**

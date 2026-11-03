@@ -1,6 +1,6 @@
-import { defaultAiConfig } from '@bollwerk/config';
-import { Bot, tableSlots, takeBotTurns } from '@bollwerk/ai';
-import { Rng, createMatch, hashMatchState, step, type Action } from '@bollwerk/sim';
+import { defaultAiConfig } from '@bollfort/config';
+import { Bot, tableSlots, takeBotTurns } from '@bollfort/ai';
+import { Rng, createMatch, hashMatchState, step, type Action } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { LocalMatch } from '../localMatch.js';

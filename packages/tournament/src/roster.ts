@@ -4,8 +4,8 @@ import {
   type Personality,
   type TournamentConfig,
   type TowerVariant,
-} from '@bollwerk/config';
-import { streamFor, type Rng } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { streamFor, type Rng } from '@bollfort/sim';
 
 import type { Member, Team } from './save.js';
 import type { TournamentSettings } from './settings.js';

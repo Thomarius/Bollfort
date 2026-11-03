@@ -1,4 +1,4 @@
-import { variantCost, variantKind, type BotProfile } from '@bollwerk/config';
+import { variantCost, variantKind, type BotProfile } from '@bollfort/config';
 import {
   NEIGHBOURS_8,
   Structure,
@@ -16,7 +16,7 @@ import {
   type MatchState,
   type PlayerState,
   type Rng,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { type Builder } from './building.js';
 import type { IslandCentres } from './botTurn.js';

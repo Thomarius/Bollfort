@@ -10,7 +10,7 @@
  */
 import { parseArgs } from 'node:util';
 
-import { Bot, PlanningSlots, dealPersonalities, rollOutBuild, type Placement } from '@bollwerk/ai';
+import { Bot, PlanningSlots, dealPersonalities, rollOutBuild, type Placement } from '@bollfort/ai';
 // Not exported: reached by its file, as `botReplay.ts` does.
 import { Builder } from '../../../packages/ai/src/building.js';
 import {
@@ -19,8 +19,8 @@ import {
   defaultRuleset,
   defaultTerrainConfig,
   type BotSetup,
-} from '@bollwerk/config';
-import { Rng, applyAction, createMatch, drainEvents, step } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { Rng, applyAction, createMatch, drainEvents, step } from '@bollfort/sim';
 
 const { values } = parseArgs({
   options: {

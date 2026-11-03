@@ -1,4 +1,4 @@
-import type { ArtLook, ArtStyle } from '@bollwerk/config';
+import type { ArtLook, ArtStyle } from '@bollfort/config';
 
 import { LookRotation, type LookChoices } from './looks.js';
 import { HUD_SKIN } from './skins.js';

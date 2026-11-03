@@ -1,5 +1,5 @@
 import type { VolumeKind } from './audio.js';
-import type { TextKey } from '@bollwerk/config';
+import type { TextKey } from '@bollfort/config';
 
 import { t } from './i18n.js';
 import { ICONS } from './icons.js';

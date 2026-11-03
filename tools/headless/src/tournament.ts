@@ -1,6 +1,6 @@
 import { parseArgs as parseFlags } from 'node:util';
 
-import { TOURNAMENT_LENGTHS, type ConfigBundle, type TournamentLength } from '@bollwerk/config';
+import { TOURNAMENT_LENGTHS, type ConfigBundle, type TournamentLength } from '@bollfort/config';
 import {
   HOST_TEAM,
   Progress,
@@ -13,7 +13,7 @@ import {
   type SettingLimits,
   type Step,
   type TournamentSettings,
-} from '@bollwerk/tournament';
+} from '@bollfort/tournament';
 
 import { usageError, wholeNumber } from './cli.js';
 
@@ -25,7 +25,7 @@ import { usageError, wholeNumber } from './cli.js';
  */
 
 const USAGE =
-  'usage: npm start -w @bollwerk/headless -- --tournament [--count N] [--seed N] ' +
+  'usage: npm start -w @bollfort/headless -- --tournament [--count N] [--seed N] ' +
   '[--team-size 1-4] [--length short|medium|long] [--league] [--double] [--teams MIN-MAX] ' +
   '[--levels MIN-MAX] [--archnemesis] [--host-level 1-10]';
 

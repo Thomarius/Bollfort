@@ -1,10 +1,10 @@
-import { takeBotTurns, type Bot } from '@bollwerk/ai';
+import { takeBotTurns, type Bot } from '@bollfort/ai';
 import {
   HASH_EVERY_TICKS,
   captureSnapshot,
   type MatchRecorder,
   type ServerMessage,
-} from '@bollwerk/protocol';
+} from '@bollfort/protocol';
 import {
   applyAction,
   drainEvents,
@@ -13,7 +13,7 @@ import {
   type Action,
   type MatchState,
   type Rng,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import type { Seat } from './room.js';
 

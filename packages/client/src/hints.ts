@@ -1,4 +1,4 @@
-import type { EnclosureResult, MatchState } from '@bollwerk/sim';
+import type { EnclosureResult, MatchState } from '@bollfort/sim';
 
 import { cornerGaps, type CornerGap } from './cornerGaps.js';
 

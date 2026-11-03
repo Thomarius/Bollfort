@@ -1,4 +1,4 @@
-import type { FrostVariant, TowerCost } from '@bollwerk/config';
+import type { FrostVariant, TowerCost } from '@bollfort/config';
 
 import { Terrain, type Freeze, type MatchState, type Shot } from './types.js';
 

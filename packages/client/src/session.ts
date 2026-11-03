@@ -9,9 +9,9 @@ import {
   TOWER_VARIANTS,
   type BotTower,
   type TowerVariant,
-} from '@bollwerk/config';
-import type { Seat } from '@bollwerk/protocol';
-import { type Action, type MatchEvent, type MatchState } from '@bollwerk/sim';
+} from '@bollfort/config';
+import type { Seat } from '@bollfort/protocol';
+import { type Action, type MatchEvent, type MatchState } from '@bollfort/sim';
 
 import { type NetworkReading } from './network.js';
 import { type LookChoices } from './looks.js';

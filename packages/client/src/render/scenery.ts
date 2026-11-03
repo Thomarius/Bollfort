@@ -1,5 +1,5 @@
-import type { SceneryConfig } from '@bollwerk/config';
-import { Rng, Structure, Terrain, type MatchState } from '@bollwerk/sim';
+import type { SceneryConfig } from '@bollfort/config';
+import { Rng, Structure, Terrain, type MatchState } from '@bollfort/sim';
 
 import type { Cell } from './theme.js';
 

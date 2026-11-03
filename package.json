@@ -1,5 +1,5 @@
 {
-  "name": "bollwerk",
+  "name": "bollfort",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,9 +13,9 @@
     "tools/*"
   ],
   "scripts": {
-    "start": "npm run build && npm start -w @bollwerk/server --",
+    "start": "npm run build && npm start -w @bollfort/server --",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "build": "npm run build -w @bollwerk/client && npm run build -w @bollwerk/server",
+    "build": "npm run build -w @bollfort/client && npm run build -w @bollfort/server",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",

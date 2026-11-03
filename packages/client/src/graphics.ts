@@ -19,7 +19,7 @@ import { store, stored } from './storage.js';
  */
 export type GraphicsLevel = 'high' | 'medium' | 'low';
 
-const KEY = 'bollwerk.graphics';
+const KEY = 'bollfort.graphics';
 
 export const GRAPHICS: readonly GraphicsLevel[] = ['high', 'medium', 'low'];
 
@@ -42,7 +42,7 @@ let level: GraphicsLevel | null = null;
 export function storedGraphics(): GraphicsLevel {
   level ??=
     parseGraphics(stored(KEY)) ??
-    carriedGraphics(stored('bollwerk.effects'), stored('bollwerk.sharpness'));
+    carriedGraphics(stored('bollfort.effects'), stored('bollfort.sharpness'));
   return level;
 }
 

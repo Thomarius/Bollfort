@@ -1,5 +1,5 @@
-import type { ArtConfig, SportsStyleConfig } from '@bollwerk/config';
-import { isLoaded, Structure, type Cannon, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, SportsStyleConfig } from '@bollfort/config';
+import { isLoaded, Structure, type Cannon, type MatchState, type Shot } from '@bollfort/sim';
 import { Container, FillPattern, Graphics, Texture, type GraphicsContext } from 'pixi.js';
 
 import { motionReduced } from '../motion.js';

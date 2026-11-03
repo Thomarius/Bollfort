@@ -10,9 +10,9 @@ import {
 import { appendFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { statsCsv, statsOfRecording } from '@bollwerk/analysis';
-import type { ConfigBundle } from '@bollwerk/config';
-import { RecordingLineSchema, parseRecording, type RecordingLine } from '@bollwerk/protocol';
+import { statsCsv, statsOfRecording } from '@bollfort/analysis';
+import type { ConfigBundle } from '@bollfort/config';
+import { RecordingLineSchema, parseRecording, type RecordingLine } from '@bollfort/protocol';
 
 /**
  * Match recordings on disk, one file per match (`<id>.jsonl`), for tuning the rules

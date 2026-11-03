@@ -1,4 +1,4 @@
-import type { ArtConfig, ArtLook, ArtStyle } from '@bollwerk/config';
+import type { ArtConfig, ArtLook, ArtStyle } from '@bollfort/config';
 
 import { Pixels } from './render/pixel/canvas.js';
 import { water } from './render/pixel/generators.js';

@@ -1,5 +1,5 @@
-import type { ArtConfig } from '@bollwerk/config';
-import { Terrain } from '@bollwerk/sim';
+import type { ArtConfig } from '@bollfort/config';
+import { Terrain } from '@bollfort/sim';
 
 import { playerColour, type ViewTransform } from './theme.js';
 

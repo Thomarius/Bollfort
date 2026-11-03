@@ -1,5 +1,5 @@
-import { defaultArtConfig } from '@bollwerk/config';
-import { applySnapshot, type ServerMessage } from '@bollwerk/protocol';
+import { defaultArtConfig } from '@bollfort/config';
+import { applySnapshot, type ServerMessage } from '@bollfort/protocol';
 import {
   applyAction,
   createMatch,
@@ -10,7 +10,7 @@ import {
   type MatchEvent,
   type MatchState,
   type Rejection,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import type { ServerConnection } from './connection.js';
 

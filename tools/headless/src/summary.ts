@@ -1,4 +1,4 @@
-import { rowLabel, type StatRow } from '@bollwerk/analysis';
+import { rowLabel, type StatRow } from '@bollfort/analysis';
 
 function mean(values: number[]): number {
   if (values.length === 0) return 0;

@@ -1,11 +1,11 @@
-import { defaultArtConfig } from '@bollwerk/config';
+import { defaultArtConfig } from '@bollfort/config';
 import {
   PROTOCOL_VERSION,
   decodeServerMessage,
   encode,
   type ClientMessage,
   type ServerMessage,
-} from '@bollwerk/protocol';
+} from '@bollfort/protocol';
 
 import { t } from '../i18n.js';
 

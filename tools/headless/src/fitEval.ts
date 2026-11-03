@@ -6,10 +6,10 @@
 // `--weights null` measures today's bot against itself, which is the noise.
 import { parseArgs } from 'node:util';
 
-import { type FitWeights } from '@bollwerk/config';
-import { loadConfigBundle } from '@bollwerk/config/node';
-import { Bot, PlanningSlots, dealPersonalities, takeBotTurns } from '@bollwerk/ai';
-import { Rng, createMatch, drainEvents, step } from '@bollwerk/sim';
+import { type FitWeights } from '@bollfort/config';
+import { loadConfigBundle } from '@bollfort/config/node';
+import { Bot, PlanningSlots, dealPersonalities, takeBotTurns } from '@bollfort/ai';
+import { Rng, createMatch, drainEvents, step } from '@bollfort/sim';
 
 import { repoRoot } from './cli.js';
 

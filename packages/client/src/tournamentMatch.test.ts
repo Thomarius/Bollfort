@@ -1,5 +1,5 @@
-import { applySettings, defaultConfigBundle } from '@bollwerk/config';
-import { replayRecording, type RecordingLine } from '@bollwerk/protocol';
+import { applySettings, defaultConfigBundle } from '@bollfort/config';
+import { replayRecording, type RecordingLine } from '@bollfort/protocol';
 import {
   HOST_TEAM,
   Progress,
@@ -11,7 +11,7 @@ import {
   placedFrom,
   recordMatch,
   type Save,
-} from '@bollwerk/tournament';
+} from '@bollfort/tournament';
 import { describe, expect, it } from 'vitest';
 
 import { LocalMatch } from './localMatch.js';

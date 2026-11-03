@@ -1,7 +1,7 @@
-import type { ConfigBundle } from '@bollwerk/config';
-import { Rng } from '@bollwerk/sim';
+import type { ConfigBundle } from '@bollfort/config';
+import { Rng } from '@bollfort/sim';
 
-import type { RecordingLine, RoomListing } from '@bollwerk/protocol';
+import type { RecordingLine, RoomListing } from '@bollfort/protocol';
 
 import { Room } from './room.js';
 

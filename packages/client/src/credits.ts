@@ -5,7 +5,7 @@ import {
   type ArtStyle,
   type AudioManifest,
   type CreditedFile,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 
 import { t } from './i18n.js';
 import { escape } from './html.js';

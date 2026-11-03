@@ -1,9 +1,10 @@
-# Bollwerk — design and open work
+# Bollfort — design and open work
 
 A multiplayer-only recreation of the 1990 Atari arcade game _Rampart_, condensed to a
 single game mode, with online play, AI opponents, and fully procedural visual assets.
 
-It is called **Bollwerk** (renamed 2026-10-02, ARCHIVE 11zw): Rampart is a trademark of
+It is called **Bollfort** (renamed from Rampart to Bollwerk 2026-10-02, ARCHIVE 11zw, and to
+Bollfort 2026-11-03, ARCHIVE 15zh): Rampart is a trademark of
 Warner Bros. Entertainment, and the game names it only to say what it is inspired by. In
 this file "the original" means Rampart.
 
@@ -272,7 +273,7 @@ twitchy, and a shot's flight time absorbs RTT entirely.
 ## 3. Repository layout
 
 ```
-Bollwerk/
+Bollfort/
 ├── config/            every tunable, as JSON behind a strict schema
 ├── assets/audio/      audio cues, committed — the image builds from a clean checkout
 ├── packages/
@@ -1505,7 +1506,7 @@ gold light blinking; Medieval's windmill on a rocky islet, sails turning, quicke
 the day's light and mirrored in the sea; Night's fishing boat at anchor, its lanterns swaying
 and lighting the water, flaring in the final round; Cyberpunk's holographic billboard, a
 wireframe cube turning on a panel of light, glitching as walls are hit, a warning in its place
-in overtime; Blueprint's title block — BOLLWERK, sheet N of the rounds, the scale and a north
+in overtime; Blueprint's title block — BOLLFORT, sheet N of the rounds, the scale and a north
 arrow — inked anew each round and stamped "FINAL" in red for the last, lettered in the
 reader's language; Toy bricks' crane on a barge, its jib swinging and a brick lowered and
 lifted, a hazard light strobing white in overtime; and Stained glass's hourglass, its sand
@@ -1535,7 +1536,7 @@ as their forms — read through `packages/config` and shown by `i18n.ts` (`t`, `
 exactly English's keys and placeholders, or `locale.test.ts` fails; a text a language lacks
 shows in English. **A text is a key until it is shown**: tables held at module level keep
 keys, so a change of language reaches them. The language is chosen in the menu's Options and the pause
-menu, saved as `bollwerk.language`, the browser's own on a first visit, and `&lang=` for
+menu, saved as `bollfort.language`, the browser's own on a first visit, and `&lang=` for
 screenshots; the HUD follows at the next frame, panels built once listen for the change. It
 is the page's own: nothing translated travels, and players at one table may each read their
 own. The desktop window speaks the system's language. Names in a match's state ("Bot 3")
@@ -1640,7 +1641,7 @@ from before 10l are historical.
   (`<id>.stats.csv`); `--replay FILES|DIRS` does the same by hand, and checks each replay
   exact. `recordings.enabled` in the server config turns it all off. Recordings replay exactly
   only against the code that made them, so **the server stamps every header with its
-  commit** (`-dirty` with uncommitted changes; `BOLLWERK_COMMIT` in the image, which has no
+  commit** (`-dirty` with uncommitted changes; `BOLLFORT_COMMIT` in the image, which has no
   repository), and `--replay` names it, and says to check it out when a replay diverges.
   A person's seat has no pieces budget, and its cell in the table is left empty.
   **A recording's format names its fingerprint**: format 1 (before 2026-10-07) carries
@@ -1859,7 +1860,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      the gallery, the tower preview, the icon sheet, the demo). The largest change and the least
      felt on the desktop app, so last; measure the start before and after.
 
-8. **Steam — decided** (2026-11-02, the user's): Bollwerk on Steam as a free game after item 5,
+8. **Steam — decided** (2026-11-02, the user's): Bollfort on Steam as a free game after item 5,
    a supporter DLC later (Halloween and Christmas, locked on Steam only, free in their seasons, and
    a badge). Lobbies of three types — Public, Friends, Invite only — with the host's app still the
    server over Steam's peer-to-peer channel; one games browser with filters in every build; the

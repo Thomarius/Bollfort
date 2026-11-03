@@ -1,4 +1,4 @@
-import { PAGE_LANGS, detectLanguage, type Language } from '@bollwerk/config/languages';
+import { PAGE_LANGS, detectLanguage, type Language } from '@bollfort/config/languages';
 
 import de from '../../../config/locale/de.json' with { type: 'json' };
 import en from '../../../config/locale/en.json' with { type: 'json' };
@@ -14,7 +14,7 @@ import type { DesktopApi } from './preload.js';
  */
 declare global {
   interface Window {
-    bollwerk: DesktopApi;
+    bollfort: DesktopApi;
   }
 }
 
@@ -44,7 +44,7 @@ for (const node of Array.from(document.querySelectorAll<HTMLElement>('[data-t]')
   node.textContent = say(node.dataset.t as Key);
 }
 
-const api = window.bollwerk;
+const api = window.bollfort;
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const status = $('status');
 const detail = $('detail');

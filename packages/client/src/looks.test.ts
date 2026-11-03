@@ -1,4 +1,4 @@
-import { ArtStyleSchema, stylesFor } from '@bollwerk/config';
+import { ArtStyleSchema, stylesFor } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import {

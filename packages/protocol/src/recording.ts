@@ -9,7 +9,7 @@ import {
   tierSetup,
   withoutRetiredKeys,
   type BotSetup,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import {
   applyAction,
   createMatch,
@@ -20,7 +20,7 @@ import {
   type MatchEvent,
   type MatchOptions,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 import { z } from 'zod';
 
 import { ActionSchema } from './messages.js';

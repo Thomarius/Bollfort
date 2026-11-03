@@ -1,4 +1,4 @@
-import { defaultAiConfig, type AiConfig, type BotProfile } from '@bollwerk/config';
+import { defaultAiConfig, type AiConfig, type BotProfile } from '@bollfort/config';
 import {
   Rng,
   Structure,
@@ -9,7 +9,7 @@ import {
   poolForRound,
   type Castle,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { Builder, type Stage, type Strategy } from './building.js';
 import { PlanningSlots } from './planning.js';

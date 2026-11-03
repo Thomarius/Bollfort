@@ -1,4 +1,4 @@
-import { variantCost, variantKind, type ArtConfig, type SpecialKind } from '@bollwerk/config';
+import { variantCost, variantKind, type ArtConfig, type SpecialKind } from '@bollfort/config';
 import {
   FREEZE_PENDING,
   FROZEN_TO_END,
@@ -14,7 +14,7 @@ import {
   type CannonKind,
   type Freeze,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 import { Container, Graphics } from 'pixi.js';
 
 import { motionReduced } from '../motion.js';

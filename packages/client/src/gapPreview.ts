@@ -1,5 +1,5 @@
-import { ArtStyleSchema, artForStyle, defaultArtConfig, type ArtStyle } from '@bollwerk/config';
-import { applyEnclosure, computeEnclosure, stateFromAscii, type MatchState } from '@bollwerk/sim';
+import { ArtStyleSchema, artForStyle, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { applyEnclosure, computeEnclosure, stateFromAscii, type MatchState } from '@bollfort/sim';
 
 import { buildHints } from './hints.js';
 import { createTheme, Scene, type Ghost } from './render/scene.js';

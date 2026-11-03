@@ -11,7 +11,7 @@ import { cpus } from 'node:os';
 import { join, resolve } from 'node:path';
 import { parseArgs as parseFlags } from 'node:util';
 
-import { parseOutcomesCsv } from '@bollwerk/analysis';
+import { parseOutcomesCsv } from '@bollfort/analysis';
 
 import { repoRoot, usageError, wholeNumber } from './cli.js';
 

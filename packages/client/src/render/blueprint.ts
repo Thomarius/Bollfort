@@ -1,5 +1,5 @@
-import type { ArtConfig, BlueprintStyleConfig } from '@bollwerk/config';
-import { Structure, Terrain, type Cannon, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, BlueprintStyleConfig } from '@bollfort/config';
+import { Structure, Terrain, type Cannon, type MatchState, type Shot } from '@bollfort/sim';
 import { Container, Graphics, Text } from 'pixi.js';
 
 import { t as t_ } from '../i18n.js';

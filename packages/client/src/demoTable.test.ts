@@ -1,4 +1,4 @@
-import { applySettings, defaultConfigBundle, teamsBalanced } from '@bollwerk/config';
+import { applySettings, defaultConfigBundle, teamsBalanced } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { demoSetup, DEMO_TABLES, idleDue, rollDemoTable, tableCaption } from './demoTable.js';

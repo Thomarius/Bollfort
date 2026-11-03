@@ -1,5 +1,5 @@
-import type { ArtConfig, CartoonStyleConfig } from '@bollwerk/config';
-import { Structure, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, CartoonStyleConfig } from '@bollfort/config';
+import { Structure, type MatchState, type Shot } from '@bollfort/sim';
 import { Graphics, Sprite, Texture, type Container } from 'pixi.js';
 
 import { motionReduced } from '../motion.js';

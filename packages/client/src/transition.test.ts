@@ -1,4 +1,4 @@
-import { defaultRuleset } from '@bollwerk/config';
+import { defaultRuleset } from '@bollfort/config';
 import {
   Structure,
   renderAscii,
@@ -7,7 +7,7 @@ import {
   ticksFor,
   type MatchState,
   type Phase,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import {

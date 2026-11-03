@@ -1,5 +1,5 @@
-import { artForStyle, defaultArtConfig, type ArtStyle } from '@bollwerk/config';
-import { applyEnclosure, computeEnclosure, stateFromAscii, type MatchState } from '@bollwerk/sim';
+import { artForStyle, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { applyEnclosure, computeEnclosure, stateFromAscii, type MatchState } from '@bollfort/sim';
 
 import { roseSpot } from './render/corner.js';
 import { createTheme, Scene } from './render/scene.js';

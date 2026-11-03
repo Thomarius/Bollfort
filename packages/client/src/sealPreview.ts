@@ -1,4 +1,4 @@
-import { Structure, computeEnclosure, type MatchState } from '@bollwerk/sim';
+import { Structure, computeEnclosure, type MatchState } from '@bollfort/sim';
 
 import type { Cell } from './render/theme.js';
 

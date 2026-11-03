@@ -6,9 +6,9 @@ import {
   type Ruleset,
   type BotTower,
   type TowerVariant,
-} from '@bollwerk/config';
-import { botTowerOf, dealSeats } from '@bollwerk/ai';
-import { MatchRecorder, recordingId, type RecordingLine } from '@bollwerk/protocol';
+} from '@bollfort/config';
+import { botTowerOf, dealSeats } from '@bollfort/ai';
+import { MatchRecorder, recordingId, type RecordingLine } from '@bollfort/protocol';
 
 import {
   applyAction,
@@ -22,7 +22,7 @@ import {
   type MatchState,
   type Phase,
   type Rejection,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { botTurns } from './bots/botTurns.js';
 import { ThreadDriver, botRngSeed, type BotDriver } from './bots/driver.js';
@@ -87,7 +87,7 @@ const THINK_BUDGET_MS = 8;
 /**
  * A match running entirely in the browser, with no server.
  *
- * Every seat but the person's is played by a bot from `@bollwerk/ai`, exactly as the
+ * Every seat but the person's is played by a bot from `@bollfort/ai`, exactly as the
  * server would play it, and seats are shuffled onto islands the same way — so an offline
  * match is an online one with nobody else in it.
  *

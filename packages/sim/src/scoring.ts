@@ -1,4 +1,4 @@
-import type { Ruleset } from '@bollwerk/config';
+import type { Ruleset } from '@bollfort/config';
 
 import type { EnclosureResult } from './enclosure.js';
 import { gunsWorth } from './specials.js';

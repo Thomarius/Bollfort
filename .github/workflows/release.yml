@@ -27,8 +27,8 @@ jobs:
     env:
       # electron-builder fetches the Electron it packages; the one npm would install is not used.
       ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
-      BOLLWERK_COMMIT: ${{ github.sha }}
-      BOLLWERK_VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+      BOLLFORT_COMMIT: ${{ github.sha }}
+      BOLLFORT_VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -43,11 +43,11 @@ jobs:
       - name: Package
         shell: bash
         run: |
-          export BOLLWERK_VERSION="${BOLLWERK_VERSION#v}"
-          npm run package -w @bollwerk/desktop
+          export BOLLFORT_VERSION="${BOLLFORT_VERSION#v}"
+          npm run package -w @bollfort/desktop
       - uses: actions/upload-artifact@v5
         with:
-          name: bollwerk-${{ matrix.os }}
+          name: bollfort-${{ matrix.os }}
           path: ${{ matrix.file }}
           if-no-files-found: error
 
@@ -69,5 +69,5 @@ jobs:
         run: |
           gh release create "${{ github.ref_name }}" files/* \
             --repo "${{ github.repository }}" \
-            --title "Bollwerk ${{ github.ref_name }}" \
-            --notes "Portable builds of Bollwerk ${{ github.ref_name }}: the .exe for Windows 11, the .AppImage for Linux (mark it executable first). Unsigned, so Windows warns of an unknown publisher on first start. An unofficial fan game inspired by Rampart (Atari Games, 1990), not affiliated with or endorsed by Warner Bros. Entertainment, which owns the Rampart trademark; see CREDITS.md for the audio's authors and licences."
+            --title "Bollfort ${{ github.ref_name }}" \
+            --notes "Portable builds of Bollfort ${{ github.ref_name }}: the .exe for Windows 11, the .AppImage for Linux (mark it executable first). Unsigned, so Windows warns of an unknown publisher on first start. An unofficial fan game inspired by Rampart (Atari Games, 1990), not affiliated with or endorsed by Warner Bros. Entertainment, which owns the Rampart trademark; see CREDITS.md for the audio's authors and licences."

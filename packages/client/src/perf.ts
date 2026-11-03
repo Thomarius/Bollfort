@@ -272,7 +272,7 @@ export class PerfMeter {
       ...(heap === undefined ? {} : { heap: `${fixed(heap.usedJSHeapSize / 2 ** 20, 0)} MB` }),
     };
     return [
-      'Bollwerk perf',
+      'Bollfort perf',
       ...Object.entries(context).map(([k, v]) => `${k}: ${v}`),
       `frames: ${samples.length}, ${fixed(1000 / Math.max(1, frames.mean), 1)} fps`,
       `interval   ${ms(frames)}`,

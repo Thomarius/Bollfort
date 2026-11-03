@@ -108,7 +108,7 @@ export function firewallVerdict(report: FirewallReport, port: number): FirewallS
 const SCRIPT = `
 $ErrorActionPreference = 'Stop'
 $f = New-Object -ComObject HNetCfg.FwPolicy2
-$exe = $env:BOLLWERK_EXE
+$exe = $env:BOLLFORT_EXE
 $profiles = @(1, 2, 4 | ForEach-Object {
   [pscustomobject]@{ type = $_; enabled = [bool]$f.FirewallEnabled($_); inboundAllow = ($f.DefaultInboundAction($_) -eq 1) }
 })
@@ -138,7 +138,7 @@ export function checkFirewall(exe: string, port: number): Promise<FirewallStatus
       'powershell.exe',
       ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', SCRIPT],
       // The path goes in by the environment, so nothing in it is read as script.
-      { env: { ...process.env, BOLLWERK_EXE: exe }, timeout: 20_000, windowsHide: true },
+      { env: { ...process.env, BOLLFORT_EXE: exe }, timeout: 20_000, windowsHide: true },
       (error, stdout) => {
         if (error !== null) return resolve({ state: 'unknown' });
         try {

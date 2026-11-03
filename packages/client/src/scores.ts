@@ -1,5 +1,5 @@
-import type { TextKey } from '@bollwerk/config';
-import { teamScore, type MatchState, type PlayerState } from '@bollwerk/sim';
+import type { TextKey } from '@bollfort/config';
+import { teamScore, type MatchState, type PlayerState } from '@bollfort/sim';
 
 import { listOf, t, type TextParams } from './i18n.js';
 

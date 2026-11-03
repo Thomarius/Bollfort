@@ -1,4 +1,4 @@
-import { stepsOf, type Save, type Step, type TournamentSettings } from '@bollwerk/tournament';
+import { stepsOf, type Save, type Step, type TournamentSettings } from '@bollfort/tournament';
 
 import { language, t } from './i18n.js';
 

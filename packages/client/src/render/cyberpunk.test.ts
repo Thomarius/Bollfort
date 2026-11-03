@@ -1,4 +1,4 @@
-import { Rng } from '@bollwerk/sim';
+import { Rng } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { circuitTraces } from './cyberpunk.js';

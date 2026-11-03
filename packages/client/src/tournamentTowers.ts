@@ -1,7 +1,7 @@
-import { defaultConfigBundle, type BotTower, type TowerVariant } from '@bollwerk/config';
-import { drawnSpecial } from '@bollwerk/ai';
-import { streamFor } from '@bollwerk/sim';
-import type { MatchTable, Save } from '@bollwerk/tournament';
+import { defaultConfigBundle, type BotTower, type TowerVariant } from '@bollfort/config';
+import { drawnSpecial } from '@bollfort/ai';
+import { streamFor } from '@bollfort/sim';
+import type { MatchTable, Save } from '@bollfort/tournament';
 
 /**
  * Each seat's tower at a tournament's match (the user's, 2026-10-28): every bot's fixed for the

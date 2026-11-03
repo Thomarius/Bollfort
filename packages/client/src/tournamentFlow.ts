@@ -1,5 +1,5 @@
-import { defaultConfigBundle } from '@bollwerk/config';
-import { PHASES, type Phase } from '@bollwerk/sim';
+import { defaultConfigBundle } from '@bollfort/config';
+import { PHASES, type Phase } from '@bollfort/sim';
 import {
   Progress,
   coinFor,
@@ -10,7 +10,7 @@ import {
   recordMatch,
   type MatchTable,
   type Save,
-} from '@bollwerk/tournament';
+} from '@bollfort/tournament';
 
 import { app, audio, params, showError } from './app.js';
 import { seatTowers } from './tournamentTowers.js';

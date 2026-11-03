@@ -11,9 +11,9 @@ import {
   type TowerVariant,
   variantCost,
   variantKind,
-} from '@bollwerk/config';
-import { botTowerOf, drawnSpecial } from '@bollwerk/ai';
-import type { Seat, TournamentTable } from '@bollwerk/protocol';
+} from '@bollfort/config';
+import { botTowerOf, drawnSpecial } from '@bollfort/ai';
+import type { Seat, TournamentTable } from '@bollfort/protocol';
 
 import { t } from './i18n.js';
 import { withIcon } from './icons.js';
