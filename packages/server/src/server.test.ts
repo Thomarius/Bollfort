@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -67,6 +67,39 @@ describe('the server as something a program starts and stops', () => {
     const again = await started(server.port);
     expect((await createRoom(again.port)).type).toBe('welcome');
     await again.stop();
+  });
+});
+
+describe('recording', () => {
+  it('records by the config, and not at all when told not to, as a packaged app is', async () => {
+    const start = async (record?: boolean): Promise<{ server: RunningServer; dir: string }> => {
+      const dir = join(mkdtempSync(join(tmpdir(), 'bollfort-server-')), 'recordings');
+      const result = await startServer({
+        root: repoRoot,
+        port: 0,
+        host: '127.0.0.1',
+        recordingsDir: dir,
+        ...(record === undefined ? {} : { record }),
+        commit: null,
+        log: () => undefined,
+      });
+      if (!result.ok) throw new Error(`could not start: ${result.reason}`);
+      return { server: result.server, dir };
+    };
+    const upload = (server: RunningServer): Promise<Response> =>
+      fetch(`http://127.0.0.1:${server.port}/recordings/abc`, { method: 'POST', body: 'x\n' });
+
+    // The config's default records: the folder is made, and a bad upload is the store's to refuse.
+    const recording = await start();
+    expect(existsSync(recording.dir)).toBe(true);
+    expect((await upload(recording.server)).status).toBe(400);
+    await recording.server.stop();
+
+    // Told not to: no folder, and nothing there to take an upload.
+    const silent = await start(false);
+    expect(existsSync(silent.dir)).toBe(false);
+    expect((await upload(silent.server)).status).toBe(404);
+    await silent.server.stop();
   });
 });
 

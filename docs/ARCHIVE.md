@@ -11298,3 +11298,18 @@ rather than a font, gained **F** (its middle bar as long as E's) and **T** (a fu
 user's choice, and dropped W, E and K. The repository becomes `Thomarius/Bollfort`, renamed on
 GitHub by the user; the local folder stays `RampartRemake`. The protocol, the recording format and
 the rules are unchanged. It ships with the next release, not one of its own.
+
+## 15zi. No recordings in packaged builds, R (2026-11-03)
+
+Package R of the Steam release (STEAM.md §1): recordings are for tuning the rules against
+people, not part of a release, and a player's disk is no place to gather them. `startServer`
+takes `record` (the config's `recordings.enabled` by default), and the desktop app passes
+`!app.isPackaged` — the GitHub builds and, later, the Steam build record nothing, and make no
+folder for it; run from the repository it records into the user's folder as before, and
+`npm start` on the user's own server records test sessions as it always did. The page needed
+nothing: a local match's upload refused with a 404 goes quiet for the rest of the match
+(`recordingUpload.ts`), one request a match.
+
+A server test starts one by the config (the folder made, a bad upload refused by the store with
+a 400) and one told not to (no folder, a 404). Checked in the packaged Windows app: an upload
+answered 404, no `recordings` folder under `%APPDATA%\Bollfort`.

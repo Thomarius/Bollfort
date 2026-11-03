@@ -53,6 +53,12 @@ export interface ServerOptions {
    * a folder of the user's, which it can write to. `recordings.enabled` still decides.
    */
   recordingsDir?: string;
+  /**
+   * Whether to record at all; the config's `recordings.enabled` by default. A packaged app
+   * passes false (STEAM.md, package R): recordings are for tuning on the user's own server,
+   * not part of a release, and a player's disk is no place to gather them.
+   */
+  record?: boolean;
   /** The config's by default. Port 0 takes any free one, as tests do. */
   port?: number;
   host?: string;
@@ -156,15 +162,16 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
    * `recordings.ts`. On by default: the files are small, and a test session is exactly the
    * data there is least of.
    */
-  const store = bundle.server.recordings.enabled
-    ? openRecordingStore(
-        options.recordingsDir ?? join(options.root, bundle.server.recordings.dir),
-        bundle.server.recordings.maxUploadBytes,
-        bundle,
-        log,
-        options.commit === undefined ? codeVersion(options.root) : options.commit,
-      )
-    : null;
+  const store =
+    (options.record ?? bundle.server.recordings.enabled)
+      ? openRecordingStore(
+          options.recordingsDir ?? join(options.root, bundle.server.recordings.dir),
+          bundle.server.recordings.maxUploadBytes,
+          bundle,
+          log,
+          options.commit === undefined ? codeVersion(options.root) : options.commit,
+        )
+      : null;
   // The public address while the port is open, for the lobby's invitation (PLAN 11.21).
   let internet: InternetStatus = { state: 'off' };
   let invite: string | null = null;
