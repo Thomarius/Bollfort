@@ -602,6 +602,55 @@ describe('room manager', () => {
   });
 });
 
+describe('the host removing a guest', () => {
+  /** The host Ada and two guests, Bo and Cy, at a lobby of four. */
+  function table(): { r: Room; ada: TestClient; bo: TestClient; cy: TestClient } {
+    const r = room(4);
+    const ada = new TestClient('a');
+    const bo = new TestClient('b');
+    const cy = new TestClient('c');
+    r.join(ada, 'Ada', undefined, 'browser-ada');
+    r.join(bo, 'Bo', undefined, 'browser-bo');
+    r.join(cy, 'Cy', undefined, 'browser-cy');
+    return { r, ada, bo, cy };
+  }
+  const lastRoom = (client: TestClient): Extract<ServerMessage, { type: 'room' }> | undefined =>
+    client.received.filter((m) => m.type === 'room').at(-1) as
+      Extract<ServerMessage, { type: 'room' }> | undefined;
+
+  it('sends the guest back, gives the seat to a bot and refuses them for the room’s life', () => {
+    const { r, ada, bo, cy } = table();
+    const boToken = bo.token;
+    r.handle(ada, { type: 'remove', seat: bo.playerId });
+
+    expect(bo.received.at(-1)).toEqual({ type: 'removed' });
+    expect(lastRoom(cy)?.seats.map((s) => s.name)).toEqual(['Ada', 'Cy']);
+    // By the browser's ID, which a new tab keeps, and by the seat's token, which a page
+    // without an ID would present; nobody else.
+    expect(r.refuses('browser-bo')).toBe(true);
+    expect(r.refuses(undefined, boToken)).toBe(true);
+    expect(r.refuses('browser-cy', cy.token)).toBe(false);
+    // Still so after a match and a rematch.
+    r.start();
+    r.rematch();
+    expect(r.refuses('browser-bo')).toBe(true);
+  });
+
+  it('is the host’s alone, in the lobby only, and never of themselves', () => {
+    const { r, ada, bo, cy } = table();
+    r.handle(bo, { type: 'remove', seat: cy.playerId });
+    r.handle(ada, { type: 'remove', seat: ada.playerId });
+    r.handle(ada, { type: 'remove', seat: 3 }); // a bot's seat: nobody to remove
+    expect(lastRoom(ada)?.seats).toHaveLength(3);
+    expect(r.refuses('browser-cy')).toBe(false);
+
+    r.start();
+    r.handle(ada, { type: 'remove', seat: cy.playerId });
+    expect(cy.received.some((m) => m.type === 'removed')).toBe(false);
+    expect(r.refuses('browser-cy')).toBe(false);
+  });
+});
+
 describe('the open games browser', () => {
   it('lists a public room being set, with who is hosting and the seats taken', () => {
     const manager = new RoomManager(defaultConfigBundle, 3);
@@ -614,10 +663,19 @@ describe('the open games browser', () => {
         people: 1,
         playerCount: 3,
         teamSize: 1,
-        maxRounds: defaultConfigBundle.ruleset.scoring.maxRounds,
+        towers: false,
         tournament: null,
       },
     ]);
+  });
+
+  it('says whether the table plays special towers', () => {
+    const manager = new RoomManager(defaultConfigBundle, 3);
+    const open = manager.create(3)!;
+    const host = new TestClient('a');
+    open.join(host, 'Ada');
+    open.handle(host, { type: 'configure', settings: { specials: true } });
+    expect(manager.listOpen()[0]?.towers).toBe(true);
   });
 
   it('leaves out private rooms, full ones, running ones and empty ones', () => {

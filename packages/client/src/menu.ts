@@ -1,5 +1,4 @@
 import { defaultConfigBundle, type ArtLook } from '@bollfort/config';
-import { type RoomListing } from '@bollfort/protocol';
 
 import { howToPlaySeen, openHowToPlay } from './howToPlay.js';
 import { withIcon } from './icons.js';
@@ -7,7 +6,8 @@ import { openCredits } from './credits.js';
 import { openOptions } from './options.js';
 import { lookName, lookPicture, LookRotation, openLookGallery, type LookChoices } from './looks.js';
 import { escape } from './html.js';
-import { REFRESH_MS, gamesMarkup, parseRoomList } from './browser.js';
+import { parseRoomList } from './browser.js';
+import { openFindGames } from './findGames.js';
 import { t } from './i18n.js';
 import { SplitTitle } from './decor.js';
 import { app, showError, audio } from './app.js';
@@ -77,45 +77,41 @@ function readCommon(): Common {
 }
 
 /**
- * Keeps the menu's list of open games current while the menu is up: asks at once and
- * every few seconds, and stops by itself once the menu has gone. Without a server, or with
- * one this page cannot join, the section stays in its place and says so, and the room code's
- * field and Join are disabled — the window keeps its shape, as the lobby's rows do (ARCHIVE 15f).
+ * Whether a server answers, asked once as the menu opens: without one, or with one this page
+ * cannot join, the room code's field and Join are disabled — joining by code needs it. Find a
+ * game stays, and says so in its window (STEAM.md §4).
  */
-function watchOpenGames(): void {
-  const section = document.querySelector<HTMLElement>('#open-games-section');
-  const list = document.querySelector<HTMLElement>('#open-games');
-  if (!section || !list) return;
+function checkServer(): void {
   const joining = document.querySelectorAll<HTMLInputElement | HTMLButtonElement>(
     '.join-row input, .join-row button',
   );
-  list.addEventListener('click', (event) => {
-    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.join-open');
-    const code = button?.dataset.code;
-    if (code === undefined) return;
-    audio.play('select');
-    void openLobby(readCommon(), code).catch((e: unknown) => showError(t('error.couldNotJoin'), e));
+  void fetch('/api/rooms', { cache: 'no-store' })
+    .then(async (response) => parseRoomList(await response.json()))
+    .catch(() => null)
+    .then((rooms) => {
+      for (const control of joining) {
+        if (!control.isConnected) return;
+        control.disabled = rooms === null;
+        if (rooms === null) control.dataset.tip = t('menu.noServer');
+      }
+    });
+}
+
+/** Find a game over the menu: joining a room, or hosting a public single match. */
+function findGames(notice: string | null = null): void {
+  openFindGames({
+    click: () => audio.play('select'),
+    notice,
+    join: (code) =>
+      void openLobby(readCommon(), code).catch((e: unknown) =>
+        showError(t('error.couldNotJoin'), e),
+      ),
+    // The menu's Single match, public: always so outside Steam (STEAM.md §4).
+    host: () =>
+      void openLobby(readCommon(), null).catch((e: unknown) =>
+        showError(t('error.couldNotOpen'), e),
+      ),
   });
-  let shown = '';
-  const refresh = async (): Promise<void> => {
-    let rooms: RoomListing[] | null;
-    try {
-      const response = await fetch('/api/rooms', { cache: 'no-store' });
-      rooms = parseRoomList(await response.json());
-    } catch {
-      rooms = null;
-    }
-    if (!section.isConnected) return;
-    for (const control of joining) control.disabled = rooms === null;
-    const html = rooms === null ? `<p class="note">${t('menu.noServer')}</p>` : gamesMarkup(rooms);
-    // Only when it changed, so a Join button is not replaced under a pressed mouse.
-    if (html !== shown) list.innerHTML = shown = html;
-  };
-  void refresh();
-  const timer = setInterval(() => {
-    if (section.isConnected) void refresh();
-    else clearInterval(timer);
-  }, REFRESH_MS);
 }
 
 /** Where the tournament screens lead: back to the menu, or on into a tournament. */
@@ -134,9 +130,10 @@ export function tournamentExits(isPublic: boolean): TournamentExits {
  * The menu: only who you are and how the game looks — the ways into a game on the left, the
  * two looks as cards on the right (PLAN §11 item 4, MS3). Everything about the table —
  * players, teams, bots, rounds — is set in the lobby, which is one screen whether or
- * not a server is there.
+ * not a server is there. `findGame` opens Find a game over it at once, with the notice there:
+ * a game chosen from its list that filled or closed meanwhile.
  */
-export function showMenu(notice: string | null = null): void {
+export function showMenu(notice: string | null = null, findGame = false): void {
   audio.music('music_menu');
   app!.innerHTML = `
     <div class="menu home">
@@ -159,11 +156,10 @@ export function showMenu(notice: string | null = null): void {
         <input id="code" type="text" maxlength="8" placeholder="${t('menu.codePlaceholder')}" />
         <button id="join">${withIcon('join', t('menu.join'))}</button>
       </div>
-      <section id="open-games-section" class="open-games-section">
-        <h2>${t('menu.openGames')}</h2>
-        ${notice === null ? '' : `<p class="notice">${escape(notice)}</p>`}
-        <div id="open-games"><p class="note">${t('menu.lookingForServer')}</p></div>
-      </section>
+      <div class="split find-row">
+        <button id="find-game">${withIcon('search', t('menu.findGame'))}</button>
+      </div>
+      ${notice === null || findGame ? '' : `<p class="notice menu-notice">${escape(notice)}</p>`}
       </section>
       <section class="home-looks">
         <h2>${t('looks.title')}</h2>
@@ -172,7 +168,12 @@ export function showMenu(notice: string | null = null): void {
       </section>
     </div>
   `;
-  watchOpenGames();
+  checkServer();
+  document.querySelector('#find-game')?.addEventListener('click', () => {
+    audio.play('select');
+    findGames();
+  });
+  if (findGame) findGames(notice);
   // The banners either side of combat swap one look for the other as they cross the
   // board, as the original did; the same style for both switches nothing.
   const styles = preferredStyles();

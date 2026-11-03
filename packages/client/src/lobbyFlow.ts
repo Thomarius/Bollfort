@@ -13,7 +13,14 @@ import { botTowerOf, drawnSpecial } from '@bollfort/ai';
 import { type ServerMessage } from '@bollfort/protocol';
 import { Progress, parseSave, type Save } from '@bollfort/tournament';
 
-import { addedSeats, lobbyMarkup, nudgedSettings, type LobbyTab, type LobbyView } from './lobby.js';
+import {
+  addedSeats,
+  lobbyMarkup,
+  nudgedSettings,
+  showRemove,
+  type LobbyTab,
+  type LobbyView,
+} from './lobby.js';
 import { enhanceChoices } from './choices.js';
 import { joinRefusedNotice, refusalText } from './browser.js';
 import { t } from './i18n.js';
@@ -23,6 +30,7 @@ import { ServerConnection } from './net/connection.js';
 import { NetworkMatch } from './net/networkMatch.js';
 import { store, stored } from './storage.js';
 import { app, showError, audio, params } from './app.js';
+import { browserId } from './browserId.js';
 import { preferredStyles, randomSeed, chosenSeed } from './prefs.js';
 import type { Setup } from './session.js';
 import {
@@ -70,11 +78,19 @@ export interface LobbyHandlers {
   tab?(tab: LobbyTab): void;
   /** The special tower this person brings, or none; remembered for the next table. */
   special?(special: TowerVariant | null): void;
+  /** The host removing the person in this seat (STEAM.md §5); a room's alone, never a local table. */
+  remove?(seat: number): void;
 }
 
 /** The table as last drawn, to see what a drawing changes; and the setting the host last changed. */
 let drawn: LobbyView | null = null;
 let touched: string | null = null;
+/**
+ * The guest the host has clicked Remove on once, asking to be sure, until a second click or
+ * `REMOVE_ARMED_MS`: by seat and name, so a seat changing hands is not removed by mistake.
+ */
+let armed: { seat: number; name: string } | null = null;
+const REMOVE_ARMED_MS = 4000;
 
 /** Draws the lobby and wires its controls to whichever backend holds the table. */
 export function drawLobby(view: LobbyView, on: LobbyHandlers): void {
@@ -96,8 +112,12 @@ export function drawLobby(view: LobbyView, on: LobbyHandlers): void {
   // since the seed is fixed while the table is set. See `preview.ts`.
   const { art, terrain } = defaultConfigBundle;
   const preview = tablePreview(view.seed, view.playerCount, view.teams, art, terrain);
+  const stillArmed =
+    armed !== null && view.seats.some((s) => s.playerId === armed?.seat && s.name === armed.name);
+  if (!stillArmed) armed = null;
   app!.innerHTML = lobbyMarkup({
     ...view,
+    removing: armed?.seat ?? null,
     seatColours: preview.colourOfSeat.map((c) => c.base),
     seatShapes: preview.shapeOfSeat,
     entering: addedSeats(before, view),
@@ -196,6 +216,32 @@ export function drawLobby(view: LobbyView, on: LobbyHandlers): void {
     audio.play('select');
     on.hostBot(Number(hostBot.value));
   });
+  // Remove, asked twice: the first click asks to be sure, the second removes; left alone, it
+  // goes back after a few seconds.
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.remove-seat')) {
+    button.addEventListener('click', () => {
+      audio.play('select');
+      const seat = Number(button.dataset['seat']);
+      if (armed?.seat === seat) {
+        armed = null;
+        on.remove?.(seat);
+        return;
+      }
+      const name = button.dataset['name'] ?? '';
+      armed = { seat, name };
+      const asked = armed;
+      // In place, as a drawing would show it; a redraw meanwhile keeps it by `removing`.
+      showRemove(button, true, name);
+      setTimeout(() => {
+        if (armed !== asked) return;
+        armed = null;
+        const shown = document.querySelector<HTMLButtonElement>(
+          `.remove-seat[data-seat="${seat}"]`,
+        );
+        if (shown !== null) showRemove(shown, false, name);
+      }, REMOVE_ARMED_MS);
+    });
+  }
   // Who sits where. Teams belong to seats, so this is how people choose sides.
   for (const button of document.querySelectorAll<HTMLButtonElement>('.sit')) {
     button.addEventListener('click', () => {
@@ -363,6 +409,7 @@ export async function openLobby(
   const playerCount = asked ?? remembered?.playerCount ?? DEFAULT_PLAYERS;
   app!.innerHTML = `<div class="menu interim"><h1>${t('menu.settingTable')}</h1><p class="note">${t('menu.lookingForServer')}</p></div>`;
   const connection = new ServerConnection(ServerConnection.defaultUrl());
+  connection.browserId = browserId();
   const answered = new Promise<ServerMessage | null>((resolve) => {
     connection.onMessage((message) => {
       if (message.type === 'welcome' || message.type === 'error') resolve(message);
@@ -411,11 +458,11 @@ export async function openLobby(
     return;
   }
   connection.close();
-  // A game picked from the list may have filled or gone since it was listed: say so, and
-  // back to the menu, whose list is fresh as it opens.
+  // A game picked from the list may have filled or gone since it was listed: say so in the
+  // Find a game window, its list fresh as it opens. Removed by the host: said in the menu.
   const refused = first?.type === 'error' && code !== null ? joinRefusedNotice(first.code) : null;
   if (refused !== null) {
-    showMenu(refused);
+    showMenu(refused, first?.type === 'error' && first.code !== 'removed');
     return;
   }
   if (first?.type === 'error') {
@@ -641,6 +688,7 @@ function roomLobby(
         playLocally(common, tableOf(current));
       },
       ready: (ready) => connection.send({ type: 'ready', ready }),
+      remove: (seat) => connection.send({ type: 'remove', seat }),
       tab: (chosen) => (tab = chosen),
       special: (special) => connection.send({ type: 'special', special }),
     });
@@ -750,6 +798,13 @@ function roomLobby(
             (e: unknown) => showError(t('error.matchFailed'), e),
           );
         }
+        break;
+      case 'removed':
+        // The host removed this guest (STEAM.md §5): back to the menu, saying so, and no
+        // rejoining — the room would refuse it anyway.
+        refused = true;
+        connection.close();
+        showMenu(t('lobby.removed'));
         break;
       case 'error':
         refused = true;

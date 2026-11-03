@@ -709,63 +709,122 @@ button svg.icon {
   min-height: 3.4rem;
 }
 
-/* The open games browser (browser.ts). */
-.open-games-section {
-  margin-top: 1.25rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--edge);
-}
-
-.open-games-section h2 {
-  margin: 0 0 0.5rem;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.open-games-section .notice {
-  margin: 0 0 0.6rem;
+/* A notice in the menu: a guest the host removed, or a lobby lost (menu.ts). */
+.menu .menu-notice,
+.find-games .notice {
+  margin: 0.75rem 0 0;
   padding: 0.4rem 0.6rem;
   border: 1px solid var(--accent);
+  border-radius: var(--radius-s);
   font-size: 12px;
   color: var(--accent);
 }
 
-.open-games-section .note {
+/* Find a game (findGames.ts, STEAM.md §4): the games browser in a window of its own. Its list
+   keeps one height, empty or full, so the window keeps its size (ARCHIVE 15f). */
+.how-to-play.find-games .panel {
+  width: min(34rem, 94vw);
+  align-items: stretch;
+}
+
+.find-games .notice {
   margin: 0;
 }
 
-.menu .open-games {
-  max-height: 11rem;
+.find-games .browser-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.find-games label.browser-filter {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.find-games #open-games {
+  height: 15rem;
   overflow-y: auto;
+  border-top: 1px solid var(--line);
+  padding-top: 0.4rem;
+}
+
+.find-games .note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.find-games .open-games {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.menu .open-games li {
+.find-games .open-games li {
   display: flex;
   gap: 0.6rem;
   align-items: center;
   padding: 0.3rem 0;
 }
 
-.menu .open-games .host {
+.find-games .open-games .host {
   color: var(--ink);
+  font-weight: 600;
 }
 
-.menu .open-games .detail {
+.find-games .open-games .detail {
   flex: 1;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 
-.menu .open-games button {
+.find-games .open-games button {
+  min-height: 2rem;
+  padding: 0.2rem 0.9rem;
+  font-size: 13px;
+}
+
+.find-games .browser-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: center;
+  padding-top: 2rem;
+}
+
+/* Host a single match: the window's main way on when there is nothing to join. */
+.find-games button.primary,
+.find-games button.primary:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--heading-font);
+}
+
+.find-games button.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* The host's Remove on a guest's card (lobby.ts, STEAM.md §5): small and quiet, and red once
+   it asks to be sure. */
+.menu .seats .seat button.remove-seat {
   width: auto;
+  min-height: 0;
   margin: 0;
-  padding: 0.25rem 0.8rem;
+  padding: 0.2rem 0.6rem;
   font-size: 11px;
+  white-space: nowrap;
+}
+
+.menu .seats .seat button.remove-seat.armed {
+  border-color: #f0a0a0;
+  color: #f0a0a0;
 }
 
 /* ---------- match ---------- */

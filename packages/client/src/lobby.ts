@@ -83,6 +83,8 @@ export interface LobbyView {
   tournamentTab?: TournamentTab | null;
   /** A line above it all: a match left to be played again, a save the browser refused. */
   notice?: string | null;
+  /** The seat whose Remove the host has clicked once, asking to be sure (STEAM.md §5). */
+  removing?: number | null;
 }
 
 /** The lobby's tabs: the match to be played, and the tournament it belongs to. */
@@ -356,6 +358,27 @@ function hostSeatControl(view: LobbyView): string {
   return who + levelControl(view.hostBot ?? 5, true, 'id="host-bot"', t('lobby.whoPlays'));
 }
 
+/**
+ * The host's Remove on a guest's card (STEAM.md §5), asking to be sure at the first click: the
+ * same button, its words and look changed in place, so the second click lands where the first did.
+ */
+function removeButton(seat: number, name: string, armed: boolean): string {
+  return (
+    `<button class="remove-seat quiet${armed ? ' armed' : ''}" data-seat="${seat}" data-name="${escape(name)}"` +
+    ` data-tip="${escape(t('lobby.removeTip'))}" data-tip-side="left">${escape(removeLabel(name, armed))}</button>`
+  );
+}
+
+function removeLabel(name: string, armed: boolean): string {
+  return armed ? t('lobby.removeConfirm', { name }) : t('lobby.remove');
+}
+
+/** A Remove button shown asking to be sure, or not, without drawing the lobby again. */
+export function showRemove(button: HTMLButtonElement, armed: boolean, name: string): void {
+  button.textContent = removeLabel(name, armed);
+  button.classList.toggle('armed', armed);
+}
+
 /** `isHost` sets the table — never a tournament's; `seats` moves people between seats. */
 function seatRow(
   view: LobbyView,
@@ -407,7 +430,12 @@ function seatRow(
     // A host watching has a bot in their seat, which brings the seat's draw.
     const watched = isHostSeat && view.hostBot !== null;
     const tower = towerControl(view, index, watched ? 'bot' : seat.special, isHost);
-    return `<li class="seat${mine}${arrived}"${who}>${seatBadge(view, index)}${tower}${occupant(view, index, seats, seat.name)}${tags}${control}${blurb}</li>`;
+    // The host's, at a room's table — a tournament's too — for each guest, never themselves.
+    const remove =
+      seats && view.code !== null && !isHostSeat
+        ? removeButton(index, seat.name, view.removing === index)
+        : '';
+    return `<li class="seat${mine}${arrived}"${who}>${seatBadge(view, index)}${tower}${occupant(view, index, seats, seat.name)}${tags}${control}${remove}${blurb}</li>`;
   }
 
   const control = levelControl(

@@ -14,6 +14,7 @@ import { seatTowers, sentTower } from './tournamentTowers.js';
 import { NetworkMatch } from './net/networkMatch.js';
 import { stageLabel } from './tournamentText.js';
 import { preferredTower } from './towers.js';
+import { browserId } from './browserId.js';
 
 /**
  * A tournament's room on the server (ARCHIVE 12zj), held by its host for as long as
@@ -87,6 +88,7 @@ export class TournamentRoom {
    */
   static async open(name: string, isPublic: boolean): Promise<TournamentRoom | null> {
     const connection = new ServerConnection(ServerConnection.defaultUrl());
+    connection.browserId = browserId();
     const answered = new Promise<ServerMessage | null>((resolve) => {
       connection.onMessage((message) => {
         if (message.type === 'welcome' || message.type === 'error') resolve(message);
@@ -139,6 +141,11 @@ export class TournamentRoom {
   /** A person to another open seat: the bot whose seat they take sits the match out. */
   move(from: number, to: number): void {
     this.connection.send({ type: 'configure', move: { from, to } });
+  }
+
+  /** A teammate removed by the host (STEAM.md §5): their seat the team's bot again. */
+  remove(seat: number): void {
+    this.connection.send({ type: 'remove', seat });
   }
 
   close(): void {

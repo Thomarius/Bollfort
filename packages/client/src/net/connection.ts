@@ -55,6 +55,8 @@ export class ServerConnection {
   /** The name joined under, and the room and seat the server last welcomed us to. */
   private name = '';
   private seat: { code: string; token: string } | null = null;
+  /** This browser's ID, sent with every create and join (STEAM.md §5); none in tests. */
+  browserId: string | null = null;
   private rejoining: () => boolean = () => false;
   private tries = 0;
   private retry: ReturnType<typeof setTimeout> | null = null;
@@ -210,12 +212,20 @@ export class ServerConnection {
       name: this.name,
       code: code.toUpperCase(),
       ...(token === undefined ? {} : { token }),
+      ...(this.browserId === null ? {} : { browserId: this.browserId }),
     };
   }
 
   createRoom(name: string, players: number, isPublic = true): void {
     this.name = name;
-    this.send({ type: 'create', protocol: PROTOCOL_VERSION, name, players, public: isPublic });
+    this.send({
+      type: 'create',
+      protocol: PROTOCOL_VERSION,
+      name,
+      players,
+      public: isPublic,
+      ...(this.browserId === null ? {} : { browserId: this.browserId }),
+    });
   }
 
   joinRoom(name: string, code: string, token?: string): void {

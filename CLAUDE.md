@@ -73,8 +73,8 @@ language (not saved). `?tournament=new` and `?tournament=resume` open the tourna
 `&snapshot=game_over` plays a tournament's match out at once, its result counted. `?host=8` opens
 the lobby at eight seats — a room if a server answers, a local table if not —
 `?join=CODE` joins one, `&name=Bo` sets the name, `&seed=N` the map, `&private=1` keeps
-the room unlisted (every room is public otherwise). The menu's Play, its list of open
-games and Join reach the same lobby, which sets the map, players, teams and bot levels; the
+the room unlisted (every room is public otherwise). The menu's Play, its Find a game window
+and Join reach the same lobby, which sets the map, players, teams and bot levels; the
 rounds and lives are the config's, no longer offered in a lobby or a new tournament (2026-10-28).
 
 ## Layout
@@ -179,6 +179,12 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 **Done** (2026-11-01; the latest release **v0.9.31**, 2026-11-01, protocol 34, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
+
+- **The host's Remove and Find a game** (ARCHIVE 15zj, 2026-11-03, STEAM.md K and B; protocol 35):
+  a guest removed in the lobby goes back to the menu and is refused by the room for its life, by
+  a random browser ID kept in storage (`browserId.ts`); the menu's list of open games is a Find a
+  game window with two filters and, with none, Host a single match, public (`findGames.ts`).
+- **No recordings in packaged builds** (ARCHIVE 15zi, STEAM.md R): `record: !app.isPackaged`.
 
 - **Renamed Bollfort** (ARCHIVE 15zh, 2026-11-03, STEAM.md §9.1, the user's): Bollwerk is a live
   mark in games' classes and another game of the name is coming, so everything is Bollfort — the
@@ -549,7 +555,8 @@ which a test session needs the server rebuilt and every page reloaded for):
   menu). Item 7 is finished.
 
 - **Steam** (PLAN §11 item 8, decided 2026-11-02): a free release after the online session,
-  a supporter DLC later; the design and its packages in `docs/STEAM.md`, nothing built yet.
+  a supporter DLC later; the design and its packages in `docs/STEAM.md`. N, R, K and B done
+  (ARCHIVE 15zh–15zj); T, C and D1 next, none needing Steam.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

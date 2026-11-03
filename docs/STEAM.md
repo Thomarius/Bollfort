@@ -76,8 +76,6 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 
 | Package | What                                                    | Needs Steam | Before paying |
 | ------- | ------------------------------------------------------- | ----------- | ------------- |
-| **K**   | The host's kick, every room                             | no          | yes           |
-| **B**   | The games browser with filters, every build             | no          | yes           |
 | **T**   | The transport interface, the fake, the tests            | no          | yes           |
 | **C**   | Native controller support                               | no          | yes           |
 | **S1**  | The spike on App ID 480, two accounts, two machines     | 480         | yes           |
@@ -88,11 +86,12 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 | **S5**  | The users' test on the beta branch, Deck review, launch | the app     | —             |
 | **D2**  | Later: the supporter DLC itself                         | the app     | —             |
 
-K, B, T, C and D1 need no Steam and can be built in any order, each tested in `npm run check`.
+T, C and D1 need no Steam and can be built in any order, each tested in `npm run check`.
 S1 comes before the fee is paid, and its answers decide S3's binding work.
 
-**Done**: N, the name — Bollfort, the rename everywhere (2026-11-03, ARCHIVE 15zh; the search
-in §9.1); R, no recordings in packaged builds (2026-11-03, ARCHIVE 15zi).
+**Done** (2026-11-03): N, the name — Bollfort, the rename everywhere (ARCHIVE 15zh; the search
+in §9.1); R, no recordings in packaged builds (ARCHIVE 15zi); K, the host's Remove, and B,
+Find a game (ARCHIVE 15zj, protocol 35).
 
 ## 3. The Steam build (S1, S2)
 

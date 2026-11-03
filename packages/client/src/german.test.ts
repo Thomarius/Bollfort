@@ -2,7 +2,7 @@ import { defaultAudioManifest, locales, placeholders, type TextKey } from '@boll
 import type { Seat } from '@bollfort/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { gamesMarkup } from './browser.js';
+import { filtersMarkup, gamesMarkup } from './browser.js';
 import { creditsHtml } from './credits.js';
 import { setLanguage, t } from './i18n.js';
 import { lobbyMarkup, type LobbyView } from './lobby.js';
@@ -84,12 +84,13 @@ describe.each(LANGUAGES)('in $name', ({ language, start, medieval }) => {
           people: 1,
           playerCount: 4,
           teamSize: 2,
-          maxRounds: 10,
+          towers: true,
           tournament: null,
         },
       ]),
     );
     clean(gamesMarkup([]));
+    clean(filtersMarkup({ mode: 'teams', towers: 'on' }));
     const gallery = galleryMarkup({ build: 'pixel', combat: 'random' }, 'build');
     clean(gallery);
     expect(gallery).toContain(medieval);

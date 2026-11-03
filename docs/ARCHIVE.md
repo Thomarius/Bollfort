@@ -11313,3 +11313,35 @@ nothing: a local match's upload refused with a 404 goes quiet for the rest of th
 A server test starts one by the config (the folder made, a bad upload refused by the store with
 a 400) and one told not to (no folder, a 404). Checked in the packaged Windows app: an upload
 answered 404, no `recordings` folder under `%APPDATA%\Bollfort`.
+
+## 15zj. The host's Remove and Find a game, K and B (2026-11-03)
+
+Packages K and B of the Steam release (STEAM.md §4, §5, decided with the user the same day), built
+together for one protocol bump, **35**, and working outside Steam as under it.
+
+**The kick (K).** The host's seat card for each guest has **Remove**, asking "Remove Bo?" at the
+first click and removing at the second, back by itself after 4 s (`removeButton`, `showRemove`,
+the armed seat kept by seat and name across the lobby's redraws). In the lobby only, a lobby
+after a match included, never during one; in a tournament's room too, the teammate's seat its
+team's bot again. The guest gets `removed`, goes back to the menu with "The host removed you from
+this game.", and may not join that room again for its life: the room keeps the removed browser's
+ID and the seat's token (`Room.refuses`), and `server.ts` answers such a join with the error
+`removed`, which the page shows as the same notice. The browser's ID is a random one kept in its
+storage (`bollfort.browserId`, `browserId.ts`), sent with every create and join; the tab's token
+alone let a new tab back in, and an address would have shut out every guest arriving through the
+tunnel. Outside Steam a deterrent, not security, as STEAM.md says; under Steam the Steam ID (S3).
+
+**The games browser (B).** The menu's list of open games is gone for a **Find a game** button and
+window (`findGames.ts`): two filters, free-for-all or teams and special towers on or off, each
+also Either, remembered (`bollfort.browserFilters`); the rows with the host, the mode, the free
+seats against all and the towers, refreshed every 3 s; and with none — or none through the
+filters, said apart — **Host a single match**, "Public: anyone can find it here and join.", which
+opens the lobby as the menu's Single match does (`filterRooms`, `gamesMarkup`, pure and tested).
+The listing gains `towers` and drops `maxRounds`. The menu asks the server once as it opens, to
+disable joining by code without one; its notices sit under Find a game, and a game that filled or
+closed while listed reopens the window with the notice in it.
+
+Walked through on the real server with three browsers (Playwright, two contexts and a new tab):
+the empty window, Ada's room listed, the Teams filter emptying it, Bo joining, Ada's Remove asking
+and removing, Bo's menu notice, and Bo's new tab refused. The Remove's hover text, cut off at the
+window's edge, opens leftwards. No recording was made.

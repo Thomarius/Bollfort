@@ -148,6 +148,7 @@ function showTournament(open: Open, notice: string | null): void {
       seed: none,
       hostBot: none,
       move: (from, to) => room?.move(from, to),
+      remove: (seat) => room?.remove(seat),
       start: () => {
         if (room !== null) {
           room.onChange = null;
