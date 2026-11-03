@@ -1,4 +1,4 @@
-import { Structure, ticksFor, type MatchState, type Phase } from '@bollwerk/sim';
+import { Structure, ticksFor, type MatchState, type Phase } from '@bollfort/sim';
 
 /**
  * The phase banners, and what they do to the board as they cross it.

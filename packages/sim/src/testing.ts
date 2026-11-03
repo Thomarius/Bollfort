@@ -1,4 +1,4 @@
-import { defaultRuleset, defaultTerrainConfig, type Ruleset } from '@bollwerk/config';
+import { defaultRuleset, defaultTerrainConfig, type Ruleset } from '@bollfort/config';
 
 import { step } from './match.js';
 import {

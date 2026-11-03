@@ -14,11 +14,11 @@
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 
-import { Bot, PlanningSlots, turnOrder } from '@bollwerk/ai';
+import { Bot, PlanningSlots, turnOrder } from '@bollfort/ai';
 // Not exported: reached by its file, the same module the bots load, so the patch below holds.
 import { Builder } from '../../../packages/ai/src/building.js';
-import { defaultAiConfig } from '@bollwerk/config';
-import { matchOptionsOf, parseRecording, setupOfRecorded } from '@bollwerk/protocol';
+import { defaultAiConfig } from '@bollfort/config';
+import { matchOptionsOf, parseRecording, setupOfRecorded } from '@bollfort/protocol';
 import {
   Rng,
   applyAction,
@@ -28,7 +28,7 @@ import {
   step,
   type Action,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,

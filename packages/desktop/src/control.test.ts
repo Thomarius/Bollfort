@@ -1,4 +1,4 @@
-import type { InternetStatus, RunningServer, StartResult } from '@bollwerk/server';
+import type { InternetStatus, RunningServer, StartResult } from '@bollfort/server';
 import { describe, expect, it } from 'vitest';
 
 import { ServerControl, nextPort, type ControlState, type TunnelLike } from './control.js';

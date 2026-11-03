@@ -1,5 +1,5 @@
-import { defaultConfigBundle, offeredVariants } from '@bollwerk/config';
-import { createTournament } from '@bollwerk/tournament';
+import { defaultConfigBundle, offeredVariants } from '@bollfort/config';
+import { createTournament } from '@bollfort/tournament';
 
 import { app, audio, showError } from './app.js';
 import { openTowerMenu } from './towerMenu.js';

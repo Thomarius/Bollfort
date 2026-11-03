@@ -1,4 +1,4 @@
-import { defaultArtConfig, type ArtLook } from '@bollwerk/config';
+import { defaultArtConfig, type ArtLook } from '@bollfort/config';
 
 import { chooseLook, type LookChoices } from './looks.js';
 import { t } from './i18n.js';
@@ -8,7 +8,7 @@ import { params } from './app.js';
 /** What the menu remembers between visits — the looks and the name — and a new table's map. */
 
 /** Where the menu remembers the two looks, so they survive a reload. */
-const STYLES_KEY = 'bollwerk.styles';
+const STYLES_KEY = 'bollfort.styles';
 
 /** What the menu saved, unchecked: `chooseLook` decides whether each is still usable. */
 function storedStyles(): Partial<Record<ArtLook, unknown>> {
@@ -58,7 +58,7 @@ export function chosenSeed(): number {
 }
 
 /** Where the menu remembers the player's name, as it does the looks. */
-const NAME_KEY = 'bollwerk.name';
+const NAME_KEY = 'bollfort.name';
 
 export function storedName(): string {
   return stored(NAME_KEY)?.trim() || t('menu.defaultName');

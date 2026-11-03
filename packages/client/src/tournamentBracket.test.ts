@@ -1,4 +1,4 @@
-import { defaultConfigBundle } from '@bollwerk/config';
+import { defaultConfigBundle } from '@bollfort/config';
 import {
   HOST_TEAM,
   Progress,
@@ -6,7 +6,7 @@ import {
   recordMatch,
   type Save,
   type TournamentSettings,
-} from '@bollwerk/tournament';
+} from '@bollfort/tournament';
 import { describe, expect, it } from 'vitest';
 
 import { bracketLayout } from './tournamentBracket.js';

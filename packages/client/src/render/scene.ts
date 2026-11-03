@@ -1,5 +1,5 @@
-import { defaultArtConfig, type ArtConfig, type ArtStyle } from '@bollwerk/config';
-import { strikesOnFiring, type MatchState, type Shot } from '@bollwerk/sim';
+import { defaultArtConfig, type ArtConfig, type ArtStyle } from '@bollfort/config';
+import { strikesOnFiring, type MatchState, type Shot } from '@bollfort/sim';
 import { Application, BigPool, Container, Graphics, Rectangle, RenderTexture } from 'pixi.js';
 // The text pipe, registered before any renderer starts: Pixi registers it as `Text` is first
 // imported, which is now as a style using it is fetched (`STYLE_MODULES`), after the renderer

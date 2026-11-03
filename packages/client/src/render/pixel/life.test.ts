@@ -1,4 +1,4 @@
-import { applyEnclosure, stateFromAscii } from '@bollwerk/sim';
+import { applyEnclosure, stateFromAscii } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { PILE_CORNERS, pileCorner, ringCorners, spreadOut } from './life.js';

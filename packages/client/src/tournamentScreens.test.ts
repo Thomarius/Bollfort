@@ -1,4 +1,4 @@
-import { defaultConfigBundle } from '@bollwerk/config';
+import { defaultConfigBundle } from '@bollfort/config';
 import {
   SAVE_VERSION,
   createTournament,
@@ -8,7 +8,7 @@ import {
   stepsOf,
   type Save,
   type TableRow,
-} from '@bollwerk/tournament';
+} from '@bollfort/tournament';
 import { describe, expect, it } from 'vitest';
 
 import { setLanguage } from './i18n.js';
@@ -209,7 +209,7 @@ describe('saved tournaments', () => {
     const newer = tournament('t-2', '2026-10-05T10:00:00Z');
     expect(writeTournament(older, area)).toBe(true);
     expect(writeTournament(newer, area)).toBe(true);
-    area.setItem('bollwerk.name', 'not a tournament');
+    area.setItem('bollfort.name', 'not a tournament');
     expect(savedTournaments(area).map((s) => s.id)).toEqual(['t-2', 't-1']);
     expect(loadTournament('t-1', area)).toEqual(older);
     deleteTournament('t-1', area);
@@ -220,8 +220,8 @@ describe('saved tournaments', () => {
   it('tell a save of another version, named as far as it can be, from a damaged one', () => {
     const area = memoryStorage();
     const save = tournament('t-1', '2026-10-01T10:00:00Z');
-    area.setItem('bollwerk.tournament.t-1', JSON.stringify({ ...save, version: SAVE_VERSION + 1 }));
-    area.setItem('bollwerk.tournament.t-2', '{ not json');
+    area.setItem('bollfort.tournament.t-1', JSON.stringify({ ...save, version: SAVE_VERSION + 1 }));
+    area.setItem('bollfort.tournament.t-2', '{ not json');
     const [old, broken] = savedTournaments(area);
     expect(old).toMatchObject({ id: 't-1', kind: 'version', name: 'Ada' });
     expect(broken).toMatchObject({ id: 't-2', kind: 'invalid', name: null });

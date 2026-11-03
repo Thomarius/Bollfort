@@ -1,5 +1,5 @@
-import type { ArtConfig, SakuraStyleConfig } from '@bollwerk/config';
-import { Structure, type Cannon, type Castle, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, SakuraStyleConfig } from '@bollfort/config';
+import { Structure, type Cannon, type Castle, type MatchState, type Shot } from '@bollfort/sim';
 import type { Container } from 'pixi.js';
 import { Graphics } from 'pixi.js';
 

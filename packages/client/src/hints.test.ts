@@ -1,4 +1,4 @@
-import { applyEnclosure, computeEnclosure, stateFromAscii } from '@bollwerk/sim';
+import { applyEnclosure, computeEnclosure, stateFromAscii } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { buildHints } from './hints.js';

@@ -1,5 +1,5 @@
-import type { MatchSettings, Personality, TowerVariant } from '@bollwerk/config';
-import type { MatchState } from '@bollwerk/sim';
+import type { MatchSettings, Personality, TowerVariant } from '@bollfort/config';
+import type { MatchState } from '@bollfort/sim';
 
 import { placings } from './placement.js';
 import type { Placed } from './progress.js';

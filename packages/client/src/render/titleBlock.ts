@@ -1,5 +1,5 @@
-import type { ArtConfig } from '@bollwerk/config';
-import type { MatchState } from '@bollwerk/sim';
+import type { ArtConfig } from '@bollfort/config';
+import type { MatchState } from '@bollfort/sim';
 import { Container, Graphics, Text } from 'pixi.js';
 
 import { t } from '../i18n.js';
@@ -19,7 +19,7 @@ const FONT = "'Arial Narrow', Arial, Helvetica, sans-serif";
 
 /**
  * Blueprint's piece in the corner (PLAN 11.24): the title block every drawing keeps in its
- * bottom-right corner — the project, BOLLWERK; the sheet, the round of the rounds; the
+ * bottom-right corner — the project, BOLLFORT; the sheet, the round of the rounds; the
  * scale, and a north arrow. Inked in anew as each round begins, line by line and then the
  * lettering, and in the final round stamped across in red — FINAL; at a build phase's climax
  * before then, RUSH, crooked the other way. The lines are redrawn only while it inks and when
@@ -132,7 +132,7 @@ export class TitleBlock {
     const cap = state.ruleset.scoring.maxRounds;
     const round = Math.max(1, state.round);
     const words = {
-      title: 'BOLLWERK',
+      title: 'BOLLFORT',
       sheet: cap === null ? t('plan.sheetOpen', { round }) : t('plan.sheet', { round, cap }),
       stamp: word === null ? '' : t(word),
     };

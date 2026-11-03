@@ -1,11 +1,11 @@
-# Bollwerk
+# Bollfort
 
 A multiplayer castle siege for 2–8 players: shoot down your opponents' castle walls, then
 race to rebuild your own with falling blocks before the next barrage. Fail to seal a
 castle and you lose a life; run out of lives and you are out. After ten rounds, the best
 score among those still standing wins.
 
-> _Bollwerk_ is an unofficial fan game inspired by _Rampart_ (Atari Games, 1990). It is not
+> _Bollfort_ is an unofficial fan game inspired by _Rampart_ (Atari Games, 1990). It is not
 > affiliated with or endorsed by Warner Bros. Entertainment, which owns the _Rampart_
 > trademark. It uses no code, graphics or sound from the original; the audio is from
 > OpenGameArt.org and Pixabay under the licences listed in [`CREDITS.md`](CREDITS.md).
@@ -35,13 +35,13 @@ score among those still standing wins.
 ## Play it with the app
 
 The easiest way to host a game: no Node, no terminal. Download the file for your system
-from the [Releases](https://github.com/Thomarius/Bollwerk/releases) page and run it.
+from the [Releases](https://github.com/Thomarius/Bollfort/releases) page and run it.
 
-- **Windows 11**: `Bollwerk-<version>-windows.exe`, a portable file — nothing to install.
+- **Windows 11**: `Bollfort-<version>-windows.exe`, a portable file — nothing to install.
   The file is not signed, so Windows warns of an unknown publisher the first time: choose
   **More info**, then **Run anyway**.
-- **Linux**: `Bollwerk-<version>-linux.AppImage`. Mark it executable once — in the file
-  manager's _Properties → Permissions_, or `chmod +x Bollwerk-*.AppImage` — then open it.
+- **Linux**: `Bollfort-<version>-linux.AppImage`. Mark it executable once — in the file
+  manager's _Properties → Permissions_, or `chmod +x Bollfort-*.AppImage` — then open it.
 
 The app starts the game server at once and shows the addresses other players open, each
 with a **Copy** button. **Play here** opens the game in the app's own window; **Open in
@@ -64,7 +64,7 @@ npm install     # once: fetches everything the game needs
 npm start       # builds the game and starts it
 ```
 
-When it says `bollwerk server on http://localhost:8080`, open that in your browser; the
+When it says `bollfort server on http://localhost:8080`, open that in your browser; the
 lines under it give this computer's network addresses, for others at the table to open.
 Leave the terminal open while you play; `Ctrl+C` stops the game.
 
@@ -149,9 +149,9 @@ One image, one process: it serves the game over HTTP and runs the matches over t
 port.
 
 ```bash
-docker build -t bollwerk .
-docker run -p 8080:8080 bollwerk          # http://<server address>:8080
-docker run -e PORT=3000 -p 3000:3000 bollwerk
+docker build -t bollfort .
+docker run -p 8080:8080 bollfort          # http://<server address>:8080
+docker run -e PORT=3000 -p 3000:3000 bollfort
 ```
 
 Hosts that assign a port themselves (Fly, Railway) set `PORT` and need nothing else. If
@@ -168,10 +168,10 @@ disagree about — which is a desync, not a setting. The runtime image carries n
 ```bash
 npm install
 npm run check                       # format, lint, typecheck, test — takes a few minutes
-npm run dev   -w @bollwerk/client   # play offline with live reload at http://localhost:5173
-npm start     -w @bollwerk/server   # the server alone, serving the last build
-npm start     -w @bollwerk/headless -- --matches 8 --players 3 --level 5 --stats out.csv
-npm start     -w @bollwerk/headless -- --map --players 3 --seed 2   # print a map as ASCII
+npm run dev   -w @bollfort/client   # play offline with live reload at http://localhost:5173
+npm start     -w @bollfort/server   # the server alone, serving the last build
+npm start     -w @bollfort/headless -- --matches 8 --players 3 --level 5 --stats out.csv
+npm start     -w @bollfort/headless -- --map --players 3 --seed 2   # print a map as ASCII
 tools/screenshots.sh /tmp/shots     # the client in fixed states, against the dev server
 ```
 
@@ -195,20 +195,20 @@ bundled into it. To run it from the source, build the game first, then start it:
 ```bash
 npm run build                       # the client and server the app serves
 node node_modules/electron/install.js   # once, if npm install did not fetch Electron
-npm start -w @bollwerk/desktop      # opens the app's window
+npm start -w @bollfort/desktop      # opens the app's window
 ```
 
 To make the portable file yourself, on the system it is for:
 
 ```bash
 npm run build
-npm run package -w @bollwerk/desktop # → packages/desktop/release/
+npm run package -w @bollfort/desktop # → packages/desktop/release/
 ```
 
-On Windows that makes `Bollwerk-<version>-windows.exe`, on Linux
-`Bollwerk-<version>-linux.AppImage`; each can only be built on its own system. The version
-is the package's own unless `BOLLWERK_VERSION` says otherwise — `BOLLWERK_VERSION=1.0.0 npm run package -w @bollwerk/desktop`, or in PowerShell
-`$env:BOLLWERK_VERSION='1.0.0'; npm run package -w @bollwerk/desktop`. `release/` is never
+On Windows that makes `Bollfort-<version>-windows.exe`, on Linux
+`Bollfort-<version>-linux.AppImage`; each can only be built on its own system. The version
+is the package's own unless `BOLLFORT_VERSION` says otherwise — `BOLLFORT_VERSION=1.0.0 npm run package -w @bollfort/desktop`, or in PowerShell
+`$env:BOLLFORT_VERSION='1.0.0'; npm run package -w @bollfort/desktop`. `release/` is never
 committed.
 
 ## Layout

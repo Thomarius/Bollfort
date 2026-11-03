@@ -14,8 +14,8 @@ import {
   type ServerConfig,
   type TowerVariant,
   type TerrainConfig,
-} from '@bollwerk/config';
-import { Bot, botTowerOf, dealSeats, tableSlots } from '@bollwerk/ai';
+} from '@bollfort/config';
+import { Bot, botTowerOf, dealSeats, tableSlots } from '@bollfort/ai';
 import {
   ActionSchema,
   MatchRecorder,
@@ -27,9 +27,9 @@ import {
   type ServerMessage,
   type Seat as WireSeat,
   type TournamentTable,
-} from '@bollwerk/protocol';
+} from '@bollfort/protocol';
 import { MatchRunner } from './matchRunner.js';
-import { Rng, createMatch } from '@bollwerk/sim';
+import { Rng, createMatch } from '@bollfort/sim';
 
 /**
  * A client, abstracted away from WebSockets so a room can be driven directly in

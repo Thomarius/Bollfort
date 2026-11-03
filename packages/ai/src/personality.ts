@@ -1,5 +1,5 @@
-import { TRAIT_VALUES, type Personality } from '@bollwerk/config';
-import { streamFor, type Rng } from '@bollwerk/sim';
+import { TRAIT_VALUES, type Personality } from '@bollfort/config';
+import { streamFor, type Rng } from '@bollfort/sim';
 
 /**
  * Every player's personality for a match, by player, dealt rather than chosen (PLAN 11.6)

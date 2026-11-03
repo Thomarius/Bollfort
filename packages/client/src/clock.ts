@@ -1,4 +1,4 @@
-import type { MatchState } from '@bollwerk/sim';
+import type { MatchState } from '@bollfort/sim';
 
 /**
  * Whether a phase's clock is shown — the HUD's figures and bar, and the big timer in the

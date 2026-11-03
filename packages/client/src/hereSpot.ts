@@ -1,4 +1,4 @@
-import { Terrain, type MatchState } from '@bollwerk/sim';
+import { Terrain, type MatchState } from '@bollfort/sim';
 
 /**
  * Where "You are here" points (PLAN §11 item 4, UP1). Over the island's middle it often

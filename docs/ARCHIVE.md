@@ -11269,3 +11269,32 @@ life's pip marked, the reason and the leak shown as a life goes, larger hover te
 the styles loaded when needed, 32% less script before the menu (15zf). Protocol 34 and recording
 format 4 as before: a v0.9.30 page can join a v0.9.31 room, though only a v0.9.31 page rejoins by
 itself.
+
+## 15zh. Bollfort: the game renamed again (2026-11-03)
+
+Package N of the Steam release (STEAM.md §9.1, where the search is recorded in full). Another
+game called BOLLWERK, by a new studio of that name, is announced for 2027, and TMview lists five
+live marks of the word in the games' classes 9 and 41 (in Germany, Switzerland and Austria; none
+of the two in class 9 names computer games, none is the studio's). The search of October (11zw)
+had looked for games of the name, not at the registers. A subtitle was set aside, since a work
+title is compared by its main word, and the game was renamed everywhere, with the user.
+
+**The name.** Weighed with the user: German fortification words (Trutzburg, Ringwall), plays on
+the build phase's pieces (Flickwerk, Klotzwerk, Brixade — the user's, which sounds as _Brickade_,
+a brick-breaker on Steam), Latin (Vallum), and the user's shortlist Wallwerk, Wallfort, Blockwerk
+and Blockfort, each sharing its name with a business or, Blockfort, standing beside _Block
+Fortress 2_ on Steam. **Bollfort**, the user's, was free in every place looked: no mark in TMview
+(nor Bolfort, Boll Fort), nothing on the web, Steam, SteamDB or itch.io, its domains unregistered.
+Its one risk, nearness to BOLLWERK, judged low. No domains registered and no mark filed, the
+user's choice. Nothing built on Tetris's name.
+
+**Renamed everywhere**, as in 11zw and again with **no migration**, since only internal testers
+have the game: `@bollfort/*`, `BOLLFORT_COMMIT` and the other variables, `window.bollfort`, the
+browser's `bollfort.*` keys (a tester's settings, name, favourites, last table and a tournament in
+progress are lost once), the desktop app's `appId` `io.github.thomarius.bollfort` and its files
+(`Bollfort-<version>-windows.exe`, `…-linux.AppImage`), every locale's texts, the README and the
+documents; this file's history keeps the old name. The title's 5x7 bitmaps (`titles.ts`), a logo
+rather than a font, gained **F** (its middle bar as long as E's) and **T** (a full top bar), the
+user's choice, and dropped W, E and K. The repository becomes `Thomarius/Bollfort`, renamed on
+GitHub by the user; the local folder stays `RampartRemake`. The protocol, the recording format and
+the rules are unchanged. It ships with the next release, not one of its own.

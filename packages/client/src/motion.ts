@@ -10,7 +10,7 @@ import { store, stored } from './storage.js';
  */
 export type Motion = 'full' | 'reduced';
 
-const KEY = 'bollwerk.motion';
+const KEY = 'bollfort.motion';
 
 export const MOTIONS: readonly Motion[] = ['full', 'reduced'];
 
@@ -28,7 +28,7 @@ let motion: Motion | null = null;
 /** Carried over from the old Effects setting, whose Reduced it was. */
 export function storedMotion(): Motion {
   motion ??=
-    parseMotion(stored(KEY)) ?? (stored('bollwerk.effects') === 'reduced' ? 'reduced' : 'full');
+    parseMotion(stored(KEY)) ?? (stored('bollfort.effects') === 'reduced' ? 'reduced' : 'full');
   return motion;
 }
 

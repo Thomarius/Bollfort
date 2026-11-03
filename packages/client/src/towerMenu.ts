@@ -4,7 +4,7 @@ import {
   type BotTower,
   type SpecialKind,
   type TowerVariant,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 
 import { escape } from './html.js';
 import { t } from './i18n.js';

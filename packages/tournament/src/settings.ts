@@ -1,4 +1,4 @@
-import { BotTowerSchema, LevelSchema, MAX_LEVEL, TOURNAMENT_LENGTHS } from '@bollwerk/config';
+import { BotTowerSchema, LevelSchema, MAX_LEVEL, TOURNAMENT_LENGTHS } from '@bollfort/config';
 import { z } from 'zod';
 
 /**

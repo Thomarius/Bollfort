@@ -14,7 +14,7 @@ export async function showLoading(): Promise<void> {
   root.className = 'loading-screen';
   root.innerHTML =
     `<div class="panel" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">` +
-    `<h1>Bollwerk</h1><p>${escape(t('loading.audio'))}</p>` +
+    `<h1>Bollfort</h1><p>${escape(t('loading.audio'))}</p>` +
     `<div class="bar"><div class="fill"></div></div></div>`;
   const panel = root.querySelector<HTMLElement>('.panel')!;
   const fill = root.querySelector<HTMLElement>('.fill')!;

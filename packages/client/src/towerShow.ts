@@ -1,4 +1,4 @@
-import { defaultRuleset, variantCost, variantKind, type TowerVariant } from '@bollwerk/config';
+import { defaultRuleset, variantCost, variantKind, type TowerVariant } from '@bollfort/config';
 import {
   advanceWaves,
   applyEnclosure,
@@ -11,7 +11,7 @@ import {
   withSpecials,
   type MatchEvent,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 /**
  * What a special tower does, played by the rules themselves for the tower menu's preview

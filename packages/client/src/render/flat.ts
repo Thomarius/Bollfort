@@ -1,5 +1,5 @@
-import type { ArtConfig, FlatStyleConfig } from '@bollwerk/config';
-import { Structure, Terrain, type Cannon, type MatchState } from '@bollwerk/sim';
+import type { ArtConfig, FlatStyleConfig } from '@bollfort/config';
+import { Structure, Terrain, type Cannon, type MatchState } from '@bollfort/sim';
 import { Graphics, type Container } from 'pixi.js';
 
 import { motionReduced } from '../motion.js';

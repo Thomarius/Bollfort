@@ -1,4 +1,4 @@
-import type { Castle } from '@bollwerk/sim';
+import type { Castle } from '@bollfort/sim';
 
 /**
  * The moment a castle is sealed, drawn as ground being taken: the new territory floods

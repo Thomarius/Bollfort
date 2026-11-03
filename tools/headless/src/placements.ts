@@ -15,8 +15,8 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { SealPlanner } from '@bollwerk/ai';
-import { matchOptionsOf, parseRecording, type RecordingHeader } from '@bollwerk/protocol';
+import { SealPlanner } from '@bollfort/ai';
+import { matchOptionsOf, parseRecording, type RecordingHeader } from '@bollfort/protocol';
 import {
   NEIGHBOURS_8,
   Structure,
@@ -26,7 +26,7 @@ import {
   drainEvents,
   step,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { repoRoot } from './cli.js';
 

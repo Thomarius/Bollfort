@@ -1,6 +1,6 @@
-# Bollwerk on Steam — the design and its packages
+# Bollfort on Steam — the design and its packages
 
-**Decided** (2026-11-02, the user's, in three rounds of questions): Bollwerk goes to Steam as a
+**Decided** (2026-11-02, the user's, in three rounds of questions): Bollfort goes to Steam as a
 **free game**, after the first feature-ready version (PLAN §11 item 5). A small **supporter DLC**
 comes later, once the game works and people play it. The supporter DLC is only a way for people
 to give a small donation, not a store. The browser game, the portable builds on GitHub and the
@@ -23,7 +23,7 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 - **The rights**: a private project; no employer has a claim.
 - **The trademark**: Rampart is named nowhere on Steam — not in the store page, its tags or its
   art. The "inspired by" line stays in the game's Credits, the README and the release notes, and
-  is left off the Steam page. Similar paid games stand closer to the original; Bollwerk's changes
+  is left off the Steam page. Similar paid games stand closer to the original; Bollfort's changes
   and additions are substantial.
 - **The supporter DLC**: Halloween and Christmas, their music, and a supporter's badge by the name.
   Wallpapers perhaps, if they turn out to work. The price is decided later (€1.99 in mind). It
@@ -100,7 +100,7 @@ N, R, K, B, T, C and D1 need no Steam and can be built in any order, each tested
 - **`steamworks.js`** (MIT, Rust) in the desktop app's **main process**, behind the preload, as
   every other desktop feature is; never in the page, which would need `contextIsolation: false`
   and `nodeIntegration: true`. `electronEnableSteamOverlay()` for the overlay.
-- **A build flag** (`BOLLWERK_STEAM`, set by the Steam depot's packaging) decides whether the app
+- **A build flag** (`BOLLFORT_STEAM`, set by the Steam depot's packaging) decides whether the app
   calls Steam at all. Without it, the binding is never loaded. With it, the app initialises Steam
   as it starts.
 - **Steam not running** under the Steam build: Steam normally starts the game itself. If
@@ -216,7 +216,7 @@ one shape whichever the source, so the screen, its filters and its tests do not 
 
 ### 7.1 The transport (T)
 
-The host's app runs Bollwerk's authoritative server as now (`packages/server`, `room.ts`). Only
+The host's app runs Bollfort's authoritative server as now (`packages/server`, `room.ts`). Only
 the transport changes: Steam's peer-to-peer channel in place of a WebSocket, with the host found
 as the lobby's owner. The protocol, the seats, Ready, the snapshot, the hashes, the rejoin
 (ARCHIVE 15zc) and tournaments stay as they are.

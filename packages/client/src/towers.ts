@@ -7,8 +7,8 @@ import {
   type Ruleset,
   type SpecialKind,
   type TowerVariant,
-} from '@bollwerk/config';
-import { circleOffsets, specialRefusal, type MatchState } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { circleOffsets, specialRefusal, type MatchState } from '@bollfort/sim';
 
 import { placeableCannons } from './controls.js';
 import { t } from './i18n.js';
@@ -132,7 +132,7 @@ export function towerCostText(cost: number): string {
 }
 
 /** Where the menus remember whether the last table played special towers. */
-const SPECIALS_KEY = 'bollwerk.specials';
+const SPECIALS_KEY = 'bollfort.specials';
 
 /**
  * Whether a new table plays special towers: as the host last set one, in the lobby or a
@@ -148,7 +148,7 @@ export function saveSpecials(on: boolean): void {
 }
 
 /** Where the menu remembers the tower last chosen, as it does the name. */
-const TOWER_KEY = 'bollwerk.tower';
+const TOWER_KEY = 'bollfort.tower';
 
 /** A tower drawn for a player who has not chosen one, the same for the whole visit. */
 let drawn: TowerVariant | null = null;

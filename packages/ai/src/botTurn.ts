@@ -1,4 +1,4 @@
-import { sameTeam, type MatchState } from '@bollwerk/sim';
+import { sameTeam, type MatchState } from '@bollfort/sim';
 
 /**
  * What a bot's guns, walls and siting share: its pace in ticks, who its rivals are, and

@@ -1,4 +1,4 @@
-import { BALANCED, botProfile, defaultAiConfig, type AiConfig } from '@bollwerk/config';
+import { BALANCED, botProfile, defaultAiConfig, type AiConfig } from '@bollfort/config';
 import {
   Rng,
   applyAction,
@@ -7,7 +7,7 @@ import {
   holdingOf,
   stateFromAscii,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { Bot } from './bot.js';

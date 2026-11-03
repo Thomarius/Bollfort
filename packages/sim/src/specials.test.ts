@@ -1,4 +1,4 @@
-import { defaultRuleset, defaultTerrainConfig, type Ruleset } from '@bollwerk/config';
+import { defaultRuleset, defaultTerrainConfig, type Ruleset } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { applyEnclosure } from './enclosure.js';

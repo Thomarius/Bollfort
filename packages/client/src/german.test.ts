@@ -1,5 +1,5 @@
-import { defaultAudioManifest, locales, placeholders, type TextKey } from '@bollwerk/config';
-import type { Seat } from '@bollwerk/protocol';
+import { defaultAudioManifest, locales, placeholders, type TextKey } from '@bollfort/config';
+import type { Seat } from '@bollfort/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { gamesMarkup } from './browser.js';
@@ -95,7 +95,7 @@ describe.each(LANGUAGES)('in $name', ({ language, start, medieval }) => {
     expect(gallery).toContain(medieval);
     const credits = creditsHtml(defaultAudioManifest);
     clean(credits);
-    expect(credits).toContain('Bollwerk ist ein inoffizielles Fanspiel');
+    expect(credits).toContain('Bollfort ist ein inoffizielles Fanspiel');
   });
 
   it('fills every text, given its placeholders', () => {

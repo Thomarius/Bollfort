@@ -1,5 +1,5 @@
-import type { ArtConfig, NoirStyleConfig } from '@bollwerk/config';
-import { Structure, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, NoirStyleConfig } from '@bollfort/config';
+import { Structure, type MatchState, type Shot } from '@bollfort/sim';
 import { Container, FillPattern, Graphics, Text, Texture, type GraphicsContext } from 'pixi.js';
 
 import { t as text } from '../i18n.js';

@@ -14,10 +14,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 
-import { BALANCED, type ConfigBundle } from '@bollwerk/config';
-import { loadConfigBundle } from '@bollwerk/config/node';
-import { Bot, PlanningSlots, takeBotTurns } from '@bollwerk/ai';
-import { parseRecording, replayRecording, setupOfRecorded } from '@bollwerk/protocol';
+import { BALANCED, type ConfigBundle } from '@bollfort/config';
+import { loadConfigBundle } from '@bollfort/config/node';
+import { Bot, PlanningSlots, takeBotTurns } from '@bollfort/ai';
+import { parseRecording, replayRecording, setupOfRecorded } from '@bollfort/protocol';
 import {
   isLoaded,
   Rng,
@@ -30,7 +30,7 @@ import {
   type MatchEvent,
   type MatchState,
   type Shot,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { repoRoot } from './cli.js';
 

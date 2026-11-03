@@ -1,7 +1,7 @@
-import { ArtStyleSchema, defaultArtConfig } from '@bollwerk/config';
+import { ArtStyleSchema, defaultArtConfig } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
-import { stateFromAscii } from '@bollwerk/sim';
+import { stateFromAscii } from '@bollfort/sim';
 
 import { seaDepth } from './ocean.js';
 import { nextTorch } from './pixel.js';
@@ -67,7 +67,9 @@ describe('theme selection', () => {
     expect((await createTheme('night')).id).toBe('night');
   });
 
-  it('covers every style the config allows', async () => {
+  // Every style's module is imported here, all 24 (ARCHIVE 15zf): about 4 s alone, and past the
+  // default 5 s in a full `npm run check` with the other files running beside it (2026-11-03).
+  it('covers every style the config allows', { timeout: 30_000 }, async () => {
     // A style nameable in config but missing here would be a black screen.
     for (const style of ArtStyleSchema.options) {
       expect((await createTheme(style)).id).toBe(style);

@@ -9,7 +9,7 @@ import {
   type Castle,
   type EnclosureResult,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { INFINITE_CAPACITY, MaxFlow, type FlowMark } from './flow.js';
 

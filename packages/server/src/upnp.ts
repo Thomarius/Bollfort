@@ -98,7 +98,7 @@ export function publicIpv6(interfaces: NodeJS.Dict<NetworkInterfaceInfo[]>): str
   return found?.address ?? null;
 }
 
-const DESCRIPTION = 'Bollwerk game server';
+const DESCRIPTION = 'Bollfort game server';
 
 /** One port's mapping, opened and closed; a later call supersedes one still in flight. */
 export class PortOpener {

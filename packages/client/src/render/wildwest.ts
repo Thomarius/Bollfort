@@ -1,5 +1,5 @@
-import type { ArtConfig, WildWestStyleConfig } from '@bollwerk/config';
-import { isLoaded, Structure, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, WildWestStyleConfig } from '@bollfort/config';
+import { isLoaded, Structure, type MatchState, type Shot } from '@bollfort/sim';
 import { Container, Graphics, Text, type GraphicsContext } from 'pixi.js';
 
 import { t as text } from '../i18n.js';

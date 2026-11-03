@@ -2,8 +2,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { loadConfigBundle } from '@bollwerk/config/node';
-import { startServer } from '@bollwerk/server';
+import { loadConfigBundle } from '@bollfort/config/node';
+import { startServer } from '@bollfort/server';
 import { BrowserWindow, app, clipboard, ipcMain, shell } from 'electron';
 
 import { cloudflaredBinary } from './cloudflared.js';
@@ -22,8 +22,8 @@ import { Tunnel } from './tunnel.js';
  * (A3): packaged, the config, the client and the audio are the app's resources.
  */
 /** The commit the app was built from, put in by `build.js`; null when it could not tell. */
-declare const __BOLLWERK_COMMIT__: string | null;
-const BUILT_FROM = __BOLLWERK_COMMIT__;
+declare const __BOLLFORT_COMMIT__: string | null;
+const BUILT_FROM = __BOLLFORT_COMMIT__;
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = app.isPackaged ? process.resourcesPath : resolve(here, '..', '..', '..');
@@ -31,8 +31,8 @@ const clientDir = app.isPackaged
   ? join(process.resourcesPath, 'client')
   : join(root, 'packages', 'client', 'dist');
 
-// Named, so its data — the recordings — sits in a folder called Bollwerk, not @bollwerk/desktop.
-app.setName('Bollwerk');
+// Named, so its data — the recordings — sits in a folder called Bollfort, not @bollfort/desktop.
+app.setName('Bollfort');
 
 /** One copy at a time: a second would only find the first's port taken. */
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -88,7 +88,7 @@ function createWindow(): void {
     width: 440,
     height: 780,
     resizable: false,
-    title: 'Bollwerk server',
+    title: 'Bollfort server',
     backgroundColor: '#12131c',
     autoHideMenuBar: true,
     webPreferences: { preload: join(here, 'preload.cjs') },
@@ -159,7 +159,7 @@ ipcMain.handle('play-here', () => {
   const play = new BrowserWindow({
     width: 1400,
     height: 900,
-    title: 'Bollwerk',
+    title: 'Bollfort',
     backgroundColor: '#0a0a12',
     autoHideMenuBar: true,
     // The app's own window may play sound unasked, so the music starts as the game opens

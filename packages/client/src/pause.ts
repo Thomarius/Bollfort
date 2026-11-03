@@ -1,4 +1,4 @@
-import type { TextKey } from '@bollwerk/config';
+import type { TextKey } from '@bollfort/config';
 
 import { onLanguageChange, t } from './i18n.js';
 import { withIcon } from './icons.js';

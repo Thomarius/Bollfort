@@ -1,7 +1,7 @@
-import { defaultRuleset, offeredVariants, variantCost, variantKind } from '@bollwerk/config';
-import { drawnSpecial } from '@bollwerk/ai';
-import type { Seat } from '@bollwerk/protocol';
-import { applyEnclosure, stateFromAscii, withSpecials, type MatchState } from '@bollwerk/sim';
+import { defaultRuleset, offeredVariants, variantCost, variantKind } from '@bollfort/config';
+import { drawnSpecial } from '@bollfort/ai';
+import type { Seat } from '@bollfort/protocol';
+import { applyEnclosure, stateFromAscii, withSpecials, type MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { impactReadiness, towerBadges } from './controls.js';

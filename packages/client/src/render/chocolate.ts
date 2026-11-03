@@ -1,5 +1,5 @@
-import type { ArtConfig, ChocolateStyleConfig } from '@bollwerk/config';
-import { Structure, type Cannon, type Castle, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, ChocolateStyleConfig } from '@bollfort/config';
+import { Structure, type Cannon, type Castle, type MatchState, type Shot } from '@bollfort/sim';
 import { Container, Graphics, Matrix, type GraphicsContext } from 'pixi.js';
 
 import { motionReduced } from '../motion.js';

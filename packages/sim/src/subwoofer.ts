@@ -1,4 +1,4 @@
-import type { SubwooferVariant, TowerCost } from '@bollwerk/config';
+import type { SubwooferVariant, TowerCost } from '@bollfort/config';
 
 import { walkRay, type Ray } from './laser.js';
 import { strikable, strikeWall } from './shots.js';

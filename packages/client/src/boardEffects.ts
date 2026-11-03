@@ -1,5 +1,5 @@
-import { defaultConfigBundle } from '@bollwerk/config';
-import { computeEnclosure, type MatchState } from '@bollwerk/sim';
+import { defaultConfigBundle } from '@bollfort/config';
+import { computeEnclosure, type MatchState } from '@bollfort/sim';
 
 import type { Scene } from './render/scene.js';
 import type { Choice } from './render/theme.js';

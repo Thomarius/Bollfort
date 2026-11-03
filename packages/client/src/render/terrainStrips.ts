@@ -1,4 +1,4 @@
-import type { MatchState } from '@bollwerk/sim';
+import type { MatchState } from '@bollfort/sim';
 import { Container, Graphics } from 'pixi.js';
 
 import { clearDrawn } from './clearDrawn.js';

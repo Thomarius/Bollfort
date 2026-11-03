@@ -1,5 +1,5 @@
-import type { BotSetup } from '@bollwerk/config';
-import type { Action, MatchOptions } from '@bollwerk/sim';
+import type { BotSetup } from '@bollfort/config';
+import type { Action, MatchOptions } from '@bollfort/sim';
 
 /**
  * What the page and the bots' worker say to each other (PLAN §11 item 3): plain data, as

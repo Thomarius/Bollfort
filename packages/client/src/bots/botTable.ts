@@ -1,6 +1,6 @@
-import { defaultAiConfig } from '@bollwerk/config';
-import { Bot, tableSlots } from '@bollwerk/ai';
-import { HASH_EVERY_TICKS } from '@bollwerk/protocol';
+import { defaultAiConfig } from '@bollfort/config';
+import { Bot, tableSlots } from '@bollfort/ai';
+import { HASH_EVERY_TICKS } from '@bollfort/protocol';
 import {
   Rng,
   applyAction,
@@ -9,7 +9,7 @@ import {
   hashMatchState,
   step,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { botTurns } from './botTurns.js';
 import { BOT_PROTOCOL_VERSION, type FromWorker, type ToWorker } from './protocol.js';

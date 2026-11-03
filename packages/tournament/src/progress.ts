@@ -1,5 +1,5 @@
-import type { TournamentConfig } from '@bollwerk/config';
-import { streamFor, type Rng } from '@bollwerk/sim';
+import type { TournamentConfig } from '@bollfort/config';
+import { streamFor, type Rng } from '@bollfort/sim';
 
 import { chunk, seedBracket, separate, snake } from './bracket.js';
 import { rollOrder, strength } from './roll.js';

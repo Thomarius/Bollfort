@@ -1,6 +1,6 @@
-import { defaultConfigBundle } from '@bollwerk/config';
-import { applySnapshot, type ServerMessage } from '@bollwerk/protocol';
-import { applyAction, createMatch, hashMatchState, step, type MatchState } from '@bollwerk/sim';
+import { defaultConfigBundle } from '@bollfort/config';
+import { applySnapshot, type ServerMessage } from '@bollfort/protocol';
+import { applyAction, createMatch, hashMatchState, step, type MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { Room, type Connection } from './room.js';

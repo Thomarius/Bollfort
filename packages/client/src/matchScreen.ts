@@ -5,7 +5,7 @@ import {
   type ArtStyle,
   type Ruleset,
   type TextKey,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import {
   craterTilesOf,
   strikesOnFiring,
@@ -15,12 +15,12 @@ import {
   type MatchEvent,
   type MatchState,
   type Phase,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { countdownBeat, showsClock } from './clock.js';
 import { Controls, inputMode, maySwitchTower, placeableCannons, readyCannons } from './controls.js';
 import { cannonImg, placeIconPx, placeIconsHtml, switchHintHtml } from './towerIcons.js';
-import { variantCost, variantKind } from '@bollwerk/config';
+import { variantCost, variantKind } from '@bollfort/config';
 import { bannersFor, type LifeLost, type PointsGained } from './banners.js';
 import { matchPalette, playerCssColour, useMatchPalette } from './colours.js';
 import { matchShapes, playerShape, useMatchShapes } from './shapes.js';
@@ -117,7 +117,7 @@ export async function runSession(
   await shownOnScreen();
 
   const scene = new Scene();
-  if (perf.enabled) Object.assign(globalThis, { bollwerkScene: scene });
+  if (perf.enabled) Object.assign(globalThis, { bollfortScene: scene });
   // Colours for this match: families by team in a team match, distinct otherwise. The
   // HUD takes the shared ramps, and each look its own style's restyling of them.
   const art = defaultConfigBundle.art;

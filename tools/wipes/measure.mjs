@@ -6,7 +6,7 @@
 // there. Playwright is not a dependency of the repository; run it beside an install of the
 // version whose browser is cached (see tools/screenshots.sh):
 //
-//   npm run dev -w @bollwerk/client                  # in another terminal
+//   npm run dev -w @bollfort/client                  # in another terminal
 //   mkdir -p /tmp/pw && cd /tmp/pw && npm init -y && npm i playwright@1.63.0
 //   cp tools/wipes/measure.mjs /tmp/pw/ && cd /tmp/pw
 //   SEEDED=1 HEADED=1 W=2560 H=1440 node measure.mjs new 'buildStyle=random&combatStyle=random&speed=2' 90
@@ -73,7 +73,7 @@ await page.addInitScript(() => {
   }).observe({ type: 'longtask', buffered: true });
   let wrapped = false;
   const wrap = () => {
-    const scene = globalThis.bollwerkScene;
+    const scene = globalThis.bollfortScene;
     if (!scene || wrapped) return;
     wrapped = true;
     for (const name of ['drawEffects', 'render', 'prime', 'showLooks']) {

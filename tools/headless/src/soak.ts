@@ -18,7 +18,7 @@ import {
   parseStatsCsv,
   type MatchOutcome,
   type StatRow,
-} from '@bollwerk/analysis';
+} from '@bollfort/analysis';
 
 import { repoRoot, usageError, wholeNumber } from './cli.js';
 import { chunkArgs, chunksOf, soakPlan, type Batch, type Chunk } from './soakPlan.js';

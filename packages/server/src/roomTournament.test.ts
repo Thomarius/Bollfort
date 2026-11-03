@@ -1,5 +1,5 @@
-import { defaultConfigBundle, type Personality } from '@bollwerk/config';
-import type { RecordingLine, ServerMessage, TournamentTable } from '@bollwerk/protocol';
+import { defaultConfigBundle, type Personality } from '@bollfort/config';
+import type { RecordingLine, ServerMessage, TournamentTable } from '@bollfort/protocol';
 import { describe, expect, it } from 'vitest';
 
 import { Room, type Connection } from './room.js';

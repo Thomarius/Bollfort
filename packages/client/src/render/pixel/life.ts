@@ -1,4 +1,4 @@
-import { Structure, type MatchState } from '@bollwerk/sim';
+import { Structure, type MatchState } from '@bollfort/sim';
 
 /**
  * Where the pixel style's life on the board goes, as pure functions of the board so they

@@ -1,4 +1,4 @@
-import { Structure, type Phase } from '@bollwerk/sim';
+import { Structure, type Phase } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { t } from './i18n.js';

@@ -1,5 +1,5 @@
-import { hashMatchState, step, type Action } from '@bollwerk/sim';
-import { replayRecording, type RecordingLine } from '@bollwerk/protocol';
+import { hashMatchState, step, type Action } from '@bollfort/sim';
+import { replayRecording, type RecordingLine } from '@bollfort/protocol';
 import { describe, expect, it } from 'vitest';
 
 import { LocalMatch } from './localMatch.js';

@@ -1,5 +1,5 @@
-import type { ArtConfig } from '@bollwerk/config';
-import { Terrain, type MatchState } from '@bollwerk/sim';
+import type { ArtConfig } from '@bollfort/config';
+import { Terrain, type MatchState } from '@bollfort/sim';
 
 import { inFinalRound } from '../scores.js';
 import { timerSpot, type TimerSpot } from '../timerSpot.js';

@@ -1,4 +1,4 @@
-import { defaultArtConfig, type SpecialKind, type TextKey } from '@bollwerk/config';
+import { defaultArtConfig, type SpecialKind, type TextKey } from '@bollfort/config';
 import {
   Structure,
   Terrain,
@@ -7,7 +7,7 @@ import {
   type Castle,
   type EnclosureResult,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { escape } from './html.js';
 import { t } from './i18n.js';
@@ -1374,7 +1374,7 @@ export function howToSectionFor(state: Pick<MatchState, 'phase' | 'pendingPhase'
 
 // ----------------------------------------------------------------------- overlay
 
-const SEEN_KEY = 'bollwerk.howToPlaySeen';
+const SEEN_KEY = 'bollfort.howToPlaySeen';
 
 /** Whether the pages have ever been opened here: until then the menu's button stands out. */
 export function howToPlaySeen(): boolean {

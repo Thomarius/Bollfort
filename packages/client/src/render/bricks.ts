@@ -1,5 +1,5 @@
-import type { ArtConfig, BricksStyleConfig } from '@bollwerk/config';
-import { Structure, Terrain, type Cannon, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, BricksStyleConfig } from '@bollfort/config';
+import { Structure, Terrain, type Cannon, type MatchState, type Shot } from '@bollfort/sim';
 import {
   FillPattern,
   Graphics,

@@ -1,4 +1,4 @@
-import { streamFor, type MatchState } from '@bollwerk/sim';
+import { streamFor, type MatchState } from '@bollfort/sim';
 
 import { ordinal, t } from './i18n.js';
 import { standings } from './scores.js';

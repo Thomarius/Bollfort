@@ -1,4 +1,4 @@
-import { defaultAudioManifest, type AudioManifest } from '@bollwerk/config';
+import { defaultAudioManifest, type AudioManifest } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { creditsHtml, trackStyle } from './credits.js';

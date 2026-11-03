@@ -1,4 +1,4 @@
-import { defaultArtConfig, type ArtConfig } from '@bollwerk/config';
+import { defaultArtConfig, type ArtConfig } from '@bollfort/config';
 
 import { formatNumber, onLanguageChange, t } from './i18n.js';
 

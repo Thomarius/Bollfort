@@ -1,6 +1,6 @@
-import { defaultConfigBundle } from '@bollwerk/config';
-import { captureSnapshot } from '@bollwerk/protocol';
-import { createMatch, hashMatchState, step, type MatchState } from '@bollwerk/sim';
+import { defaultConfigBundle } from '@bollfort/config';
+import { captureSnapshot } from '@bollfort/protocol';
+import { createMatch, hashMatchState, step, type MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import type { ServerConnection } from './connection.js';

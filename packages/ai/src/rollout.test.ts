@@ -5,8 +5,8 @@ import {
   defaultRuleset,
   defaultTerrainConfig,
   type BotSetup,
-} from '@bollwerk/config';
-import { Rng, applyAction, createMatch, drainEvents, step, type RoundResult } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { Rng, applyAction, createMatch, drainEvents, step, type RoundResult } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { Bot } from './bot.js';

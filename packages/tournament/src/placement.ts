@@ -1,4 +1,4 @@
-import { teamScore, type MatchState, type Rng } from '@bollwerk/sim';
+import { teamScore, type MatchState, type Rng } from '@bollfort/sim';
 
 /** One team's place in a finished match, by the match's own team number. */
 export interface Placing {

@@ -1,10 +1,10 @@
-import type { ConfigBundle } from '@bollwerk/config';
+import type { ConfigBundle } from '@bollfort/config';
 import {
   replayRecording,
   setupOfRecorded,
   type RecordingLine,
   type ReplayResult,
-} from '@bollwerk/protocol';
+} from '@bollfort/protocol';
 
 import { RoundStats, type StatRow, type Tier } from './stats.js';
 

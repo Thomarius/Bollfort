@@ -1,4 +1,4 @@
-import { defaultRuleset, type Ruleset } from '@bollwerk/config';
+import { defaultRuleset, type Ruleset } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { drainEvents, step } from './match.js';

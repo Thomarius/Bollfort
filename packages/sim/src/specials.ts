@@ -6,7 +6,7 @@ import {
   type Ruleset,
   type TowerCost,
   type TowerVariant,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 
 import { thawTiles } from './frost.js';
 import type { Rejection } from './placement.js';

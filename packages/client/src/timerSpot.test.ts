@@ -1,5 +1,5 @@
-import { createMatch, stateFromAscii } from '@bollwerk/sim';
-import { defaultRuleset, defaultTerrainConfig } from '@bollwerk/config';
+import { createMatch, stateFromAscii } from '@bollfort/sim';
+import { defaultRuleset, defaultTerrainConfig } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { timerSpot } from './timerSpot.js';

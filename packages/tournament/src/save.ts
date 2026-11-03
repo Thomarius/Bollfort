@@ -1,4 +1,4 @@
-import { LevelSchema, PersonalitySchema, TowerVariantSchema } from '@bollwerk/config';
+import { LevelSchema, PersonalitySchema, TowerVariantSchema } from '@bollfort/config';
 import { z } from 'zod';
 
 import { TournamentSettingsSchema } from './settings.js';

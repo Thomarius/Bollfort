@@ -1,4 +1,4 @@
-import { type AiConfig } from '@bollwerk/config';
+import { type AiConfig } from '@bollfort/config';
 
 /**
  * The plans a table's bots may make on one tick, shared between them.

@@ -1,4 +1,4 @@
-import { parseSave, type Save } from '@bollwerk/tournament';
+import { parseSave, type Save } from '@bollfort/tournament';
 
 /**
  * Tournaments saved on this computer (TOURNAMENT §1.1), in the browser's local storage —
@@ -7,7 +7,7 @@ import { parseSave, type Save } from '@bollwerk/tournament';
  * closed mid-write leaves the old save or the new, never half of one.
  */
 
-const PREFIX = 'bollwerk.tournament.';
+const PREFIX = 'bollfort.tournament.';
 
 /** A tournament found in storage: readable, or of another version, or damaged. */
 export type SavedTournament =

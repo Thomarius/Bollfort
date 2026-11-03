@@ -4,7 +4,7 @@ import {
   type AudioManifest,
   type MusicTrack,
   type SfxCue,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import { store, stored } from './storage.js';
 
 /**
@@ -41,7 +41,7 @@ import { store, stored } from './storage.js';
 /** How long one music track takes to give way to the next. */
 const CROSSFADE_MS = 600;
 
-const MUTE_KEY = 'bollwerk.muted';
+const MUTE_KEY = 'bollfort.muted';
 
 /**
  * The two volumes a player sets in the menu (PLAN 11.18 Y4), music and sounds, each from
@@ -51,8 +51,8 @@ const MUTE_KEY = 'bollwerk.muted';
 export type VolumeKind = 'music' | 'sounds';
 
 const VOLUME_KEY: Record<VolumeKind, string> = {
-  music: 'bollwerk.volume.music',
-  sounds: 'bollwerk.volume.sounds',
+  music: 'bollfort.volume.music',
+  sounds: 'bollfort.volume.sounds',
 };
 
 /** A stored volume, read back: full when nothing is stored or what is stored is not one. */

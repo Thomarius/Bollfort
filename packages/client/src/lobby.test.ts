@@ -1,4 +1,4 @@
-import type { Seat } from '@bollwerk/protocol';
+import type { Seat } from '@bollfort/protocol';
 import { describe, expect, it } from 'vitest';
 
 import { addedSeats, lobbyMarkup, nudgedSettings, type LobbyView } from './lobby.js';

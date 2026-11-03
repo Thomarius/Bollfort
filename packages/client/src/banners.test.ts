@@ -1,4 +1,4 @@
-import type { MatchState } from '@bollwerk/sim';
+import type { MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { bannersFor, countedSoFar, type LifeLost } from './banners.js';

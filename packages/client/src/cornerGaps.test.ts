@@ -1,4 +1,4 @@
-import { Structure, computeEnclosure, stateFromAscii } from '@bollwerk/sim';
+import { Structure, computeEnclosure, stateFromAscii } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { cornerGaps } from './cornerGaps.js';

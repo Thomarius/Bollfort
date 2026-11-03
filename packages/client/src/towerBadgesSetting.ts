@@ -9,7 +9,7 @@ import { store, stored } from './storage.js';
  */
 export type TowerBadgesSetting = 'next' | 'all';
 
-const KEY = 'bollwerk.towerBadges';
+const KEY = 'bollfort.towerBadges';
 
 export const TOWER_BADGES_SETTINGS: readonly TowerBadgesSetting[] = ['next', 'all'];
 

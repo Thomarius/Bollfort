@@ -1,5 +1,5 @@
-import { computeEnclosure, type MatchState, type Phase } from '@bollwerk/sim';
-import { defaultArtConfig } from '@bollwerk/config';
+import { computeEnclosure, type MatchState, type Phase } from '@bollfort/sim';
+import { defaultArtConfig } from '@bollfort/config';
 
 import { t } from './i18n.js';
 import { clanOf, heroHair } from './render/anime/clans.js';

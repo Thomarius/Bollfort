@@ -1,5 +1,5 @@
-import { defaultConfigBundle, offeredVariants, TOWER_VARIANTS } from '@bollwerk/config';
-import { TournamentTableSchema } from '@bollwerk/protocol';
+import { defaultConfigBundle, offeredVariants, TOWER_VARIANTS } from '@bollfort/config';
+import { TournamentTableSchema } from '@bollfort/protocol';
 import {
   HOST_TEAM,
   Progress,
@@ -7,7 +7,7 @@ import {
   matchTable,
   type Save,
   type TournamentSettings,
-} from '@bollwerk/tournament';
+} from '@bollfort/tournament';
 import { describe, expect, it } from 'vitest';
 
 import { roomTable } from './tournamentRoom.js';

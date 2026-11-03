@@ -1,5 +1,5 @@
 {
-  "name": "@bollwerk/headless",
+  "name": "@bollfort/headless",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,11 +8,11 @@
     "start": "tsx src/main.ts"
   },
   "dependencies": {
-    "@bollwerk/ai": "*",
-    "@bollwerk/analysis": "*",
-    "@bollwerk/config": "*",
-    "@bollwerk/protocol": "*",
-    "@bollwerk/sim": "*",
-    "@bollwerk/tournament": "*"
+    "@bollfort/ai": "*",
+    "@bollfort/analysis": "*",
+    "@bollfort/config": "*",
+    "@bollfort/protocol": "*",
+    "@bollfort/sim": "*",
+    "@bollfort/tournament": "*"
   }
 }

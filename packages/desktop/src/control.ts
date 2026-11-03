@@ -1,4 +1,4 @@
-import type { InternetStatus, RunningServer, StartResult } from '@bollwerk/server';
+import type { InternetStatus, RunningServer, StartResult } from '@bollfort/server';
 
 import type { Tunnel, TunnelStatus } from './tunnel.js';
 

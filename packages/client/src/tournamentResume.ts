@@ -1,4 +1,4 @@
-import { Progress } from '@bollwerk/tournament';
+import { Progress } from '@bollfort/tournament';
 
 import { escape } from './html.js';
 import { withIcon } from './icons.js';

@@ -4,7 +4,7 @@ import {
   Structure,
   computeEnclosure,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 /**
  * Corner gaps: the leaks a player cannot see. The escape flood is 8-connected while a wall

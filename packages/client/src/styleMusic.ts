@@ -1,4 +1,4 @@
-import type { ArtStyle } from '@bollwerk/config';
+import type { ArtStyle } from '@bollfort/config';
 
 /**
  * Whether a style's own track plays as its look starts (ARCHIVE 14za).

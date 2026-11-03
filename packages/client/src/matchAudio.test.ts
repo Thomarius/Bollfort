@@ -1,5 +1,5 @@
-import type { ArtStyle, MusicTrack, SfxCue } from '@bollwerk/config';
-import type { MatchEvent, MatchState, Phase } from '@bollwerk/sim';
+import type { ArtStyle, MusicTrack, SfxCue } from '@bollfort/config';
+import type { MatchEvent, MatchState, Phase } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { MatchAudio, type Cues } from './matchAudio.js';

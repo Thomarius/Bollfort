@@ -1,4 +1,4 @@
-import { Structure, Terrain, type MatchState } from '@bollwerk/sim';
+import { Structure, Terrain, type MatchState } from '@bollfort/sim';
 
 import { hash } from '../noise.js';
 

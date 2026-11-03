@@ -7,7 +7,7 @@ import {
   type BotTower,
   type SpecialKind,
   type TowerVariant,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 
 import { escape } from './html.js';
 import { language, t } from './i18n.js';
@@ -24,7 +24,7 @@ import { towerCostText, towerName, towerWhat, variantName } from './towers.js';
  * Where the menu remembers the cost last chosen, one for every tower: a cost remembered by
  * tower switched back as its card was clicked, which the users found confusing (2026-10-17).
  */
-const COST_KEY = 'bollwerk.towerCost';
+const COST_KEY = 'bollfort.towerCost';
 
 export function rememberedCost(): number | null {
   const cost = Number(stored(COST_KEY));

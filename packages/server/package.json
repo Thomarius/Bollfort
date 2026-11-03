@@ -1,5 +1,5 @@
 {
-  "name": "@bollwerk/server",
+  "name": "@bollfort/server",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,11 +14,11 @@
   },
   "dependencies": {
     "@achingbrain/nat-port-mapper": "^4.0.5",
-    "@bollwerk/ai": "*",
-    "@bollwerk/analysis": "*",
-    "@bollwerk/config": "*",
-    "@bollwerk/protocol": "*",
-    "@bollwerk/sim": "*",
+    "@bollfort/ai": "*",
+    "@bollfort/analysis": "*",
+    "@bollfort/config": "*",
+    "@bollfort/protocol": "*",
+    "@bollfort/sim": "*",
     "ws": "^8.21.3"
   },
   "devDependencies": {

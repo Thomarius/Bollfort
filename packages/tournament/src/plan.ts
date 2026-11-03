@@ -1,4 +1,4 @@
-import type { Rng } from '@bollwerk/sim';
+import type { Rng } from '@bollfort/sim';
 
 import type { LoserRound } from './save.js';
 

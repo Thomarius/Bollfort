@@ -1,7 +1,7 @@
 import { playerShape, shapeSvg } from './shapes.js';
 import type { BannerKind } from './banners.js';
 import { t } from './i18n.js';
-import { type PlayerShape } from '@bollwerk/config';
+import { type PlayerShape } from '@bollfort/config';
 
 /**
  * What the HUD stands over the board, kept across frames rather than rebuilt so its

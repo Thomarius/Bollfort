@@ -1,4 +1,4 @@
-import type { MatchOutcome, StatRow } from '@bollwerk/analysis';
+import type { MatchOutcome, StatRow } from '@bollfort/analysis';
 
 /**
  * A soak's summary (ARCHIVE 12h): the measures of PLAN 11.2–11.4 and 11.13, from the

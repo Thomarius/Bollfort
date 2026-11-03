@@ -1,4 +1,4 @@
-import type { MatchEvent, MatchState } from '@bollwerk/sim';
+import type { MatchEvent, MatchState } from '@bollfort/sim';
 
 /**
  * What the end of a match shows beside the final standings: for each player the wall

@@ -1,4 +1,4 @@
-import { PlayerShapeSchema, defaultArtConfig } from '@bollwerk/config';
+import { PlayerShapeSchema, defaultArtConfig } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { SHAPE_PATHS, matchShapes, shapeSvg } from './shapes.js';

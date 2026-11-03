@@ -8,7 +8,7 @@ import {
   type Language,
   type LocaleText,
   type TextKey,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import { store, stored } from './storage.js';
 
 /*
@@ -47,7 +47,7 @@ export function setLanguage(next: Language): void {
 export { detectLanguage, isLanguage };
 
 /** Where the menu remembers the choice, as it does the looks and the name. */
-const LANGUAGE_KEY = 'bollwerk.language';
+const LANGUAGE_KEY = 'bollfort.language';
 
 export function saveLanguage(language: Language): void {
   store(LANGUAGE_KEY, language);

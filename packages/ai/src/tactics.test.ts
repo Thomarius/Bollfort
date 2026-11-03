@@ -1,4 +1,4 @@
-import { defaultRuleset, defaultTerrainConfig } from '@bollwerk/config';
+import { defaultRuleset, defaultTerrainConfig } from '@bollfort/config';
 import {
   Structure,
   applyAction,
@@ -11,7 +11,7 @@ import {
   holdingOf,
   stateFromAscii,
   type MatchState,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import {

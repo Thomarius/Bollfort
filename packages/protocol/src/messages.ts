@@ -5,7 +5,7 @@ import {
   PersonalitySchema,
   SettingBoundsSchema,
   TowerVariantSchema,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import { z } from 'zod';
 
 import { SnapshotSchema } from './snapshot.js';

@@ -1,5 +1,5 @@
-import { artForStyle, defaultArtConfig, type ArtStyle } from '@bollwerk/config';
-import { computeEnclosure, Structure, type MatchState, type Shot } from '@bollwerk/sim';
+import { artForStyle, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { computeEnclosure, Structure, type MatchState, type Shot } from '@bollfort/sim';
 
 import { motionReduced } from './motion.js';
 import { createTheme, Scene, type SceneLook } from './render/scene.js';

@@ -1,4 +1,4 @@
-import type { ArtConfig, PlayerPalette, PlayerShape, TerrainConfig } from '@bollwerk/config';
+import type { ArtConfig, PlayerPalette, PlayerShape, TerrainConfig } from '@bollfort/config';
 import {
   Terrain,
   denseTeams,
@@ -6,7 +6,7 @@ import {
   seatOrder,
   tableTeamSize,
   type GeneratedTerrain,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import { matchPalette } from './colours.js';
 import { drawShape, matchShapes } from './shapes.js';

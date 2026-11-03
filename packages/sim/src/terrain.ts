@@ -1,4 +1,4 @@
-import type { IslandPattern, PatternKind, TerrainConfig } from '@bollwerk/config';
+import type { IslandPattern, PatternKind, TerrainConfig } from '@bollfort/config';
 
 import { fbm2D } from './noise.js';
 import { isqrt } from './math.js';

@@ -1,5 +1,5 @@
-import type { TournamentConfig, TowerVariant } from '@bollwerk/config';
-import { streamFor } from '@bollwerk/sim';
+import type { TournamentConfig, TowerVariant } from '@bollfort/config';
+import { streamFor } from '@bollfort/sim';
 
 import { drawLeague, knockoutSizes, loserRounds, product } from './plan.js';
 import { settle } from './progress.js';

@@ -18,7 +18,7 @@ export default defineConfig({
    */
   publicDir: resolve(repoRoot, 'assets'),
   server: {
-    // @bollwerk/config imports the JSON files in the repository-root config/ directory.
+    // @bollfort/config imports the JSON files in the repository-root config/ directory.
     fs: { allow: [repoRoot] },
   },
   // The bots' worker (`src/bots/botWorker.ts`) imports modules, as the page does.

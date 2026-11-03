@@ -8,8 +8,8 @@ import {
   MAX_LEVEL,
   MIN_LEVEL,
   offeredVariants,
-} from '@bollwerk/config';
-import { PHASES, type Phase } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { PHASES, type Phase } from '@bollfort/sim';
 
 import { t } from './i18n.js';
 import { app, showError, params } from './app.js';
@@ -29,14 +29,14 @@ import { showMenu, tournamentExits } from './menu.js';
 import { openNewTournament, openResumeList } from './tournamentMenu.js';
 import { writeTournament } from './tournamentSaves.js';
 import { TOURNAMENT_LIMITS } from './tournamentSetup.js';
-import { createTournament } from '@bollwerk/tournament';
+import { createTournament } from '@bollfort/tournament';
 import { openLobby } from './lobbyFlow.js';
 import { runSession } from './matchScreen.js';
 import { showLoading } from './loading.js';
 import { installDemo, startDemo } from './demo.js';
 
 /**
- * Bollwerk client.
+ * Bollfort client.
  *
  * A match is played either locally against bots or against an authoritative server.
  * Both drive the same renderer, controls and HUD through one session interface, so the

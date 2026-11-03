@@ -4,7 +4,7 @@ import { AUDIO_LICENCES, audioCredits, type AudioManifest, type CreditedFile } f
 
 /**
  * The game's attribution, said once and shown in the menu, the Credits, the desktop app
- * and `CREDITS.md`. Bollwerk takes its rules from Rampart and nothing else — no code,
+ * and `CREDITS.md`. Bollfort takes its rules from Rampart and nothing else — no code,
  * graphics or sound — and must never read as the original or as endorsed by its owner.
  * The English texts, from the English locale: the game shows them in the player's language
  * (`credits.inspiredBy`, `credits.disclaimer`), `CREDITS.md` always in English.
@@ -38,7 +38,7 @@ export function creditsMarkdown(audio: AudioManifest): string {
   return [
     '# Credits',
     '',
-    DISCLAIMER.replace(/Bollwerk/, '_Bollwerk_').replace(/Rampart/g, '_Rampart_'),
+    DISCLAIMER.replace(/Bollfort/, '_Bollfort_').replace(/Rampart/g, '_Rampart_'),
     '',
     'The code is under the MIT licence.',
     '',

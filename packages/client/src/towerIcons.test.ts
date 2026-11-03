@@ -1,4 +1,4 @@
-import { defaultArtConfig } from '@bollwerk/config';
+import { defaultArtConfig } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { ICON_ANGLE, iconFrame } from './render/theme.js';

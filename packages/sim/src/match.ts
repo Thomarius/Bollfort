@@ -3,7 +3,7 @@ import {
   type Ruleset,
   type TerrainConfig,
   type TowerVariant,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 
 import { applyEnclosure } from './enclosure.js';
 import { heldPoints, holdingsOf, type Holding } from './scoring.js';

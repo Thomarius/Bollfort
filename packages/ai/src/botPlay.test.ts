@@ -1,5 +1,5 @@
-import { defaultRuleset, defaultTerrainConfig } from '@bollwerk/config';
-import { Rng, applyAction, createMatch, drainEvents, step } from '@bollwerk/sim';
+import { defaultRuleset, defaultTerrainConfig } from '@bollfort/config';
+import { Rng, applyAction, createMatch, drainEvents, step } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { bot, sealedByOracle, type Difficulty } from './testing.js';

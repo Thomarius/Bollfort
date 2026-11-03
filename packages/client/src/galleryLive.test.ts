@@ -1,4 +1,4 @@
-import { Structure, Terrain } from '@bollwerk/sim';
+import { Structure, Terrain } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { liveShot } from './galleryLive.js';

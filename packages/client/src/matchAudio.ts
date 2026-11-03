@@ -5,8 +5,8 @@ import {
   type MusicCue,
   type MusicTrack,
   type SfxCue,
-} from '@bollwerk/config';
-import type { MatchEvent, MatchState, Phase } from '@bollwerk/sim';
+} from '@bollfort/config';
+import type { MatchEvent, MatchState, Phase } from '@bollfort/sim';
 
 import { COUNTDOWN_FROM, countdownGain, showsClock } from './clock.js';
 import { chooseStyleTrack, type StylePauses, type StyleTrackRules } from './styleMusic.js';

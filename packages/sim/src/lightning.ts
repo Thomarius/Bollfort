@@ -1,4 +1,4 @@
-import { variantConfig, variantOf, type LightningVariant, type TowerCost } from '@bollwerk/config';
+import { variantConfig, variantOf, type LightningVariant, type TowerCost } from '@bollfort/config';
 
 import { streamFor } from './rng.js';
 import { strikable, strikeWall } from './shots.js';

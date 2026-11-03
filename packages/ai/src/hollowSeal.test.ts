@@ -1,5 +1,5 @@
-import { BALANCED, defaultAiConfig } from '@bollwerk/config';
-import { Rng, applyEnclosure, stateFromAscii, type MatchState } from '@bollwerk/sim';
+import { BALANCED, defaultAiConfig } from '@bollfort/config';
+import { Rng, applyEnclosure, stateFromAscii, type MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { Bot } from './bot.js';

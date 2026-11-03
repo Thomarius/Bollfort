@@ -1,4 +1,4 @@
-import type { TeamLayout, TerrainConfig } from '@bollwerk/config';
+import type { TeamLayout, TerrainConfig } from '@bollfort/config';
 
 import { streamFor } from './rng.js';
 import { patternFor } from './terrain.js';

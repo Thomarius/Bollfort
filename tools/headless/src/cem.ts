@@ -11,8 +11,8 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 
-import { FIT_FEATURES, type FitFeature, type FitWeights } from '@bollwerk/config';
-import { Rng } from '@bollwerk/sim';
+import { FIT_FEATURES, type FitFeature, type FitWeights } from '@bollfort/config';
+import { Rng } from '@bollfort/sim';
 
 import { type FitResult } from './fitEval.js';
 

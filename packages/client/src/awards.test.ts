@@ -1,5 +1,5 @@
-import { defaultRuleset } from '@bollwerk/config';
-import type { MatchState } from '@bollwerk/sim';
+import { defaultRuleset } from '@bollfort/config';
+import type { MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { awardCandidates, drawAwards, type Award } from './awards.js';

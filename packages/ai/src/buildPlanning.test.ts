@@ -4,8 +4,8 @@ import {
   defaultAiConfig,
   defaultRuleset,
   defaultTerrainConfig,
-} from '@bollwerk/config';
-import { Rng, applyAction, canPlacePiece, createMatch, drainEvents, step } from '@bollwerk/sim';
+} from '@bollfort/config';
+import { Rng, applyAction, canPlacePiece, createMatch, drainEvents, step } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { Bot } from './bot.js';

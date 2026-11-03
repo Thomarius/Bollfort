@@ -1,5 +1,5 @@
-import { TOWER_VARIANTS, type TowerVariant } from '@bollwerk/config';
-import { Structure, type MatchEvent } from '@bollwerk/sim';
+import { TOWER_VARIANTS, type TowerVariant } from '@bollfort/config';
+import { Structure, type MatchEvent } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { TowerShow } from './towerShow.js';

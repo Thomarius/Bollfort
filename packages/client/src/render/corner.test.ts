@@ -1,5 +1,5 @@
-import { defaultArtConfig, type ArtConfig } from '@bollwerk/config';
-import { stateFromAscii, type MatchState } from '@bollwerk/sim';
+import { defaultArtConfig, type ArtConfig } from '@bollfort/config';
+import { stateFromAscii, type MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { climax, climaxLevel, hurry, pressing } from './corner.js';

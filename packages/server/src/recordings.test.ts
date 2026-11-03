@@ -2,10 +2,10 @@ import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { dealPersonalities } from '@bollwerk/ai';
-import { defaultConfigBundle } from '@bollwerk/config';
-import { parseRecording, replayRecording, type RecordingLine } from '@bollwerk/protocol';
-import { hashMatchState } from '@bollwerk/sim';
+import { dealPersonalities } from '@bollfort/ai';
+import { defaultConfigBundle } from '@bollfort/config';
+import { parseRecording, replayRecording, type RecordingLine } from '@bollfort/protocol';
+import { hashMatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { Room, type Connection } from './room.js';
@@ -350,7 +350,7 @@ describe('the personalities a room deals', () => {
 
 describe('the code version', () => {
   it('is what the image was built with, when it says', () => {
-    expect(codeVersion('/nonexistent', { BOLLWERK_COMMIT: ' 0123abcd ' })).toBe('0123abcd');
+    expect(codeVersion('/nonexistent', { BOLLFORT_COMMIT: ' 0123abcd ' })).toBe('0123abcd');
   });
 
   it('is unknown rather than an error where there is no repository to ask', () => {

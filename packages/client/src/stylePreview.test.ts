@@ -1,4 +1,4 @@
-import { computeEnclosure } from '@bollwerk/sim';
+import { computeEnclosure } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { roseSpot } from './render/corner.js';

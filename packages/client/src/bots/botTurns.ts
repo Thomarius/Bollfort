@@ -1,5 +1,5 @@
-import { turnOrder, type Bot } from '@bollwerk/ai';
-import { applyAction, type Action, type MatchState, type Rng } from '@bollwerk/sim';
+import { turnOrder, type Bot } from '@bollfort/ai';
+import { applyAction, type Action, type MatchState, type Rng } from '@bollfort/sim';
 
 /** The turns a call took, and where the tick's next one is, or null once all are taken. */
 export interface TurnsTaken {

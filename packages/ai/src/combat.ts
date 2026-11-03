@@ -6,7 +6,7 @@ import {
   type LullabyVariant,
   type LightningVariant,
   type TowerCost,
-} from '@bollwerk/config';
+} from '@bollfort/config';
 import {
   Structure,
   Terrain,
@@ -28,7 +28,7 @@ import {
   type Holding,
   type MatchState,
   type Rng,
-} from '@bollwerk/sim';
+} from '@bollfort/sim';
 
 import type { IslandCentres } from './botTurn.js';
 import { rivalsOf, ticksFor } from './botTurn.js';

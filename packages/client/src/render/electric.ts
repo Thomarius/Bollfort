@@ -1,5 +1,5 @@
-import type { ArtConfig, ElectricStyleConfig } from '@bollwerk/config';
-import { Structure, type Castle, type MatchState, type Shot } from '@bollwerk/sim';
+import type { ArtConfig, ElectricStyleConfig } from '@bollfort/config';
+import { Structure, type Castle, type MatchState, type Shot } from '@bollfort/sim';
 import { type Container, Graphics } from 'pixi.js';
 
 import { motionReduced } from '../motion.js';

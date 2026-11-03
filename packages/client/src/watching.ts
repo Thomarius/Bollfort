@@ -1,5 +1,5 @@
 import { isTeamMatch } from './scores.js';
-import type { MatchState } from '@bollwerk/sim';
+import type { MatchState } from '@bollfort/sim';
 import { onLanguageChange, t } from './i18n.js';
 
 /**

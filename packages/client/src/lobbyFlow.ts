@@ -8,10 +8,10 @@ import {
   type MatchSettings,
   type TowerVariant,
   type Table,
-} from '@bollwerk/config';
-import { botTowerOf, drawnSpecial } from '@bollwerk/ai';
-import { type ServerMessage } from '@bollwerk/protocol';
-import { Progress, parseSave, type Save } from '@bollwerk/tournament';
+} from '@bollfort/config';
+import { botTowerOf, drawnSpecial } from '@bollfort/ai';
+import { type ServerMessage } from '@bollfort/protocol';
+import { Progress, parseSave, type Save } from '@bollfort/tournament';
 
 import { addedSeats, lobbyMarkup, nudgedSettings, type LobbyTab, type LobbyView } from './lobby.js';
 import { enhanceChoices } from './choices.js';
@@ -46,7 +46,7 @@ import { saveTable, storedTable, type RememberedTable } from './tableMemory.js';
 
 /** The lobby, one screen whether a server holds the table or the browser does. */
 
-const TOKEN_KEY = 'bollwerk.seat';
+const TOKEN_KEY = 'bollfort.seat';
 
 /** How long to wait for a server before setting the table locally instead. */
 const SERVER_WAIT_MS = 2000;

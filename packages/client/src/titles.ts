@@ -1,5 +1,5 @@
-import { artForStyle, type ArtConfig, type ArtStyle } from '@bollwerk/config';
-import { Rng } from '@bollwerk/sim';
+import { artForStyle, type ArtConfig, type ArtStyle } from '@bollfort/config';
+import { Rng } from '@bollfort/sim';
 
 import { Pixels } from './render/pixel/canvas.js';
 import { hatch } from './render/walls.js';
@@ -19,14 +19,13 @@ const GLYPHS: Record<string, readonly string[]> = {
   B: ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
   O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
   L: ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
-  W: ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '##.##', '#...#'],
-  E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
+  F: ['#####', '#....', '#....', '####.', '#....', '#....', '#....'],
   R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
-  K: ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'],
+  T: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
 };
 
 /** The game's name, as the menu's title spells it. */
-export const GAME_TITLE = 'Bollwerk';
+export const GAME_TITLE = 'Bollfort';
 
 /**
  * A title as drawn: the image, and how its letters sit in it — canvas pixels per glyph

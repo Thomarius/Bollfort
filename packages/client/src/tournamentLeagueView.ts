@@ -1,4 +1,4 @@
-import { HOST_TEAM, type Progress, type Save } from '@bollwerk/tournament';
+import { HOST_TEAM, type Progress, type Save } from '@bollfort/tournament';
 
 import { escape } from './html.js';
 import { formatNumber, ordinal, t } from './i18n.js';

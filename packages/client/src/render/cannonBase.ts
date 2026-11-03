@@ -1,4 +1,4 @@
-import type { Cannon } from '@bollwerk/sim';
+import type { Cannon } from '@bollfort/sim';
 import type { Graphics } from 'pixi.js';
 
 import { tileX, tileY, type ViewTransform } from './theme.js';
