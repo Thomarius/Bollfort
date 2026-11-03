@@ -177,7 +177,7 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-11-01; the latest release **v0.9.31**, 2026-11-01, protocol 34, recording format 4,
+**Done** (2026-11-03; the latest release **v0.9.32**, 2026-11-03, protocol 35, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
 
 - **The host's Remove and Find a game** (ARCHIVE 15zj, 2026-11-03, STEAM.md K and B; protocol 35):

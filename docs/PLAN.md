@@ -1685,7 +1685,7 @@ every resolution against an independent search, not only on unit pictures.
 
 ## 11. Open work
 
-**Where to start (2026-11-01).** The latest release is **v0.9.31** (2026-11-01, protocol 34,
+**Where to start (2026-11-03).** The latest release is **v0.9.32** (2026-11-03, protocol 35,
 recording format 4). Item 3, the performance plan, is finished, its leftovers measured and the worthwhile ones built
 (ARCHIVE 14zc–14zi, 14zo). Item 4, the UI polish, is done (ARCHIVE 14zr–14zt), and item 5, the menus reviewed (ARCHIVE 15j) and the end screen after them (15k), both in v0.9.23; item 6, the demo, in v0.9.24, its score bar taken out in v0.9.25. Item 2, the special towers, is done: the Subwoofer built, every tower evened out and play-tested (ARCHIVE 15p, 15q, 15t), the team soaks dropped (15u). Next: the online session for item 5's online-only states. The styles' own music's chance is the player's choice in Options (ARCHIVE 14zn). Every feature up to v0.9.16 has been tested and approved by the users (2026-10-27).
 Up to **v0.8.3**: the game and online play, bots as skill levels and personalities, the styles
@@ -1732,7 +1732,8 @@ every match's stage fixed (15m). **v0.9.25** (15o): the demo without its score b
 (15u): Show the board pulled out to the whole map (15t). **v0.9.28** (15w): the Frost Cannon's
 and the Subwoofer's own signs on the cursor (15v). **v0.9.29** (15y): walls and the piece in
 hand readable in every look (15x). **v0.9.30** (15za): Hessian, a third language (15z). **v0.9.31** (15zg): the polish of item 7,
-its five packages (15zb–15zf).
+its five packages (15zb–15zf). **v0.9.32** (15zk): the game renamed Bollfort (15zh), and item 8's first
+packages: no recordings in packaged builds (15zi), the host's Remove and Find a game (15zj).
 
 Tournament mode is finished: its play-testing round, T8, closed with everything working
 (ARCHIVE 13m). The bots' planning is off the page's thread in local matches, measured and felt (ARCHIVE

@@ -11345,3 +11345,16 @@ Walked through on the real server with three browsers (Playwright, two contexts 
 the empty window, Ada's room listed, the Teams filter emptying it, Bo joining, Ada's Remove asking
 and removing, Bo's menu notice, and Bo's new tab refused. The Remove's hover text, cut off at the
 window's edge, opens leftwards. No recording was made.
+
+## 15zk. v0.9.32 (2026-11-03)
+
+Since v0.9.31: the game renamed **Bollfort** everywhere (15zh), its files now
+`Bollfort-<version>-windows.exe` and `…-linux.AppImage`; and PLAN §11 item 8's first packages
+needing no Steam — no recordings in packaged builds (15zi), and the host's Remove and the Find a
+game window (15zj). Protocol 35: a v0.9.31 page cannot join a v0.9.32 room, so every tester takes
+the new build. A tester's saved settings start afresh once, under the new name.
+
+Released ahead of the next feature package, the user's, so the releases page shows the new name:
+then every older release, all 46 named Bollwerk (v0.5.0 to v0.9.31), was deleted from GitHub with
+their files, the user's decision; their tags stay, as version marks in the history, which keeps
+the old name as this file does.
