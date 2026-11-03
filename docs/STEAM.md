@@ -1,11 +1,11 @@
 # Bollfort on Steam — the design and its packages
 
 **Decided** (2026-11-02, the user's, in three rounds of questions): Bollfort goes to Steam as a
-**free game**, after the first feature-ready version (PLAN §11 item 5). A small **supporter DLC**
-comes later, once the game works and people play it. The supporter DLC is only a way for people
-to give a small donation, not a store. The browser game, the portable builds on GitHub and the
-desktop app's link stay as they are, and Steam is one more way to play. This file is the design;
-once built, it is retired into the ARCHIVE, as `SPECIAL_TOWERS.md` will be.
+**free game**, after the first feature-ready version (PLAN §11 item 5): **the whole game, every
+style, free from the start** (2026-11-03, the user's, in place of a supporter DLC; §6). The
+browser game, the portable builds on GitHub and the desktop app's link stay as they are, and
+Steam is one more way to play. This file is the design; once built, it is retired into the
+ARCHIVE, as `SPECIAL_TOWERS.md` will be.
 
 What Valve's documentation says was checked against its live pages on 2026-11-02
 (partner.steamgames.com, `steamworks.js` on GitHub). Some long pages came back summarised rather
@@ -25,9 +25,9 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
   art. The "inspired by" line stays in the game's Credits, the README and the release notes, and
   is left off the Steam page. Similar paid games stand closer to the original; Bollfort's changes
   and additions are substantial.
-- **The supporter DLC**: Halloween and Christmas, their music, and a supporter's badge by the name.
-  Wallpapers perhaps, if they turn out to work. The price is decided later (€1.99 in mind). It
-  ships later than the game (§6).
+- **No DLC** (2026-11-03, the user's): the full game is free, all 24 styles with Halloween and
+  Christmas among them, as in every other build. A small paid DLC of new things may follow if the
+  game is received well; it is not planned (§6, §10).
 
 **Builds**
 
@@ -66,8 +66,7 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
   2027), and five live marks of the word in classes 9 and 41, make ours **Bollfort**, everywhere
   (2026-11-03, the user's). The search and the rename are package N (§9.1), before the store page.
 - **The capsules and logo** are composed from the game's own art, rendered by a tool. Pixel and
-  Medieval are tried first, as the most basic and iconic styles. The DLC's two styles never
-  appear in the store's art.
+  Medieval are tried first, as the most basic and iconic styles.
 - **Updates**: every `v*` tag uploads to a password-protected beta branch, and the user promotes
   it to the public branch by hand in Steamworks. There is no Steam Playtest; testers get keys for
   the beta branch.
@@ -81,12 +80,10 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 | **S1**  | The spike on App ID 480, two accounts, two machines     | 480         | yes           |
 | **S2**  | The Steam build: the flag, the binding, no launcher     | 480         | yes           |
 | **S3**  | Steam lobbies, invites, presence, names and avatars     | 480         | yes           |
-| **D1**  | Styles by entitlement: the DLC's two hidden, seasons    | no          | yes           |
 | **S4**  | The store: fee, store page, capsules, depots, release   | the app     | it is paying  |
 | **S5**  | The users' test on the beta branch, Deck review, launch | the app     | —             |
-| **D2**  | Later: the supporter DLC itself                         | the app     | —             |
 
-T, C and D1 need no Steam and can be built in any order, each tested in `npm run check`.
+T and C need no Steam and can be built in any order, each tested in `npm run check`.
 S1 comes before the fee is paid, and its answers decide S3's binding work.
 
 **Done** (2026-11-03): N, the name — Bollfort, the rename everywhere (ARCHIVE 15zh; the search
@@ -197,40 +194,16 @@ whichever the source, so the window, its filters and its tests do not know the s
 - In the server (`room.ts`), so every room has it; a protocol message, so a protocol bump (one
   with B). The server checks the sender is the host, as it owns identity.
 
-## 6. Styles by entitlement (D1, D2)
+## 6. No DLC at launch
 
-### 6.1 D1, at launch
+**Decided** (2026-11-03, the user's), replacing the plan of 2026-11-02: Bollfort goes to Steam whole
+and free, every style available, Halloween and Christmas included — the same game as the browser
+and the GitHub builds. Nothing is hidden, locked or seasonal, so the packages D1 (styles by
+entitlement, the two shown only in their seasons) and D2 (a supporter DLC with a badge) are
+dropped, and with them `availableStyles`, the seasons and the supporter's badge.
 
-- **One function decides which styles a page may show**: `availableStyles(build, owned, date)`.
-  It is pure and tested. In the browser game and the GitHub builds, it returns every style. In the
-  Steam build, it returns every style but Halloween and Christmas, plus each one that is owned or
-  in its season.
-- **The seasons**, by the player's own clock: **Halloween October 1–31**, **Christmas December 1
-  to January 6**. In its season a style is like any other: in the gallery, in Random, among the
-  favourites.
-- **Hidden before the DLC exists**: until D2, the two styles appear on Steam only in their
-  seasons. Nothing is shown locked, and nothing is taken away after launch.
-- **Everything that draws from the styles** asks the function: the gallery, Random every round,
-  the favourites, each window in the next look (`menuLook.ts`), the styles' music, the tower
-  preview, the end screen's and pause menu's looks, a `&style=` parameter, and a style saved in
-  prefs that is no longer available (it falls back to Random).
-- **The demo never shows the two**, in season or owned.
-
-### 6.2 D2, later
-
-- **The DLC** on Steam: a separate App ID with no Steam Direct fee _(to confirm)_. Valve's support
-  is asked first whether a supporter DLC is acceptable (nothing read forbids or names it).
-- **The gallery shows the two styles locked**, with a supporter badge and a button that opens the
-  DLC's store page in the overlay. Owned, they are like any other style all year.
-- **Ownership** via `isDlcInstalled` in the main process, passed to the page. It works offline,
-  since Steam caches licences _(to confirm)_.
-- **The supporter's badge**, a small heart by the name on the seat card, in the score bar and on
-  the end screen. Each player's app reports its own ownership, **unverified**: faking a badge harms
-  no one, and verifying it would need Steam's auth tickets. It travels with the seat, so it needs a
-  protocol field.
-- **Wallpapers**, if they work: renders of the 24 looks, made by the same tool as the capsules.
-- **The music**: Halloween's and Christmas's tracks are Pixabay's, licensed for use in a work, not
-  for sale alone. Inside a style they are part of the work. No soundtrack DLC.
+If the game is received well and the feedback is good, a small paid DLC may come later — of new
+things, never of what the free game has now. It is not planned, and nothing is built towards it.
 
 ## 7. Steam lobbies (T, S3)
 
@@ -421,7 +394,7 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   `npm run check` passes; the desktop app packaged and started on Windows shows the new name in
   its window, its control page and its data folder; and the user has approved the title in every
   look from screenshots.
-- **Before S4**, since the store page, the capsules and the DLC need it.
+- **Before S4**, since the store page and the capsules need it.
 
 ### 9.2 The store page (S4)
 
@@ -455,22 +428,21 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   - a tournament across matches;
   - Steam not running;
   - a controller through every window and a whole match;
-  - the Deck, if one is at hand;
-  - the seasons, by the system clock.
+  - the Deck, if one is at hand.
 - **Deck review** requested, then Coming Soon, then release.
 
 ## 10. Later, perhaps
 
-The supporter DLC (D2), once people play. Achievements. Steam Cloud for tournament saves. Quick
-match (still PLAN §12). The host handed to a guest when the host leaves. Joining a running
-match by taking over a bot's seat, so the browser could list games already under way (§4).
+A small paid DLC of new things, if the game is received well (§6); not planned. Achievements.
+Steam Cloud for tournament saves. Quick match (still PLAN §12). The host handed to a guest when
+the host leaves. Joining a running match by taking over a bot's seat, so the browser could list
+games already under way (§4).
 
 ## 11. Still to confirm on the live pages
 
-- Whether DLC costs a Steam Direct fee, and whether a supporter DLC is acceptable (Valve's support).
 - The revenue share in the Steam Distribution Agreement, and the German side of any income (a
-  Gewerbe, the Kleinunternehmer rule), before D2.
+  Gewerbe, the Kleinunternehmer rule) — only before a paid DLC, if one ever comes.
 - Whether Valve's relay is free, if the newer networking is needed.
 - Steam Input passing the pad through to the Gamepad API, and the Deck's minimum text size.
-- `ShowGamepadTextInput` and `isDlcInstalled` in the binding; licences cached offline.
+- `ShowGamepadTextInput` in the binding.
 - The rich presence localisation format.

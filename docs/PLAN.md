@@ -1862,14 +1862,14 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      felt on the desktop app, so last; measure the start before and after.
 
 8. **Steam — decided** (2026-11-02, the user's): Bollfort on Steam as a free game after item 5,
-   a supporter DLC later (Halloween and Christmas, locked on Steam only, free in their seasons, and
-   a badge). Lobbies of three types — Public, Friends, Invite only — with the host's app still the
-   server over Steam's peer-to-peer channel; one games browser with filters in every build; the
-   host's kick; no recordings in packaged builds; native controller support for the Steam Deck;
-   and a new name, since another BOLLWERK is planned for 2027 and the word is a live mark in
-   games' classes: **Bollfort**, everywhere (2026-11-03, STEAM.md §9.1). The decisions and the packages
-   are in [`STEAM.md`](./STEAM.md): N, R, K and B done (ARCHIVE 15zh–15zj); T, C, S1–S5,
-   D1 and D2 open.
+   the whole game and every style from the start, no DLC (2026-11-03, the user's; a small paid
+   DLC of new things perhaps later, if it is received well, not planned). Lobbies of three types —
+   Public, Friends, Invite only — with the host's app still the server over Steam's peer-to-peer
+   channel; one games browser with filters in every build; the host's kick; no recordings in
+   packaged builds; native controller support for the Steam Deck; and a new name, since another
+   BOLLWERK is planned for 2027 and the word is a live mark in games' classes: **Bollfort**,
+   everywhere (2026-11-03, STEAM.md §9.1). The decisions and the packages are in
+   [`STEAM.md`](./STEAM.md): N, R, K and B done (ARCHIVE 15zh–15zj); T, C and S1–S5 open.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
