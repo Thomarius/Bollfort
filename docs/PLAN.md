@@ -1864,7 +1864,8 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    a badge). Lobbies of three types — Public, Friends, Invite only — with the host's app still the
    server over Steam's peer-to-peer channel; one games browser with filters in every build; the
    host's kick; no recordings in packaged builds; native controller support for the Steam Deck;
-   and a name check, since another BOLLWERK is planned for 2027. The decisions and the packages
+   and a new name, since another BOLLWERK is planned for 2027 and the word is a live mark in
+   games' classes: **Bollfort**, everywhere (2026-11-03, STEAM.md §9.1). The decisions and the packages
    (N, R, K, B, T, C, S1–S5, D1, D2) are in [`STEAM.md`](./STEAM.md).
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old

@@ -62,7 +62,9 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 
 **The store**
 
-- **The name**: another game called BOLLWERK (BOLLWERK Games, a new indie studio, planned for 2027) makes ours need a subtitle or a new name. This is package N, before the store page.
+- **The name**: another game called BOLLWERK (BOLLWERK Games, a new indie studio, planned for
+  2027), and five live marks of the word in classes 9 and 41, make ours **Bollfort**, everywhere
+  (2026-11-03, the user's). The search and the rename are package N (§9.1), before the store page.
 - **The capsules and logo** are composed from the game's own art, rendered by a tool. Pixel and
   Medieval are tried first, as the most basic and iconic styles. The DLC's two styles never
   appear in the store's art.
@@ -74,7 +76,7 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 
 | Package | What                                                    | Needs Steam | Before paying |
 | ------- | ------------------------------------------------------- | ----------- | ------------- |
-| **N**   | The name: trademark search, a subtitle or a new name    | no          | yes           |
+| **N**   | The name: searched, Bollfort; the rename everywhere     | no          | yes           |
 | **R**   | No recordings in packaged builds                        | no          | yes           |
 | **K**   | The host's kick, every room                             | no          | yes           |
 | **B**   | The games browser with filters, every build             | no          | yes           |
@@ -331,11 +333,74 @@ only in combat, as in the original arcade game.
 
 ### 9.1 The name (N)
 
-- **A trademark search** at the DPMA, the EUIPO and WIPO for "Bollwerk" in class 9 and 41
-  (games), and among Steam's titles. And whether BOLLWERK Games has registered it.
-- **Then a choice**: a subtitle ("Bollwerk: …") if the search finds the name free to use, or a new
-  name if not. A new name changes everywhere, as the Rampart rename did (ARCHIVE 11zw): the menu,
-  the window, the README, the releases, the repository.
+**Decided** (2026-11-03, the user's): the game is renamed **Bollfort**, everywhere — the browser
+game, the desktop app, GitHub and Steam — not only on Steam. Written _Bollfort_ in text and
+BOLLFORT where a logo is in capitals; eight letters, as Bollwerk had.
+
+#### The search (2026-11-03)
+
+- **Bollwerk had to go everywhere, not only on Steam.** TMview (which also holds the USPTO, WIPO,
+  Canada, Australia and China) lists 29 marks containing it; five are live in class 9 or 41: DE
+  2021 (Leidel, Milussis; 7, 8, 9, 18, 35), DE 2022 (RE Ring Event GmbH; 25, 41), CH 2023
+  (QuantX Analytics AG; 9, 16, 35, 36, 38, 41, 42), DE 2025 (ID Buhl 2020 GbR; 36, 41, 43), AT
+  2023 "Bollwerk Revival" (MFG Marketing; 16, 19, 35, 41, 43). The two in class 9 name no
+  computer games (read by the user). BOLLWERK Games has registered nothing; its game, announced for
+  2027, has a German work title's protection (MarkenG §5) without one. The search of October
+  (ARCHIVE 11zw) looked for games of the name, not at the registers.
+- **A subtitle was set aside**: the other studio's name is the word itself, a work title is
+  compared by its main word, and two games called Bollwerk would be confused in the store.
+- **Candidates weighed** (besides 11zw's): German fortification words (Trutzburg, Ringwall,
+  Bastei, Schanze, Zinne; Bergfried is a castle game in playtest on Steam, Wanderburg one due in
+  2026), plays on the build phase's pieces (Flickwerk, Klotzwerk, Blockwerk; Brixade, the user's,
+  sounds as _Brickade_, a brick-breaker on Steam since 2024; Brickbat beside _Brick Battalion_),
+  Latin (Vallum, near _Vellum_) and others. Nothing built on Tetris's name ("‑tris", "Tetr‑"),
+  which its owner enforces; the store page says "pieces", never "Tetris-like".
+- **The user's shortlist**: _Wallwerk_ (a building firm WallWerk in the Westerwald, .com and .de
+  taken), _Wallfort_ (Wallfort Financial Services, wallfort.com theirs), _Blockwerk_ (a graphic
+  designer, every domain taken), _Blockfort_ (_Block Fortress 2_ on Steam since April 2025 —
+  blocks, a fortress, artillery — and a blockchain firm; dropped).
+- **Bollfort**: no mark in TMview, nor for Bolfort or Boll Fort; nothing on the web, in Steam's
+  store search or on itch.io; on SteamDB only _Bellfortis_ and _Hillforts_, which share the
+  common word and nothing more; .com, .de, .net and .io unregistered. Its one risk is its nearness
+  to BOLLWERK — the first syllable, both a fortification, both games — judged low, since a work
+  title of an everyday word is protected narrowly and ‑fort is not ‑werk (our reading, not a
+  lawyer's). With German gamers "Boll" may call up Uwe Boll; harmless.
+- **Not done**, the user's choice: the domains are not registered, and no mark is filed.
+
+#### The rename (N)
+
+As the Rampart rename (ARCHIVE 11zw), everything, with **no migration**: only internal testers
+have the game, so a tester's saved settings, name, favourite looks, last table and a tournament
+in progress are lost once, and the desktop app's old data folder stays behind.
+
+- **What players see**: `GAME_TITLE` and the title's 5x7 bitmaps (`titles.ts`), which lack **F**
+  and **T** and draw nothing for a letter they lack — two letters designed in the bitmaps' hand,
+  then the title checked in all 24 looks (Cartoon's O's eyes now fall on the first and the second
+  O; Blueprint's title block, `titleBlock.ts`, spells BOLLFORT); the page's `<title>`, the loading
+  screen, the `&perf=1` readout; every locale's disclaimer and desktop texts (en, de, hes); the
+  disclaimer's emphasis in `credits.ts`, and `CREDITS.md` written again; the UPnP description;
+  the desktop window's titles, its control page and `app.setName`.
+- **Inside**: `@bollwerk/*` → `@bollfort/*` (every `package.json`, the imports, the lockfile by
+  `npm install`, eslint's config); `BOLLWERK_COMMIT`, `BOLLWERK_VERSION`, `BOLLWERK_EXE`,
+  `BOLLWERK_REQUIRE_CREDITS` and `__BOLLWERK_COMMIT__` → `BOLLFORT_…` (the Dockerfile, CI, the
+  release workflow, the desktop build); `window.bollwerk` → `window.bollfort`; the browser's keys
+  `bollwerk.*` → `bollfort.*`; the test folders' prefixes; this file's `BOLLWERK_STEAM`.
+- **The desktop app**: `appId` `io.github.thomarius.bollfort`, `productName`, `executableName`,
+  `unpackDirName`, `desktopName`; the release's files `Bollfort-<version>-windows.exe` and
+  `Bollfort-<version>-linux.AppImage`, the release's title and notes, the CI image's tag.
+- **Documents**: README, CLAUDE.md, PLAN, SPECIAL_TOWERS and this file; the ARCHIVE's history keeps
+  the old name, with a new entry for the rename and this search, as 11zw.
+- **The repository**: renamed on GitHub by the user, `Thomarius/Bollfort` (GitHub forwards the
+  old address); the README's links and the local remote follow.
+- **Unchanged**: the protocol, the recording format and the rules — recordings replay as before.
+  The local folder stays `RampartRemake`, as after 11zw.
+- **The user's answers** (2026-11-03): F with a middle bar as long as E's and T with a full top
+  bar (`#####/#..../#..../####./#..../#..../#....` and `#####/..#../..#../..#../..#../..#../..#..`);
+  no release of its own — the rename ships with the next one.
+- **Done when** `git grep -i bollwerk` finds only the ARCHIVE's history and this section's search;
+  `npm run check` passes; the desktop app packaged and started on Windows shows the new name in
+  its window, its control page and its data folder; and the user has approved the title in every
+  look from screenshots.
 - **Before S4**, since the store page, the capsules and the DLC need it.
 
 ### 9.2 The store page (S4)
