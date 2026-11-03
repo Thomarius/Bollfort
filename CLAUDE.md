@@ -555,8 +555,8 @@ which a test session needs the server rebuilt and every page reloaded for):
   menu). Item 7 is finished.
 
 - **Steam** (PLAN §11 item 8, decided 2026-11-02): a free release after the online session,
-  a supporter DLC later; the design and its packages in `docs/STEAM.md`. N, R, K and B done
-  (ARCHIVE 15zh–15zj); T, C and D1 next, none needing Steam.
+  the whole game and every style, no DLC (2026-11-03, the user's); the design and its packages
+  in `docs/STEAM.md`. N, R, K and B done (ARCHIVE 15zh–15zj); T and C next, neither needing Steam.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.
