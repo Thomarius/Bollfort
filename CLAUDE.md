@@ -604,6 +604,8 @@ its statistics beside it, `<id>.stats.csv`, the same table a bot soak's `--stats
 a person's seat labelled `human`. `--replay` does the same for any recordings by hand — an
 abandoned match, or new columns over old sessions — and says whether each replay was
 exact. One switch turns all of it off: `recordings.enabled` in `config/server.default.json`.
+**A packaged desktop app never records** (`record: !app.isPackaged`, STEAM.md package R), the
+GitHub builds and the Steam build alike: test sessions are recorded on `npm start`.
 The statistics code is `packages/analysis`, shared by the server and the harness. A
 recording replays exactly only against the code that made it, since the rules travel in
 its header but the simulation does not — so the server stamps each header with its commit

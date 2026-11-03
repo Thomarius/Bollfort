@@ -15,8 +15,9 @@ import { Tunnel } from './tunnel.js';
  * The desktop app (PLAN 11.17 A2): the server behind a minimal window, for a host with no
  * Node, repository or terminal. Start and Stop, the addresses to give the other players,
  * Open in browser, and Play here — the game in a window of the app's own. Closing the
- * window stops the server. Recordings go to a folder of the user's and are never shown:
- * they are for tuning, not for players.
+ * window stops the server. A packaged app records nothing (STEAM.md, package R): recordings
+ * are for tuning, not for players. Run from the repository, it records into a folder of the
+ * user's, as before.
  *
  * Where things are differs between running from the repository and running packaged
  * (A3): packaged, the config, the client and the audio are the app's resources.
@@ -31,7 +32,7 @@ const clientDir = app.isPackaged
   ? join(process.resourcesPath, 'client')
   : join(root, 'packages', 'client', 'dist');
 
-// Named, so its data — the recordings — sits in a folder called Bollfort, not @bollfort/desktop.
+// Named, so its data sits in a folder called Bollfort, not @bollfort/desktop.
 app.setName('Bollfort');
 
 /** One copy at a time: a second would only find the first's port taken. */
@@ -68,6 +69,8 @@ const control = new ServerControl(
     startServer({
       root,
       clientDir,
+      // Packaged, never recorded; from the repository, into the user's folder.
+      record: !app.isPackaged,
       recordingsDir: join(app.getPath('userData'), 'recordings'),
       port,
       // Packaged, there is no repository to ask: the commit is baked in as it was built.
