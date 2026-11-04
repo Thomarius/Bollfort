@@ -7,7 +7,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "start": "tsx src/storeArt.ts",
-    "shots": "tsx src/screenshots.ts"
+    "shots": "tsx src/screenshots.ts",
+    "trailer": "tsx src/trailer.ts"
   },
   "devDependencies": {
     "playwright": "1.63.0"

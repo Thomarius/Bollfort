@@ -831,12 +831,16 @@ export async function runSession(
   }
 
   /**
-   * The camera held close (dev only, for the store's screenshots): `&cameraZoom=1.8` and
-   * `&cameraOn=you` on the person's island, or `duel` between it and the nearest rival's.
+   * The camera held close (dev only, for the store's screenshots and trailer): `&cameraZoom=1.8`
+   * and `&cameraOn=you` on the person's island, or `duel` between it and the nearest rival's.
+   * With `&cameraFrom=1&cameraMs=5000` it moves there from that zoom over the whole map, eased,
+   * from the moment the page is told to go (`data-camera-go`, set by the trailer's recorder) —
+   * a push in, or with `cameraFrom` above `cameraZoom` a pull out.
    */
-  function heldShot(): CameraShot | null {
-    const zoom = Number(params.get('cameraZoom'));
-    if (!(zoom > 1)) return null;
+  function heldShot(now: number): CameraShot | null {
+    const target = Number(params.get('cameraZoom'));
+    const from = Number(params.get('cameraFrom') ?? target);
+    if (!(target >= 1) || (target === 1 && from === 1)) return null;
     const mine = islandCentre.get(session.humanPlayer);
     if (mine === undefined) return null;
     let focus = mine;
@@ -850,7 +854,21 @@ export async function runSession(
         }
       }
     }
-    return { zoom, focusX: focus.x + 0.5, focusY: focus.y + 0.5 };
+    const ms = Number(params.get('cameraMs') ?? 0);
+    const go = Number(document.documentElement.dataset['cameraGo']);
+    const raw = ms > 0 ? (Number.isFinite(go) ? (now - go) / ms : 0) : 1;
+    const t = Math.min(1, Math.max(0, raw));
+    const zoom = from + (target - from) * t * t * (3 - 2 * t);
+    // The focus moves with the zoom: the whole map's middle at 1, the target at the closest.
+    const closest = Math.max(from, target);
+    const k = closest > 1 ? (zoom - 1) / (closest - 1) : 1;
+    const midX = session.state.width / 2;
+    const midY = session.state.height / 2;
+    return {
+      zoom,
+      focusX: midX + (focus.x + 0.5 - midX) * k,
+      focusY: midY + (focus.y + 0.5 - midY) * k,
+    };
   }
 
   /** When this client first saw the match over, for the push onto the winner. */
@@ -875,7 +893,7 @@ export async function runSession(
     const winners = state.winners.flatMap((id) => islandCentre.get(id) ?? []);
     const shot = motionReduced()
       ? null
-      : (heldShot() ??
+      : (heldShot(now) ??
         openingShot(state, session.tickFraction, islandCentre.get(session.humanPlayer), art) ??
         winnerShot(state, now - (overAt ?? now), winners, art, peek));
     scene.setCamera(state, shot);

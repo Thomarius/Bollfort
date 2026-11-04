@@ -15,3 +15,5 @@ recordings/
 
 # Soak runs of the bots (ARCHIVE 12h): data, summarised into the plan, never committed.
 soaks/
+# The trailer's clips and cut (tools/storeart/src/trailer.ts): large, made again on demand.
+trailer-build/
