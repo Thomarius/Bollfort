@@ -8,6 +8,7 @@ import {
 } from '@bollfort/protocol';
 
 import { t } from '../i18n.js';
+import { dialWebSocket, type Dial, type Link } from './transport.js';
 
 /**
  * `reconnecting` while a dropped connection is being got back, `closed` once it is over:
@@ -42,7 +43,9 @@ export function retryDelay(policy: RetryPolicy, n: number): number {
  * stay the same across sockets, so the match sees only a snapshot arrive.
  */
 export class ServerConnection {
-  private socket: WebSocket | null = null;
+  private socket: Link | null = null;
+  /** The first link's `connect`, until it opens or fails. */
+  private opening: { resolve: () => void; reject: (error: Error) => void } | null = null;
   private queue: ClientMessage[] = [];
   private listeners: ((message: ServerMessage) => void)[] = [];
   private closedListeners: (() => void)[] = [];
@@ -64,7 +67,8 @@ export class ServerConnection {
   constructor(
     private readonly url: string,
     private readonly policy: RetryPolicy = DEFAULT_RETRY,
-    private readonly open: (url: string) => WebSocket = (url) => new WebSocket(url),
+    /** How a link is opened: a WebSocket by default (STEAM.md §7.1). */
+    private readonly dial: Dial = dialWebSocket,
   ) {}
 
   static defaultUrl(): string {
@@ -74,64 +78,77 @@ export class ServerConnection {
 
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const socket = this.attach();
-      socket.addEventListener('open', () => resolve());
-      socket.addEventListener('error', () => {
-        if (this.state === 'connecting')
-          reject(new Error(t('error.cannotReach', { url: this.url })));
-      });
+      this.opening = { resolve, reject };
+      this.attach();
     });
   }
 
   /**
-   * A socket, wired: everything it says goes to the listeners, and its close, if nobody
+   * A link, wired: everything it says goes to the listeners, and its close, if nobody
    * here closed it, to `dropped`. A socket replaced since is ignored, whatever it does.
    */
-  private attach(): WebSocket {
-    const socket = this.open(this.url);
+  private attach(): Link {
+    let socket: Link | null = null;
+    const current = (): boolean => socket !== null && this.socket === socket;
+    socket = this.dial(this.url, {
+      open: () => {
+        if (current()) this.opened();
+      },
+      error: () => {
+        if (!current() || this.state !== 'connecting') return;
+        this.opening?.reject(new Error(t('error.cannotReach', { url: this.url })));
+        this.opening = null;
+      },
+      close: () => {
+        if (current()) this.dropped();
+      },
+      message: (text) => {
+        if (current()) this.heard(text);
+      },
+    });
     this.socket = socket;
-    const current = (): boolean => this.socket === socket;
-    socket.addEventListener('open', () => {
-      if (!current()) return;
-      if (this.state === 'reconnecting') {
-        // Open is not back: the seat is, once the server welcomes us to it.
-        if (this.seat !== null)
-          socket.send(encode(this.joinMessage(this.seat.code, this.seat.token)));
-        return;
-      }
-      this.state = 'open';
-      for (const message of this.queue) socket.send(encode(message));
-      this.queue = [];
-    });
-    socket.addEventListener('close', () => {
-      if (current()) this.dropped();
-    });
-    socket.addEventListener('message', (event: MessageEvent) => {
-      if (!current()) return;
-      const message = decodeServerMessage(String(event.data));
-      if (message === null) return;
-      if (message.type === 'pong') {
-        // Round trip measured against our own clock, so no clock agreement is
-        // needed — the simulation is paced by the server's commits, not by time.
-        this.latencyMs = Math.round(performance.now() - message.t);
-        return;
-      }
-      if (message.type === 'welcome') {
-        this.seat = { code: message.code, token: message.token };
-        if (this.state === 'reconnecting') {
-          this.state = 'open';
-          this.tries = 0;
-        }
-      }
-      // A rejoin refused — the room gone, the seat no longer ours — is the end of trying,
-      // not news for the lobby, which would show it as an error over the match.
-      if (message.type === 'error' && this.state === 'reconnecting') {
-        this.giveUp();
-        return;
-      }
-      for (const listener of this.listeners) listener(message);
-    });
     return socket;
+  }
+
+  private opened(): void {
+    const socket = this.socket;
+    if (socket === null) return;
+    this.opening?.resolve();
+    this.opening = null;
+    if (this.state === 'reconnecting') {
+      // Open is not back: the seat is, once the server welcomes us to it.
+      if (this.seat !== null)
+        socket.send(encode(this.joinMessage(this.seat.code, this.seat.token)));
+      return;
+    }
+    this.state = 'open';
+    for (const message of this.queue) socket.send(encode(message));
+    this.queue = [];
+  }
+
+  private heard(text: string): void {
+    const message = decodeServerMessage(text);
+    if (message === null) return;
+    if (message.type === 'pong') {
+      // Round trip measured against our own clock, so no clock agreement is
+      // needed — the simulation is paced by the server's commits, not by time.
+      this.latencyMs = Math.round(performance.now() - message.t);
+      return;
+    }
+    if (message.type === 'welcome') {
+      this.seat = { code: message.code, token: message.token };
+      if (this.state === 'reconnecting') {
+        this.state = 'open';
+        this.tries = 0;
+      }
+    }
+    // A rejoin refused — the room gone, the seat no longer ours — is the end of trying,
+    // not news for the lobby, which would show it as an error over the match.
+    if (message.type === 'error' && this.state === 'reconnecting') {
+      this.giveUp();
+      return;
+    }
+    for (const listener of this.listeners) listener(message);
   }
 
   /** The socket went, not closed from here: rejoined while a match wants it, else closed. */

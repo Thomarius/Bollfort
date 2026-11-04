@@ -556,7 +556,8 @@ which a test session needs the server rebuilt and every page reloaded for):
 
 - **Steam** (PLAN §11 item 8, decided 2026-11-02): a free release after the online session,
   the whole game and every style, no DLC (2026-11-03, the user's); the design and its packages
-  in `docs/STEAM.md`. N, R, K and B done (ARCHIVE 15zh–15zj); T and C next, neither needing Steam.
+  in `docs/STEAM.md`. N, R, K and B done (ARCHIVE 15zh–15zj), and T, the transport interface at
+  both ends with a fake network and whole matches over it (ARCHIVE 15zl); C next, needing no Steam.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

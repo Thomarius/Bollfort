@@ -4,17 +4,11 @@ import { networkInterfaces } from 'node:os';
 import { extname, join, normalize } from 'node:path';
 
 import { loadConfigBundle } from '@bollfort/config/node';
-import {
-  PROTOCOL_VERSION,
-  decodeClientMessage,
-  encode,
-  type RoomList,
-  type ServerMessage,
-} from '@bollfort/protocol';
+import { PROTOCOL_VERSION, type RoomList } from '@bollfort/protocol';
 import { WebSocketServer, type WebSocket } from 'ws';
 
 import { openableUrls } from './addresses.js';
-import type { Connection, Room } from './room.js';
+import { Gateway } from './gateway.js';
 import { openRecordingStore } from './recordings.js';
 import { codeVersion } from './version.js';
 import { RoomManager } from './rooms.js';
@@ -27,21 +21,6 @@ import { PortOpener, type InternetStatus } from './upnp.js';
  * app keeps its config and client in its resources and cannot write recordings inside
  * itself.
  */
-
-/**
- * A message as sent, encoded once however many seats it goes to: a room broadcasts the
- * same message object to every connection, thirty times a second. Kept by the object,
- * which nothing changes once it is sent.
- */
-const encodings = new WeakMap<ServerMessage, string>();
-function encoded(message: ServerMessage): string {
-  let text = encodings.get(message);
-  if (text === undefined) {
-    text = encode(message);
-    encodings.set(message, text);
-  }
-  return text;
-}
 
 export interface ServerOptions {
   /** Where `config/` is: the repository, or a packaged app's resources. */
@@ -279,9 +258,7 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
     server: http,
     maxPayload: 3 * Math.max(maxMessageBytes, maxTournamentBytes),
   });
-  let nextConnectionId = 0;
-  /** Which room each connection is in, so later messages can be routed without a scan. */
-  const joined = new Map<string, Room>();
+  const gateway = new Gateway(bundle, rooms);
 
   /** Sockets heard from since the last heartbeat; see `reconnect.heartbeatMs`. */
   const heard = new WeakSet<WebSocket>();
@@ -299,103 +276,22 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
   }, options.heartbeatMs ?? bundle.server.reconnect.heartbeatMs);
 
   wss.on('connection', (socket: WebSocket) => {
-    const id = `c${nextConnectionId++}`;
     heard.add(socket);
     socket.on('pong', () => heard.add(socket));
-    let messagesThisSecond = 0;
-    let windowStart = Date.now();
-
-    const connection: Connection = {
-      id,
-      send(message: ServerMessage) {
-        if (socket.readyState === socket.OPEN) socket.send(encoded(message));
+    const session = gateway.accept({
+      send(text) {
+        if (socket.readyState === socket.OPEN) socket.send(text);
       },
-      close(reason: string) {
-        connection.send({ type: 'error', code: 'closed', message: reason });
+      close() {
         socket.close();
       },
-    };
-
+    });
     socket.on('message', (raw: Buffer | string) => {
       heard.add(socket);
-      const now = Date.now();
-      if (now - windowStart > 1000) {
-        windowStart = now;
-        messagesThisSecond = 0;
-      }
-      if (++messagesThisSecond > bundle.server.limits.maxMessagesPerSecond) return;
-
-      const text = typeof raw === 'string' ? raw : raw.toString('utf8');
-      if (text.length > Math.max(maxMessageBytes, maxTournamentBytes)) return;
-
-      const message = decodeClientMessage(text);
-      // Only a tournament's table or end, which carry its save, may be longer than any other.
-      const carriesSave = message?.type === 'tournament' || message?.type === 'tournamentEnd';
-      if (text.length > maxMessageBytes && !carriesSave) return;
-      if (message === null) {
-        connection.send({ type: 'error', code: 'bad_message', message: 'unparseable message' });
-        return;
-      }
-
-      if (message.type === 'create' || message.type === 'join') {
-        if (message.protocol !== PROTOCOL_VERSION) {
-          connection.close(`protocol ${message.protocol} is not ${PROTOCOL_VERSION}`);
-          return;
-        }
-        // One room a connection: a second seat was left behind still connected when the
-        // socket closed, so its room was never emptied and never closed, and a match never
-        // handed it to a bot. The client opens a new socket for every room.
-        if (joined.has(connection.id)) {
-          connection.send({ type: 'error', code: 'in_a_room', message: 'already in a room' });
-          return;
-        }
-      }
-
-      if (message.type === 'create') {
-        const room = rooms.create(message.players, message.public ?? true);
-        if (room === null) {
-          connection.send({ type: 'error', code: 'no_capacity', message: 'server is full' });
-          return;
-        }
-        room.join(connection, message.name, undefined, message.browserId);
-        joined.set(connection.id, room);
-        return;
-      }
-
-      if (message.type === 'join') {
-        const room = rooms.get(message.code);
-        if (room === undefined) {
-          connection.send({ type: 'error', code: 'no_room', message: 'no room with that code' });
-          return;
-        }
-        // Removed by its host (STEAM.md §5): by this browser's ID, or the seat's token.
-        if (room.refuses(message.browserId, message.token)) {
-          connection.send({ type: 'error', code: 'removed', message: 'removed by the host' });
-          return;
-        }
-        if (room.join(connection, message.name, message.token, message.browserId) === null) {
-          connection.send({ type: 'error', code: 'room_full', message: 'that room is full' });
-          return;
-        }
-        joined.set(connection.id, room);
-        return;
-      }
-
-      // Everything else is only meaningful inside a room this connection is in.
-      const room = joined.get(connection.id);
-      if (room === undefined) {
-        connection.send({ type: 'error', code: 'no_room', message: 'join a room first' });
-        return;
-      }
-      room.handle(connection, message);
+      session.receive(typeof raw === 'string' ? raw : raw.toString('utf8'));
     });
-
-    const forget = (): void => {
-      joined.get(connection.id)?.leave(connection);
-      joined.delete(connection.id);
-    };
-    socket.on('close', forget);
-    socket.on('error', forget);
+    socket.on('close', () => session.closed());
+    socket.on('error', () => session.closed());
   });
 
   const tickMs = 1000 / bundle.ruleset.tickRateHz;

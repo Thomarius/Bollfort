@@ -75,7 +75,6 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 
 | Package | What                                                    | Needs Steam | Before paying |
 | ------- | ------------------------------------------------------- | ----------- | ------------- |
-| **T**   | The transport interface, the fake, the tests            | no          | yes           |
 | **C**   | Native controller support                               | no          | yes           |
 | **S1**  | The spike on App ID 480, two accounts, two machines     | 480         | yes           |
 | **S2**  | The Steam build: the flag, the binding, no launcher     | 480         | yes           |
@@ -83,12 +82,13 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 | **S4**  | The store: fee, store page, capsules, depots, release   | the app     | it is paying  |
 | **S5**  | The users' test on the beta branch, Deck review, launch | the app     | —             |
 
-T and C need no Steam and can be built in any order, each tested in `npm run check`.
+C needs no Steam and is tested in `npm run check`.
 S1 comes before the fee is paid, and its answers decide S3's binding work.
 
-**Done** (2026-11-03): N, the name — Bollfort, the rename everywhere (ARCHIVE 15zh; the search
-in §9.1); R, no recordings in packaged builds (ARCHIVE 15zi); K, the host's Remove, and B,
-Find a game (ARCHIVE 15zj, protocol 35).
+**Done**: N, the name — Bollfort, the rename everywhere (2026-11-03, ARCHIVE 15zh; the search
+in §9.1); R, no recordings in packaged builds (2026-11-03, ARCHIVE 15zi); K, the host's Remove,
+and B, Find a game (2026-11-03, ARCHIVE 15zj, protocol 35); T, the transport interface at both
+ends, the fake network and whole matches over it (2026-11-04, ARCHIVE 15zl, §7.1).
 
 ## 3. The Steam build (S1, S2)
 
@@ -220,6 +220,21 @@ as the lobby's owner. The protocol, the seats, Ready, the snapshot, the hashes, 
   over every transport: a match that ends with no hash mismatch, and whose input log matches the
   server's, has passed.
 - **Without Steam**: built and tested in `npm run check`, before S1.
+
+**Built** (2026-11-04, ARCHIVE 15zl). The contract every transport keeps: whole messages as text,
+**reliably and in order**, or the link closes — as a WebSocket and Steam's reliable sends give.
+The protocol leans on it, so a carrier that can lose or reorder is not a transport until
+something restores the order. The page's end is `Link` and `Dial` (`client/src/net/transport.ts`),
+`ServerConnection` taking a `Dial`, the WebSocket's `dialWebSocket`; the server's is `Peer` and
+`Session` on a `Gateway` (`server/src/gateway.ts`), which holds everything `server.ts` did with a
+client's messages — the limits, the protocol check, create, join, routing — so S3's transport is
+a new `Peer` and a new `Dial`. The fake (`client/src/net/fakeNetwork.ts`) delays with jitter
+keeping the order, cuts links, and — breaking the contract on purpose — drops or holds back a
+message; whole two-round matches over it, people played by bots on their own pages, end with every
+page's board the server's, no resync, and each page's commits since its last snapshot the
+server's recording (`transport.test.ts`). A lost or overtaken commit is caught by the next hash
+and mended by one rejoin. The WebSocket itself stays covered by `server.test.ts`: the suite lives
+in the client package, whose types have no Node, so it cannot start the real server.
 
 ### 7.2 What the players see (S3)
 

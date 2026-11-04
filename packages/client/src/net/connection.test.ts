@@ -7,6 +7,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ServerConnection, retryDelay, type RetryPolicy } from './connection.js';
+import { webSocketLink } from './transport.js';
 
 /** A socket that does what the test says, when it says. */
 class FakeSocket {
@@ -56,10 +57,10 @@ const welcome = (token = 'tok'): ServerMessage => ({
 
 function connected(): { connection: ServerConnection; sockets: FakeSocket[]; heard: string[] } {
   const sockets: FakeSocket[] = [];
-  const connection = new ServerConnection('ws://test', policy, () => {
+  const connection = new ServerConnection('ws://test', policy, (_url, events) => {
     const socket = new FakeSocket();
     sockets.push(socket);
-    return socket as unknown as WebSocket;
+    return webSocketLink(socket as unknown as WebSocket, events);
   });
   const heard: string[] = [];
   connection.onMessage((message) => heard.push(message.type));
