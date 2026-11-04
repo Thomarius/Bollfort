@@ -6,6 +6,7 @@ import { t } from './i18n.js';
 import { withIcon } from './icons.js';
 import { runSession } from './matchScreen.js';
 import { showMenu } from './menu.js';
+import { pads } from './pads.js';
 import { preferredStyles, saveName } from './prefs.js';
 import { localMatchFor, localSession } from './session.js';
 
@@ -70,6 +71,8 @@ export function installDemo(): void {
     }
     // The clock runs only at the bare menu, in front: anything else starts it afresh.
     const now = performance.now();
+    // A controller touched counts as the mouse moved (STEAM.md §8).
+    since = Math.max(since, pads.touchedAt);
     if (!bare || document.hidden || !document.hasFocus()) since = now;
     else if (idleDue(since, now, DEMO.idleMs)) startDemo();
   }, CHECK_MS);

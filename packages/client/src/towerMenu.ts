@@ -52,7 +52,7 @@ export function openTowerMenu(options: TowerMenuOptions): void {
     `<div class="panel" role="dialog" aria-label="${escape(t('towerMenu.title'))}">` +
     `<h2>${escape(options.title ?? t('towerMenu.title'))}</h2><div class="choice"></div>` +
     `<div class="preview"><span class="label">${escape(t('towerMenu.preview'))}</span></div>` +
-    `<div class="foot"><button type="button" class="done">${escape(t('looks.done'))}</button></div></div>`;
+    `<div class="foot"><button type="button" class="done" data-back>${escape(t('looks.done'))}</button></div></div>`;
   const choice = root.querySelector<HTMLElement>('.choice')!;
   const preview = new TowerPreview();
   root.querySelector('.preview')!.append(preview.canvas);

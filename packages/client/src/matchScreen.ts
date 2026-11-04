@@ -866,7 +866,12 @@ export async function runSession(
     if (padMatch !== null) {
       const reading = pads.read(now);
       // Paused, or the match over, the pad is the menus' (`padLoop.ts`), not the board's.
-      const free = session.pausedBy === null && !session.finished;
+      // Knocked out and watching, the pad is the menus' too: the strip's way back is a button.
+      const free =
+        session.pausedBy === null &&
+        !session.finished &&
+        session.state.players[session.humanPlayer]?.eliminated !== true;
+      if (free) pads.claim(now);
       padMatch.update(free ? reading : null, free ? pads.pressed : new Set(), delta, pads.active);
     }
 

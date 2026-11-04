@@ -84,7 +84,8 @@ export function towerMenuMarkup(
   const kind = chosen === null ? 'none' : chosen === 'drawn' ? null : variantKind(chosen);
   const drawnKind = chosen === 'drawn' && drawn !== null ? variantKind(drawn) : null;
   const card = (k: SpecialKind | 'none', icon: string, name: string): string =>
-    `<button type="button" class="card${k === kind ? ' chosen' : ''}${k === drawnKind ? ' drawn' : ''}" data-kind="${k}">` +
+    // The chosen card is where a controller's focus starts (`padMenus.ts`).
+    `<button type="button" class="card${k === kind ? ' chosen' : ''}${k === drawnKind ? ' drawn' : ''}" data-kind="${k}"${k === kind || k === drawnKind ? ' data-main' : ''}>` +
     `${icon}<span class="name">${escape(name)}</span></button>`;
   const towers = menuTowers();
   const cards =

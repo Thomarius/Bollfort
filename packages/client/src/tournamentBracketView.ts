@@ -123,7 +123,7 @@ export function openBracket(save: Save, progress: Progress, click: () => void): 
     `<p class="note">${escape(t('bracket.hint'))}</p>` +
     `<div class="bracket-scroll">${bracketSvg(save, progress)}</div>` +
     `<div class="bracket-tip" hidden></div>` +
-    `<button class="close">${escape(t('howTo.close'))}</button></div>`;
+    `<button class="close" data-back>${escape(t('howTo.close'))}</button></div>`;
   document.body.append(overlay);
   const tip = overlay.querySelector<HTMLElement>('.bracket-tip')!;
   let pinned: string | null = null;

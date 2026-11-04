@@ -501,9 +501,10 @@ export function startBlocked(view: LobbyView): string | null {
  */
 function readyControl(view: LobbyView): string {
   const ready = view.seats.find((seat) => seat.playerId === view.humanPlayer)?.ready === true;
-  if (!ready) return `<button id="ready" data-ready="true">${t('lobby.ready')}</button>`;
+  // Where a controller's focus starts (`padMenus.ts`), as the host's on Start.
+  if (!ready) return `<button data-main id="ready" data-ready="true">${t('lobby.ready')}</button>`;
   return (
-    `<button id="ready" class="quiet" data-ready="false">${t('lobby.notReady')}</button>` +
+    `<button data-main id="ready" class="quiet" data-ready="false">${t('lobby.notReady')}</button>` +
     `<p class="note">${t('lobby.waiting')}</p>`
   );
 }
@@ -581,7 +582,7 @@ export function lobbyMarkup(view: LobbyView): string {
       ${code}
       ${panels}
       ${start}
-      <button id="leave" class="quiet">${withIcon('back', leave)}</button>
+      <button id="leave" class="quiet" data-back>${withIcon('back', leave)}</button>
     </div>
   `;
 }

@@ -50,6 +50,6 @@ export function resumeMarkup(
       <h1>${t('tournament.resumeTitle')}</h1>
       ${notice === null ? '' : `<p class="note warn">${escape(notice)}</p>`}
       ${list}
-      <button id="back" class="quiet">${withIcon('back', t('tournament.back'))}</button>
+      <button id="back" class="quiet" data-back>${withIcon('back', t('tournament.back'))}</button>
     </div>`;
 }

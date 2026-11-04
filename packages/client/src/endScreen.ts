@@ -226,16 +226,17 @@ export class EndScreen {
    * Show the board quiet before them — beside the headline it crowded the longer ones.
    */
   private buttons(): string {
-    const back = (tier: string): string =>
-      `<button class="leave ${tier}">${withIcon('back', t('watching.back'))}</button>`;
+    // The way on is where a controller's focus starts (`padMenus.ts`).
+    const back = (tier: string, main = ''): string =>
+      `<button class="leave ${tier}"${main}>${withIcon('back', t('watching.back'))}</button>`;
     const board = `<button class="peek">${withIcon('eye', t('end.showBoard'))}</button>`;
     if (this.rematchBy === 'mine') {
-      return `${board}<button class="rematch">${withIcon('play', t(this.rematchLabel ?? 'hud.rematch'))}</button>${back('quiet')}`;
+      return `${board}<button class="rematch" data-main>${withIcon('play', t(this.rematchLabel ?? 'hud.rematch'))}</button>${back('quiet')}`;
     }
     if (this.rematchBy === 'host') {
-      return `${board}<button class="rematch" disabled>${t(this.rematchLabel ?? 'hud.rematchHost')}</button>${back('quiet')}`;
+      return `${board}<button class="rematch" disabled>${t(this.rematchLabel ?? 'hud.rematchHost')}</button>${back('quiet', ' data-main')}`;
     }
-    return `${board}${back('secondary')}`;
+    return `${board}${back('secondary', ' data-main')}`;
   }
 
   /**

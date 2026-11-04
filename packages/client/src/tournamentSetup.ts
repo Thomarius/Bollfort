@@ -324,6 +324,6 @@ export function setupMarkup(form: TournamentForm, hostName: string): string {
         </section>
       </div>
       <button id="create" class="primary">${withIcon('trophy', t('tournament.start'))}</button>
-      <button id="back" class="quiet">${withIcon('back', t('tournament.back'))}</button>
+      <button id="back" class="quiet" data-back>${withIcon('back', t('tournament.back'))}</button>
     </div>`;
 }
