@@ -200,6 +200,9 @@ export interface LookFrame {
  * reveals it, so keeping two costs nothing between banners. The same style for both
  * looks is one slot, and a wipe then changes nothing.
  */
+
+const NO_SHAKE = new URLSearchParams(globalThis.location?.search ?? '').get('shake') === '0';
+
 export class Scene {
   readonly app = new Application();
 
@@ -766,6 +769,9 @@ export class Scene {
 
   /** Shakes the board, for a hit on the player's own wall. */
   shake(): void {
+    // `&shake=0` (dev only): no shake but every other motion kept, for the trailer's still
+    // version (STEAM.md §9.2), where Motion: Reduced would also stop its camera's moves.
+    if (NO_SHAKE) return;
     this.shaking = this.art.generators.fx.shakeMs;
   }
 

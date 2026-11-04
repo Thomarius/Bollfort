@@ -22,7 +22,14 @@ import { chromium, type Page } from 'playwright';
 
 const BASE = process.env['BASE'] ?? 'http://localhost:5173';
 const ROOT = resolve(import.meta.dirname, '..', '..', '..');
-const OUT = resolve(process.env['TRAILER_OUT'] ?? join(ROOT, 'trailer-build'));
+/**
+ * The trailer without the screen's shake as your walls are hit (`TRAILER_SHAKE=0`, the user's
+ * wish for two versions, 2026-11-04): its clips filmed with `&shake=0`, in a folder of its own.
+ */
+const STILL = process.env['TRAILER_SHAKE'] === '0';
+const OUT = resolve(
+  process.env['TRAILER_OUT'] ?? join(ROOT, 'trailer-build', ...(STILL ? ['still'] : [])),
+);
 const MUSIC = join(ROOT, 'assets', 'trailer', 'BollfortTrailer.mp3');
 const DISPLAY = process.env['DISPLAY'] ?? ':0';
 /** Where the window opens: on the primary screen, wherever that is. */
@@ -303,7 +310,9 @@ interface Shot {
 }
 
 const CUT: Shot[] = [
-  { clip: 'hook-wipe', from: -2.6, length: 6.0 }, // 0.0 – 6.0: Ready… Aim… Fire!
+  // A second later than first cut: the banner already in sight, the shooting sooner after Aim
+  // (the user, 2026-11-04).
+  { clip: 'hook-wipe', from: -1.6, length: 6.0 }, // 0.0 – 6.0: Ready… Aim… Fire!
   { clip: 'loop-fire', from: 0.3, length: 4.2 }, // 6.0 – 10.2
   { clip: 'loop-build', from: 0.5, length: 4.3 }, // 10.2 – 14.5
   { clip: 'style-anime', from: 0.2, length: 2.0 }, // 14.5 – 16.5: the first lift
@@ -319,7 +328,8 @@ const CUT: Shot[] = [
   { clip: 'tower-subwoofer', from: -0.2, length: 1.6 }, // – 37.3
   { clip: 'tower-laser', from: -0.4, length: 1.6 }, // – 38.9
   { clip: 'tower-bertha', from: -1.0, length: 1.8 }, // – 40.7
-  { clip: 'tournament', from: 0.0, length: 2.3 }, // – 43.0
+  // From 0.4 s: the screen that hides the board while it is drawn showed in the first frames.
+  { clip: 'tournament', from: 0.4, length: 2.3 }, // – 43.0
   // The peak: half-second cuts of the most action in the recordings, then the title hard on the
   // climax at 46.8 — "chaotic scenes with a sudden switch", the user's (2026-11-04).
   { clip: 'style-pirates', from: 2.6, length: 0.55 },
@@ -371,6 +381,7 @@ function clipUrl(clip: Clip): string {
     lang: 'en',
     ...clip.params,
     ...(clip.slow === undefined ? {} : { trailerSlow: String(clip.slow) }),
+    ...(STILL ? { shake: '0' } : {}),
   });
   return `${BASE}/?${q}`;
 }
