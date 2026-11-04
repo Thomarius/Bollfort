@@ -41,12 +41,13 @@ import { MatchLog } from './summary.js';
 import { motionReduced, storedMotion } from './motion.js';
 import { styleTrackChance } from './styleMusicSetting.js';
 import { PauseControls, pausesOnBlur } from './pause.js';
+import { Autopilot } from './autopilot.js';
 import { PadMatch } from './padMatch.js';
 import { pads } from './pads.js';
 import { storeArtMode, storeArtSplit } from './storeArt.js';
 import { CURSOR_SPEEDS, storedCursorSpeed } from './padSettings.js';
 import { howToSectionFor, openHowToPlay } from './howToPlay.js';
-import { openingShot, peekTowards, winnerShot } from './camera.js';
+import { openingShot, peekTowards, winnerShot, type CameraShot } from './camera.js';
 import { perf } from './perf.js';
 import { bannerProgress, looksAround, type Look } from './transition.js';
 import { Scene, createTheme, type Ghost, type SceneLook } from './render/scene.js';
@@ -336,6 +337,15 @@ export async function runSession(
         )
       : null;
 
+  // The person's seat played by a bot and shown as a person plays it, for the store's
+  // screenshots and trailer (`autopilot.ts`, dev only).
+  const autopilot =
+    params.get('autopilot') === '1' && session.humanPlayer >= 0
+      ? new Autopilot(session.state, session.humanPlayer, controls, (action) =>
+          session.submit(action),
+        )
+      : null;
+
   /** The board as drawn: swept and crumbling walls, the held enclosure, floods and drains. */
   const board = new BoardEffects(scene, session);
 
@@ -610,6 +620,7 @@ export async function runSession(
 
   function applyEvents(events: readonly MatchEvent[]): void {
     matchLog.note(events, session.state);
+    if (markEffects) markTowerEffects(events);
     let structuresChanged = false;
     let territoryChanged = false;
     for (const event of events) {
@@ -796,6 +807,52 @@ export async function runSession(
     }
   }
 
+  /**
+   * The store's screenshots catch a tower's effect as it fires (dev only, with the autopilot):
+   * each is said on the page, `data-effect` its kind and `data-effects` counting them.
+   */
+  const markEffects = autopilot !== null;
+  const biggestShots = new Set<number>();
+  let effects = 0;
+  function markTowerEffects(events: readonly MatchEvent[]): void {
+    for (const event of events) {
+      let effect: string | null = null;
+      if (event.kind === 'lightning_struck') effect = 'lightning';
+      else if (event.kind === 'laser_fired') effect = 'laser';
+      else if (event.kind === 'wave_sent') effect = 'wave';
+      else if (event.kind === 'shot_fired' && event.shot.kind === 'biggest')
+        biggestShots.add(event.shot.id);
+      else if (event.kind === 'shot_impact' && biggestShots.delete(event.shotId))
+        effect = 'biggest';
+      if (effect === null) continue;
+      document.documentElement.dataset['effect'] = effect;
+      document.documentElement.dataset['effects'] = String(++effects);
+    }
+  }
+
+  /**
+   * The camera held close (dev only, for the store's screenshots): `&cameraZoom=1.8` and
+   * `&cameraOn=you` on the person's island, or `duel` between it and the nearest rival's.
+   */
+  function heldShot(): CameraShot | null {
+    const zoom = Number(params.get('cameraZoom'));
+    if (!(zoom > 1)) return null;
+    const mine = islandCentre.get(session.humanPlayer);
+    if (mine === undefined) return null;
+    let focus = mine;
+    if (params.get('cameraOn') === 'duel') {
+      let nearest = Infinity;
+      for (const [id, centre] of islandCentre) {
+        const d = Math.hypot(centre.x - mine.x, centre.y - mine.y);
+        if (id !== session.humanPlayer && d < nearest) {
+          nearest = d;
+          focus = { x: (mine.x + centre.x) / 2, y: (mine.y + centre.y) / 2 };
+        }
+      }
+    }
+    return { zoom, focusX: focus.x + 0.5, focusY: focus.y + 0.5 };
+  }
+
   /** When this client first saw the match over, for the push onto the winner. */
   let overAt: number | null = null;
 
@@ -818,7 +875,8 @@ export async function runSession(
     const winners = state.winners.flatMap((id) => islandCentre.get(id) ?? []);
     const shot = motionReduced()
       ? null
-      : (openingShot(state, session.tickFraction, islandCentre.get(session.humanPlayer), art) ??
+      : (heldShot() ??
+        openingShot(state, session.tickFraction, islandCentre.get(session.humanPlayer), art) ??
         winnerShot(state, now - (overAt ?? now), winners, art, peek));
     scene.setCamera(state, shot);
 
@@ -895,6 +953,7 @@ export async function runSession(
       padMatch.update(free ? reading : null, free ? pads.pressed : new Set(), delta, pads.active);
     }
 
+    autopilot?.update(now);
     perf.begin('sim');
     const events = session.advance(delta);
     if (session.finished && !finishedSeen) {

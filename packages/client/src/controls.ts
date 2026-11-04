@@ -349,6 +349,16 @@ export class Controls {
     this.commit();
   }
 
+  /** Turns the ghost to a rotation, as the autopilot shows a bot's piece (`autopilot.ts`). */
+  setRotation(rotation: number): void {
+    this.rotation = rotation;
+  }
+
+  /** Shows the tower's ghost or a cannon's, as the autopilot shows a bot's choice. */
+  setTowerChosen(chosen: boolean): void {
+    this.towerChosen = chosen;
+  }
+
   /** Resets rotation between phases so a new piece starts upright. */
   resetRotation(): void {
     this.rotation = 0;

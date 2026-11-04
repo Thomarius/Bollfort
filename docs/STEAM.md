@@ -550,10 +550,32 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   small 462 × 174, the logo nearly filling it; main 1232 × 706; vertical 748 × 896; library
   capsule 600 × 900; library hero 3840 × 1240, no text at all, the middle 860 × 380 always shown;
   library logo 1280 wide on transparency, nothing but the title. On every capsule the title is the
-  only text, legible. Still to make: the screenshots (at least five, 1920 × 1080, gameplay only),
-  the trailer (1920 × 1080, 30 or 60 fps, H.264 and AAC at 5,000 kbit/s or more; the first
-  should be mostly play and work without sound), and the community icons (their page not yet
-  read).
+  only text, legible. Still to make: the community icons (their page not yet read).
+
+- **The screenshots — chosen** (2026-11-04, the user's, in three rounds): eight in
+  `assets/store/screenshots/`, numbered in the order Steam is to show them — the change of look
+  Medieval to Cyberpunk under "Fire!", a Noir duel, a close-up of building in Sakura, the Lightning
+  Tower's chain, eight players late in Oktoberfest, the Allerdickste Bertha's explosion, the Laser's
+  beam, and placing cannons close up in Christmas. All a player's view at 1920 × 1080: the person's
+  seat played by a bot and shown as a person plays it (`&autopilot=1`, `client/src/autopilot.ts`:
+  the ghost glides to the bot's tile, turned as it turned it, rests, and the move is made as a
+  click makes it), the corner's buttons left out (`&clean=1`), the camera held close in play where
+  wanted (`&cameraZoom=1.9&cameraOn=you|duel`), and a tower's effect caught as it fires (the match
+  screen marks each on the page, `data-effect`). `npm run shots -w @bollfort/storeart` renders the
+  candidates and a contact sheet. Two players and close-ups show far more than four islands do,
+  the user's finding; a tower shot starts from the cannon phase before, or none is bought.
+
+- **The trailer — planned** (2026-11-04, with the user): about 55 seconds on `BollfortTrailer.mp3`
+  (`assets/trailer/`; music by Viacheslav Starostin, from Pixabay, under the Pixabay Content
+  License, shortened by the user; credited in the trailer's description, since the game does not
+  play it). The track steps up at about 14.5 and 28.5 seconds, peaks from 43 and ends at 47.3 with
+  a short fade. Ready… Aim… Fire! as a change of look sweeps in; the loop in two lines (fire at
+  their walls, rebuild yours); a montage of styles cut on the beat; scale and spectacle — eight
+  players, tournaments, online and bots, the special towers; a big late duel at the peak; the
+  rainbow title over the Cyberpunk split as the music fades, held four seconds in silence with
+  Free on Steam. Recorded live at 60 fps from a browser window on the user's screen, in one
+  session prepared beforehand; the camera moved in the game, the text in the game's own fonts;
+  cut and encoded to Valve's settings (H.264 and AAC, 1920 × 1080).
 
 - **Coming Soon** for at least two weeks; submitted for review at least 7 working days before.
 - **The depots**: Windows and Linux, the unpacked app (not the AppImage) under the Steam Linux

@@ -8307,6 +8307,10 @@ html.pad .pad-focus {
 }
 
 /* Steam's store art (storeArt.ts, STEAM.md §9.2): the board alone, the title over it. */
+html.store-clean #corner {
+  display: none !important;
+}
+
 html.store-art #hud,
 html.store-art #banner,
 html.store-art #corner,

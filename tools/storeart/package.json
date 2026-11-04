@@ -3,10 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Steam's store art rendered from the game (STEAM.md §9.2), against the dev server.",
+  "description": "Steam's store art rendered from the game (STEAM.md \u00a79.2), against the dev server.",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "start": "tsx src/storeArt.ts"
+    "start": "tsx src/storeArt.ts",
+    "shots": "tsx src/screenshots.ts"
   },
   "devDependencies": {
     "playwright": "1.63.0"
