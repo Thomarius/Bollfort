@@ -1,0 +1,67 @@
+name: Steam spike
+
+# S1 (docs/STEAM.md §3.3): the spike packaged for Windows and Linux, so the whole test runs on
+# packaged builds, as the Steam build will. Only on this throwaway branch; on a push, since a
+# workflow run by hand must exist on the default branch. Each system's archive is an artifact
+# of the run; spike/steam/README.md says what to do with them.
+on:
+  push:
+    branches: [s1-steam-spike]
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows
+            app: spike/steam/release/win-unpacked
+            program: BollfortSteamSpike.exe
+            library: steam_api64.dll
+            binding: win64/steamworksjs.win32-x64-msvc.node
+            archive: spike/steam/release/*.zip
+          - os: ubuntu-latest
+            name: linux
+            app: spike/steam/release/linux-unpacked
+            program: bollfort-steam-spike
+            library: resources/app/node_modules/steamworks.js/dist/linux64/libsteam_api.so
+            binding: linux64/steamworksjs.linux-x64-gnu.node
+            archive: spike/steam/release/*.tar.gz
+    runs-on: ${{ matrix.os }}
+    env:
+      # electron-builder fetches the Electron it packages; npm's would not be used.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # The game's client, which the spike serves to its game window as host and as guest.
+      - run: npm run build
+      - name: Package the spike
+        working-directory: spike/steam
+        run: |
+          npm ci
+          npm run package
+      # electron-builder dropped Steam's Windows library from a Linux build here (2026-11-04);
+      # everything the spike needs is checked for, so a broken package fails the run.
+      - name: Check the package
+        shell: bash
+        run: |
+          set -x
+          app='${{ matrix.app }}'
+          test -f "$app/${{ matrix.program }}"
+          test -f "$app/${{ matrix.library }}"
+          test -f "$app/resources/app/node_modules/steamworks.js/dist/${{ matrix.binding }}"
+          test -f "$app/resources/app/dist/server.mjs"
+          test -f "$app/resources/client/index.html"
+          test -f "$app/resources/config/ruleset.default.json"
+          test -f "$app/steam_appid.txt"
+      - uses: actions/upload-artifact@v5
+        with:
+          name: bollfort-steam-spike-${{ matrix.name }}
+          path: ${{ matrix.archive }}
+          if-no-files-found: error

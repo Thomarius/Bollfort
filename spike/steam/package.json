@@ -1,0 +1,72 @@
+{
+  "name": "bollfort-steam-spike",
+  "version": "0.0.1",
+  "private": true,
+  "description": "S1 (STEAM.md §3.3): Steam lobbies, invites, the overlay and the game over Steam P2P, on App ID 480. Throwaway.",
+  "author": "Thomas Arnold",
+  "main": "main.cjs",
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "node build.mjs && electron .",
+    "package": "node build.mjs && electron-builder --publish never"
+  },
+  "dependencies": {
+    "steamworks.js": "0.4.0",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "io.github.thomarius.bollfort.steamspike",
+    "productName": "BollfortSteamSpike",
+    "directories": {
+      "output": "release"
+    },
+    "asar": false,
+    "npmRebuild": false,
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "control.html",
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../../config",
+        "to": "config",
+        "filter": [
+          "*.json"
+        ]
+      },
+      {
+        "from": "../../packages/client/dist",
+        "to": "client"
+      }
+    ],
+    "extraFiles": [
+      "steam_appid.txt"
+    ],
+    "win": {
+      "target": [
+        "zip"
+      ],
+      "artifactName": "${productName}-windows.${ext}",
+      "extraFiles": [
+        {
+          "from": "node_modules/steamworks.js/dist/win64/steam_api64.dll",
+          "to": "steam_api64.dll"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "tar.gz"
+      ],
+      "artifactName": "${productName}-linux.${ext}",
+      "executableName": "bollfort-steam-spike"
+    }
+  }
+}

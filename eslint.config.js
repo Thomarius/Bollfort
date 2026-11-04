@@ -9,6 +9,8 @@ export default tseslint.config(
       '**/release/**',
       '**/coverage/**',
       '**/*.tsbuildinfo',
+      // The Steam spike (STEAM.md §3.3): throwaway CommonJS for Electron, on its own branch.
+      'spike/**',
     ],
   },
   js.configs.recommended,
