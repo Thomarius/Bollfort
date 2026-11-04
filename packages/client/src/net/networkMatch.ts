@@ -64,6 +64,11 @@ export class NetworkMatch {
     private readonly resyncLimit = defaultArtConfig.hud.network.resyncLimit,
   ) {}
 
+  /** Rejoins made so far for a desync: none, on a transport keeping its contract. */
+  get resyncCount(): number {
+    return this.resyncs;
+  }
+
   /** Whether the board was replaced since last asked, as a rejoin replaces it. */
   takeResynced(): boolean {
     const replaced = this.replaced;

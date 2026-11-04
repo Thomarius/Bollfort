@@ -11358,3 +11358,43 @@ Released ahead of the next feature package, the user's, so the releases page sho
 then every older release, all 46 named Bollwerk (v0.5.0 to v0.9.31), was deleted from GitHub with
 their files, the user's decision; their tags stay, as version marks in the history, which keeps
 the old name as this file does.
+
+## 15zl. The transport, T (2026-11-04)
+
+Package T of the Steam release (STEAM.md §7.1): the wire between a page and the server made an
+interface at both ends, so that S3's Steam peer-to-peer channel is one more implementation of it,
+the protocol, rooms and rejoin unchanged.
+
+**The contract**: whole messages as text, reliably and in order, or the link closes. Not chosen but
+found: a commit lost leaves the page stepping its tick without its actions, a commit overtaken the
+same (`NetworkMatch` takes the highest tick heard as confirmed), so the protocol has always leant on
+TCP's order. A WebSocket and Steam's reliable sends keep it; an unreliable carrier would need
+sequencing over it first, which nothing yet asks for.
+
+**The page's end**: `Link` and `Dial` (`client/src/net/transport.ts`), events handed in at the dial
+and never fired inside it; `ServerConnection` takes a `Dial` in place of a socket factory, the
+WebSocket's being `dialWebSocket` (`webSocketLink` wraps a socket, which the old tests' fake socket
+still goes through). **The server's end**: `Peer` (send, close) and `Session` (receive, closed) on a
+`Gateway` (`server/src/gateway.ts`), which took over from `server.ts` everything done with a
+client's messages — the rate and size limits, the protocol check, one room a connection, create,
+join and its refusals, routing to the room, the encoding kept once per message. `server.ts` keeps
+only what is a WebSocket's: `maxPayload`, the heartbeat, and turning a frame into text.
+
+**The fake and the suite**: `FakeNetwork` (`client/src/net/fakeNetwork.ts`) between pages'
+`ServerConnection`s and a `Gateway`, timed by `setTimeout` so fake timers run a match in a second
+or two, its jitter from a seeded stream: latency, jitter that keeps the order, links cut as a
+network fails, and — breaking the contract on purpose — a message dropped or held back 200 ms for
+those after it to overtake. `transport.test.ts` plays whole two-round matches through it, the
+people bots thinking on their own pages' boards and sending through their connections (over 20 of
+their moves landing in the quick link's match). Passing is the design's: every page ends with the
+server's final hash, never a resync, and its commits since its last snapshot are the server's
+recording. Three tables keep the contract — a quick link, 120 ms one way with up to 150 of jitter,
+and the guest's then the host's link cut mid-match, each page rejoining by itself — and two break
+it, one commit with moves lost or overtaken, each caught by the next hash and mended by one rejoin.
+Checked to have teeth: with the fake's order broken for one message in 97, all five fail on their
+resync counts. The suite takes some 9 s.
+
+The suite sits in the client package and reaches the server through two new subpath exports,
+`@bollfort/server/gateway` and `/rooms`, a dev dependency: neither imports Node, which the
+client's types do not have, so the real WebSocket server cannot be started from it and stays
+covered by `server.test.ts`. A Steam transport gets its own rig in S3.
