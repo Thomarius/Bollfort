@@ -343,7 +343,7 @@ only in combat, as in the original arcade game.
 | ------ | ---------------------------------------------------------------------------- | ----- |
 | **C1** | The pure mapping, the pads read, the match steered, Menu as Esc, the pointer | built |
 | **C2** | The menus: focus moved spatially, Accept and Back, every window walked       | built |
-| **C3** | Options' Controller section: rebinding, the cursor's speed, Restore defaults | open  |
+| **C3** | Options' Controller section: rebinding, the cursor's speed, Restore defaults | built |
 | **C4** | Button glyphs in the hints and How to play; the HUD and menus at 1280 × 800  | open  |
 | **C5** | An on-screen keyboard for the name and the room code, last                   | open  |
 
@@ -391,6 +391,22 @@ board has the pad the walker waits; knocked out and watching, it has the strip's
 Walked with Playwright and a faked pad through the menu, Options, How to play, the gallery,
 Credits, Find a game, the local lobby, a guest's room on a real server, the tower menu, the
 tournament's setup, lobby and League, the pause menu with Leave match, and the end screen.
+
+**C3, built** (2026-11-04): the settings column's **Controller** row opens a window of its own
+(`controllerWindow.ts`), in Options and the pause menu alike — its five rows in the column would
+have made the pause menu taller than the Deck's 800 pixels. Accept, Turn / Back and Menu each show
+their button; choosing one, the next button pressed is taken (`pads.capture`, nothing else hearing
+it), until a press, a second choice, the window closing or six seconds. Each action has one
+button, and a button another action had swaps with this one's old one (`rebind`), so every action
+keeps a button and the pad cannot lock itself out; the d-pad and the guide button are never
+taken. Beside them the reticle's speed, Slow, Normal or Fast (0.7, 1, 1.4 of the config's), and
+Restore defaults. Saved as the page's own (`bollfort.padBindings`, `bollfort.padCursor`,
+`padSettings.ts`), a saved set refused unless whole and valid. Buttons named as an Xbox pad and
+the Deck print them (A, B, X, Y, LB, RB, LT, RT, Select, Start, LS, RS); C4 draws the glyphs.
+Walked with Playwright and a faked pad: Accept moved to X and A then inert, a swap, Restore
+defaults, the window from the pause menu, and the focus back on Set up as it closes — which found
+a bug in C2's walker, a closed window's successor found in the window beneath, now looked for
+only inside a window still on the page.
 
 ## 9. The store (N, S4)
 

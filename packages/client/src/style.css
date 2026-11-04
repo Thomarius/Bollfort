@@ -8103,3 +8103,35 @@ html.pad .pad-focus {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* The controller's settings (controllerWindow.ts): the Controller row's Set up and each action's
+   button a key in the dress of the choices beside them, the one awaiting a press in the accent. */
+.settings-rows .controller-open,
+.how-to-play.controller .bind,
+.how-to-play.controller .restore {
+  min-height: 0;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--field);
+  color: var(--ink);
+  font: 600 13px/1 var(--ui-font);
+}
+
+.how-to-play.controller .bind {
+  min-width: 4.5rem;
+}
+
+.how-to-play.controller .bind.waiting {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.how-to-play.controller .restore {
+  align-self: center;
+  margin-top: 0.4rem;
+}
+
+.how-to-play.controller .note {
+  margin: 0 0 0.6rem;
+}

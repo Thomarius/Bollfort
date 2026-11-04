@@ -96,6 +96,13 @@ function candidates(): HTMLElement[] {
   );
 }
 
+/** The window holding a control: the page's own child it is in. */
+function windowOf(el: Element): Element | null {
+  let at: Element | null = el;
+  while (at !== null && at.parentElement !== document.body) at = at.parentElement;
+  return at;
+}
+
 /** In the corner's row of buttons, which stands under every screen. */
 const inCorner = (el: Element): boolean => el.closest('#corner') !== null;
 
@@ -126,10 +133,12 @@ export class PadMenus {
   private fellBack = false;
   /** Where the focus last stood, to find its successor when its window is drawn afresh. */
   private lastBox: DOMRect | null = null;
+  /** The window the focus was in: the page's child holding it. */
+  private lastWindow: Element | null = null;
   /** When the focused control left the page, for the grace its window has to be redrawn. */
   private goneAt: number | null = null;
   /** The controls pressed, latest last: where focus goes back to as a window closes. */
-  private readonly openers: { el: HTMLElement; box: DOMRect }[] = [];
+  private readonly openers: { el: HTMLElement; box: DOMRect; window: Element | null }[] = [];
 
   constructor(private readonly pads: Pads) {
     // A click or a key elsewhere moves the real focus; the ring follows only the pad's.
@@ -162,8 +171,10 @@ export class PadMenus {
       const better = this.start();
       if (better !== null && better !== undefined && !inCorner(better)) this.ring(better);
     }
-    if (this.focused !== null && this.focused.isConnected)
+    if (this.focused !== null && this.focused.isConnected) {
       this.lastBox = this.focused.getBoundingClientRect();
+      this.lastWindow = windowOf(this.focused);
+    }
     if (!moved && !accept && !back && this.focused !== null && reachable(this.focused)) return;
 
     // The focus lost — never set, its window closed, covered — is found again first.
@@ -191,7 +202,7 @@ export class PadMenus {
     if (accept && focus !== null) {
       this.waiting = false;
       this.choseAt = null;
-      this.openers.push({ el: focus, box: focus.getBoundingClientRect() });
+      this.openers.push({ el: focus, box: focus.getBoundingClientRect(), window: windowOf(focus) });
       if (this.openers.length > 16) this.openers.shift();
       focus.click();
     }
@@ -208,8 +219,15 @@ export class PadMenus {
     }
     // Drawn afresh — the lobby redraws itself at every change — the control now where the
     // focused one stood is its successor.
-    if (this.focused !== null && !this.focused.isConnected && this.lastBox !== null) {
-      const best = this.near(this.lastBox, 40);
+    // Only within its own window, still on the page: a window closed is not redrawn, and what
+    // stands where its button stood belongs to the window beneath.
+    if (
+      this.focused !== null &&
+      !this.focused.isConnected &&
+      this.lastBox !== null &&
+      this.lastWindow?.isConnected === true
+    ) {
+      const best = this.near(this.lastBox, 40, this.lastWindow);
       if (best !== null) {
         this.goneAt = null;
         return best;
@@ -225,11 +243,17 @@ export class PadMenus {
     // One drawn afresh since — the lobby redraws as the tower menu it opened closes — is
     // found again where it stood.
     for (let i = this.openers.length - 1; i >= 0; i--) {
-      const { el, box } = this.openers[i]!;
-      const found = el.isConnected ? (reachable(el) ? el : null) : this.near(box, 40);
+      const { el, box, window } = this.openers[i]!;
+      const found = el.isConnected
+        ? reachable(el)
+          ? el
+          : null
+        : window?.isConnected === true
+          ? this.near(box, 40, window)
+          : null;
       if (found !== null) {
         this.openers.length = i;
-        this.openers.push({ el: found, box: found.getBoundingClientRect() });
+        this.openers.push({ el: found, box: found.getBoundingClientRect(), window });
         return found;
       }
     }
@@ -250,11 +274,12 @@ export class PadMenus {
   }
 
   /** The control in reach nearest a box's centre, within `within` pixels, or null. */
-  private near(box: DOMRect, within: number): HTMLElement | null {
+  private near(box: DOMRect, within: number, inside?: Element): HTMLElement | null {
     const was = centre(box);
     let best: HTMLElement | null = null;
     let nearest = within;
     for (const el of candidates()) {
+      if (inside !== undefined && !inside.contains(el)) continue;
       const at = centre(el.getBoundingClientRect());
       const d = Math.hypot(at.x - was.x, at.y - was.y);
       if (d < nearest) {

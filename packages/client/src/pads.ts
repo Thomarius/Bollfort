@@ -1,13 +1,13 @@
 import { defaultArtConfig } from '@bollfort/config';
 
 import {
-  DEFAULT_BINDINGS,
   pressedSince,
   readPad,
   type Bindings,
   type PadAction,
   type PadReading,
 } from './gamepad.js';
+import { storedBindings } from './padSettings.js';
 
 /**
  * The controllers, read from the browser's Gamepad API once a frame (STEAM.md §8). Whichever
@@ -27,7 +27,15 @@ export class Pads {
   private chosen: number | null = null;
   private inUse = false;
   private readonly listeners: ((inUse: boolean) => void)[] = [];
-  bindings: Bindings = DEFAULT_BINDINGS;
+  bindings: Bindings = storedBindings();
+  /** The buttons down at the last read, by index, to find which went down since. */
+  private rawBefore = new Set<number>();
+  private rawPressed: number[] = [];
+  /**
+   * While set, the next button pressed goes here and nowhere else: Options' Controller window
+   * waiting for the button to bind (`padLoop.ts` holds the menus back meanwhile).
+   */
+  capture: ((button: number) => void) | null = null;
 
   constructor() {
     // Any real motion of the mouse hands control back to it; Chromium sends a move of zero
@@ -86,6 +94,12 @@ export class Pads {
     }
     const pad = pads.find((p) => p !== null && p.index === this.chosen) ?? null;
     if (pad !== null) reading = readPad(pad, this.bindings, tuning.deadzone);
+    const down = new Set<number>();
+    pad?.buttons.forEach((b, i) => {
+      if (b.pressed) down.add(i);
+    });
+    this.rawPressed = [...down].filter((i) => !this.rawBefore.has(i));
+    this.rawBefore = down;
     const held = reading?.held ?? new Set<PadAction>();
     this.pressedSet = pressedSince(this.before, held);
     this.before = new Set(held);
@@ -113,6 +127,16 @@ export class Pads {
   /** Whether the board has had the pad within the last few frames. */
   claimed(now: number): boolean {
     return now - this.claimedAt < 100;
+  }
+
+  /** The buttons, by index, that went down since the frame before. */
+  get buttonsPressed(): readonly number[] {
+    return this.rawPressed;
+  }
+
+  /** Whether a controller is connected at all. */
+  get connected(): boolean {
+    return (navigator.getGamepads?.() ?? []).some((pad) => pad?.connected === true);
   }
 
   /** Whether an action's button went down since the frame before. */

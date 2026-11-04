@@ -43,6 +43,7 @@ import { styleTrackChance } from './styleMusicSetting.js';
 import { PauseControls, pausesOnBlur } from './pause.js';
 import { PadMatch } from './padMatch.js';
 import { pads } from './pads.js';
+import { CURSOR_SPEEDS, storedCursorSpeed } from './padSettings.js';
 import { howToSectionFor, openHowToPlay } from './howToPlay.js';
 import { openingShot, peekTowards, winnerShot } from './camera.js';
 import { perf } from './perf.js';
@@ -330,6 +331,7 @@ export async function runSession(
           },
           controls,
           defaultArtConfig.gamepad,
+          () => CURSOR_SPEEDS[storedCursorSpeed()],
         )
       : null;
 
