@@ -15,7 +15,12 @@ export function startPadLoop(): void {
     const elapsed = now - last;
     last = now;
     pads.read(now);
-    if (pads.pressedNow('menu'))
+    // Waiting for a button to bind: it goes there, and nothing else hears it.
+    const capture = pads.capture;
+    if (capture !== null) {
+      const [button] = pads.buttonsPressed;
+      if (button !== undefined) capture(button);
+    } else if (pads.pressedNow('menu'))
       document.body.dispatchEvent(
         new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
       );

@@ -55,6 +55,8 @@ export class PadMatch {
     private readonly home: Vec,
     private readonly steer: Steerable,
     private readonly tuning: GamepadTuning,
+    /** The player's cursor speed, a factor of the config's (`padSettings.ts`). */
+    private readonly speed: () => number = () => 1,
   ) {
     this.repeater = new Repeater(tuning);
   }
@@ -115,14 +117,13 @@ export class PadMatch {
       case 'aim': {
         const at = this.cursor ?? this.centreOf(this.homeTile());
         // Turn held speeds the reticle up: the right button does nothing in combat.
-        this.cursor = moveCursor(
-          at,
-          reading,
-          reading.held.has('turn'),
-          elapsedMs,
-          this.tuning,
-          size,
-        );
+        const factor = this.speed();
+        const tuning = {
+          ...this.tuning,
+          cursorTilesPerSecond: this.tuning.cursorTilesPerSecond * factor,
+          dpadCursorTilesPerSecond: this.tuning.dpadCursorTilesPerSecond * factor,
+        };
+        this.cursor = moveCursor(at, reading, reading.held.has('turn'), elapsedMs, tuning, size);
         this.steer.hoverTile = { x: Math.floor(this.cursor.x), y: Math.floor(this.cursor.y) };
         if (pressed.has('accept')) this.steer.accept();
         return;
