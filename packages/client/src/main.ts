@@ -36,6 +36,7 @@ import { showLoading } from './loading.js';
 import { installDemo, startDemo } from './demo.js';
 import { openKeyboard } from './padKeyboard.js';
 import { startPadLoop } from './padLoop.js';
+import { installStoreArt, storeArtMode } from './storeArt.js';
 
 /**
  * Bollfort client.
@@ -76,6 +77,9 @@ if (params.get('icons') === 'sheet') {
 
 /** The page the query asks for: a match, a lobby, a tournament's screen, or the menu. */
 function start(): void {
+  // Steam's store art (`storeArt.ts`): the logo alone, or a watched match as a picture.
+  installStoreArt(params);
+  if (storeArtMode(params) === 'logo') return;
   // The demo's button and idle clock, for whenever the menu stands bare (`demo.ts`).
   installDemo();
   // A controller, in the menus and the match alike (STEAM.md §8).

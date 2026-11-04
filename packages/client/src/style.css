@@ -8305,3 +8305,99 @@ html.pad .pad-focus {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* Steam's store art (storeArt.ts, STEAM.md §9.2): the board alone, the title over it. */
+html.store-art #hud,
+html.store-art #banner,
+html.store-art #corner,
+html.store-art .watching,
+html.store-art .pause-overlay,
+html.store-art .demo-overlay {
+  display: none !important;
+}
+
+html.store-art-logo,
+html.store-art-logo body {
+  margin: 0;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+html.store-art-logo #backdrop {
+  display: none;
+}
+
+.store-title-frame {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+.store-title-frame.at-top {
+  align-items: flex-start;
+  padding-top: 6vh;
+}
+
+.store-title-frame.at-bottom {
+  align-items: flex-end;
+  padding-bottom: 7vh;
+}
+
+.store-title-frame.at-left {
+  justify-content: flex-start;
+  padding-left: 6vw;
+}
+
+/* A veil darkest behind the title, so its letters read on any board. */
+.store-title-frame.shade {
+  background: radial-gradient(ellipse 60% 45% at 50% 50%, rgb(0 0 0 / 55%), transparent 75%);
+}
+
+.store-title-frame.shade.at-top {
+  background: linear-gradient(rgb(0 0 0 / 60%), transparent 45%);
+}
+
+.store-title-frame.shade.at-bottom {
+  background: linear-gradient(transparent 55%, rgb(0 0 0 / 60%));
+}
+
+.store-title-frame.shade.at-left {
+  background: linear-gradient(90deg, rgb(0 0 0 / 60%), transparent 60%);
+}
+
+/* A band across the picture behind the title, as the game's announcements run across the
+   board: dark, ruled above and below in gold. */
+.store-title-frame.band::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: var(--band, 44%);
+  transform: translateY(-50%);
+  border-block: 3px solid #d8b84a;
+  background: rgb(11 13 19 / 82%);
+  box-shadow: 0 0 40px rgb(0 0 0 / 50%);
+}
+
+.store-title-frame.band.at-top::before {
+  top: 0;
+  transform: none;
+  border-top: none;
+}
+
+.store-title-frame.band .store-title {
+  position: relative;
+}
+
+.store-title {
+  display: block;
+  /* A dark outline round every letter, then a soft shadow under the whole: the title reads on
+     the brightest board and on either side of a change of look, with no band behind it. */
+  filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 95%)) drop-shadow(0 0 1.5px rgb(0 0 0 / 95%))
+    drop-shadow(0 0 3px rgb(0 0 0 / 80%)) drop-shadow(0 5px 12px rgb(0 0 0 / 60%));
+}

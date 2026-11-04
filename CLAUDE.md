@@ -49,6 +49,7 @@ npx tsx tools/headless/src/towerSoak.ts --out soaks/x --pairs architect3:none --
 npx tsx tools/headless/src/buildStats.ts recordings/ --alias You=Thomas  # castles, ground, guns firing, pieces, by round
 npx tsx tools/headless/src/botReplay.ts recordings/<id>.jsonl --watch 2 --rounds 4-7  # a local match again, live bots
 tools/screenshots.sh /tmp/shots [scene...]   # client in fixed states, against the dev server
+npm start     -w @bollfort/storeart -- /tmp/art [asset...]   # Steam's store art candidates and a contact sheet; `final` the chosen set
 npm start     -w @bollfort/desktop  # the desktop app, after npm run build
 npm run package -w @bollfort/desktop # its portable file for this system, into packages/desktop/release/
 ```
@@ -65,7 +66,7 @@ leave your seat undriven on the way, so you are soon knocked out), `&speed=10`,
 (`&buildStyle=`, `&combatStyle=` for one), `&watch=1&level=8` to observe a bot match (`&personality=offensive` fixes every bot's),
 `?demo=1` the demo at once (`&speed=10` to cycle its matches),
 `&rounds=12` for the round cap, `&specials=1` for special towers (`&tower=bertha3`, a tower at its cost, the person's),
-`&teams=2` for teams of two in seat order, `?icons=sheet` every style's cannon icon side by side
+`&teams=2` for teams of two in seat order, `&storeArt=scene` the board alone with the title over it (`&title=`, `&titleWidth=`, `&shade=1|band`, `&split=0.5` a change of look held still; `?storeArt=logo` the title alone, transparent), `?icons=sheet` every style's cannon icon side by side
 (`?icons=boards` each style's board, for checking a refactor pixel for pixel), `?gaps=preview`
 the corner gaps' ping in every style, `&lang=de` (or `hes`) for a
 language (not saved). `?tournament=new` and `?tournament=resume` open the tournament screens,

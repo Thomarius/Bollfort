@@ -530,9 +530,31 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   screenshots only of play, made by `tools/screenshots.sh`; no links in the description; the
   content survey (no AI content ships in the game; the code's assistance is not what the survey
   asks about); the IARC rating.
-- **The capsules and logo**: a tool renders them from the game's own art at Steam's sizes — the
-  menu's title lettering over a board scene in Pixel, then Medieval. Several tried, the user
-  choosing. A readable title on every capsule (Valve's review checks it).
+- **The capsules and logo — chosen** (2026-11-04, the user's, in two rounds): the set is in
+  `assets/store/` under Steam's names. Made by `tools/storeart` from the game itself: the
+  client's store-art mode (`client/src/storeArt.ts`, `?storeArt=scene|logo`) shows only the board
+  of a watched match — round 3, mid-combat, top-level bots, seed 7 — with the title in a style's own
+  lettering over it, and the tool takes the picture at each size, with a contact sheet to choose
+  from. The direction: the **Medieval board under Minimal's rainbow lettering**, the letters
+  outlined dark so they read on any board, and the game's **change of look mid-match held still**
+  across the picture (`&split=`), **Cyberpunk above the line** and Medieval below, the same moment
+  of one match on both sides. The small capsule plain on a band ruled in gold, as the game's
+  announcements run, so its title nearly fills it; the library's logo the rainbow title alone,
+  transparent. Tried and dropped: Minimal's board (too plain for the game's range of looks) and
+  Medieval's stone lettering (grey on grey). `final` renders the chosen set again, should a look
+  change:
+  `npm start -w @bollfort/storeart -- assets/store final`, with the dev server running.
+
+  Valve's sizes (its pages, read 2026-11-04; the main and vertical capsules' from a summary, to
+  check on the live page before upload): header capsule 920 × 430, also the library header;
+  small 462 × 174, the logo nearly filling it; main 1232 × 706; vertical 748 × 896; library
+  capsule 600 × 900; library hero 3840 × 1240, no text at all, the middle 860 × 380 always shown;
+  library logo 1280 wide on transparency, nothing but the title. On every capsule the title is the
+  only text, legible. Still to make: the screenshots (at least five, 1920 × 1080, gameplay only),
+  the trailer (1920 × 1080, 30 or 60 fps, H.264 and AAC at 5,000 kbit/s or more; the first
+  should be mostly play and work without sound), and the community icons (their page not yet
+  read).
+
 - **Coming Soon** for at least two weeks; submitted for review at least 7 working days before.
 - **The depots**: Windows and Linux, the unpacked app (not the AppImage) under the Steam Linux
   Runtime, the binding's native module for each, no `steam_appid.txt`.
