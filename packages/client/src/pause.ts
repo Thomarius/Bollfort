@@ -1,6 +1,14 @@
 import type { TextKey } from '@bollfort/config';
 
+import { escape } from './html.js';
 import { onLanguageChange, t } from './i18n.js';
+import { pads, padText } from './pads.js';
+
+/** "Click again" in a controller's words. */
+const LEAVE_PAD: Partial<Record<TextKey, TextKey>> = {
+  'pause.leaveConfirm': 'pause.leaveConfirmPad',
+  'tournament.leaveConfirm': 'tournament.leaveConfirmPad',
+};
 import { withIcon } from './icons.js';
 import { refreshSettingsRows, settingsRows } from './settingsRows.js';
 import type { VolumeTarget } from './volume.js';
@@ -126,9 +134,10 @@ export class PauseControls {
         : `<button class="how-to quiet">${t('menu.howToPlay')}</button>`) +
       `</div>` +
       `<button class="leave-match quiet">${t('pause.leave')}</button>` +
-      `<small>${t('pause.escHint')}</small></div>`;
+      `<small class="esc-hint"></small></div>`;
     this.line = this.overlay.querySelector<HTMLParagraphElement>('.who')!;
     this.leaving = this.overlay.querySelector<HTMLButtonElement>('.leave-match')!;
+    this.writeHints();
     // The language, mid-match, is written into this menu by `onLanguageChange`, the HUD's at
     // the next frame.
     this.settings = settingsRows({
@@ -158,9 +167,26 @@ export class PauseControls {
         return;
       }
       this.leaving.classList.add('confirm');
-      this.leaving.textContent = t(actions.leaveConfirm ?? 'pause.leaveConfirm');
+      this.writeHints();
     });
   }
+
+  /**
+   * The words that speak of the mouse and the keyboard — Esc to resume, click again to leave —
+   * or, with a pad in use, of its buttons (STEAM.md §8, C4).
+   */
+  private writeHints(): void {
+    const hint = this.overlay.querySelector('.esc-hint');
+    if (hint !== null)
+      hint.innerHTML =
+        padText((marks) => t('pause.escHintPad', marks)) ?? escape(t('pause.escHint'));
+    if (this.leaving.classList.contains('confirm')) {
+      const key = this.actions.leaveConfirm ?? 'pause.leaveConfirm';
+      this.leaving.textContent = t(pads.active ? (LEAVE_PAD[key] ?? key) : key);
+    }
+  }
+
+  private readonly stopPad = pads.onChange(() => this.writeHints());
 
   /** The corner's button, its icon and words for the state: written only on a change, every frame. */
   private buttonLabel = '';
@@ -199,6 +225,7 @@ export class PauseControls {
   }
 
   destroy(): void {
+    this.stopPad();
     this.hideHowTo();
     globalThis.removeEventListener('keydown', this.key);
     this.stopListening();

@@ -42,6 +42,15 @@ describe('the tower line in a cannon phase', () => {
     expect(towerLine(state, 0, true)).not.toBe(towerLine(state, 0, false));
   });
 
+  it("names the controller's button in place of the right button's, with a pad in use", () => {
+    const state = cannonPhase();
+    const offer = towerLine(state, 0, false, '[B]');
+    expect(offer).toContain('[B]');
+    expect(offer).toContain(towerName('bertha'));
+    expect(offer).not.toContain(towerLine(state, 0, false)!);
+    expect(towerLine(state, 0, true, '[B]')).toContain('[B]');
+  });
+
   it('says why not, where it may not be bought', () => {
     const state = cannonPhase();
     state.players[0]!.openingPlacement = true;

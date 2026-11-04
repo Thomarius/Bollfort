@@ -22,16 +22,6 @@ export const PAD_ACTIONS: readonly PadAction[] = ['accept', 'turn', 'menu'];
  */
 export const BINDABLE: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
-/**
- * A button's name, as printed on an Xbox pad and the Deck: the standard mapping is Xbox's
- * layout. C4 draws the glyphs, PlayStation's where the pad is one.
- */
-const NAMES = ['A', 'B', 'X', 'Y', 'LB', 'RB', 'LT', 'RT', 'Select', 'Start', 'LS', 'RS'];
-
-export function buttonName(button: number): string {
-  return NAMES[button] ?? `#${button}`;
-}
-
 /** Bindings as saved, or null for anything not a whole, valid set of them. */
 export function parseBindings(text: string | null): Bindings | null {
   if (text === null) return null;

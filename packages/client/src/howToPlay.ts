@@ -11,6 +11,14 @@ import {
 
 import { escape } from './html.js';
 import { t } from './i18n.js';
+import { padText, pads } from './pads.js';
+
+/** The captions that speak of the mouse, and theirs for a controller (STEAM.md §8, C4). */
+const PAD_CAPTIONS: Partial<Record<TextKey, TextKey>> = {
+  'howTo.mouse': 'howTo.padMouse',
+  'howTo.towerSwitch': 'howTo.padTowerSwitch',
+  'howTo.fire': 'howTo.padFire',
+};
 import { motionReduced } from './motion.js';
 import { store, stored } from './storage.js';
 import { EMBLEMS } from './towerIcons.js';
@@ -1436,11 +1444,19 @@ export function openHowToPlay(
   let frame = 0;
   let closed = false;
 
+  /** The page's caption, the mouse's words or, with a pad in use, its buttons' (C4). */
+  const writeCaption = (): void => {
+    const { page } = pages[at]!;
+    const padKey = PAD_CAPTIONS[page.caption];
+    const html = padKey === undefined ? null : padText((marks) => t(padKey, marks));
+    if (html === null) caption.textContent = t(page.caption);
+    else caption.innerHTML = html;
+  };
   const show = (to: number): void => {
     at = Math.max(0, Math.min(pages.length - 1, to));
     since = performance.now();
-    const { chapter, page } = pages[at]!;
-    caption.textContent = t(page.caption);
+    const { chapter } = pages[at]!;
+    writeCaption();
     for (const tab of tabs) tab.classList.toggle('on', tab.dataset.section === chapter.id);
     // The dots of the section shown only, its page's lit.
     dots.forEach((dot, i) => {
@@ -1459,9 +1475,11 @@ export function openHowToPlay(
     page.draw(ctx, cssW, cssH, ms);
     frame = requestAnimationFrame(draw);
   };
+  const stopPad = pads.onChange(() => writeCaption());
   const close = (): void => {
     if (closed) return;
     closed = true;
+    stopPad();
     cancelAnimationFrame(frame);
     root.remove();
     onClose();

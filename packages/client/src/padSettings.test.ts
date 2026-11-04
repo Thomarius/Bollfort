@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_BINDINGS } from './gamepad.js';
-import { buttonName, parseBindings, parseCursorSpeed, rebind } from './padSettings.js';
+import { parseBindings, parseCursorSpeed, rebind } from './padSettings.js';
 
 describe('binding a button', () => {
   it('gives the action the button', () => {
@@ -41,11 +41,7 @@ describe('the bindings as saved', () => {
   });
 });
 
-describe('the names and the cursor speed', () => {
-  it('names the buttons as an Xbox pad prints them', () => {
-    expect([0, 1, 2, 3, 9].map(buttonName)).toEqual(['A', 'B', 'X', 'Y', 'Start']);
-  });
-
+describe('the cursor speed', () => {
   it('reads a saved speed, and nothing else', () => {
     expect(parseCursorSpeed('fast')).toBe('fast');
     expect(parseCursorSpeed('warp')).toBeNull();

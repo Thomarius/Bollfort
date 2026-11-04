@@ -333,7 +333,8 @@ only in combat, as in the original arcade game.
   in use, a remapped button shown as bound; Xbox's shapes by default, PlayStation's when the pad
   says so.
 - **1280 × 800**: the HUD, the menus and the hover texts checked at the Deck's resolution, with
-  text legible at arm's length (Valve's minimum size _to confirm_).
+  text legible at arm's length: no character under 9 px tall at 1280 × 800, 12 px recommended
+  (Valve's compatibility page, read 2026-11-04).
 - **Deck review** is asked for in S5, aiming at Verified: every window and phase reached with the
   controller, no launcher, no text entry under Steam.
 
@@ -344,7 +345,7 @@ only in combat, as in the original arcade game.
 | **C1** | The pure mapping, the pads read, the match steered, Menu as Esc, the pointer | built |
 | **C2** | The menus: focus moved spatially, Accept and Back, every window walked       | built |
 | **C3** | Options' Controller section: rebinding, the cursor's speed, Restore defaults | built |
-| **C4** | Button glyphs in the hints and How to play; the HUD and menus at 1280 × 800  | open  |
+| **C4** | Button glyphs in the hints and How to play; the HUD and menus at 1280 × 800  | built |
 | **C5** | An on-screen keyboard for the name and the room code, last                   | open  |
 
 **C5, to do last** (the user's, 2026-11-04, after trying C2 with a real pad): the name and the room
@@ -353,7 +354,10 @@ keyboard. Outside Steam they are filled with a small on-screen keyboard of our o
 Accept on the focused field and closed by Back: for the room code a picker over the code's
 alphabet (`rooms.codeAlphabet`, 32 characters, no lookalikes), for the name a compact letter grid with Space, Delete and
 Done, both walked by the same focus walker. Under Steam the fields are gone (§7.2), so it is for
-the browser and the GitHub builds.
+the browser and the GitHub builds — and for Deck Verified wherever a field stays: Valve requires
+a game needing text to open an on-screen keyboard itself, or to have its own entry a controller
+alone can use; a player opening the system's by hand earns Playable, not Verified (the
+compatibility page, read 2026-11-04).
 
 **C1, built** (2026-11-04): `gamepad.ts` the pure part — a pad read into Accept, Turn and Menu
 through the bindings (A, B and Start in the standard mapping by default), the stick's radial dead
@@ -407,6 +411,31 @@ Walked with Playwright and a faked pad: Accept moved to X and A then inert, a sw
 defaults, the window from the pause menu, and the focus back on Set up as it closes — which found
 a bug in C2's walker, a closed window's successor found in the window beneath, now looked for
 only inside a window still on the page.
+
+**C4, built** (2026-11-04): while a pad is in use, every text that spoke of the mouse or of Esc
+names the pad's button instead, drawn as the pad prints it (`glyphs.ts`): How to play's three
+captions on the buttons, the cannon phase's tower line, the pause menu's way to resume and both
+"click again" confirmations, the demo's way back — each a text of its own (`…Pad`), `{accept}`,
+`{turn}` and `{menu}` in it standing for the buttons bound, so a remapped one shows as bound. Xbox's
+lettered buttons in its colours by default, which is how Steam Input presents the Deck; PlayStation's
+shapes when the pad's name says Sony (vendor 054c, DualShock, DualSense); the Controller window shows
+its buttons as glyphs too, in place of C3's names. The texts change the moment the pad or the mouse
+takes over (`pads.onChange`), as Valve asks: no mouse words while a pad is the input. Found on the
+way: the pause menu wrote its hint before finding its Leave button and threw as a match opened —
+caught by the PlayStation walk, before any commit.
+
+**At 1280 × 800** (Playwright, every window and the match at eight players, each scanned for
+text under 12 px and for text off screen): everything fits — the menu, Options, the Controller
+window, How to play, Credits, Find a game, the eight-seat lobby in English and German, the
+tournament's setup and lobby, the HUD at eight players, the German pause menu with its Controller
+row, the end screen at eight. The gallery's last row scrolls, as it should. Two things fixed, the user's wish: a dozen small
+labels had been 10–11 px (the menu's "Inspired by" line and Credits link, the looks' card
+headings, the gallery's badges, the lobby's Host, Level and You tags, notes, the pause menu's Esc
+hint, the HUD's names at eight players), now 12 px, Valve's recommended least — on screens of the
+Deck's size and smaller only (a media query at 1280 × 800), the HUD's names everywhere; and in
+the bar at eight players four-digit scores pushed each player's third life pip out of sight at
+1280 pixels, so the score is now sized by the largest score's digits as well (`--digits`, set by
+the HUD), 18 px for four there.
 
 ## 9. The store (N, S4)
 
@@ -529,6 +558,6 @@ games already under way (§4).
 - The revenue share in the Steam Distribution Agreement, and the German side of any income (a
   Gewerbe, the Kleinunternehmer rule) — only before a paid DLC, if one ever comes.
 - Whether Valve's relay is free, if the newer networking is needed.
-- Steam Input passing the pad through to the Gamepad API, and the Deck's minimum text size.
+- Steam Input passing the pad through to the Gamepad API.
 - `ShowGamepadTextInput` in the binding.
 - The rich presence localisation format.

@@ -7,6 +7,7 @@ import {
   type PadAction,
   type PadReading,
 } from './gamepad.js';
+import { padFamily, withGlyphs, type PadFamily } from './glyphs.js';
 import { storedBindings } from './padSettings.js';
 
 /**
@@ -36,6 +37,8 @@ export class Pads {
    * waiting for the button to bind (`padLoop.ts` holds the menus back meanwhile).
    */
   capture: ((button: number) => void) | null = null;
+  /** How the pad in use prints its buttons, for the glyphs (`glyphs.ts`). */
+  family: PadFamily = 'xbox';
 
   constructor() {
     // Any real motion of the mouse hands control back to it; Chromium sends a move of zero
@@ -93,7 +96,10 @@ export class Pads {
       }
     }
     const pad = pads.find((p) => p !== null && p.index === this.chosen) ?? null;
-    if (pad !== null) reading = readPad(pad, this.bindings, tuning.deadzone);
+    if (pad !== null) {
+      reading = readPad(pad, this.bindings, tuning.deadzone);
+      this.family = padFamily(pad.id);
+    }
     const down = new Set<number>();
     pad?.buttons.forEach((b, i) => {
       if (b.pressed) down.add(i);
@@ -152,3 +158,13 @@ export class Pads {
 
 /** The page's one set of pads, shared by the match and the menus. */
 export const pads = new Pads();
+
+/**
+ * A text for the pad, as HTML, each `{accept}`, `{turn}` or `{menu}` in it the glyph of the
+ * button bound to that action; null with the mouse in use, for the mouse's own text.
+ */
+export function padText(
+  text: (marks: Readonly<Record<PadAction, string>>) => string,
+): string | null {
+  return pads.active ? withGlyphs(text, pads.bindings, pads.family) : null;
+}

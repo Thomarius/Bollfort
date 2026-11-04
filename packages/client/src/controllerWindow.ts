@@ -1,11 +1,11 @@
 import { DEFAULT_BINDINGS, type PadAction } from './gamepad.js';
+import { glyphHtml } from './glyphs.js';
 import { escape } from './html.js';
 import { t } from './i18n.js';
 import { enhanceChoices } from './choices.js';
 import {
   CURSOR_SPEEDS,
   PAD_ACTIONS,
-  buttonName,
   parseCursorSpeed,
   rebind,
   saveBindings,
@@ -63,7 +63,7 @@ export function openController(click: () => void): void {
         ? t('controller.press')
         : button === undefined
           ? '—'
-          : escape(buttonName(button));
+          : glyphHtml(button, pads.family);
       return (
         `<label data-tip="${escape(t(ACTION_TEXTS[action].tip))}">${t(ACTION_TEXTS[action].name)}` +
         ` <button type="button" class="bind${waiting ? ' waiting' : ''}" data-action="${action}">${shown}</button></label>`

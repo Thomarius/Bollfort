@@ -2,11 +2,12 @@ import { defaultConfigBundle } from '@bollfort/config';
 
 import { app, showError } from './app.js';
 import { demoSetup, idleDue, rollDemoTable, tableCaption } from './demoTable.js';
+import { escape } from './html.js';
 import { t } from './i18n.js';
 import { withIcon } from './icons.js';
 import { runSession } from './matchScreen.js';
 import { showMenu } from './menu.js';
-import { pads } from './pads.js';
+import { padText, pads } from './pads.js';
 import { preferredStyles, saveName } from './prefs.js';
 import { localMatchFor, localSession } from './session.js';
 
@@ -133,11 +134,21 @@ class Demo {
     this.overlay.className = 'demo-overlay';
     this.overlay.innerHTML =
       `<div class="demo-caption"><strong></strong><span></span></div>` +
-      `<div class="demo-strip">${t('demo.back')}</div>`;
+      `<div class="demo-strip"></div>`;
+    this.writeStrip();
     document.body.append(this.fade, this.overlay);
     globalThis.addEventListener('pointerdown', this.pointer, { capture: true });
     globalThis.addEventListener('keydown', this.key, { capture: true });
   }
+
+  /** How to get back: a click, or with a pad in use its Back (STEAM.md §8, C4). */
+  private writeStrip(): void {
+    const strip = this.overlay.querySelector('.demo-strip');
+    if (strip !== null)
+      strip.innerHTML = padText((marks) => t('demo.backPad', marks)) ?? escape(t('demo.back'));
+  }
+
+  private readonly stopPad = pads.onChange(() => this.writeStrip());
 
   async start(): Promise<void> {
     await this.fadeTo(1, DEMO.fadeMs);
@@ -213,6 +224,7 @@ class Demo {
     globalThis.removeEventListener('keydown', this.key, { capture: true });
     this.fade.remove();
     this.overlay.remove();
+    this.stopPad();
     running = null;
   }
 
