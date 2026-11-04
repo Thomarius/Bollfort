@@ -75,20 +75,19 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 
 | Package | What                                                    | Needs Steam | Before paying |
 | ------- | ------------------------------------------------------- | ----------- | ------------- |
-| **C**   | Native controller support                               | no          | yes           |
 | **S1**  | The spike on App ID 480, two accounts, two machines     | 480         | yes           |
 | **S2**  | The Steam build: the flag, the binding, no launcher     | 480         | yes           |
 | **S3**  | Steam lobbies, invites, presence, names and avatars     | 480         | yes           |
 | **S4**  | The store: fee, store page, capsules, depots, release   | the app     | it is paying  |
 | **S5**  | The users' test on the beta branch, Deck review, launch | the app     | —             |
 
-C needs no Steam and is tested in `npm run check`.
 S1 comes before the fee is paid, and its answers decide S3's binding work.
 
 **Done**: N, the name — Bollfort, the rename everywhere (2026-11-03, ARCHIVE 15zh; the search
 in §9.1); R, no recordings in packaged builds (2026-11-03, ARCHIVE 15zi); K, the host's Remove,
 and B, Find a game (2026-11-03, ARCHIVE 15zj, protocol 35); T, the transport interface at both
-ends, the fake network and whole matches over it (2026-11-04, ARCHIVE 15zl, §7.1).
+ends, the fake network and whole matches over it (2026-11-04, ARCHIVE 15zl, §7.1); C, native
+controller support in five parts (2026-11-04, ARCHIVE 15zm, §8).
 
 ## 3. The Steam build (S1, S2)
 
@@ -346,7 +345,7 @@ only in combat, as in the original arcade game.
 | **C2** | The menus: focus moved spatially, Accept and Back, every window walked       | built |
 | **C3** | Options' Controller section: rebinding, the cursor's speed, Restore defaults | built |
 | **C4** | Button glyphs in the hints and How to play; the HUD and menus at 1280 × 800  | built |
-| **C5** | An on-screen keyboard for the name and the room code, last                   | open  |
+| **C5** | An on-screen keyboard for the name and the room code, last                   | built |
 
 **C5, to do last** (the user's, 2026-11-04, after trying C2 with a real pad): the name and the room
 code are the only things a pad cannot reach — the walker leaves text fields to the mouse and the
@@ -436,6 +435,18 @@ Deck's size and smaller only (a media query at 1280 × 800), the HUD's names eve
 the bar at eight players four-digit scores pushed each player's third life pip out of sight at
 1280 pixels, so the score is now sized by the largest score's digits as well (`--digits`, set by
 the HUD), 18 px for four there.
+
+**C5, built** (2026-11-04): every text field is in the walker's reach, and Accept on one opens an
+on-screen keyboard of our own (`padKeyboard.ts`) over the page: for the room code its alphabet,
+eight to a row, with Delete and Done; for a name — the menu's, a tournament's team, teammates and
+archnemesis — figures, letters in a German QWERTZ order with ä, ö, ü and ß, a row of marks and
+accents, Shift, Space, Delete and Done, Shift on at the start of the name and of each word, as a
+phone's is. What is typed goes into the field as it is typed (its `input` events, and `change` as
+the keyboard closes); the field's length is kept to, a room code typed in capitals. Its keys are
+buttons the walker walks; Done is the way back, so Back closes it too, and the focus returns to
+the field. Walked with Playwright and a faked pad: a name typed in English and German, a room
+code (the field enabled by hand, the dev server having no game server to join), a tournament's
+team name. With this, package C is finished. Tested and approved by the user with a real pad (2026-11-04).
 
 ## 9. The store (N, S4)
 

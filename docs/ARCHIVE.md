@@ -11398,3 +11398,43 @@ The suite sits in the client package and reaches the server through two new subp
 `@bollfort/server/gateway` and `/rooms`, a dev dependency: neither imports Node, which the
 client's types do not have, so the real WebSocket server cannot be started from it and stays
 covered by `server.test.ts`. A Steam transport gets its own rig in S3.
+
+## 15zm. Native controller support, C (2026-11-04)
+
+Package C of the Steam release (STEAM.md §8, its five parts there in detail), for every build:
+a controller does what the mouse does, through the browser's Gamepad API — A the left button, B
+the right, Start Esc — the user's rule amended to "mouse, or a controller through the same actions".
+
+**C1, the match** (`gamepad.ts` pure, `pads.ts`, `padMatch.ts`): the ghost by grid positions from
+the island's centre, a step at once then repeating faster with the stick's push; castles jumped to
+in the direction pushed; in combat a free reticle, B held for 2.5 times the speed. `Controls`
+gained `accept` and `turn`, which the mouse calls too, so both share one path. The pointer hides
+while the pad is in use. Played by the user with a real pad: working very well.
+
+**C2, the menus** (`padMenus.ts`): one focus walker for every window, nothing per window. It
+focuses what the mouse could click, topmost at its centre; moves to the nearest control beyond the
+edge pushed, by the boxes' gaps; changes rows, switches and sliders with left and right and leaves
+them past their end; Back is a window's `data-back` or Esc. The focus starts on the window's
+opener, else its main button (`.primary`, `data-main`), and survives redraws by position within
+the same window. Its bugs, all found by walking with a faked pad: centre-to-centre scoring skipped
+the button straight below a wide one; a gallery's fade-in hid its redrawn tab for a frame; a
+closed window's successor was found in the window beneath (found in C3).
+
+**C3, the bindings** (`controllerWindow.ts`, `padSettings.ts`): Options' and the pause menu's
+Controller row opens a window — in the column it would have made the pause menu taller than the
+Deck's 800 pixels — where the next button pressed is bound, one to an action, a taken one swapped
+so none is ever left without; the cursor's speed; Restore defaults.
+
+**C4, glyphs and the Deck's screen** (`glyphs.ts`): while a pad is in use every text of the mouse
+or Esc names its bound button, drawn as the pad prints it, Xbox's by default and PlayStation's for
+Sony's pads. Valve's compatibility page, read the same day, set the bar: no character under 9 px
+at 1280 × 800, 12 recommended; glyphs matching the input; a game needing text opening a keyboard
+itself. At 1280 × 800 every window fits; the 10–11 px labels became 12 on screens of that size,
+and the bar's score is sized by its digits too, since a fourth hid the last life pip at eight.
+
+**C5, the on-screen keyboard** (`padKeyboard.ts`): Accept on a text field opens one of our own,
+the room code's alphabet or a name's letters with the German ones, Shift, Space, Delete and Done,
+typing into the field as it goes.
+
+A bug was caught before its commit by walking with a PlayStation pad: the pause menu wrote its
+hint before finding its Leave button, and threw as a match opened.
