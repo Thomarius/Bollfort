@@ -495,7 +495,9 @@ export async function runSession(
   const storeSplit = storeArtSplit(params);
   let splitPrimedFrames = 0;
   function holdStoreSplit(): void {
-    if (storeSplit === null || session.state.phase !== 'combat') return;
+    // In every phase, once primed: as combat ended, the line had gone and the board snapped
+    // back to one look under the title (the user, 2026-11-04).
+    if (storeSplit === null) return;
     if (splitPrimedFrames < 60) {
       splitPrimedFrames++;
       scene.prime('build');
