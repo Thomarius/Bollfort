@@ -310,9 +310,9 @@ interface Shot {
 }
 
 const CUT: Shot[] = [
-  // A second later than first cut: the banner already in sight, the shooting sooner after Aim
-  // (the user, 2026-11-04).
-  { clip: 'hook-wipe', from: -1.6, length: 6.0 }, // 0.0 – 6.0: Ready… Aim… Fire!
+  // 1.5 s later than the first cut: the banner already in sight, the shooting in time with the
+  // countdown (the user, 2026-11-04).
+  { clip: 'hook-wipe', from: -1.1, length: 6.0 }, // 0.0 – 6.0: Ready… Aim… Fire!
   { clip: 'loop-fire', from: 0.3, length: 4.2 }, // 6.0 – 10.2
   { clip: 'loop-build', from: 0.5, length: 4.3 }, // 10.2 – 14.5
   { clip: 'style-anime', from: 0.2, length: 2.0 }, // 14.5 – 16.5: the first lift
