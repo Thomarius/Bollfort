@@ -196,6 +196,72 @@ export function nearestInDirection<T>(
   return best;
 }
 
+/** A box on screen: left, top, right, bottom. */
+export interface Box {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/**
+ * The box nearest in a direction from another, for the menus: only boxes wholly beyond the
+ * source's edge that way count (a little overlap allowed), the gap to them along the way
+ * pushed, and sideways only the gap between their spans — none where they overlap, so the
+ * button below a wide one is "straight down" though their centres differ. Sideways weighs
+ * twice, as in `nearestInDirection`. Diagonals take both axes' gaps.
+ */
+export function nearestBoxInDirection<T>(
+  source: Box,
+  items: readonly { box: Box; item: T; from?: Box; first?: boolean }[],
+  dir: Vec,
+): T | null {
+  const SLACK = 4;
+  let best: T | null = null;
+  let bestScore = Infinity;
+  const gap = (a0: number, a1: number, b0: number, b1: number): number =>
+    Math.max(0, b0 - a1, a0 - b1);
+  for (const { box, item, from: own, first } of items) {
+    // An item may measure from a box of its own: one nested in the source, or holding it,
+    // is measured centre to centre (`pointBox`), since neither lies beyond the other's edge.
+    const from = own ?? source;
+    let along = 0;
+    let ok = true;
+    if (dir.x > 0) {
+      ok &&= box.left >= from.right - SLACK;
+      along += Math.max(0, box.left - from.right);
+    } else if (dir.x < 0) {
+      ok &&= box.right <= from.left + SLACK;
+      along += Math.max(0, from.left - box.right);
+    }
+    if (dir.y > 0) {
+      ok &&= box.top >= from.bottom - SLACK;
+      along += Math.max(0, box.top - from.bottom);
+    } else if (dir.y < 0) {
+      ok &&= box.bottom <= from.top + SLACK;
+      along += Math.max(0, from.top - box.bottom);
+    }
+    if (!ok) continue;
+    const across =
+      (dir.x === 0 ? gap(from.left, from.right, box.left, box.right) : 0) +
+      (dir.y === 0 ? gap(from.top, from.bottom, box.top, box.bottom) : 0);
+    // `first`: before anything else that way, as a card's own heart comes before leaving it.
+    const score = along + 2 * across - (first === true ? 1e9 : 0);
+    if (score < bestScore) {
+      bestScore = score;
+      best = item;
+    }
+  }
+  return best;
+}
+
+/** A box shrunk to its centre. */
+export function pointBox(box: Box): Box {
+  const x = (box.left + box.right) / 2;
+  const y = (box.top + box.bottom) / 2;
+  return { left: x, top: y, right: x, bottom: y };
+}
+
 /** A tile moved by grid steps, kept on the board. */
 export function stepTile(tile: Vec, steps: Vec, size: { width: number; height: number }): Vec {
   return {

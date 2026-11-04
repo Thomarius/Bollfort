@@ -337,14 +337,23 @@ only in combat, as in the original arcade game.
 - **Deck review** is asked for in S5, aiming at Verified: every window and phase reached with the
   controller, no launcher, no text entry under Steam.
 
-**In four parts** (2026-11-04), each checked on its own:
+**In five parts** (2026-11-04; C5 added the same day, the user's), each checked on its own:
 
 | Part   | What                                                                         | State |
 | ------ | ---------------------------------------------------------------------------- | ----- |
 | **C1** | The pure mapping, the pads read, the match steered, Menu as Esc, the pointer | built |
-| **C2** | The menus: focus moved spatially, Accept and Back, every window walked       | open  |
+| **C2** | The menus: focus moved spatially, Accept and Back, every window walked       | built |
 | **C3** | Options' Controller section: rebinding, the cursor's speed, Restore defaults | open  |
 | **C4** | Button glyphs in the hints and How to play; the HUD and menus at 1280 × 800  | open  |
+| **C5** | An on-screen keyboard for the name and the room code, last                   | open  |
+
+**C5, to do last** (the user's, 2026-11-04, after trying C2 with a real pad): the name and the room
+code are the only things a pad cannot reach — the walker leaves text fields to the mouse and the
+keyboard. Outside Steam they are filled with a small on-screen keyboard of our own, opened by
+Accept on the focused field and closed by Back: for the room code a picker over the code's
+alphabet (`rooms.codeAlphabet`, 32 characters, no lookalikes), for the name a compact letter grid with Space, Delete and
+Done, both walked by the same focus walker. Under Steam the fields are gone (§7.2), so it is for
+the browser and the GitHub builds.
 
 **C1, built** (2026-11-04): `gamepad.ts` the pure part — a pad read into Accept, Turn and Menu
 through the bindings (A, B and Start in the standard mapping by default), the stick's radial dead
@@ -358,7 +367,30 @@ reticle 14 tiles a second, 9 under the d-pad, Turn's boost 2.5) are first guesse
 play. Checked with Playwright and a pad faked over `navigator.getGamepads`: the ghost from the
 island's centre, a piece turned and placed, a castle jumped to and chosen, the reticle steered and
 fired, Start opening and closing the pause menu. Played by the user with a real pad (2026-11-04): working very well. While paused or with the match over the pad
-leaves the board alone; the pause menu itself waits for C2.
+leaves the board alone.
+
+**C2, built** (2026-11-04): one walker for every window (`padMenus.ts`), so no window has code of
+its own for the pad. What it may focus is what the mouse could click — a button, a link, a
+`summary`, a slider, a heart — enabled and topmost at its own centre, so a window over another
+holds the focus as it holds the mouse; a control scrolled out of its list counts while the list is
+in reach, and is scrolled to. Up, down, left and right go to the nearest control beyond that edge,
+measured by the boxes' gaps, any sideways overlap counting as straight on; a control's own
+controls first, measured centre to centre (a look's heart inside its card). Rows of options,
+switches and sliders change with left and right and are left by pushing past their end, so a
+second column is in reach; a stepper is its − and + buttons, as two steppers share a row. Accept
+clicks; Back clicks the window's way back, marked `data-back` (Close, Done, Leave, Back), or is Esc
+where there is none — the pause menu, the demo. The focus starts on the control that opened the
+window once it is back in reach (found again where it stood if the page drew it afresh), else the
+window's main button (`.primary` or `data-main`: Resume, Ready, How to play's ›, the chosen look
+and tower, the end screen's way on), else the first in reading order; a control replaced by a
+redraw — the lobby redraws at every change — hands the focus to whatever now stands where it
+stood, after a fade's grace. The corner's row is chosen only with nothing else on screen, and
+left for the window that appears. Ringed by the class `pad-focus` in the look's accent, its hover
+text shown, since Chromium gives a script's focus `:focus-visible` only after a key. While the
+board has the pad the walker waits; knocked out and watching, it has the strip's way back.
+Walked with Playwright and a faked pad through the menu, Options, How to play, the gallery,
+Credits, Find a game, the local lobby, a guest's room on a real server, the tower menu, the
+tournament's setup, lobby and League, the pause menu with Leave match, and the end screen.
 
 ## 9. The store (N, S4)
 

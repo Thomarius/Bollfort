@@ -18,7 +18,10 @@ import {
  */
 export class Pads {
   private before = new Set<PadAction>();
-  private last: PadReading | null = null;
+  private lastReading: PadReading | null = null;
+  private claimedAt = -Infinity;
+  /** When the pad was last touched, by the page's clock; for the demo's idle clock. */
+  touchedAt = -Infinity;
   private pressedSet = new Set<PadAction>();
   private readAt = -1;
   private chosen: number | null = null;
@@ -66,7 +69,7 @@ export class Pads {
    * each of them.
    */
   read(now: number): PadReading | null {
-    if (now === this.readAt) return this.last;
+    if (now === this.readAt) return this.lastReading;
     this.readAt = now;
     const pads = navigator.getGamepads?.() ?? [];
     const tuning = defaultArtConfig.gamepad;
@@ -86,9 +89,30 @@ export class Pads {
     const held = reading?.held ?? new Set<PadAction>();
     this.pressedSet = pressedSince(this.before, held);
     this.before = new Set(held);
-    this.last = reading;
-    if (reading?.touched === true) this.use(true);
+    this.lastReading = reading;
+    if (reading?.touched === true) {
+      this.touchedAt = now;
+      this.use(true);
+    }
     return reading;
+  }
+
+  /** The pad as last read, or null with none. */
+  get last(): PadReading | null {
+    return this.lastReading;
+  }
+
+  /**
+   * The match's board takes the pad this frame (`padMatch.ts`): the menus leave it alone
+   * until it has gone a few frames unclaimed — paused, or the match over.
+   */
+  claim(now: number): void {
+    this.claimedAt = now;
+  }
+
+  /** Whether the board has had the pad within the last few frames. */
+  claimed(now: number): boolean {
+    return now - this.claimedAt < 100;
   }
 
   /** Whether an action's button went down since the frame before. */

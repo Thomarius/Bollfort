@@ -1412,9 +1412,9 @@ export function openHowToPlay(
               `<button class="dot" data-page="${i}" aria-label="${escape(t(page.caption))}"></button>`,
           )
           .join('')}</span>
-        <button class="next" aria-label="${t('howTo.next')}">›</button>
+        <button class="next" aria-label="${t('howTo.next')}" data-main>›</button>
       </div>
-      <button class="close quiet">${t('howTo.close')}</button>
+      <button class="close quiet" data-back>${t('howTo.close')}</button>
     </div>`;
   document.body.append(root);
   const canvas = root.querySelector('canvas')!;

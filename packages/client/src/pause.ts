@@ -114,7 +114,7 @@ export class PauseControls {
     this.button.dataset.tipSide = 'right';
     this.overlay.innerHTML =
       `<div class="panel"><strong>${t('pause.title')}</strong><p class="who"></p>` +
-      `<button class="resume">${t('pause.resume')}</button>` +
+      `<button class="resume" data-main>${t('pause.resume')}</button>` +
       // The buttons in a row of their own under the settings and volumes, which are a column
       // as the menu's Options lays them out: in one long row they nearly filled the screen.
       `<div class="actions">` +

@@ -270,9 +270,10 @@ export function galleryMarkup(
       const mark =
         choice === RANDOM
           ? ''
-          : `<span class="heart${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" data-tip="${escape(t('looks.favourite'))}">${heart(on)}</span>`;
+          : `<span class="heart${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" tabindex="0" data-tip="${escape(t('looks.favourite'))}">${heart(on)}</span>`;
       return (
-        `<button class="card${chosen}" data-choice="${choice}"${hint}>` +
+        // The chosen one is where a controller's focus starts (`padMenus.ts`).
+        `<button class="card${chosen}" data-choice="${choice}"${hint}${chosen === '' ? '' : ' data-main'}>` +
         `<img alt="" data-preview="${choice}" />` +
         `<span class="name">${escape(lookName(choice))}</span>${badges}${mark}</button>`
       );
@@ -285,7 +286,7 @@ export function galleryMarkup(
     `<button class="hearts-none">${heart(false)} ${t('looks.heartNone')}</button></div></div>` +
     `<div class="tabs">${tab('build', t('looks.build'))}${tab('combat', t('looks.combat'))}</div>` +
     `<div class="cards">${cards}</div>` +
-    `<button class="done">${t('looks.done')}</button></div>`
+    `<button class="done" data-back>${t('looks.done')}</button></div>`
   );
 }
 

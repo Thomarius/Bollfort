@@ -6955,7 +6955,8 @@ body.reduced-motion .tower-menu .panel {
 
 /* Shown on a keyboard's focus as on hover, and 13px, not 12 (ARCHIVE 15ze). */
 [data-tip]:hover::after,
-[data-tip]:focus-visible::after {
+[data-tip]:focus-visible::after,
+html.pad [data-tip].pad-focus::after {
   content: attr(data-tip);
   position: absolute;
   left: 50%;
@@ -6980,14 +6981,16 @@ body.reduced-motion .tower-menu .panel {
 
 /* Near the left edge, opening rightwards, so it stays on screen. */
 [data-tip][data-tip-side='right']:hover::after,
-[data-tip][data-tip-side='right']:focus-visible::after {
+[data-tip][data-tip-side='right']:focus-visible::after,
+html.pad [data-tip][data-tip-side='right'].pad-focus::after {
   left: 0;
   transform: none;
 }
 
 /* Near the right edge, opening leftwards so it stays on screen. */
 [data-tip][data-tip-side='left']:hover::after,
-[data-tip][data-tip-side='left']:focus-visible::after {
+[data-tip][data-tip-side='left']:focus-visible::after,
+html.pad [data-tip][data-tip-side='left'].pad-focus::after {
   left: auto;
   right: 0;
   transform: none;
@@ -6996,7 +6999,8 @@ body.reduced-motion .tower-menu .panel {
 /* Too near the window's top for the text above it: below instead (`data-tip-below`, set as the
    pointer or the focus arrives, app.ts). */
 [data-tip][data-tip-below]:hover::after,
-[data-tip][data-tip-below]:focus-visible::after {
+[data-tip][data-tip-below]:focus-visible::after,
+html.pad [data-tip][data-tip-below].pad-focus::after {
   top: calc(100% + 8px);
   bottom: auto;
 }
@@ -8092,4 +8096,10 @@ body.reduced-motion .end-screen .score-chart .end {
 html.pad,
 html.pad * {
   cursor: none !important;
+}
+
+/* The control a controller has focused (padMenus.ts), ringed in the look's accent. */
+html.pad .pad-focus {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }

@@ -6,7 +6,9 @@ import {
   Repeater,
   heading,
   moveCursor,
+  nearestBoxInDirection,
   nearestInDirection,
+  pointBox,
   pressedSince,
   readPad,
   stepTile,
@@ -160,5 +162,47 @@ describe('a grid step', () => {
     const size = { width: 5, height: 4 };
     expect(stepTile({ x: 2, y: 2 }, { x: 1, y: -1 }, size)).toEqual({ x: 3, y: 1 });
     expect(stepTile({ x: 4, y: 3 }, { x: 2, y: 2 }, size)).toEqual({ x: 4, y: 3 });
+  });
+});
+
+describe('the nearest button in a direction', () => {
+  const box = (left: number, top: number, right: number, bottom: number) => ({
+    left,
+    top,
+    right,
+    bottom,
+  });
+  // A wide button, and below it a narrow one to the left, a full-width one further down,
+  // and a button off to the right on its own row.
+  //   [  wide  ]
+  //   [narrow]        [aside]
+  //   [   further   ]
+  const wide = box(0, 0, 400, 50);
+  const items = [
+    { box: box(0, 70, 200, 110), item: 'narrow' },
+    { box: box(0, 200, 400, 240), item: 'further' },
+    { box: box(500, 70, 600, 110), item: 'aside' },
+  ];
+
+  it('goes to the nearest one below that overlaps, though its centre is off to the side', () => {
+    expect(nearestBoxInDirection(wide, items, { x: 0, y: 1 })).toBe('narrow');
+  });
+
+  it('takes only what lies wholly beyond the edge pushed', () => {
+    expect(nearestBoxInDirection(items[0]!.box, items, { x: 1, y: 0 })).toBe('aside');
+    expect(nearestBoxInDirection(items[0]!.box, items, { x: -1, y: 0 })).toBeNull();
+  });
+
+  it("puts a control's own nested ones first, measured centre to centre", () => {
+    const card = box(100, 100, 260, 240);
+    const heart = box(104, 104, 124, 124);
+    const above = box(100, 60, 260, 90);
+    const nested = [
+      { box: above, item: 'above' },
+      { box: pointBox(heart), item: 'heart', from: pointBox(card), first: true },
+    ];
+    expect(nearestBoxInDirection(card, nested, { x: 0, y: -1 })).toBe('heart');
+    // Not that way: the heart is up and left of the card's centre, not below it.
+    expect(nearestBoxInDirection(card, nested, { x: 0, y: 1 })).toBeNull();
   });
 });

@@ -251,6 +251,6 @@ export function endingMarkup(save: Save, progress: Progress): string {
       <h2>${t('tournament.yourMatches')}${bracketButton()}</h2>
       <table class="road"><thead><tr><th>${t('tournament.stage')}</th><th>${t('tournament.against')}</th><th>${t('tournament.place')}</th><th>${t('tournament.score')}</th></tr></thead>
       <tbody>${rows}</tbody></table>
-      <button id="back">${t('watching.back')}</button>
+      <button id="back" data-back>${t('watching.back')}</button>
     </div>`;
 }

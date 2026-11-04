@@ -30,7 +30,7 @@ export function openOptions(actions: OptionsActions): void {
     root.innerHTML = `
       <div class="panel">
         <h2>${t('menu.options')}</h2>
-        <button class="close quiet">${t('credits.close')}</button>
+        <button class="close quiet" data-back>${t('credits.close')}</button>
       </div>`;
     root.querySelector('h2')?.after(
       settingsRows({

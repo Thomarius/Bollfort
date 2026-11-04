@@ -73,7 +73,7 @@ export function leagueMarkup(save: Save, progress: Progress): string {
     `<div class="league-columns">` +
     `<section class="league-standings"><h3>${escape(t('league.table'))}</h3>${table}</section>` +
     `<section class="league-days"><h3>${escape(t('league.matchdays'))}</h3>${days}</section>` +
-    `</div><button class="close">${escape(t('howTo.close'))}</button></div>`
+    `</div><button class="close" data-back>${escape(t('howTo.close'))}</button></div>`
   );
 }
 

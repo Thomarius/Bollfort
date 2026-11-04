@@ -109,7 +109,7 @@ export function creditsHtml(audio: AudioManifest): string {
         ${group(t('credits.sfx'), sfx.map(item))}
         ${group(t('credits.fonts'), FONTS.map(fontItem))}
       </div>
-      <button class="close quiet">${t('credits.close')}</button>
+      <button class="close quiet" data-back>${t('credits.close')}</button>
     </div>`;
 }
 

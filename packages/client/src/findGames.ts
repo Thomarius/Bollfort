@@ -49,7 +49,7 @@ export function openFindGames(actions: FindGamesActions): void {
       ${actions.notice ? `<p class="notice">${escape(actions.notice)}</p>` : ''}
       ${filtersMarkup(filters)}
       <div id="open-games"><p class="note">${t('menu.lookingForServer')}</p></div>
-      <button class="close quiet">${t('credits.close')}</button>
+      <button class="close quiet" data-back>${t('credits.close')}</button>
     </div>`;
   enhanceChoices(root);
   const list = root.querySelector<HTMLElement>('#open-games')!;
