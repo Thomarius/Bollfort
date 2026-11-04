@@ -66,6 +66,9 @@ function titleImage(style: ArtStyle, width: number): HTMLImageElement {
 
 /** Sets the page up as the camera; the match itself is started as `?autostart` starts it. */
 export function installStoreArt(params: URLSearchParams): void {
+  // The store's screenshots (`&clean=1`, with `&autopilot=1`): play as it is, the corner's
+  // Sound, Full screen and Pause left out.
+  if (params.get('clean') === '1') document.documentElement.classList.add('store-clean');
   const mode = storeArtMode(params);
   if (mode === null) return;
   const root = document.documentElement;
