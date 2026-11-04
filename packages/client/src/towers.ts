@@ -177,7 +177,13 @@ export function saveTower(variant: TowerVariant | null): void {
  * to say: towers not played, none brought, or a castle still to choose. `placing` is whether
  * the right button has switched the ghost to the tower.
  */
-export function towerLine(state: MatchState, playerId: number, placing: boolean): string | null {
+export function towerLine(
+  state: MatchState,
+  playerId: number,
+  placing: boolean,
+  /** The right button's glyph's stand-in, with a pad in use (STEAM.md §8, C4). */
+  turn?: string,
+): string | null {
   const player = state.players[playerId];
   if (player === undefined || player.eliminated || player.special === null) return null;
   if (state.phase !== 'cannon_place' || player.startingCastleId === null) return null;
@@ -187,6 +193,10 @@ export function towerLine(state: MatchState, playerId: number, placing: boolean)
   const cost = towerCostText(variantCost(player.special));
   switch (specialRefusal(state, player)) {
     case null:
+      if (turn !== undefined)
+        return placing
+          ? t('hud.towerPlacingPad', { tower, turn })
+          : t('hud.towerOfferPad', { tower, cost, turn });
       return placing ? t('hud.towerPlacing', { tower }) : t('hud.towerOffer', { tower, cost });
     case 'special_at_opening':
       return t('hud.towerOpening', { tower });

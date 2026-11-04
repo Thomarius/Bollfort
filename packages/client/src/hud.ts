@@ -3,6 +3,7 @@ import { playerShape, shapeSvg } from './shapes.js';
 import { HUD_SKIN } from './skins.js';
 import { formatNumber, t } from './i18n.js';
 import { escape } from './html.js';
+import { padText } from './pads.js';
 import { defaultArtConfig, type ArtStyle, type TextKey } from '@bollfort/config';
 
 import { COUNTDOWN_FROM, showsClock } from './clock.js';
@@ -615,6 +616,12 @@ export class Hud {
     // player's: counted as 1.4, four teams fit at 1024 pixels with a German phase label,
     // where at 1 their pips ran into the next team's letter and even English clipped.
     rosterRoot.style.setProperty('--entries', String(order.length * (teamed ? 1.4 : 1)));
+    // And by the digits of the largest score, so four of them leave the pips in sight: at
+    // eight players and 1280 pixels, the Deck's width, a fourth digit pushed the last pip out.
+    const top = teamed
+      ? Math.max(0, ...state.players.map((p) => teamScore(state, p.team)))
+      : Math.max(0, ...state.players.map((p) => p.score));
+    rosterRoot.style.setProperty('--digits', String(Math.max(3, String(Math.round(top)).length)));
 
     // A player who has just spent a continue chooses a castle in the cannon phase
     // before any guns, so for them this phase is a castle choice first.
@@ -639,7 +646,11 @@ export class Hud {
       // The tower, where the player brought one: on offer, chosen, or why not now.
       const tower = towerLine(state, humanPlayer, placingTower);
       if (tower !== null && !choosing) {
-        cannonCount += `<div class="counter tower${placingTower ? ' on' : ''}">${escape(tower)}</div>`;
+        // With a pad in use, its button's glyph for the right button's words.
+        const html =
+          padText((marks) => towerLine(state, humanPlayer, placingTower, marks.turn) ?? '') ??
+          escape(tower);
+        cannonCount += `<div class="counter tower${placingTower ? ' on' : ''}">${html}</div>`;
       }
     }
 

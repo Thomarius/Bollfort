@@ -957,7 +957,8 @@ body {
 
 .roster .player bdi {
   overflow: hidden;
-  font-size: clamp(10px, calc(var(--slot) * 0.085), 14px);
+  /* Never under 12 pixels, Valve's recommended least for the Deck (STEAM.md §8). */
+  font-size: clamp(12px, calc(var(--slot) * 0.085), 14px);
   line-height: 1.15;
   letter-spacing: 0.04em;
   color: color-mix(in srgb, var(--hud-muted) 50%, var(--hud-ink));
@@ -980,7 +981,14 @@ body {
 }
 
 .roster .score {
-  font-size: clamp(16px, calc(var(--slot) * 0.19), 30px);
+  /* No larger than leaves the shape and the pips room beside it (about half the slot, which
+     counts the gap between cards, less the padding and gaps), shared among the largest score's
+     digits (`--digits`, set by the HUD): measured at eight players and 1280 pixels. */
+  font-size: clamp(
+    16px,
+    min(calc(var(--slot) * 0.19), calc((var(--slot) * 0.53 - 26px) / (var(--digits, 3) * 0.6))),
+    30px
+  );
   font-style: normal;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -8134,4 +8142,101 @@ html.pad .pad-focus {
 
 .how-to-play.controller .note {
   margin: 0 0 0.6rem;
+}
+
+/* A controller's button in a text (glyphs.ts, STEAM.md §8): the four face buttons round, in
+   Xbox's colours or with PlayStation's coloured shapes, the rest a pill, all at the text's
+   height. */
+.glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.45em;
+  height: 1.45em;
+  margin: 0 0.1em;
+  padding: 0 0.35em;
+  border-radius: 0.4em;
+  background: #2a2f3a;
+  box-shadow: inset 0 -2px 0 rgb(0 0 0 / 35%);
+  color: #f2f3f5;
+  font: 700 0.8em/1 var(--ui-font);
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: 0.05em;
+}
+
+.glyph.face {
+  width: 1.45em;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.glyph.xbox.b0 {
+  background: #3f9d34;
+}
+
+.glyph.xbox.b1 {
+  background: #d23a2f;
+}
+
+.glyph.xbox.b2 {
+  background: #2f6fd0;
+}
+
+.glyph.xbox.b3 {
+  background: #e0a800;
+  color: #1a1a1a;
+}
+
+.glyph.playstation.face {
+  background: #23262e;
+  font-size: 0.9em;
+}
+
+.glyph.playstation.b0 {
+  color: #7d9ee6;
+}
+
+.glyph.playstation.b1 {
+  color: #ec6a6a;
+}
+
+.glyph.playstation.b2 {
+  color: #e39ad8;
+}
+
+.glyph.playstation.b3 {
+  color: #4cc2a8;
+}
+
+/* In the Controller window the glyph is the button's whole label, so drawn larger. */
+.how-to-play.controller .bind .glyph {
+  font-size: 1.35em;
+}
+
+/* The Deck's screen and smaller (STEAM.md §8, C4): the small labels at 12 pixels, Valve's
+   recommended least at 1280 × 800, where they were 10 and 11. Larger screens keep them as
+   they were designed. */
+@media (max-width: 1280px) and (max-height: 800px) {
+  .menu .inspired,
+  .menu .inspired .link,
+  .home-looks .look-label,
+  .tag,
+  .note,
+  .pause-overlay .esc-hint,
+  .look-gallery .badge,
+  .menu .note,
+  .menu p.inspired,
+  .menu .look-label,
+  .seats em,
+  .menu .seats .tag,
+  .menu .seats .seat button.remove-seat,
+  .roster .away-tag,
+  .banner small,
+  #network,
+  .league-panel .match em,
+  .end-screen table.final .tag.out,
+  .team-column h2 .tag {
+    font-size: 12px;
+  }
 }
