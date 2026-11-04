@@ -278,6 +278,10 @@ const CLIPS: Clip[] = [
       split: '0.5',
       lang: 'en',
     })}`,
+    // Half speed, filmed from early in combat: its 8.2 seconds in the cut then fit inside the ten
+    // of one combat, and the shooting runs on through the fade (the user, 2026-11-04).
+    slow: 0.5,
+    settleMs: 1500,
     moment: { kind: 'ready' },
     before: 0,
     after: 9,
@@ -356,7 +360,8 @@ const LENGTH = CUT.reduce((sum, s) => sum + s.length, 0);
 // --- Recording -----------------------------------------------------------------------------
 
 function clipUrl(clip: Clip): string {
-  if (clip.url !== undefined) return clip.url;
+  if (clip.url !== undefined)
+    return clip.slow === undefined ? clip.url : `${clip.url}&trailerSlow=${clip.slow}`;
   const q = new URLSearchParams({
     autostart: '1',
     autopilot: '1',
@@ -637,9 +642,9 @@ async function record(names: string[], calibrate: boolean): Promise<void> {
       )) === undefined
     )
       throw new Error(`${clip.name}: the page's clock was not slowed`);
-    // CSS animations slowed alike.
-    await cdp.send('Animation.enable');
-    await cdp.send('Animation.setPlaybackRate', { playbackRate: k });
+    // Not CSS animations through the DevTools protocol as well: that slows the frame times a second
+    // time, the game and its camera then reading two clocks — it froze an eight-player match,
+    // and ran the quarter-speed wipes at a sixteenth (2026-11-04).
     // The fast-forward done and the look drawn: the board up, a moment to settle.
     await page.waitForSelector('#stage', { timeout: 120_000 });
     await page.waitForTimeout(clip.settleMs ?? 2500);
