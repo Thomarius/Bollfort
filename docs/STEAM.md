@@ -565,17 +565,35 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   candidates and a contact sheet. Two players and close-ups show far more than four islands do,
   the user's finding; a tower shot starts from the cannon phase before, or none is bought.
 
-- **The trailer — planned** (2026-11-04, with the user): about 55 seconds on `BollfortTrailer.mp3`
-  (`assets/trailer/`; music by Viacheslav Starostin, from Pixabay, under the Pixabay Content
-  License, shortened by the user; credited in the trailer's description, since the game does not
-  play it). The track steps up at about 14.5 and 28.5 seconds, peaks from 43 and ends at 47.3 with
-  a short fade. Ready… Aim… Fire! as a change of look sweeps in; the loop in two lines (fire at
-  their walls, rebuild yours); a montage of styles cut on the beat; scale and spectacle — eight
-  players, tournaments, online and bots, the special towers; a big late duel at the peak; the
-  rainbow title over the Cyberpunk split as the music fades, held four seconds in silence with
-  Free on Steam. Recorded live at 60 fps from a browser window on the user's screen, in one
-  session prepared beforehand; the camera moved in the game, the text in the game's own fonts;
-  cut and encoded to Valve's settings (H.264 and AAC, 1920 × 1080).
+- **The trailer — final** (2026-11-04, the user's, after four cuts): 55 seconds, **without the
+  screen's shake** — many people dislike it, in videos above all (the user's). Made again by
+  `TRAILER_SHAKE=0 npm run trailer -w @bollfort/storeart -- record`, then `captions` and
+  `assemble`, into `trailer-build/still/BollfortTrailer.mp4` (git-ignored, some 76 MB; also as
+  `trailer-build/BollfortTrailer-noshake.mp4`); the version with the shake is kept beside it. On
+  `BollfortTrailer.mp3` (`assets/trailer/`), shortened by the user; for the trailer's description:
+  _Music by Viacheslav Starostin from Pixabay_ (Pixabay Content License), linked to
+  `https://pixabay.com/users/starostin-46826676/`. The game does not play the track, so it is not
+  in the game's Credits.
+
+  The cut, against the music's sections: **Ready… Aim…** as the "Fire!" banner sweeps four
+  Medieval islands into Cyberpunk, the shooting in step with the countdown (0–6 s); the loop —
+  _Fire at their walls._, _Rebuild yours._, _Seal your castles._ — close on a duel and on the
+  player's island (to 14.5); **24 styles** over seven looks cut on the beat, a change of look
+  among them (to 28.5); **Up to 8 players** as the camera pulls out over eight islands, **Online
+  multiplayer and bots** over a team match, **Special towers** over the lightning, the wave, the
+  laser and the Bertha's crater, **Tournaments** over a team match's end, the camera pushing onto
+  the winners (to 43); half-second cuts of the most action (to 46.8, the music's climax); then the
+  rainbow title over the Cyberpunk split, the shooting running on through the fade, **Free on
+  Steam** held in the silence (to 55). H.264 High and AAC at 48 kHz, 1920 × 1080 at 60 frames.
+
+  Filmed live from a browser window on the user's screen with ffmpeg's x11grab and x264, the
+  person's seat on the autopilot, the camera moved in the game, the captions in Rubik. What the
+  making found: the graphics card's encoder (VAAPI) stuttered more on this machine, whose graphics
+  share memory with the processor; heavy moments — a change of look, the eight-island pull-out, the
+  fireworks, the end card — are filmed slowed (the page's clock at a half or a quarter, sped up
+  again in the cut), which leaves no repeated frames; slowing CSS animations through the DevTools
+  protocol as well slowed the frame times twice and froze the game; and the game's banner eases in
+  from the top for seconds, so a change of look is timed to the banner crossing the middle.
 
 - **Coming Soon** for at least two weeks; submitted for review at least 7 working days before.
 - **The depots**: Windows and Linux, the unpacked app (not the AppImage) under the Steam Linux
