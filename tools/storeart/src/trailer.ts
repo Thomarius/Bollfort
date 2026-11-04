@@ -47,8 +47,16 @@ interface Clip {
   /** Seconds kept before the moment and after it; a `ready` clip's moment is its first frame. */
   before: number;
   after: number;
-  /** A page other than a match (the tournament's), its address in full. */
+  /** A page other than a match, its address in full. */
   url?: string;
+  /** How long the board is left to settle before filming; 2.5 seconds unless said. */
+  settleMs?: number;
+  /**
+   * Filmed slowed, the page's clock at this share of real time, and sped up again in the cut: a
+   * heavy moment — a change of look, the camera pulling out over eight islands, fireworks — the
+   * game renders too few frames of at full speed, and stutters (2026-11-04).
+   */
+  slow?: number;
 }
 
 const MEDIEVAL_TO_CYBERPUNK = { buildStyle: 'pixel', combatStyle: 'cyberpunk' };
@@ -59,6 +67,7 @@ const CLIPS: Clip[] = [
   {
     name: 'hook-wipe',
     params: { players: '4', snapshot: 'cannon_place', round: '2', ...MEDIEVAL_TO_CYBERPUNK },
+    slow: 0.25,
     moment: { kind: 'wipe' },
     before: 3.2,
     after: 5,
@@ -125,6 +134,7 @@ const CLIPS: Clip[] = [
       buildStyle: 'sakura',
       combatStyle: 'opera',
     },
+    slow: 0.5,
     moment: { kind: 'wipe' },
     before: 0.8,
     after: 2.2,
@@ -184,6 +194,7 @@ const CLIPS: Clip[] = [
       cameraOn: 'you',
       cameraMs: '3200',
     },
+    slow: 0.5,
     moment: { kind: 'ready' },
     before: 0,
     after: 4,
@@ -224,17 +235,23 @@ const CLIPS: Clip[] = [
     after: 1.3,
   },
   {
+    // Under "Tournaments": a team match's end, the camera pushing onto the winners and their
+    // fireworks, the team names in the bar — the League window was menus and no action (the
+    // user, 2026-11-04). Filmed from the board's first frame: the push begins with it, and the
+    // summary slides over the board some four seconds in.
     name: 'tournament',
-    params: {},
-    url: `${BASE}/?tournament=demo&seed=5&name=Ada&lang=en&clean=1`,
+    params: { players: '6', teams: '2', snapshot: 'game_over', style: 'chocolate' },
+    slow: 0.5,
     moment: { kind: 'ready' },
     before: 0,
-    after: 3.5,
+    after: 3.6,
+    settleMs: 0,
   },
-  // The peak: a big late duel, a last change of look.
+  // A late duel turning Cyberpunk: kept, though its slow banner left it out of the montage.
   {
     name: 'peak-wipe',
     params: { players: '2', snapshot: 'cannon_place', round: '8', ...MEDIEVAL_TO_CYBERPUNK },
+    slow: 0.25,
     moment: { kind: 'wipe' },
     before: 1.2,
     after: 3.8,
@@ -298,9 +315,17 @@ const CUT: Shot[] = [
   { clip: 'tower-subwoofer', from: -0.2, length: 1.6 }, // – 37.3
   { clip: 'tower-laser', from: -0.4, length: 1.6 }, // – 38.9
   { clip: 'tower-bertha', from: -1.0, length: 1.8 }, // – 40.7
-  { clip: 'tournament', from: 0.3, length: 2.3 }, // – 43.0
-  { clip: 'peak-wipe', from: -1.0, length: 4.3 }, // 43.0 – 47.3: the peak
-  { clip: 'endcard', from: 0.5, length: 7.7 }, // 47.3 – 55.0: the title, then silence
+  { clip: 'tournament', from: 0.0, length: 2.3 }, // – 43.0
+  // The peak: half-second cuts of the most action in the recordings, then the title hard on the
+  // climax at 46.8 — "chaotic scenes with a sudden switch", the user's (2026-11-04).
+  { clip: 'style-pirates', from: 2.6, length: 0.55 },
+  { clip: 'tower-bertha', from: -6.0, length: 0.55 },
+  { clip: 'loop-fire', from: 4.3, length: 0.55 },
+  { clip: 'teams-glass', from: 2.6, length: 0.55 },
+  { clip: 'tower-lightning', from: 1.0, length: 0.5 },
+  { clip: 'style-noir', from: 2.6, length: 0.5 },
+  { clip: 'tower-bertha', from: 0.9, length: 0.6 }, // – 46.8
+  { clip: 'endcard', from: 0.5, length: 8.2 }, // 46.8 – 55.0: the title, then silence
 ];
 
 /** The captions and when they stand, in the trailer's seconds. */
@@ -340,6 +365,7 @@ function clipUrl(clip: Clip): string {
     seed: '7',
     lang: 'en',
     ...clip.params,
+    ...(clip.slow === undefined ? {} : { trailerSlow: String(clip.slow) }),
   });
   return `${BASE}/?${q}`;
 }
@@ -347,7 +373,18 @@ function clipUrl(clip: Clip): string {
 /** Waits for a clip's moment in the page. */
 async function waitFor(page: Page, moment: Moment): Promise<void> {
   if (moment.kind === 'wipe') {
-    await page.waitForSelector('.phase-call', { timeout: 150_000 });
+    // The banner crossing the middle: it eases in, creeping down from the top for seconds before
+    // it sweeps, and timed from its first sight the cut showed only the creep (2026-11-04).
+    await page.waitForFunction(
+      () => {
+        const banner = document.querySelector('.phase-call');
+        if (banner === null) return false;
+        const box = banner.getBoundingClientRect();
+        return box.top + box.height / 2 > innerHeight / 2;
+      },
+      null,
+      { timeout: 600_000, polling: 8 },
+    );
   } else if (moment.kind === 'effect') {
     const before = await page.evaluate(() =>
       Number(document.documentElement.dataset['effects'] ?? 0),
@@ -368,36 +405,71 @@ async function waitFor(page: Page, moment: Moment): Promise<void> {
   }
 }
 
-/** ffmpeg filming the page's area of the screen, lossless enough to cut and grade later. */
+/**
+ * The graphics card's own video encoder (VAAPI), only if asked (`TRAILER_ENCODER=vaapi`): tried
+ * to spare the CPU, it made things worse on this machine — its graphics share memory with the
+ * processor, and frames repeated 38–43% round the heavy moments where x264 had 16% (2026-11-04).
+ * The heavy moments are filmed slowed instead (`Clip.slow`).
+ */
+const VAAPI = process.env['TRAILER_ENCODER'] === 'vaapi' && existsSync('/dev/dri/renderD128');
+
+/** ffmpeg filming the page's area of the screen, at a quality to cut and grade later. */
 function film(rect: { x: number; y: number }, file: string): ChildProcess {
+  const grab = [
+    '-f',
+    'x11grab',
+    '-draw_mouse',
+    '0',
+    '-framerate',
+    String(FPS),
+    '-video_size',
+    `${W}x${H}`,
+    '-i',
+    `${DISPLAY}+${rect.x},${rect.y}`,
+  ];
+  const encode = VAAPI
+    ? ['-vf', 'format=nv12,hwupload', '-c:v', 'h264_vaapi', '-qp', '12']
+    : ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '10', '-pix_fmt', 'yuv444p'];
   return spawn(
     'ffmpeg',
     [
       '-y',
       '-loglevel',
       'error',
-      '-f',
-      'x11grab',
-      '-draw_mouse',
-      '0',
-      '-framerate',
-      String(FPS),
-      '-video_size',
-      `${W}x${H}`,
-      '-i',
-      `${DISPLAY}+${rect.x},${rect.y}`,
-      '-c:v',
-      'libx264',
-      '-preset',
-      'ultrafast',
-      '-crf',
-      '10',
-      '-pix_fmt',
-      'yuv444p',
+      ...(VAAPI ? ['-vaapi_device', '/dev/dri/renderD128'] : []),
+      ...grab,
+      ...encode,
       file,
     ],
     { stdio: ['pipe', 'inherit', 'inherit'] },
   );
+}
+
+/**
+ * The share of a clip's frames that repeat the one before, from `fromS` for `forS` seconds: the
+ * frames the game or the film dropped, which show as stutter.
+ */
+function repeats(file: string, fromS: number, forS: number, k = 1): number {
+  const out = spawnSync(
+    'ffmpeg',
+    [
+      '-hide_banner',
+      '-ss',
+      String(fromS),
+      '-t',
+      String(forS),
+      '-i',
+      file,
+      '-vf',
+      `setpts=${k}*PTS,fps=${FPS},mpdecimate=hi=64:lo=32:frac=0.33,showinfo`,
+      '-f',
+      'null',
+      '-',
+    ],
+    { encoding: 'utf8' },
+  );
+  const kept = (out.stderr.match(/showinfo.*n:/g) ?? []).length;
+  return 1 - kept / (forS * k * FPS);
 }
 
 async function stop(ffmpeg: ChildProcess): Promise<void> {
@@ -405,6 +477,67 @@ async function stop(ffmpeg: ChildProcess): Promise<void> {
     ffmpeg.on('exit', () => done());
     ffmpeg.stdin?.write('q');
   });
+}
+
+/**
+ * Where the page stands on the screen, found rather than asked: the window's own idea of its
+ * place put the browser's bar into the picture (the first calibration). A page marked magenta in
+ * its top-left corner and cyan in its bottom-right is shown, the whole screen grabbed once, and
+ * the marks found — the second proves the page is whole on the screen, at full size.
+ */
+async function locate(page: Page): Promise<{ x: number; y: number }> {
+  await page.setContent(`<!doctype html><style>html,body{margin:0;width:${W}px;height:${H}px;background:#000}
+i{position:fixed;width:8px;height:8px}</style>
+<i style="left:0;top:0;background:#f0f"></i><i style="left:${W - 8}px;top:${H - 8}px;background:#0ff"></i>`);
+  await page.waitForTimeout(600);
+  const size = /dimensions:\s+(\d+)x(\d+)/.exec(spawnSync('xdpyinfo', { encoding: 'utf8' }).stdout);
+  if (size === null) throw new Error('xdpyinfo could not tell the screen size');
+  const sw = Number(size[1]);
+  const sh = Number(size[2]);
+  const grab = spawnSync(
+    'ffmpeg',
+    [
+      '-loglevel',
+      'error',
+      '-f',
+      'x11grab',
+      '-video_size',
+      `${sw}x${sh}`,
+      '-i',
+      `${DISPLAY}+0,0`,
+      '-frames:v',
+      '1',
+      '-f',
+      'rawvideo',
+      '-pix_fmt',
+      'rgb24',
+      'pipe:1',
+    ],
+    { maxBuffer: sw * sh * 3 + 1024 },
+  );
+  const px = grab.stdout as Buffer;
+  const at = (x: number, y: number): [number, number, number] => {
+    const i = (y * sw + x) * 3;
+    return [px[i]!, px[i + 1]!, px[i + 2]!];
+  };
+  const near = (c: [number, number, number], r: number, g: number, b: number): boolean =>
+    Math.abs(c[0] - r) < 40 && Math.abs(c[1] - g) < 40 && Math.abs(c[2] - b) < 40;
+  for (let y = 0; y < sh - H + 1; y++) {
+    for (let x = 0; x < sw - W + 1; x++) {
+      if (!near(at(x, y), 255, 0, 255)) continue;
+      // The square's corner, and its partner where a whole page would put it.
+      if (y > 0 && near(at(x, y - 1), 255, 0, 255)) continue;
+      if (x > 0 && near(at(x - 1, y), 255, 0, 255)) continue;
+      // Within a few pixels: the page's last four columns showed covered on this desktop.
+      if (![0, 2, 4, 6].some((d) => near(at(x + W - 1 - d, y + H - 1), 0, 255, 255))) {
+        throw new Error(
+          `the page's corner is at ${x},${y} but its far corner is not on screen whole`,
+        );
+      }
+      return { x, y };
+    }
+  }
+  throw new Error('the page was not found on the screen: is the window covered?');
 }
 
 async function record(names: string[], calibrate: boolean): Promise<void> {
@@ -418,20 +551,49 @@ async function record(names: string[], calibrate: boolean): Promise<void> {
       '--mute-audio',
       `--window-position=${WINDOW_AT}`,
       '--force-device-scale-factor=1',
+      // Chrome offered to translate the page over it (the first calibration, 2026-11-04).
+      '--disable-features=Translate',
+      '--lang=en-GB',
     ],
   });
-  const page = await (await browser.newContext({ viewport: { width: W, height: H } })).newPage();
+  // Four columns wider than the film: the page's last four showed covered by the window's frame on
+  // this desktop (2026-11-04), so they fall outside the 1920 filmed.
+  const page = await (
+    await browser.newContext({ viewport: { width: W + 4, height: H } })
+  ).newPage();
+  // Room round the page: the window Playwright makes for a 1920 × 1080 page showed only 1059 rows
+  // of it on this desktop, and ignores --window-size (2026-11-04); the page stays 1920 × 1080.
+  // The page's clock slowed where the address asks (`trailerSlow`, `Clip.slow`): the frame times,
+  // `performance.now` and `Date.now` alike, so the game, its camera, its effects and the
+  // autopilot all slow together.
+  // As text: a function would be sent as tsx compiled it, with helpers the page lacks.
+  await page.context().addInitScript(`(() => {
+    const k = Number(new URLSearchParams(location.search).get('trailerSlow'));
+    if (!(k > 0 && k < 1)) return;
+    const realNow = performance.now.bind(performance);
+    const t0 = realNow();
+    const slowed = (t) => t0 + (t - t0) * k;
+    performance.now = () => slowed(realNow());
+    const realDate = Date.now.bind(Date);
+    const d0 = realDate();
+    Date.now = () => d0 + (realDate() - d0) * k;
+    const raf = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (cb) => raf((ts) => cb(slowed(ts)));
+    window.__trailerSlow = k;
+  })();`);
+  const cdp = await page.context().newCDPSession(page);
+  const { windowId } = await cdp.send('Browser.getWindowForTarget');
+  const [left, top] = WINDOW_AT.split(',').map(Number);
+  await cdp.send('Browser.setWindowBounds', {
+    windowId,
+    bounds: { left: left ?? 1400, top: top ?? 520, width: W + 100, height: H + 160 },
+  });
   page.on('pageerror', (e) => console.error(`  page error: ${e.message}`));
   await page.goto(`${BASE}/?lang=en`);
   await page.waitForTimeout(1500);
-  // The page's place on the screen: the window's, less its frame and the browser's bar above.
-  const rect = await page.evaluate(() => {
-    const side = (outerWidth - innerWidth) / 2;
-    return {
-      x: Math.round(screenX + side),
-      y: Math.round(screenY + outerHeight - innerHeight - side),
-    };
-  });
+  const rect = await locate(page);
+  await page.goto(`${BASE}/?lang=en`);
+  await page.waitForTimeout(1500);
   console.log(`filming the screen at ${rect.x},${rect.y}`);
 
   if (calibrate) {
@@ -458,16 +620,29 @@ async function record(names: string[], calibrate: boolean): Promise<void> {
     return;
   }
 
-  const times: Record<string, { moment: number }> = existsSync(join(OUT, 'clips', 'moments.json'))
+  const times: Record<string, { moment: number; slow?: number }> = existsSync(
+    join(OUT, 'clips', 'moments.json'),
+  )
     ? JSON.parse(readFileSync(join(OUT, 'clips', 'moments.json'), 'utf8'))
     : {};
   for (const clip of CLIPS) {
     if (names.length > 0 && !names.includes(clip.name)) continue;
     console.log(clip.name);
+    const k = clip.slow ?? 1;
     await page.goto(clipUrl(clip));
+    if (
+      clip.slow !== undefined &&
+      (await page.evaluate(
+        () => (window as unknown as { __trailerSlow?: number }).__trailerSlow,
+      )) === undefined
+    )
+      throw new Error(`${clip.name}: the page's clock was not slowed`);
+    // CSS animations slowed alike.
+    await cdp.send('Animation.enable');
+    await cdp.send('Animation.setPlaybackRate', { playbackRate: k });
     // The fast-forward done and the look drawn: the board up, a moment to settle.
     await page.waitForSelector('#stage', { timeout: 120_000 });
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(clip.settleMs ?? 2500);
     const file = join(OUT, 'clips', `${clip.name}.mkv`);
     const ffmpeg = film(rect, file);
     const startedAt = Date.now();
@@ -478,15 +653,19 @@ async function record(names: string[], calibrate: boolean): Promise<void> {
         document.documentElement.dataset['cameraGo'] = String(performance.now());
       });
     } else {
-      await page.waitForTimeout(clip.before * 1000);
+      await page.waitForTimeout((clip.before * 1000) / k);
       await waitFor(page, clip.moment).catch((e: Error) =>
         console.error(`  never came: ${e.message.split('\n')[0]}`),
       );
     }
-    const moment = clip.moment.kind === 'ready' ? 0.3 : (Date.now() - startedAt) / 1000;
-    await page.waitForTimeout(clip.after * 1000 + 200);
+    // In the cut's seconds: a slowed clip is sped up again.
+    const moment = (clip.moment.kind === 'ready' ? 0.3 : (Date.now() - startedAt) / 1000) * k;
+    await page.waitForTimeout((clip.after * 1000) / k + 200);
     await stop(ffmpeg);
-    times[clip.name] = { moment };
+    times[clip.name] = { moment, ...(clip.slow === undefined ? {} : { slow: clip.slow }) };
+    // Measured in the film as it will be cut: a slowed clip's every other frame.
+    const share = repeats(file, Math.max(0, moment / k - 0.5 / k), 2 / k, k);
+    console.log(`  repeated frames round its moment: ${(share * 100).toFixed(0)}%`);
     writeFileSync(join(OUT, 'clips', 'moments.json'), JSON.stringify(times, null, 2));
     console.log(`  its moment ${moment.toFixed(2)} s in`);
   }
@@ -540,18 +719,19 @@ text-shadow:0 0 3px #000,0 0 3px #000,0 0 8px rgb(0 0 0/80%),0 6px 18px rgb(0 0 
 
 /** The cut, captioned, with the music, encoded as Valve asks: H.264 and AAC, 1080p at 60. */
 function assemble(): void {
-  const moments: Record<string, { moment: number }> = JSON.parse(
+  const moments: Record<string, { moment: number; slow?: number }> = JSON.parse(
     readFileSync(join(OUT, 'clips', 'moments.json'), 'utf8'),
   );
   const inputs: string[] = [];
   const filters: string[] = [];
   CUT.forEach((shot, i) => {
     const at = moments[shot.clip]?.moment;
+    const k = moments[shot.clip]?.slow ?? 1;
     if (at === undefined) throw new Error(`no recording of ${shot.clip}`);
     inputs.push('-i', join(OUT, 'clips', `${shot.clip}.mkv`));
     const start = Math.max(0, at + shot.from);
     filters.push(
-      `[${i}:v]trim=start=${start.toFixed(3)}:duration=${shot.length.toFixed(3)},setpts=PTS-STARTPTS,fps=${FPS},format=yuv420p[s${i}]`,
+      `[${i}:v]setpts=${k}*PTS,fps=${FPS},trim=start=${start.toFixed(3)}:duration=${shot.length.toFixed(3)},setpts=PTS-STARTPTS,fps=${FPS},format=yuv420p[s${i}]`,
     );
   });
   filters.push(`${CUT.map((_, i) => `[s${i}]`).join('')}concat=n=${CUT.length}:v=1:a=0[cut]`);
