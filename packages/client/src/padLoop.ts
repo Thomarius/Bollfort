@@ -7,9 +7,9 @@ import { pads } from './pads.js';
  * menus are walked with the pad (`padMenus.ts`) unless the match's board has it
  * (`padMatch.ts`). `pads` reads the pads once a frame for both.
  */
-export function startPadLoop(): void {
+export function startPadLoop(openText?: (input: HTMLInputElement) => void): void {
   if (typeof navigator.getGamepads !== 'function') return;
-  const menus = new PadMenus(pads);
+  const menus = new PadMenus(pads, openText);
   let last = performance.now();
   const frame = (now: number): void => {
     const elapsed = now - last;

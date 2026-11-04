@@ -36,6 +36,8 @@ const FOCUSABLE = [
   'input[type="checkbox"]',
   'input[type="radio"]',
   'select:not(.replaced)',
+  // A name or a room code: Accept opens the on-screen keyboard (`padKeyboard.ts`, C5).
+  'input[type="text"]',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
@@ -140,7 +142,11 @@ export class PadMenus {
   /** The controls pressed, latest last: where focus goes back to as a window closes. */
   private readonly openers: { el: HTMLElement; box: DOMRect; window: Element | null }[] = [];
 
-  constructor(private readonly pads: Pads) {
+  constructor(
+    private readonly pads: Pads,
+    /** Opens the on-screen keyboard for a text field the pad pressed. */
+    private readonly openText: (input: HTMLInputElement) => void = () => {},
+  ) {
     // A click or a key elsewhere moves the real focus; the ring follows only the pad's.
     pads.onChange((inUse) => {
       if (!inUse) this.ring(null);
@@ -204,7 +210,8 @@ export class PadMenus {
       this.choseAt = null;
       this.openers.push({ el: focus, box: focus.getBoundingClientRect(), window: windowOf(focus) });
       if (this.openers.length > 16) this.openers.shift();
-      focus.click();
+      if (focus instanceof HTMLInputElement && focus.type === 'text') this.openText(focus);
+      else focus.click();
     }
   }
 
