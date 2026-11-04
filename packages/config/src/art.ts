@@ -1410,6 +1410,26 @@ export const ArtConfigSchema = z
       captionMs: z.number().int().nonnegative(),
     }),
     /**
+     * A controller (STEAM.md §8, package C): the mouse's two buttons on two pad buttons, the
+     * ghost moved by grid positions in the build and cannon phases, a free reticle in combat.
+     */
+    gamepad: z.strictObject({
+      /** A stick pushed less than this far counts as at rest. */
+      deadzone: z.number().min(0).max(1),
+      /** Held, a direction steps once, waits this long, then repeats. */
+      repeatDelayMs: z.number().int().nonnegative(),
+      /** The repeat's step with the stick pushed just past the dead zone, or the d-pad held. */
+      repeatMs: z.number().int().positive(),
+      /** The repeat's step with the stick pushed all the way. */
+      repeatFastestMs: z.number().int().positive(),
+      /** The reticle's speed in combat with the stick pushed all the way, in tiles a second. */
+      cursorTilesPerSecond: z.number().positive(),
+      /** The reticle's speed under the d-pad, fixed. */
+      dpadCursorTilesPerSecond: z.number().positive(),
+      /** Holding Turn in combat multiplies the reticle's speed by this (§8: 2.5, tuned in play). */
+      boost: z.number().min(1),
+    }),
+    /**
      * The icons beside the cursor in the cannon phase, a cannon each still to place: the style's
      * own gun, drawn small (`drawCannonIcon`), or one generic cannon for every style, as before
      * (2026-10-17). The testers chose the style's own (2026-10-19, ARCHIVE 14j); the generic

@@ -1614,6 +1614,15 @@
     "winnerHoldMs": 6000,
     "captionMs": 6000
   },
+  "gamepad": {
+    "deadzone": 0.25,
+    "repeatDelayMs": 260,
+    "repeatMs": 110,
+    "repeatFastestMs": 45,
+    "cursorTilesPerSecond": 14,
+    "dpadCursorTilesPerSecond": 9,
+    "boost": 2.5
+  },
   "glass": {
     "paneTiles": 2.6,
     "leadTiles": 0.07,

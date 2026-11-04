@@ -8087,3 +8087,9 @@ body.reduced-motion .end-screen .score-chart .end {
     margin-top: 0.6rem;
   }
 }
+
+/* A controller in use (STEAM.md §8): no pointer until the mouse moves again (pads.ts). */
+html.pad,
+html.pad * {
+  cursor: none !important;
+}

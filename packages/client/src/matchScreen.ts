@@ -20,7 +20,7 @@ import {
 import { countdownBeat, showsClock } from './clock.js';
 import { Controls, inputMode, maySwitchTower, placeableCannons, readyCannons } from './controls.js';
 import { cannonImg, placeIconPx, placeIconsHtml, switchHintHtml } from './towerIcons.js';
-import { variantCost, variantKind } from '@bollfort/config';
+import { defaultArtConfig, variantCost, variantKind } from '@bollfort/config';
 import { bannersFor, type LifeLost, type PointsGained } from './banners.js';
 import { matchPalette, playerCssColour, useMatchPalette } from './colours.js';
 import { matchShapes, playerShape, useMatchShapes } from './shapes.js';
@@ -41,6 +41,8 @@ import { MatchLog } from './summary.js';
 import { motionReduced, storedMotion } from './motion.js';
 import { styleTrackChance } from './styleMusicSetting.js';
 import { PauseControls, pausesOnBlur } from './pause.js';
+import { PadMatch } from './padMatch.js';
+import { pads } from './pads.js';
 import { howToSectionFor, openHowToPlay } from './howToPlay.js';
 import { openingShot, peekTowards, winnerShot } from './camera.js';
 import { perf } from './perf.js';
@@ -316,6 +318,20 @@ export async function runSession(
   );
   // Nobody at the keyboard in a watched match, so there is nothing to listen for.
   if (session.humanPlayer >= 0) controls.attach();
+  // A controller steers the same controls (STEAM.md §8), from the player's island's centre.
+  const padMatch =
+    session.humanPlayer >= 0 && !demo
+      ? new PadMatch(
+          session.state,
+          session.humanPlayer,
+          islandCentre.get(session.humanPlayer) ?? {
+            x: session.state.width / 2,
+            y: session.state.height / 2,
+          },
+          controls,
+          defaultArtConfig.gamepad,
+        )
+      : null;
 
   /** The board as drawn: swept and crumbling walls, the held enclosure, floods and drains. */
   const board = new BoardEffects(scene, session);
@@ -846,6 +862,13 @@ export async function runSession(
     // hidden look behind it once (`Scene.warmUp`).
     const first = preparing?.isConnected === true;
     if (first) preparing?.remove();
+
+    if (padMatch !== null) {
+      const reading = pads.read(now);
+      // Paused, or the match over, the pad is the menus' (`padLoop.ts`), not the board's.
+      const free = session.pausedBy === null && !session.finished;
+      padMatch.update(free ? reading : null, free ? pads.pressed : new Set(), delta, pads.active);
+    }
 
     perf.begin('sim');
     const events = session.advance(delta);
