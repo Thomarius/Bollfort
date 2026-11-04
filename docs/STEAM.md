@@ -337,6 +337,29 @@ only in combat, as in the original arcade game.
 - **Deck review** is asked for in S5, aiming at Verified: every window and phase reached with the
   controller, no launcher, no text entry under Steam.
 
+**In four parts** (2026-11-04), each checked on its own:
+
+| Part   | What                                                                         | State |
+| ------ | ---------------------------------------------------------------------------- | ----- |
+| **C1** | The pure mapping, the pads read, the match steered, Menu as Esc, the pointer | built |
+| **C2** | The menus: focus moved spatially, Accept and Back, every window walked       | open  |
+| **C3** | Options' Controller section: rebinding, the cursor's speed, Restore defaults | open  |
+| **C4** | Button glyphs in the hints and How to play; the HUD and menus at 1280 × 800  | open  |
+
+**C1, built** (2026-11-04): `gamepad.ts` the pure part — a pad read into Accept, Turn and Menu
+through the bindings (A, B and Start in the standard mapping by default), the stick's radial dead
+zone, a held direction into grid steps (`Repeater`), the reticle's motion, the nearest thing in a
+direction (castles now, buttons in C2); `pads.ts` the Gamepad API read once a frame, the last
+pad touched the one read, the page's class `pad` hiding the pointer until the mouse moves;
+`padMatch.ts` the match steered through `Controls`' own `accept` and `turn`, so the mouse and the
+pad share one path; `padLoop.ts` sending Menu as an Esc. The tunables in the art config's
+`gamepad` (dead zone 0.25, a step then 260 ms, then every 110 ms down to 45 at a full push, the
+reticle 14 tiles a second, 9 under the d-pad, Turn's boost 2.5) are first guesses, to tune in
+play. Checked with Playwright and a pad faked over `navigator.getGamepads`: the ghost from the
+island's centre, a piece turned and placed, a castle jumped to and chosen, the reticle steered and
+fired, Start opening and closing the pause menu. Played by the user with a real pad (2026-11-04): working very well. While paused or with the match over the pad
+leaves the board alone; the pause menu itself waits for C2.
+
 ## 9. The store (N, S4)
 
 ### 9.1 The name (N)

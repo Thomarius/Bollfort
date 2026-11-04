@@ -34,6 +34,7 @@ import { openLobby } from './lobbyFlow.js';
 import { runSession } from './matchScreen.js';
 import { showLoading } from './loading.js';
 import { installDemo, startDemo } from './demo.js';
+import { startPadLoop } from './padLoop.js';
 
 /**
  * Bollfort client.
@@ -76,6 +77,8 @@ if (params.get('icons') === 'sheet') {
 function start(): void {
   // The demo's button and idle clock, for whenever the menu stands bare (`demo.ts`).
   installDemo();
+  // A controller, in the menus and the match alike (STEAM.md §8).
+  startPadLoop();
   if (params.get('demo') === '1') {
     // Straight into the demo, for looking at it; a click comes back to the menu.
     showMenu();

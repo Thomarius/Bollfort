@@ -292,13 +292,12 @@ export class Controls {
     };
     const down = (event: PointerEvent): void => {
       if (event.button === 2) {
-        if (inputMode(this.state, this.humanPlayer) === 'cannon') this.switchTower();
-        else this.rotate(1);
+        this.turn();
         event.preventDefault();
         return;
       }
       move(event);
-      this.commit();
+      this.accept();
     };
     const wheel = (event: WheelEvent): void => {
       this.rotate(event.deltaY > 0 ? 1 : -1);
@@ -324,6 +323,30 @@ export class Controls {
   detach(): void {
     for (const off of this.detachers) off();
     this.detachers = [];
+  }
+
+  /** The tile the ghost or the reticle is over, or null; the mouse's, or a controller's. */
+  get hoverTile(): { x: number; y: number } | null {
+    return this.hover;
+  }
+
+  /** Puts the ghost or the reticle over a tile, as a controller moves it (`padMatch.ts`). */
+  set hoverTile(tile: { x: number; y: number } | null) {
+    this.hover = tile;
+  }
+
+  /**
+   * Everything the right button does: turn the piece, or switch between a cannon and the
+   * tower in the cannon phase. A controller's Turn is this (STEAM.md §8).
+   */
+  turn(): void {
+    if (inputMode(this.state, this.humanPlayer) === 'cannon') this.switchTower();
+    else this.rotate(1);
+  }
+
+  /** Everything the left button does, at the tile hovered. A controller's Accept is this. */
+  accept(): void {
+    this.commit();
   }
 
   /** Resets rotation between phases so a new piece starts upright. */
