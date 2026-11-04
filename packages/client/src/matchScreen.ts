@@ -43,6 +43,7 @@ import { styleTrackChance } from './styleMusicSetting.js';
 import { PauseControls, pausesOnBlur } from './pause.js';
 import { PadMatch } from './padMatch.js';
 import { pads } from './pads.js';
+import { storeArtMode, storeArtSplit } from './storeArt.js';
 import { CURSOR_SPEEDS, storedCursorSpeed } from './padSettings.js';
 import { howToSectionFor, openHowToPlay } from './howToPlay.js';
 import { openingShot, peekTowards, winnerShot } from './camera.js';
@@ -50,7 +51,7 @@ import { perf } from './perf.js';
 import { bannerProgress, looksAround, type Look } from './transition.js';
 import { Scene, createTheme, type Ghost, type SceneLook } from './render/scene.js';
 import { hasBlast } from './render/towerMarks.js';
-import { app, audio } from './app.js';
+import { app, audio, params } from './app.js';
 import { saveStyles } from './prefs.js';
 import type { Session, Setup } from './session.js';
 import { showMenu } from './menu.js';
@@ -339,7 +340,8 @@ export async function runSession(
   const board = new BoardEffects(scene, session);
 
   // A demo has no bar, its board the whole window (the user's, 2026-10-29).
-  const barPx = demo ? 0 : HUD_BAR_PX;
+  // Nor has store art (`storeArt.ts`), the board the whole picture.
+  const barPx = demo || storeArtMode(params) !== null ? 0 : HUD_BAR_PX;
   const fit = (): void => {
     scene.resize(session.state, globalThis.innerWidth, globalThis.innerHeight, barPx);
     scene.drawTerrain(session.state);
@@ -476,6 +478,22 @@ export async function runSession(
    * changes at its line, and swept walls go as it reaches them. Every frame, from the
    * simulation clock, so the two can never part company.
    */
+  /**
+   * Store art's change of look held still (`storeArtSplit`): the build look readied out of
+   * sight for a second, as the pause before a banner readies it, then shown above the line.
+   */
+  const storeSplit = storeArtSplit(params);
+  let splitPrimedFrames = 0;
+  function holdStoreSplit(): void {
+    if (storeSplit === null || session.state.phase !== 'combat') return;
+    if (splitPrimedFrames < 60) {
+      splitPrimedFrames++;
+      scene.prime('build');
+      return;
+    }
+    scene.showLooks({ from: 'combat', to: 'build', lineY: globalThis.innerHeight * storeSplit });
+  }
+
   function drawTransition(): void {
     const state = session.state;
     const progress = bannerProgress(state, session.tickFraction);
@@ -898,6 +916,7 @@ export async function runSession(
     perf.begin('hud');
     pointCamera(now);
     drawTransition();
+    holdStoreSplit();
     drawIslandBanners();
     // A demo is its own strip (`demo.ts`), not the HUD's "Watching".
     hud.update(
