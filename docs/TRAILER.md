@@ -7,7 +7,9 @@ NVIDIA card (the user's, 2026-11-05). Everything about the cut — its clips, ti
 is in that script; nothing here changes it.
 
 **The version for Steam is the one without the screen's shake** (`TRAILER_SHAKE=0`), the user's
-choice: every command below is given with it.
+choice: every command below is given with it. A version at half the shake is made the same way
+with `$env:TRAILER_SHAKE = "0.5"` — half as far, over the same time — into `trailer-build\half\`
+(2026-11-05, to compare against the still one); unset, the full shake, into `trailer-build\`.
 
 ## 1. Once: the tools
 

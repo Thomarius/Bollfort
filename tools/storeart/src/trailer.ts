@@ -23,13 +23,21 @@ import { chromium, type Page } from 'playwright';
 const BASE = process.env['BASE'] ?? 'http://localhost:5173';
 const ROOT = resolve(import.meta.dirname, '..', '..', '..');
 /**
- * The trailer without the screen's shake as your walls are hit (`TRAILER_SHAKE=0`, the user's
- * wish for two versions, 2026-11-04): its clips filmed with `&shake=0`, in a folder of its own.
+ * The screen's shake as your walls are hit, as a share of its reach (`TRAILER_SHAKE`, 0 to 1):
+ * versions without it (`0`, the user's wish, 2026-11-04) and at half (`0.5`, 2026-11-05), their
+ * clips filmed with `&shake=`, each in a folder of its own; unset, the full shake.
  */
-const STILL = process.env['TRAILER_SHAKE'] === '0';
-const OUT = resolve(
-  process.env['TRAILER_OUT'] ?? join(ROOT, 'trailer-build', ...(STILL ? ['still'] : [])),
-);
+const SHAKE = ((): number => {
+  const raw = process.env['TRAILER_SHAKE'];
+  if (raw === undefined || raw === '') return 1;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0 || value > 1)
+    throw new Error(`TRAILER_SHAKE must be a number from 0 to 1, not "${raw}"`);
+  return value;
+})();
+const SHAKE_FOLDER =
+  SHAKE === 1 ? [] : [SHAKE === 0 ? 'still' : SHAKE === 0.5 ? 'half' : `shake-${SHAKE}`];
+const OUT = resolve(process.env['TRAILER_OUT'] ?? join(ROOT, 'trailer-build', ...SHAKE_FOLDER));
 const MUSIC = join(ROOT, 'assets', 'trailer', 'BollfortTrailer.mp3');
 const DISPLAY = process.env['DISPLAY'] ?? ':0';
 /**
@@ -434,7 +442,7 @@ function clipUrl(clip: Clip): string {
     lang: 'en',
     ...clip.params,
     ...(clip.slow === undefined ? {} : { trailerSlow: String(clip.slow) }),
-    ...(STILL ? { shake: '0' } : {}),
+    ...(SHAKE === 1 ? {} : { shake: String(SHAKE) }),
     // No aiming cursor nor the towers' emblems in combat; the pieces' ghosts stay (the user's).
     reticle: '0',
   });
