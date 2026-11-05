@@ -586,7 +586,14 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   rainbow title over the Cyberpunk split, the shooting running on through the fade, **Free on
   Steam** held in the silence (to 55). H.264 High and AAC at 48 kHz, 1920 × 1080 at 60 frames.
 
-  Filmed live from a browser window on the user's screen with ffmpeg's x11grab and x264, the
+  **To be filmed again on the user's gaming PC** (2026-11-05: the development machine's integrated
+  graphics left it a little laggy), with two changes, the user's: no aiming cursor nor the towers'
+  emblems in combat (`&reticle=0`; the building ghosts stay), and **two castles sealed** close up —
+  Cartoon's, its castle coming alive and dancing, under _Seal your castles._, and Pirates', the
+  Jolly Roger going up, among the styles. The recorder films on Windows by DirectX's desktop
+  duplication and NVENC; the steps are in `docs/TRAILER.md`.
+
+  Filmed first live from a browser window on the user's screen with ffmpeg's x11grab and x264, the
   person's seat on the autopilot, the camera moved in the game, the captions in Rubik. What the
   making found: the graphics card's encoder (VAAPI) stuttered more on this machine, whose graphics
   share memory with the processor; heavy moments — a change of look, the eight-island pull-out, the
