@@ -201,7 +201,16 @@ export interface LookFrame {
  * looks is one slot, and a wipe then changes nothing.
  */
 
-const NO_SHAKE = new URLSearchParams(globalThis.location?.search ?? '').get('shake') === '0';
+/**
+ * `&shake=` (dev only): the screen's shake as a share of its reach, for the trailer's versions
+ * (STEAM.md §9.2) — `0` none, `0.5` half as far over the same time, absent or invalid the full one.
+ * Motion: Reduced would also stop the trailer camera's moves, so it is not used for this.
+ */
+const SHAKE_SCALE = ((): number => {
+  const raw = new URLSearchParams(globalThis.location?.search ?? '').get('shake');
+  const value = raw === null || raw === '' ? Number.NaN : Number(raw);
+  return Number.isFinite(value) && value >= 0 && value <= 1 ? value : 1;
+})();
 
 export class Scene {
   readonly app = new Application();
@@ -769,15 +778,16 @@ export class Scene {
 
   /** Shakes the board, for a hit on the player's own wall. */
   shake(): void {
-    // `&shake=0` (dev only): no shake but every other motion kept, for the trailer's still
-    // version (STEAM.md §9.2), where Motion: Reduced would also stop its camera's moves.
-    if (NO_SHAKE) return;
+    if (SHAKE_SCALE === 0) return;
     this.shaking = this.art.generators.fx.shakeMs;
   }
 
   private applyShake(deltaMs: number): void {
     this.shaking = Math.max(0, this.shaking - deltaMs);
-    const amount = (this.shaking / this.art.generators.fx.shakeMs) * this.art.generators.fx.shakePx;
+    const amount =
+      (this.shaking / this.art.generators.fx.shakeMs) *
+      this.art.generators.fx.shakePx *
+      SHAKE_SCALE;
     // Whole pixels: the pixel style is drawn on the pixel grid, and a fractional offset
     // blurs every sprite on the board for the length of the shake.
     this.app.stage.x = Math.round((Math.random() * 2 - 1) * amount);
