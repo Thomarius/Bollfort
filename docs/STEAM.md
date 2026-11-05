@@ -586,12 +586,19 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   rainbow title over the Cyberpunk split, the shooting running on through the fade, **Free on
   Steam** held in the silence (to 55). H.264 High and AAC at 48 kHz, 1920 × 1080 at 60 frames.
 
-  **To be filmed again on the user's gaming PC** (2026-11-05: the development machine's integrated
-  graphics left it a little laggy), with two changes, the user's: no aiming cursor nor the towers'
+  **Filmed again on the user's gaming PC** (2026-11-05: the development machine's integrated
+  graphics left it a little laggy; an RTX 3070, filmed by DirectX's desktop duplication and NVENC,
+  the steps in `docs/TRAILER.md`), with two changes, the user's: no aiming cursor nor the towers'
   emblems in combat (`&reticle=0`; the building ghosts stay), and **two castles sealed** close up —
   Cartoon's, its castle coming alive and dancing, under _Seal your castles._, and Pirates', the
-  Jolly Roger going up, among the styles. The recorder films on Windows by DirectX's desktop
-  duplication and NVENC; the steps are in `docs/TRAILER.md`.
+  Jolly Roger going up, among the styles. Cartoon's is round 1, the main castle's starting ring
+  breached in the first combat and closed round its three sleeping cannons, which wake as the
+  ground fills: round 5's outlying castle, with no room for a gun beside a crowd of them, was not
+  the game's core (the user's). Repeated frames 0–9% a clip, the heavy moments 0–3%.
+
+  **Two versions, the choice still open** (the user's): without the shake
+  (`trailer-build/still/`) and at half of it (`TRAILER_SHAKE=0.5`, `&shake=0.5` — half as far over
+  the same 260 ms, `trailer-build/half/`).
 
   Filmed first live from a browser window on the user's screen with ffmpeg's x11grab and x264, the
   person's seat on the autopilot, the camera moved in the game, the captions in Rubik. What the

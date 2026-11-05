@@ -157,14 +157,16 @@ const CLIPS: Clip[] = [
     after: 3,
   },
   // A castle sealed, close: its ground filling and the castle coming alive — in Cartoon it starts
-  // dancing, in Pirates the Jolly Roger goes up (the user's wish, 2026-11-05). The seal comes some
-  // 14 to 17 seconds into the build.
+  // dancing, in Pirates the Jolly Roger goes up (the user's wish, 2026-11-05). Cartoon's is round 1,
+  // the main castle's starting ring breached in the first combat and closed round its three sleeping
+  // cannons — the game's core, not round 5's outlying castle with no room for a gun (the user's,
+  // 2026-11-05); its seal comes some 6 seconds in.
   {
     name: 'seal-cartoon',
     params: {
       players: '2',
       snapshot: 'build',
-      round: '5',
+      round: '1',
       style: 'cartoon',
       cameraZoom: '1.8',
       cameraOn: 'you',
