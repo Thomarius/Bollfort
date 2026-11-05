@@ -63,6 +63,12 @@ function openLogFile() {
 }
 const logFile = openLogFile();
 
+/** To the control window while it lives: closing the app destroys it before the server, the
+ * relay and the timers below have stopped, and a send then throws "Object has been destroyed". */
+function toControl(channel, payload) {
+  if (control === null || control.isDestroyed() || control.webContents.isDestroyed()) return;
+  control.webContents.send(channel, payload);
+}
 function say(line) {
   const stamped = `${new Date().toISOString().slice(11, 19)}  ${line}`;
   log.push(stamped);
@@ -74,7 +80,7 @@ function say(line) {
       // the window's log still has it
     }
   }
-  control?.webContents.send('log', stamped);
+  toControl('log', stamped);
 }
 
 // Q6: whether Steam asks us to relaunch through it. With steam_appid.txt beside the app, Steam
@@ -162,7 +168,7 @@ function stateText() {
     `Sockets opened: ${s.socketsOpened} (in a match: ${s.socketsOpenedInMatch})`,
   ].join('\n');
 }
-setInterval(() => control?.webContents.send('state', state()), 500);
+setInterval(() => toControl('state', state()), 500);
 
 // --- P2P framing: [kind u8][connection u32 LE][payload] ---------------------------------------
 
@@ -496,8 +502,9 @@ app.whenReady().then(() => {
   });
   control.loadFile(path.join(__dirname, 'control.html'));
   control.webContents.on('did-finish-load', () => {
-    for (const line of log) control.webContents.send('log', line);
+    for (const line of log) toControl('log', line);
   });
+  control.on('closed', () => (control = null));
 
   // The notes' helpers, there whether Steam started or not.
   ipcMain.handle('copy', () => {
