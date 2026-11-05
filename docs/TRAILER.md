@@ -6,10 +6,11 @@ whose integrated graphics left it a little laggy; this is how to make it on a ga
 NVIDIA card (the user's, 2026-11-05). Everything about the cut — its clips, timings and captions —
 is in that script; nothing here changes it.
 
-**The version for Steam is the one without the screen's shake** (`TRAILER_SHAKE=0`), the user's
-choice: every command below is given with it. A version at half the shake is made the same way
-with `$env:TRAILER_SHAKE = "0.5"` — half as far, over the same time — into `trailer-build\half\`
-(2026-11-05, to compare against the still one); unset, the full shake, into `trailer-build\`.
+**The version for Steam is the one at half the screen's shake** (`TRAILER_SHAKE=0.5`: half as far,
+over the same time), the user's choice of 2026-11-05 after both it and one without the shake were
+made in full: every command below is given with it, and its files go into `trailer-build\half\`.
+`$env:TRAILER_SHAKE = "0"` makes the version without the shake, into `trailer-build\still\`;
+unset, the full shake, into `trailer-build\`.
 
 ## 1. Once: the tools
 
@@ -59,11 +60,11 @@ npm run dev -w @bollfort/client
 **Terminal 2**:
 
 ```powershell
-$env:TRAILER_SHAKE = "0"
+$env:TRAILER_SHAKE = "0.5"
 npm run trailer -w @bollfort/storeart -- calibrate
 ```
 
-A browser window opens for a few seconds. Open `trailer-build\still\calibrate.png`: it must show
+A browser window opens for a few seconds. Open `trailer-build\half\calibrate.png`: it must show
 the game's menu filling the picture edge to edge, with no window frame, browser bar or desktop.
 Then film every clip (about 15–20 minutes; the browser window must stay uncovered throughout):
 
@@ -81,8 +82,9 @@ npm run trailer -w @bollfort/storeart -- captions
 npm run trailer -w @bollfort/storeart -- assemble
 ```
 
-The trailer is `trailer-build\still\BollfortTrailer.mp4`: 55 seconds, 1920 × 1080 at 60 frames,
-H.264 and AAC — Valve's format. Watch it with sound before anything else.
+The trailer is `trailer-build\half\BollfortTrailer.mp4`: 55 seconds, 1920 × 1080 at 60 frames,
+H.264 and AAC — Valve's format, its music at the game's loudness (−14 LUFS). Watch it with sound
+before anything else.
 
 ## 4. If something goes wrong
 
@@ -101,7 +103,7 @@ H.264 and AAC — Valve's format. Watch it with sound before anything else.
 
 Each clip is a match started from the address (`?autostart=1&autopilot=1…`): a bot plays the
 person's seat and the game shows it as a person plays it (the piece in hand), the aiming cursor and
-the towers' emblems hidden (`&reticle=0`), the screen's shake off (`&shake=0`), the corner's
+the towers' emblems hidden (`&reticle=0`), the screen's shake at half (`&shake=0.5`), the corner's
 buttons gone (`&clean=1`), the camera held or moved by `&cameraZoom` and its kin. The recorder waits
 for each clip's moment — a change of look's banner crossing the middle, a tower's effect, a castle
 sealed — and notes when it came; the cut takes its shots relative to those moments. A slowed clip
