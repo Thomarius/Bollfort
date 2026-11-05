@@ -870,6 +870,46 @@ text-shadow:0 0 3px #000,0 0 3px #000,0 0 8px rgb(0 0 0/80%),0 6px 18px rgb(0 0 
 
 // --- Assembly ------------------------------------------------------------------------------
 
+/**
+ * The music as loud as the game's (ARCHIVE: every track at −14 LUFS, peaks under −1.5 dBTP,
+ * two-pass `loudnorm`). The trailer's track, mastered at −9.0 LUFS with peaks at +0.5 dBTP, had
+ * gone in as it was: the trailer at −9.3 LUFS, some 5 dB over the game and most videos (the
+ * user's ear, measured 2026-11-05). Measured first, then brought down linearly — one gain, the
+ * music's dynamics kept, which its range of 5.4 LU allows.
+ */
+const LOUDNESS = { I: -14, TP: -1.5, LRA: 11 };
+
+function musicChain(): string {
+  return `apad,atrim=duration=${LENGTH}`;
+}
+
+function loudnormFilter(): string {
+  const target = `I=${LOUDNESS.I}:TP=${LOUDNESS.TP}:LRA=${LOUDNESS.LRA}`;
+  const pass = spawnSync(
+    'ffmpeg',
+    [
+      '-hide_banner',
+      '-nostats',
+      '-i',
+      MUSIC,
+      '-af',
+      `${musicChain()},loudnorm=${target}:print_format=json`,
+      '-f',
+      'null',
+      '-',
+    ],
+    { encoding: 'utf8' },
+  );
+  const json = /\{[^{}]*"input_i"[^{}]*\}/.exec(pass.stderr ?? '');
+  if (pass.status !== 0 || json === null) throw new Error('measuring the music failed');
+  const m = JSON.parse(json[0]) as Record<string, string>;
+  return (
+    `loudnorm=${target}:linear=true:measured_I=${m['input_i']}:measured_TP=${m['input_tp']}` +
+    `:measured_LRA=${m['input_lra']}:measured_thresh=${m['input_thresh']}` +
+    `:offset=${m['target_offset']}`
+  );
+}
+
 /** The cut, captioned, with the music, encoded as Valve asks: H.264 and AAC, 1080p at 60. */
 function assemble(): void {
   const moments: Record<string, { moment: number; slow?: number }> = JSON.parse(
@@ -905,7 +945,7 @@ function assemble(): void {
   );
   const music = CUT.length + CAPTIONS.length;
   inputs.push('-i', MUSIC);
-  filters.push(`[${music}:a]apad,atrim=duration=${LENGTH},aresample=48000[audio]`);
+  filters.push(`[${music}:a]${musicChain()},${loudnormFilter()},aresample=48000[audio]`);
   const file = join(OUT, 'BollfortTrailer.mp4');
   const result = spawnSync(
     'ffmpeg',
