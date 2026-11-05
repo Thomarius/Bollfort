@@ -8,7 +8,7 @@
 // here: a desync is mended by rejoining (ARCHIVE 15zc), so rejoins in a match without a dropped
 // link mean the channel broke the order.
 
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, clipboard, ipcMain } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const http = require('node:http');
@@ -41,10 +41,39 @@ steamworks.electronEnableSteamOverlay();
 
 const log = [];
 let control = null;
+
+// Every line also goes to a file of its own per start, so nothing depends on copying the log
+// by hand: in a `logs` folder beside the program, or in the app's data folder where that
+// cannot be written.
+function openLogFile() {
+  const name = `spike-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.log`;
+  const folders = [path.join(path.dirname(process.execPath), 'logs'), app.getPath('userData')];
+  if (!PACKAGED) folders.unshift(path.join(__dirname, 'logs'));
+  for (const folder of folders) {
+    try {
+      fs.mkdirSync(folder, { recursive: true });
+      const file = path.join(folder, name);
+      fs.writeFileSync(file, '');
+      return file;
+    } catch {
+      // the next folder
+    }
+  }
+  return null;
+}
+const logFile = openLogFile();
+
 function say(line) {
   const stamped = `${new Date().toISOString().slice(11, 19)}  ${line}`;
   log.push(stamped);
   console.log(stamped);
+  if (logFile !== null) {
+    try {
+      fs.appendFileSync(logFile, `${stamped}\n`);
+    } catch {
+      // the window's log still has it
+    }
+  }
   control?.webContents.send('log', stamped);
 }
 
@@ -72,6 +101,13 @@ const stats = {
   room: null,
   members: [],
   rtt: null,
+  /** The round trip's highest and its sum over every answered ping, for the mean. */
+  rttMax: null,
+  rttSum: 0,
+  rttCount: 0,
+  /** Stretches of more than STALL_MS without an answer from the host, and the longest. */
+  stalls: 0,
+  longestStallMs: 0,
   sentPackets: 0,
   sentBytes: 0,
   sendFailures: 0,
@@ -86,6 +122,8 @@ const stats = {
 let lobby = null;
 let hostId = null;
 const myName = () => (client ? client.localplayer.getName() : 'Player');
+/** The name as the game takes it: at most 24 characters (the protocol's limit), never empty. */
+const gameName = () => myName().trim().slice(0, 24).trim() || 'Player';
 const mySteamId = () => (client ? client.localplayer.getSteamId().steamId64 : 0n);
 
 function state() {
@@ -99,7 +137,30 @@ function state() {
     onDeck: client ? client.utils.isSteamRunningOnSteamDeck() : null,
     language: client ? client.apps.currentGameLanguage() : null,
     argv: process.argv.slice(1).join(' '),
+    rttMean: stats.rttCount === 0 ? null : Math.round(stats.rttSum / stats.rttCount),
+    stallNow: stallSince === null ? 0 : Date.now() - stallSince,
+    logFile,
   };
+}
+
+/** The State table as text, for the notes: what the control window shows. */
+function stateText() {
+  const s = state();
+  return [
+    `Steam user: ${s.name ? `${s.name} (${s.steamId})` : `not initialised: ${s.initError}`}`,
+    `restartAppIfNecessary: ${s.restart}`,
+    `On a Steam Deck: ${s.onDeck}`,
+    `Steam language: ${s.language}`,
+    `Started with: ${s.argv}`,
+    `Role: ${s.role}`,
+    `Lobby: ${s.lobby ? `${s.lobby} (${s.lobbyType ?? 'joined'})` : '-'}`,
+    `Room: ${s.room ?? '-'}`,
+    `Round trip: now ${s.rtt ?? '-'} ms, highest ${s.rttMax ?? '-'} ms, mean ${s.rttMean ?? '-'} ms (${s.rttCount} pings)`,
+    `Host silent > ${STALL_MS / 1000} s: ${s.stalls} times, longest ${(s.longestStallMs / 1000).toFixed(1)} s`,
+    `Sent: ${s.sentPackets} packets, ${(s.sentBytes / 1024).toFixed(0)} KB, largest ${s.largestPacket} B, failures ${s.sendFailures}`,
+    `Read: ${s.readPackets} packets, ${(s.readBytes / 1024).toFixed(0)} KB`,
+    `Sockets opened: ${s.socketsOpened} (in a match: ${s.socketsOpenedInMatch})`,
+  ].join('\n');
 }
 setInterval(() => control?.webContents.send('state', state()), 500);
 
@@ -114,6 +175,8 @@ function frame(kind, conn, payload) {
 }
 
 function send(to, kind, conn, payload) {
+  // No host any more (a page's socket closing after the lobby was left): nowhere to send.
+  if (to === null || client === null) return;
   const packet = frame(kind, conn, payload);
   const ok = client.networking.sendP2PPacket(to, RELIABLE, packet);
   stats.sentPackets++;
@@ -238,7 +301,7 @@ async function watchRoom() {
     if (stats.role !== 'host' || lobby === null) return;
     const body = await get(`http://127.0.0.1:${SERVER_PORT}/api/rooms`);
     const rooms = body === null ? [] : JSON.parse(body).rooms;
-    const mine = rooms.filter((r) => r.host === myName()).at(-1);
+    const mine = rooms.filter((r) => r.host === gameName()).at(-1);
     if (mine !== undefined && mine.code !== stats.room) {
       stats.room = mine.code;
       lobby.setData('room', mine.code);
@@ -270,7 +333,7 @@ async function host(type) {
   client.localplayer.setRichPresence('connect', `+connect_lobby ${lobby.id}`);
   client.localplayer.setRichPresence('steam_display', '#Status_InLobby');
   say(`lobby ${lobby.id} made (${type})`);
-  openGame(`http://127.0.0.1:${SERVER_PORT}/?host=8&name=${encodeURIComponent(myName())}`);
+  openGame(`http://127.0.0.1:${SERVER_PORT}/?host=8&name=${encodeURIComponent(gameName())}`);
   void watchRoom();
 }
 
@@ -334,7 +397,18 @@ let inMatch = false;
 
 function onGuestPacket(kind, conn, payload) {
   if (kind === KIND.pong) {
-    stats.rtt = Number(process.hrtime.bigint() / 1000000n - payload.readBigUInt64LE(0));
+    const rtt = Number(process.hrtime.bigint() / 1000000n - payload.readBigUInt64LE(0));
+    stats.rtt = rtt;
+    stats.rttMax = Math.max(stats.rttMax ?? 0, rtt);
+    stats.rttSum += rtt;
+    stats.rttCount++;
+    lastAnswer = Date.now();
+    if (stallSince !== null) {
+      const ms = lastAnswer - stallSince;
+      stats.longestStallMs = Math.max(stats.longestStallMs, ms);
+      say(`the host answers again, after ${(ms / 1000).toFixed(1)} s without an answer`);
+      stallSince = null;
+    }
     return;
   }
   const ws = pageSockets.get(conn);
@@ -348,9 +422,20 @@ function onGuestPacket(kind, conn, payload) {
   } else if (kind === KIND.close) ws.close();
 }
 
+/** No answer from the host for this long counts as the host gone silent (the outage test). */
+const STALL_MS = 3000;
+/** When the host last answered a ping, and the last answer before a silence under way. */
+let lastAnswer = null;
+let stallSince = null;
+
 // The round trip over Steam, a ping a second: our own clock out and back.
 setInterval(() => {
   if (stats.role !== 'guest' || hostId === null) return;
+  if (lastAnswer !== null && stallSince === null && Date.now() - lastAnswer > STALL_MS) {
+    stallSince = lastAnswer;
+    stats.stalls++;
+    say(`the host has not answered for ${STALL_MS / 1000} s`);
+  }
   const t = Buffer.alloc(8);
   t.writeBigUInt64LE(process.hrtime.bigint() / 1000000n);
   send(hostId, KIND.ping, 0, t);
@@ -358,7 +443,7 @@ setInterval(() => {
 
 async function join(id) {
   if (lobby !== null) {
-    say('already in a lobby: leave first');
+    say('already in a lobby: Restart clean first');
     return;
   }
   lobby = await client.matchmaking.joinLobby(BigInt(id));
@@ -371,7 +456,9 @@ async function join(id) {
     const room = lobby.getData('room');
     if (room) {
       stats.room = room;
-      openGame(`http://127.0.0.1:${RELAY_PORT}/?join=${room}&name=${encodeURIComponent(myName())}`);
+      openGame(
+        `http://127.0.0.1:${RELAY_PORT}/?join=${room}&name=${encodeURIComponent(gameName())}`,
+      );
       return;
     }
     await new Promise((r) => setTimeout(r, 500));
@@ -387,6 +474,16 @@ function openGame(url) {
   game = new BrowserWindow({ width: 1280, height: 800, title: `Bollfort (spike) — ${stats.role}` });
   game.loadURL(url);
   game.on('closed', () => (game = null));
+  // The game page's warnings and errors in the spike's log, so a failure inside the game is
+  // in the notes too. Electron 44 hands the details on the event.
+  game.webContents.on('console-message', (event, level, message) => {
+    const lvl = event.level ?? ['verbose', 'info', 'warning', 'error'][level];
+    const text = event.message ?? message;
+    if (lvl === 'warning' || lvl === 'error') say(`game ${lvl}: ${text}`);
+  });
+  game.webContents.on('render-process-gone', (_e, details) =>
+    say(`game window's page gone: ${details.reason}`),
+  );
   say(`game window: ${url}`);
 }
 
@@ -401,6 +498,19 @@ app.whenReady().then(() => {
   control.webContents.on('did-finish-load', () => {
     for (const line of log) control.webContents.send('log', line);
   });
+
+  // The notes' helpers, there whether Steam started or not.
+  ipcMain.handle('copy', () => {
+    clipboard.writeText([stateText(), '', ...log, ''].join('\n'));
+    say('state and log copied to the clipboard');
+  });
+  ipcMain.handle('note', (_e, text) => {
+    // A mark carries the State table with it, so every step's figures are in the log file.
+    const line = String(text ?? '').trim() || 'mark';
+    say(`=== ${line} ===\n${stateText()}`);
+  });
+  ipcMain.handle('restart', () => restartClean());
+  say(`log file: ${logFile ?? 'none (no folder could be written)'}`);
 
   if (client === null) {
     say(`Steam did not initialise: ${initError}. Is Steam running and logged in?`);
@@ -461,18 +571,6 @@ app.whenReady().then(() => {
       members: Number(l.getMemberCount()),
     }));
   });
-  ipcMain.handle('leave', () => {
-    lobby?.leave();
-    say('left the lobby');
-    lobby = null;
-    stats.role = 'none';
-    stats.lobby = null;
-    stats.room = null;
-    hostId = null;
-    matchStarted = false;
-    inMatch = false;
-    client.localplayer.setRichPresence('connect', null);
-  });
   ipcMain.handle('keyboard', async () => {
     const typed = await client.utils.showGamepadTextInput(0, 0, 'Your name', 16, myName());
     say(`showGamepadTextInput returned ${JSON.stringify(typed)}`);
@@ -480,7 +578,37 @@ app.whenReady().then(() => {
   ipcMain.handle('state', () => state());
 });
 
+/** The State table into the log, as the spike quits or restarts: the last figures kept. */
+function sayState(why) {
+  say(`state ${why}:\n${stateText()}`);
+}
+
+/**
+ * Quit and start again with nothing left over: no lobby, no server, no game window, every
+ * counter at zero. Leaving a lobby in place kept the old room and its sockets, so a test that
+ * needs a fresh start gets a fresh process.
+ */
+async function restartClean() {
+  sayState('before the restart');
+  try {
+    lobby?.leave();
+    client?.localplayer.setRichPresence('connect', null);
+  } catch (e) {
+    say(`leaving the lobby: ${e.message}`);
+  }
+  game?.destroy();
+  if (running !== null)
+    await Promise.race([running.stop(), new Promise((r) => setTimeout(r, 2000))]);
+  // Started by an invite: the restart must not join that lobby again.
+  const args = process.argv.slice(1);
+  const at = args.indexOf('+connect_lobby');
+  if (at >= 0) args.splice(at, 2);
+  app.relaunch({ args });
+  app.exit(0);
+}
+
 app.on('window-all-closed', () => {
+  sayState('at quit');
   lobby?.leave();
   void running?.stop();
   app.quit();

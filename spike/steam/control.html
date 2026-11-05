@@ -62,6 +62,12 @@
   <body>
     <h1>Bollfort Steam spike (App ID 480)</h1>
 
+    <h2>Notes</h2>
+    <input id="note" placeholder="step, e.g. 4 or 5a" size="16" />
+    <button onclick="mark()">Mark in log</button>
+    <button onclick="spike.copy()">Copy state and log</button>
+    <button onclick="spike.restart()">Restart clean</button>
+
     <h2>Host</h2>
     <button onclick="spike.host('friends')">Host: Friends lobby</button>
     <button onclick="spike.host('public')">Host: Public lobby</button>
@@ -76,8 +82,9 @@
     <button onclick="list()">List our lobbies</button>
     <span id="lobbies"></span><br />
     <input id="lobbyId" placeholder="lobby id" size="24" />
-    <button onclick="spike.join(document.getElementById('lobbyId').value)">Join by id</button>
-    <button onclick="spike.leave()">Leave</button>
+    <button onclick="spike.join(document.getElementById('lobbyId').value.trim())">
+      Join by id
+    </button>
 
     <h2>Extras</h2>
     <button onclick="spike.keyboard()">Steam's gamepad keyboard (Big Picture / Deck)</button>
@@ -112,7 +119,19 @@
         ['Role', (s) => s.role],
         ['Lobby', (s) => (s.lobby ? `${s.lobby} (${s.lobbyType ?? 'joined'})` : '—')],
         ['Room', (s) => s.room ?? '—'],
-        ['Round trip over Steam', (s) => (s.rtt === null ? '—' : `${s.rtt} ms`)],
+        [
+          'Round trip over Steam',
+          (s) =>
+            s.rtt === null
+              ? '—'
+              : `now ${s.rtt} ms, highest ${s.rttMax} ms, mean ${s.rttMean} ms (${s.rttCount} pings)`,
+        ],
+        [
+          'Host silent > 3 s',
+          (s) =>
+            `${s.stalls} times, longest ${(s.longestStallMs / 1000).toFixed(1)} s` +
+            (s.stallNow > 0 ? ` — SILENT NOW for ${(s.stallNow / 1000).toFixed(0)} s` : ''),
+        ],
         [
           'Sent',
           (s) =>
@@ -120,7 +139,16 @@
         ],
         ['Read', (s) => `${s.readPackets} packets, ${(s.readBytes / 1024).toFixed(0)} KB`],
         ['Sockets opened', (s) => `${s.socketsOpened} (in a match: ${s.socketsOpenedInMatch})`],
+        ['Log file', (s) => s.logFile ?? 'none'],
       ];
+      function mark() {
+        const input = document.getElementById('note');
+        spike.note(input.value);
+        input.value = '';
+      }
+      document.getElementById('note').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') mark();
+      });
       spike.onState((s) => {
         document.getElementById('state').innerHTML = rows
           .map(([k, f]) => `<tr><td>${k}</td><td>${String(f(s)).replace(/</g, '&lt;')}</td></tr>`)
