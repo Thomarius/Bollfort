@@ -585,6 +585,9 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   the winners (to 43); half-second cuts of the most action (to 46.8, the music's climax); then the
   rainbow title over the Cyberpunk split, the shooting running on through the fade, **Free on
   Steam** held in the silence (to 55). H.264 High and AAC at 48 kHz, 1920 × 1080 at 60 frames.
+  The music as loud as the game's, −14 LUFS with peaks under −1.5 dBTP, brought down linearly by
+  `assemble` (2026-11-05): the track as mastered, −9 LUFS, had left the trailer some 5 dB louder
+  than the game and most videos (the user's ear, then measured).
 
   **Filmed again on the user's gaming PC** (2026-11-05: the development machine's integrated
   graphics left it a little laggy; an RTX 3070, filmed by DirectX's desktop duplication and NVENC,
