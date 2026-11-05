@@ -32,8 +32,24 @@ const OUT = resolve(
 );
 const MUSIC = join(ROOT, 'assets', 'trailer', 'BollfortTrailer.mp3');
 const DISPLAY = process.env['DISPLAY'] ?? ':0';
+/**
+ * Filmed on Windows too (the user's gaming PC, 2026-11-05): the screen grabbed by DirectX's
+ * desktop duplication (ffmpeg's `ddagrab`, from the graphics card) and encoded by NVENC, the
+ * card's own encoder — a dedicated card, not one sharing the processor's memory as this
+ * machine's did. `TRAILER_CAPTURE=gdigrab` and `TRAILER_ENCODER=cpu` fall back to GDI and x264.
+ * The window must stand on the primary monitor, whose top-left is the desktop's 0,0, at 100%
+ * display scaling.
+ */
+const WINDOWS = process.platform === 'win32';
+const WIN_CAPTURE = process.env['TRAILER_CAPTURE'] ?? 'ddagrab';
+const WIN_ENCODER = process.env['TRAILER_ENCODER'] ?? 'nvenc';
+/**
+ * Full screen, for a monitor exactly 1920 × 1080, where a window with its frame cannot hold a
+ * page of that size (`TRAILER_FULLSCREEN=1`): Chrome in kiosk mode, the page the whole screen.
+ */
+const FULLSCREEN = process.env['TRAILER_FULLSCREEN'] === '1';
 /** Where the window opens: on the primary screen, wherever that is. */
-const WINDOW_AT = process.env['TRAILER_WINDOW'] ?? '1400,520';
+const WINDOW_AT = process.env['TRAILER_WINDOW'] ?? (WINDOWS ? '40,40' : '1400,520');
 const FPS = 60;
 const W = 1920;
 const H = 1080;
@@ -44,7 +60,7 @@ const H = 1080;
 type Moment =
   | { kind: 'ready' }
   | { kind: 'wipe' }
-  | { kind: 'effect'; effect: 'lightning' | 'laser' | 'wave' | 'biggest' }
+  | { kind: 'effect'; effect: 'lightning' | 'laser' | 'wave' | 'biggest' | 'sealed' }
   | { kind: 'resting'; move: string };
 
 interface Clip {
@@ -130,6 +146,42 @@ const CLIPS: Clip[] = [
     params: { players: '2', snapshot: 'combat', round: '4', style: 'pirates' },
     moment: { kind: 'ready' },
     before: 0,
+    after: 3,
+  },
+  // A castle sealed, close: its ground filling and the castle coming alive — in Cartoon it starts
+  // dancing, in Pirates the Jolly Roger goes up (the user's wish, 2026-11-05). The seal comes some
+  // 14 to 17 seconds into the build.
+  {
+    name: 'seal-cartoon',
+    params: {
+      players: '2',
+      snapshot: 'build',
+      round: '5',
+      style: 'cartoon',
+      cameraZoom: '1.8',
+      cameraOn: 'you',
+    },
+    slow: 0.5,
+    moment: { kind: 'effect', effect: 'sealed' },
+    before: 1.5,
+    after: 3,
+  },
+  {
+    name: 'seal-pirates',
+    // Another match than Cartoon's — three players, seed 11, round 3 — so another island, castle
+    // and moment: the same match in two looks would have been one scene twice (the user's).
+    params: {
+      players: '3',
+      seed: '11',
+      snapshot: 'build',
+      round: '3',
+      style: 'pirates',
+      cameraZoom: '1.8',
+      cameraOn: 'you',
+    },
+    slow: 0.5,
+    moment: { kind: 'effect', effect: 'sealed' },
+    before: 1.5,
     after: 3,
   },
   {
@@ -314,9 +366,10 @@ const CUT: Shot[] = [
   // countdown (the user, 2026-11-04).
   { clip: 'hook-wipe', from: -1.1, length: 6.0 }, // 0.0 – 6.0: Ready… Aim… Fire!
   { clip: 'loop-fire', from: 0.3, length: 4.2 }, // 6.0 – 10.2
-  { clip: 'loop-build', from: 0.5, length: 4.3 }, // 10.2 – 14.5
+  { clip: 'loop-build', from: 0.5, length: 2.1 }, // 10.2 – 12.3: Rebuild yours.
+  { clip: 'seal-cartoon', from: -0.6, length: 2.2 }, // 12.3 – 14.5: Seal your castles.
   { clip: 'style-anime', from: 0.2, length: 2.0 }, // 14.5 – 16.5: the first lift
-  { clip: 'style-pirates', from: 0.2, length: 2.0 },
+  { clip: 'seal-pirates', from: -0.6, length: 2.0 },
   { clip: 'style-wipe-sakura', from: -0.6, length: 2.0 },
   { clip: 'style-noir', from: 0.2, length: 2.0 },
   { clip: 'style-christmas', from: 0.2, length: 2.0 },
@@ -382,6 +435,8 @@ function clipUrl(clip: Clip): string {
     ...clip.params,
     ...(clip.slow === undefined ? {} : { trailerSlow: String(clip.slow) }),
     ...(STILL ? { shake: '0' } : {}),
+    // No aiming cursor nor the towers' emblems in combat; the pieces' ghosts stay (the user's).
+    reticle: '0',
   });
   return `${BASE}/?${q}`;
 }
@@ -431,34 +486,69 @@ const VAAPI = process.env['TRAILER_ENCODER'] === 'vaapi' && existsSync('/dev/dri
 
 /** ffmpeg filming the page's area of the screen, at a quality to cut and grade later. */
 function film(rect: { x: number; y: number }, file: string): ChildProcess {
-  const grab = [
-    '-f',
-    'x11grab',
-    '-draw_mouse',
-    '0',
-    '-framerate',
-    String(FPS),
-    '-video_size',
-    `${W}x${H}`,
-    '-i',
-    `${DISPLAY}+${rect.x},${rect.y}`,
-  ];
-  const encode = VAAPI
-    ? ['-vf', 'format=nv12,hwupload', '-c:v', 'h264_vaapi', '-qp', '12']
-    : ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '10', '-pix_fmt', 'yuv444p'];
-  return spawn(
-    'ffmpeg',
-    [
-      '-y',
-      '-loglevel',
-      'error',
-      ...(VAAPI ? ['-vaapi_device', '/dev/dri/renderD128'] : []),
-      ...grab,
-      ...encode,
-      file,
-    ],
-    { stdio: ['pipe', 'inherit', 'inherit'] },
-  );
+  let args: string[];
+  if (WINDOWS && WIN_CAPTURE === 'ddagrab') {
+    const grab = `ddagrab=output_idx=0:framerate=${FPS}:draw_mouse=0:offset_x=${rect.x}:offset_y=${rect.y}:video_size=${W}x${H}`;
+    // NVENC takes the card's frames as they are; x264 needs them brought down to memory first.
+    const encode =
+      WIN_ENCODER === 'nvenc'
+        ? ['-c:v', 'h264_nvenc', '-preset', 'p5', '-tune', 'hq', '-rc', 'constqp', '-qp', '14']
+        : [
+            '-vf',
+            'hwdownload,format=bgra',
+            '-c:v',
+            'libx264',
+            '-preset',
+            'ultrafast',
+            '-crf',
+            '10',
+            '-pix_fmt',
+            'yuv444p',
+          ];
+    args = ['-f', 'lavfi', '-i', grab, ...encode];
+  } else if (WINDOWS) {
+    const grab = [
+      '-f',
+      'gdigrab',
+      '-draw_mouse',
+      '0',
+      '-framerate',
+      String(FPS),
+      '-offset_x',
+      String(rect.x),
+      '-offset_y',
+      String(rect.y),
+      '-video_size',
+      `${W}x${H}`,
+      '-i',
+      'desktop',
+    ];
+    const encode =
+      WIN_ENCODER === 'nvenc'
+        ? ['-c:v', 'h264_nvenc', '-preset', 'p5', '-tune', 'hq', '-rc', 'constqp', '-qp', '14']
+        : ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '10', '-pix_fmt', 'yuv444p'];
+    args = [...grab, ...encode];
+  } else {
+    const grab = [
+      '-f',
+      'x11grab',
+      '-draw_mouse',
+      '0',
+      '-framerate',
+      String(FPS),
+      '-video_size',
+      `${W}x${H}`,
+      '-i',
+      `${DISPLAY}+${rect.x},${rect.y}`,
+    ];
+    const encode = VAAPI
+      ? ['-vf', 'format=nv12,hwupload', '-c:v', 'h264_vaapi', '-qp', '12']
+      : ['-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '10', '-pix_fmt', 'yuv444p'];
+    args = [...(VAAPI ? ['-vaapi_device', '/dev/dri/renderD128'] : []), ...grab, ...encode];
+  }
+  return spawn('ffmpeg', ['-y', '-loglevel', 'error', ...args, file], {
+    stdio: ['pipe', 'inherit', 'inherit'],
+  });
 }
 
 /**
@@ -506,21 +596,51 @@ async function locate(page: Page): Promise<{ x: number; y: number }> {
 i{position:fixed;width:8px;height:8px}</style>
 <i style="left:0;top:0;background:#f0f"></i><i style="left:${W - 8}px;top:${H - 8}px;background:#0ff"></i>`);
   await page.waitForTimeout(600);
-  const size = /dimensions:\s+(\d+)x(\d+)/.exec(spawnSync('xdpyinfo', { encoding: 'utf8' }).stdout);
-  if (size === null) throw new Error('xdpyinfo could not tell the screen size');
-  const sw = Number(size[1]);
-  const sh = Number(size[2]);
+  // What is grabbed: the whole screen here; on Windows the window's own rectangle, by its place
+  // on the desktop, which at 100% scaling is in the screen's pixels.
+  let x0 = 0;
+  let y0 = 0;
+  let sw: number;
+  let sh: number;
+  let input: string[];
+  if (WINDOWS) {
+    const win = await page.evaluate(() => ({
+      x: screenX,
+      y: screenY,
+      w: outerWidth,
+      h: outerHeight,
+    }));
+    x0 = Math.max(0, win.x);
+    y0 = Math.max(0, win.y);
+    sw = win.w;
+    sh = win.h;
+    input = [
+      '-f',
+      'gdigrab',
+      '-offset_x',
+      String(x0),
+      '-offset_y',
+      String(y0),
+      '-video_size',
+      `${sw}x${sh}`,
+      '-i',
+      'desktop',
+    ];
+  } else {
+    const size = /dimensions:\s+(\d+)x(\d+)/.exec(
+      spawnSync('xdpyinfo', { encoding: 'utf8' }).stdout,
+    );
+    if (size === null) throw new Error('xdpyinfo could not tell the screen size');
+    sw = Number(size[1]);
+    sh = Number(size[2]);
+    input = ['-f', 'x11grab', '-video_size', `${sw}x${sh}`, '-i', `${DISPLAY}+0,0`];
+  }
   const grab = spawnSync(
     'ffmpeg',
     [
       '-loglevel',
       'error',
-      '-f',
-      'x11grab',
-      '-video_size',
-      `${sw}x${sh}`,
-      '-i',
-      `${DISPLAY}+0,0`,
+      ...input,
       '-frames:v',
       '1',
       '-f',
@@ -532,6 +652,8 @@ i{position:fixed;width:8px;height:8px}</style>
     { maxBuffer: sw * sh * 3 + 1024 },
   );
   const px = grab.stdout as Buffer;
+  if (px.length < sw * sh * 3)
+    throw new Error(`the screen could not be grabbed: ${String(grab.stderr)}`);
   const at = (x: number, y: number): [number, number, number] => {
     const i = (y * sw + x) * 3;
     return [px[i]!, px[i + 1]!, px[i + 2]!];
@@ -550,7 +672,7 @@ i{position:fixed;width:8px;height:8px}</style>
           `the page's corner is at ${x},${y} but its far corner is not on screen whole`,
         );
       }
-      return { x, y };
+      return { x: x0 + x, y: y0 + y };
     }
   }
   throw new Error('the page was not found on the screen: is the window covered?');
@@ -562,10 +684,11 @@ async function record(names: string[], calibrate: boolean): Promise<void> {
     headless: false,
     args: [
       '--enable-gpu',
-      '--use-angle=gl',
+      // ANGLE on OpenGL here; Windows keeps Chrome's own, on Direct3D.
+      ...(WINDOWS ? [] : ['--use-angle=gl']),
       '--ignore-gpu-blocklist',
       '--mute-audio',
-      `--window-position=${WINDOW_AT}`,
+      ...(FULLSCREEN ? ['--kiosk'] : [`--window-position=${WINDOW_AT}`]),
       '--force-device-scale-factor=1',
       // Chrome offered to translate the page over it (the first calibration, 2026-11-04).
       '--disable-features=Translate',
@@ -575,7 +698,7 @@ async function record(names: string[], calibrate: boolean): Promise<void> {
   // Four columns wider than the film: the page's last four showed covered by the window's frame on
   // this desktop (2026-11-04), so they fall outside the 1920 filmed.
   const page = await (
-    await browser.newContext({ viewport: { width: W + 4, height: H } })
+    await browser.newContext({ viewport: FULLSCREEN ? null : { width: W + 4, height: H } })
   ).newPage();
   // Room round the page: the window Playwright makes for a 1920 × 1080 page showed only 1059 rows
   // of it on this desktop, and ignores --window-size (2026-11-04); the page stays 1920 × 1080.
@@ -598,12 +721,14 @@ async function record(names: string[], calibrate: boolean): Promise<void> {
     window.__trailerSlow = k;
   })();`);
   const cdp = await page.context().newCDPSession(page);
-  const { windowId } = await cdp.send('Browser.getWindowForTarget');
-  const [left, top] = WINDOW_AT.split(',').map(Number);
-  await cdp.send('Browser.setWindowBounds', {
-    windowId,
-    bounds: { left: left ?? 1400, top: top ?? 520, width: W + 100, height: H + 160 },
-  });
+  if (!FULLSCREEN) {
+    const { windowId } = await cdp.send('Browser.getWindowForTarget');
+    const [left, top] = WINDOW_AT.split(',').map(Number);
+    await cdp.send('Browser.setWindowBounds', {
+      windowId,
+      bounds: { left: left ?? 40, top: top ?? 40, width: W + 100, height: H + 160 },
+    });
+  }
   page.on('pageerror', (e) => console.error(`  page error: ${e.message}`));
   await page.goto(`${BASE}/?lang=en`);
   await page.waitForTimeout(1500);

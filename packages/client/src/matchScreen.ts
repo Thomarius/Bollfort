@@ -805,6 +805,7 @@ export async function runSession(
     const sealing = board.refresh(structuresChanged, territoryChanged);
     if (sealing !== null) {
       matchAudio?.sealed(session.state, sealing.sealedBefore, sealing.sealedAfter);
+      if (markEffects) markSealed(sealing.sealedBefore, sealing.sealedAfter);
       hints = buildHints(session.state, session.humanPlayer, board.live);
     }
   }
@@ -814,6 +815,7 @@ export async function runSession(
    * each is said on the page, `data-effect` its kind and `data-effects` counting them.
    */
   const markEffects = autopilot !== null;
+  const noReticle = params.get('reticle') === '0';
   const biggestShots = new Set<number>();
   let effects = 0;
   function markTowerEffects(events: readonly MatchEvent[]): void {
@@ -827,9 +829,24 @@ export async function runSession(
       else if (event.kind === 'shot_impact' && biggestShots.delete(event.shotId))
         effect = 'biggest';
       if (effect === null) continue;
-      document.documentElement.dataset['effect'] = effect;
-      document.documentElement.dataset['effects'] = String(++effects);
+      markEffect(effect);
     }
+  }
+
+  function markEffect(effect: string): void {
+    document.documentElement.dataset['effect'] = effect;
+    document.documentElement.dataset['effects'] = String(++effects);
+  }
+
+  /** A castle of the person's newly sealed: the ground filling, the castle coming alive. */
+  function markSealed(before: readonly boolean[], after: readonly boolean[]): void {
+    const island = session.state.players[session.humanPlayer]?.islandId;
+    if (
+      session.state.castles.some(
+        (c) => c.islandId === island && after[c.id] === true && before[c.id] !== true,
+      )
+    )
+      markEffect('sealed');
   }
 
   /**
@@ -1039,12 +1056,26 @@ export async function runSession(
     );
     perf.end('effects');
     perf.begin('overlay');
-    const ghost = {
+    const shown = {
       ...controls.ghost(session.tickFraction),
       ...hints,
       beat: countdownBeat(session.state, session.tickFraction),
       leaks: leak !== null && session.state.tick < leak.untilTick ? leak.cells : [],
     };
+    // `&reticle=0` (dev only, the trailer's): no aiming cursor, nor the towers' emblems by it;
+    // the pieces' ghosts while building stay (the user, 2026-11-05).
+    const ghost =
+      noReticle && shown.aiming
+        ? {
+            ...shown,
+            tile: null,
+            aiming: false,
+            reload: null,
+            impact: null,
+            badges: [],
+            nextTower: null,
+          }
+        : shown;
     scene.drawOverlay(session.state, ghost, session.humanPlayer);
     drawCounters(ghost);
     perf.end('overlay');
