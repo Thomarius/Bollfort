@@ -578,7 +578,7 @@ in progress are lost once, and the desktop app's old data folder stays behind.
 
   The cut, against the music's sections: **Ready… Aim…** as the "Fire!" banner sweeps four
   Medieval islands into Cyberpunk, the shooting in step with the countdown (0–6 s); the loop —
-  _Fire at their walls._ close on a duel, _Rebuild yours._ over one shot of the player's ring
+  _Fire at their walls_ close on a duel, _Rebuild yours_ over one shot of the player's ring
   closed piece by piece and sealed (to 14.5); **24 styles** over seven looks cut on the beat, a change of look
   among them (to 28.5); **Up to 8 players** as the camera pulls out over eight islands, **Online
   multiplayer and bots** over a team match, **Special towers** over the lightning, the wave, the
@@ -594,12 +594,12 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   graphics left it a little laggy; an RTX 3070, filmed by DirectX's desktop duplication and NVENC,
   the steps in `docs/TRAILER.md`), with two changes, the user's: no aiming cursor nor the towers'
   emblems in combat (`&reticle=0`; the building ghosts stay), and **two castles sealed** close up —
-  Cartoon's, its castle coming alive and dancing, under _Rebuild yours._, and Pirates', the
+  Cartoon's, its castle coming alive and dancing, under _Rebuild yours_, and Pirates', the
   Jolly Roger going up, among the styles. Cartoon's is round 1, the main castle's starting ring
   breached in the first combat and closed round its three sleeping cannons, which wake as the
   ground fills: round 5's outlying castle, with no room for a gun beside a crowd of them, was not
   the game's core (the user's). It is the loop's whole rebuilding shot, 4.3 s from 2.7 s before
-  the seal, under _Rebuild yours._ alone: a Pixel building shot and the seal, two seconds each
+  the seal, under _Rebuild yours_ alone: a Pixel building shot and the seal, two seconds each
   under two captions, went by too fast to follow (the user's). Repeated frames 0–9% a clip, the
   heavy moments 0–3%.
 
