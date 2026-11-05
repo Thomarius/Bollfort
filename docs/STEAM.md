@@ -566,7 +566,8 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   the user's finding; a tower shot starts from the cannon phase before, or none is bought.
 
 - **The trailer — final** (2026-11-04, the user's, after four cuts): 55 seconds, **without the
-  screen's shake** — many people dislike it, in videos above all (the user's). Made again by
+  screen's shake** — many people dislike it, in videos above all (the user's); since 2026-11-05
+  **at half of it**, the version taken for Steam (below). First made by
   `TRAILER_SHAKE=0 npm run trailer -w @bollfort/storeart -- record`, then `captions` and
   `assemble`, into `trailer-build/still/BollfortTrailer.mp4` (git-ignored, some 76 MB; also as
   `trailer-build/BollfortTrailer-noshake.mp4`); the version with the shake is kept beside it. On
@@ -602,9 +603,10 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   under two captions, went by too fast to follow (the user's). Repeated frames 0–9% a clip, the
   heavy moments 0–3%.
 
-  **Two versions, the choice still open** (the user's): without the shake
-  (`trailer-build/still/`) and at half of it (`TRAILER_SHAKE=0.5`, `&shake=0.5` — half as far over
-  the same 260 ms, `trailer-build/half/`).
+  **The version for Steam: half the shake** (2026-11-05, the user's choice between two made in
+  full): `TRAILER_SHAKE=0.5`, `&shake=0.5` — half as far over the same 260 ms — into
+  `trailer-build/half/BollfortTrailer.mp4` (git-ignored, some 88 MB), its clips and captions kept
+  beside it to cut again without filming. The version without the shake was made and dropped.
 
   Filmed first live from a browser window on the user's screen with ffmpeg's x11grab and x264, the
   person's seat on the autopilot, the camera moved in the game, the captions in Rubik. What the
