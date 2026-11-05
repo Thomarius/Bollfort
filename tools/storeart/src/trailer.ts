@@ -376,8 +376,11 @@ const CUT: Shot[] = [
   // countdown (the user, 2026-11-04).
   { clip: 'hook-wipe', from: -1.1, length: 6.0 }, // 0.0 – 6.0: Ready… Aim… Fire!
   { clip: 'loop-fire', from: 0.3, length: 4.2 }, // 6.0 – 10.2
-  { clip: 'loop-build', from: 0.5, length: 2.1 }, // 10.2 – 12.3: Rebuild yours.
-  { clip: 'seal-cartoon', from: -0.6, length: 2.2 }, // 12.3 – 14.5: Seal your castles.
+  // One shot for the rebuilding, under one caption: the ring closed piece by piece round its
+  // sleeping guns, then sealed — 2.7 s before the seal, 1.6 after — in place of a Pixel building
+  // shot and the seal, each two seconds and captioned apart, too short to follow (the user's,
+  // 2026-11-05).
+  { clip: 'seal-cartoon', from: -2.7, length: 4.3 }, // 10.2 – 14.5: Rebuild yours.
   { clip: 'style-anime', from: 0.2, length: 2.0 }, // 14.5 – 16.5: the first lift
   { clip: 'seal-pirates', from: -0.6, length: 2.0 },
   { clip: 'style-wipe-sakura', from: -0.6, length: 2.0 },
@@ -418,8 +421,7 @@ const CAPTIONS: Caption[] = [
   { text: 'Ready…', start: 0.3, end: 1.4, look: 'call' },
   { text: 'Aim…', start: 1.5, end: 2.6, look: 'call' },
   { text: 'Fire at their walls.', start: 6.3, end: 9.8, look: 'lower' },
-  { text: 'Rebuild yours.', start: 10.4, end: 12.3, look: 'lower' },
-  { text: 'Seal your castles.', start: 12.4, end: 14.3, look: 'lower' },
+  { text: 'Rebuild yours.', start: 10.4, end: 14.3, look: 'lower' },
   { text: '24 styles', start: 14.7, end: 18.3, look: 'lower' },
   { text: 'Up to 8 players', start: 28.7, end: 31.5, look: 'lower' },
   { text: 'Online multiplayer and bots', start: 31.7, end: 34.0, look: 'lower' },
