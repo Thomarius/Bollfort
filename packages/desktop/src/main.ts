@@ -28,6 +28,12 @@ const BUILT_FROM = __BOLLFORT_COMMIT__;
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = app.isPackaged ? process.resourcesPath : resolve(here, '..', '..', '..');
+/**
+ * The app's icon, Minimal's B (STORE_PAGE.md §6.1, the user's choice, 2026-11-06): Steam's shortcut
+ * icon, the .exe's and the AppImage's (`build.win.icon`, `build.linux.icon`), and the windows'
+ * — shipped beside the client at the path it has in the repository, so it is found either way.
+ */
+const icon = join(root, 'assets', 'store', 'shortcut_icon.png');
 const clientDir = app.isPackaged
   ? join(process.resourcesPath, 'client')
   : join(root, 'packages', 'client', 'dist');
@@ -92,6 +98,7 @@ function createWindow(): void {
     height: 780,
     resizable: false,
     title: 'Bollfort server',
+    icon,
     backgroundColor: '#12131c',
     autoHideMenuBar: true,
     webPreferences: { preload: join(here, 'preload.cjs') },
@@ -163,6 +170,7 @@ ipcMain.handle('play-here', () => {
     width: 1400,
     height: 900,
     title: 'Bollfort',
+    icon,
     backgroundColor: '#0a0a12',
     autoHideMenuBar: true,
     // The app's own window may play sound unasked, so the music starts as the game opens

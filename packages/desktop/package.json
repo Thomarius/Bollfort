@@ -39,13 +39,18 @@
       {
         "from": "../client/dist",
         "to": "client"
+      },
+      {
+        "from": "../../assets/store/shortcut_icon.png",
+        "to": "assets/store/shortcut_icon.png"
       }
     ],
     "npmRebuild": false,
     "win": {
       "target": [
         "portable"
-      ]
+      ],
+      "icon": "../../assets/store/shortcut_icon.ico"
     },
     "portable": {
       "artifactName": "${productName}-${version}-windows.${ext}",
@@ -58,7 +63,8 @@
       ],
       "category": "Game",
       "executableName": "bollfort",
-      "syncDesktopName": true
+      "syncDesktopName": true,
+      "icon": "../../assets/store/shortcut_icon.png"
     },
     "appImage": {
       "artifactName": "${productName}-${version}-linux.${ext}"
