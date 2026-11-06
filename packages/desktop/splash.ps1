@@ -30,7 +30,7 @@ function Write-Line($text, $size, $style, $colour, $y) {
 }
 
 # Spaced as the window's title is (letter-spacing 0.3em).
-Write-Line 'B O L L W E R K' 34 ([System.Drawing.FontStyle]::Bold) $accent 46
+Write-Line 'B O L L F O R T' 34 ([System.Drawing.FontStyle]::Bold) $accent 46
 # The ellipsis and the dot by code: Windows PowerShell reads a script without a BOM as ANSI.
 $dots = [char]0x2026
 Write-Line "Starting$dots $([char]0x00B7) Startet$dots" 18 ([System.Drawing.FontStyle]::Regular) $ink 104
