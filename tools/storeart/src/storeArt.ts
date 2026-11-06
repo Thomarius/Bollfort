@@ -124,7 +124,7 @@ const ASSETS: Asset[] = [
     split: 0.5,
     note: 'Library hero: no text; keep the middle 860 × 380 clear of anything vital',
   },
-  // The events' art (STORE_PAGE.md §4.5), for the Coming Soon announcement and after: the cover
+  // The events' art (ARCHIVE 15zo), for the Coming Soon announcement and after: the cover
   // is required for any event, the header goes at its top.
   {
     name: 'event-cover',

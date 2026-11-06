@@ -1,5 +1,5 @@
 /**
- * The app's icon candidates (STORE_PAGE.md §4.1): every style's crowned castle, its castle and
+ * The app's icon candidates (ARCHIVE 15zo): every style's crowned castle, its castle and
  * cannon in their ring, and its lettering's B, at 512 × 512 — Steam's shortcut icon, and the
  * desktop app's — with a contact sheet showing each at 184 pixels (Steam's app icon) and 32
  * (a taskbar's), where an icon is won or lost.

@@ -1869,7 +1869,9 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    packaged builds; native controller support for the Steam Deck; and a new name, since another
    BOLLWERK is planned for 2027 and the word is a live mark in games' classes: **Bollfort**,
    everywhere (2026-11-03, STEAM.md §9.1). The decisions and the packages are in
-   [`STEAM.md`](./STEAM.md): N, R, K and B done (ARCHIVE 15zh–15zj); T, C and S1–S5 open.
+   [`STEAM.md`](./STEAM.md): N, R, K and B done (ARCHIVE 15zh–15zj), T and C (15zl, 15zm), and
+   S4's material that needs no account — art, trailer, texts, loops, icon (15zn, 15zo,
+   [`STORE_PAGE.md`](./STORE_PAGE.md)). Open: S1, the spike, next; S2, S3, the rest of S4, and S5.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

@@ -1,10 +1,11 @@
-# Making the trailer on Windows
+# Making the trailer and the store's loops on Windows
 
 Steam's trailer (STEAM.md §9.2) is filmed live from the game in a browser window and cut to its
 music by `tools/storeart/src/trailer.ts`. It was first made on the development machine (Linux),
 whose integrated graphics left it a little laggy; this is how to make it on a gaming PC with an
 NVIDIA card (the user's, 2026-11-05). Everything about the cut — its clips, timings and captions —
-is in that script; nothing here changes it.
+is in that script; nothing here changes it. The store page's loops are filmed by the same recorder
+(§6).
 
 **The version for Steam is the one at half the screen's shake** (`TRAILER_SHAKE=0.5`: half as far,
 over the same time), the user's choice of 2026-11-05 after both it and one without the shake were
@@ -17,12 +18,13 @@ unset, the full shake, into `trailer-build\`.
 In PowerShell:
 
 ```powershell
-winget install OpenJS.NodeJS        # Node 24 (22.12 at the least)
+winget install OpenJS.NodeJS.LTS --version 24.22.1   # Node 24, as .nvmrc; unpinned it is 26
 winget install Git.Git
 winget install Gyan.FFmpeg          # ffmpeg 6 or later, for ddagrab and NVENC
 ```
 
-Open a new terminal so the three are on the path, and check: `node -v`, `git --version`,
+Open a new terminal so the three are on the path — one opened before an install does not see it,
+nor a terminal inside an editor until the editor is restarted — and check: `node -v`, `git --version`,
 `ffmpeg -hide_banner -filters | findstr ddagrab`, `ffmpeg -hide_banner -encoders | findstr nvenc`.
 Keep the NVIDIA driver current; NVENC needs it.
 
@@ -33,7 +35,14 @@ npm install
 npx playwright install chromium
 ```
 
-`.gitattributes` keeps every file's line endings LF, as `npm run check` wants.
+`.gitattributes` keeps every file's line endings LF, as `npm run check` wants, whatever Git for
+Windows' `core.autocrlf` says. Git needs a name and an email before the first commit
+(`git config user.name`, `user.email`), and a push opens the Git Credential Manager's sign-in
+once.
+
+A machine streamed to by Sunshine with no monitor of its own (the user's, 2026-11-05) films its
+virtual display like any other: calibrate finds the page on it, and the stream may stay connected
+— it is not drawn on the host's screen — as long as the mouse is not touched.
 
 ## 2. Before each session: the screen
 
@@ -109,3 +118,28 @@ for each clip's moment — a change of look's banner crossing the middle, a towe
 sealed — and notes when it came; the cut takes its shots relative to those moments. A slowed clip
 runs on a slowed page clock (an init script slowing `performance.now`, `Date.now` and the frame
 times together — never the DevTools protocol's animation rate as well, which froze the game).
+
+## 6. The store page's loops
+
+The GIFs in the store's description (STORE_PAGE.md §4.2, ARCHIVE 15zo) are scenes of their own,
+filmed by the same recorder as a second set, with no words on the screen but a phase banner's
+(`&labels=0`), into `trailer-build\loops\<lang>\clips\` — the scenes with a banner once more in
+German:
+
+```powershell
+$env:TRAILER_SET = "loops"
+npm run trailer -w @bollfort/storeart -- record
+$env:TRAILER_LANG = "de"
+npm run trailer -w @bollfort/storeart -- record      # only the scenes with a banner
+```
+
+A scene alone is filmed by its name, as a trailer's clip is (the list is `LOOP_CLIPS` in the
+script). Then, in the repository's root, with Git's `sh`:
+
+```powershell
+& "C:\Program Files\Git\bin\sh.exe" tools/storeart/loops.sh
+```
+
+cuts the chosen loops into `assets\store\description\`, byte for byte as they were made from the
+same clips. Filmed again, the bots play a little differently, so each new loop wants looking at
+before it replaces the old.

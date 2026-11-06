@@ -11,12 +11,13 @@ import { createTheme, Scene } from './render/scene.js';
 import { titleFor } from './titles.js';
 
 /**
- * The app's icon candidates, one per style (`?icons=app&kind=castle|ring|letter&size=512`, a
- * developer's page for `tools/storeart`, STORE_PAGE.md §4.1): Steam's shortcut icon and the
- * desktop app's, which has none of its own. Three ideas, the user's to choose from — the
- * crowned main castle in a ring close up, a castle and a cannon in their ring, and the title's
- * B — each drawn by the style itself, as the menu's pictures are. Every icon is opaque:
- * Steam replaces any alpha with black.
+ * The app's icon candidates, one per style (`?icons=app&kind=castle|ring|letter|keep|bare`,
+ * `&size=512`, a developer's page for `tools/storeart`, ARCHIVE 15zo): Steam's shortcut icon and
+ * the desktop app's. The ideas the user chose from — the crowned main castle in a ring close up,
+ * a castle and a cannon in their ring, the castle alone with its crown and without, and the
+ * title's B — each drawn by the style itself, as the menu's pictures are. Minimal's B was chosen
+ * (2026-11-06), the only one to read at 32 px. Every icon is opaque: Steam replaces any alpha with
+ * black.
  */
 
 /** The crowned main castle, sealed in a ring with a tile of ground round it. */
