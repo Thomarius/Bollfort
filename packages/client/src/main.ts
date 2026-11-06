@@ -58,6 +58,11 @@ if (params.get('icons') === 'sheet') {
   void import('./iconSheet.js')
     .then(({ showIconSheet }) => showIconSheet())
     .catch((e: unknown) => showError('icons', e));
+} else if (params.get('icons') === 'app') {
+  // The app's icon candidates, one per style (`appIcon.ts`, for `tools/storeart`).
+  void import('./appIcon.js')
+    .then(({ showAppIcons }) => showAppIcons())
+    .catch((e: unknown) => showError('icons', e));
 } else if (params.get('icons') === 'boards') {
   void import('./iconSheet.js')
     .then(({ showBoardSheet }) => showBoardSheet())

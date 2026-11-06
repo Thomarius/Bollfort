@@ -124,6 +124,30 @@ const ASSETS: Asset[] = [
     split: 0.5,
     note: 'Library hero: no text; keep the middle 860 × 380 clear of anything vital',
   },
+  // The events' art (STORE_PAGE.md §4.5), for the Coming Soon announcement and after: the cover
+  // is required for any event, the header goes at its top.
+  {
+    name: 'event-cover',
+    width: 800,
+    height: 450,
+    players: 2,
+    title: 'center',
+    titleWidth: 0.66,
+    band: false,
+    split: 0.5,
+    note: 'Event cover: required for every event',
+  },
+  {
+    name: 'event-header',
+    width: 1920,
+    height: 622,
+    players: 2,
+    title: 'center',
+    titleWidth: 0.5,
+    band: false,
+    split: 0.5,
+    note: "Event header: check Valve's template for its safe area",
+  },
 ];
 
 /** A match deep enough for walls, guns and shots in the air, by bots of the top level. */
@@ -194,7 +218,9 @@ const FINAL = ONLY.includes('final');
 
 for (const asset of ASSETS) {
   if (FINAL) {
-    const chosen = CHOSEN[asset.name]!;
+    // The events' art is not chosen yet: `final` makes only the set in `assets/store/`.
+    const chosen = CHOSEN[asset.name];
+    if (chosen === undefined) continue;
     const [first, ...copies] = chosen.files;
     console.log(chosen.files.join(', '));
     await shoot(
