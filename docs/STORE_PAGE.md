@@ -288,8 +288,10 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
 - **Measure the system requirements**: the packaged app in an eight-player match against bots,
   every process's memory in Task Manager, and the processor's load — for §4.3's memory and
   processor lines. On the gaming PC; a weaker machine would say more about the minimum.
-- **See the icon on Linux**: the AppImage's icon in a file manager and a dock, from the release
-  workflow run by hand (no publishing) or on the development machine. Only the .exe's was seen.
+- ~~**See the icon on Linux**~~ — done 2026-11-06 on the development machine (Cinnamon): the
+  AppImage built locally shows the B in the panel (the window's class `bollfort` matching the
+  .desktop file's `StartupWMClass`) and as the file's icon in Nemo. Its .desktop `Comment`, read
+  from `package.json`'s `description`, had been a developer's note; now the game's line.
 
 **Before or at S4:**
 

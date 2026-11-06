@@ -579,7 +579,8 @@ which a test session needs the server rebuilt and every page reloaded for):
   (ARCHIVE 15zn, 15zo). **S1, the spike on App ID 480, next**: its code on the `s1-steam-spike`
   branch, to be run by the user on two machines with two accounts. Should it still wait, the next
   steps (the user's, 2026-11-06, `STORE_PAGE.md` §5): measure the system requirements — the
-  packaged app's memory and processor in an eight-player match — and see the icon on Linux.
+  packaged app's memory and processor in an eight-player match (the icon on Linux seen,
+  2026-11-06).
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.
