@@ -234,3 +234,291 @@ may do; to look at once the page exists.
 - ffmpeg on the path (`winget install Gyan.FFmpeg`, already there per TRAILER.md).
 - `trailer-build\half\` with its clips, for the loops.
 - Logged in to Steamworks? Not needed for any of this; S4's account comes later.
+
+## 6. The drafts (2026-11-06)
+
+Made on the gaming PC, for the user to edit; what is chosen moves into STEAM.md and the store.
+
+### 6.1 Decided with the user
+
+- **Developer and publisher**: **Thomas Arnold**, the user's own name — no studio label, as
+  Bollfort is meant as a one-off (the user's, 2026-11-06).
+- **AI disclosure**: likely none needed, the final check in the form itself. A first answer the
+  user obtained said none was needed as the graphics are procedural code, not a generative
+  model's — but assumed the code was written by hand, and it was written with Claude. Asked about
+  Claude Code itself, a second answer said a coding assistant is a development tool Valve does
+  not ask about: the disclosure concerns AI content in the game and its marketing, which Bollfort
+  has none of. Valve's 2024 wording named code among "pre-generated" content; to be read as the
+  form now stands before answering.
+- **The icon**: Minimal's B (the title's first letter in the Minimal lettering, on a dark tile),
+  `assets/store/shortcut_icon.png`, 512 × 512, opaque — at 32 px the only candidate that read; the
+  castles, with walls, alone, crowned or not, did not (§6.5, §6.8). Beside it
+  `shortcut_icon.ico`, 16 to 256 px, for Windows: electron-builder's own conversion stored every
+  size as PNG, which Windows could not load from the .exe (it showed its generic icon), so the
+  .ico is made by ffmpeg with 32-bit bitmaps to 128 px and PNG only at 256, as Windows reads them —
+  and the PNG keeps an alpha channel, opaque throughout: without one, an icon's PNG is not read.
+  The desktop app carries it (`build.win.icon`; the PNG for Linux and the windows), checked on
+  the packaged .exe, its window and the taskbar, 2026-11-06. Steam's shortcut icon takes either.
+- **The loops** (the user's choice, 2026-11-06), one for each stage of a round, in
+  `assets/store/description/`: `1-place-cannons` (Chocolate), `2-combat` (Cartoon, seamless),
+  `3-rebuild` (Stadium's seal), `4-change-of-look-en` / `-de` (Christmas to Halloween under "Fire!"
+  / "Feuer!"), and `5-special-towers` (the Frost Cannon) — 9.8 MB a page, under Valve's 15.
+- **Short description without "free"**: Steam shows the price.
+- **Features**: Single-player (against bots, a whole match or tournament), Online PvP, Online
+  Co-op (friends in one team against bot teams).
+- **Tags**: Free to Play among them.
+- **About This Game**: not every detail — a selection of styles and towers, not the full lists.
+- **German in "du"**; **British English**, as the game's texts; **plain texts**, the whimsy
+  left to the pictures — Cartoon's dancing castle.
+- **Loops as GIFs**: short, no sound.
+
+### 6.2 Short description
+
+**English** (235 characters, plain text):
+
+> Shoot down your opponents’ castle walls, then race to rebuild your own before the next
+> barrage. A castle siege for 2 to 8 players, online or against bots, in 24 visual styles, each
+> with its own animations and most with their own music.
+
+**German** (255 characters):
+
+> Schieß die Burgmauern deiner Gegner in Trümmer und bau deine eigenen wieder auf, bevor die
+> nächste Salve kommt. Eine Burgbelagerung für 2 bis 8 Spieler, online oder gegen Bots, in 24
+> Optiken, jede mit eigenen Animationen und die meisten mit eigener Musik.
+
+"Most with their own music": 21 of the 24 styles have a track of their own; Minimal, Medieval
+and Night play the game's shared music.
+
+### 6.3 About This Game
+
+Headings as text (the form's own); the chosen loops (§6.1) placed — the three stages of a round
+under the first section, the change of look under the looks, the Frost Cannon under the towers.
+
+**English**
+
+> **A game of cannons and walls**
+>
+> Every round has three phases:
+>
+> - **Place your cannons** inside your walls.
+> - **Fire!** Shoot holes in your opponents' walls while they shoot at yours.
+> - **Rebuild your walls** with pieces of every shape before the clock runs out.
+>
+> A wall seals a castle only if it closes all the way round — corners included. Cannons outside
+> sealed ground fall silent. Fail to seal a castle and you lose a life, and get a fresh castle
+> to start again. After ten rounds, the best score among those still standing wins.
+>
+> _[loop: 1-place-cannons.gif]_
+>
+> _[loop: 2-combat.gif]_
+>
+> _[loop: 3-rebuild.gif]_
+>
+> **Play together**
+>
+> Two to eight players, everyone against everyone or in teams. Open a Steam lobby — public, for
+> friends, or by invitation — and fill any empty seat with a bot of ten skill levels. Or take on
+> the bots alone.
+>
+> **24 looks**
+>
+> Choose one look for building and one for combat, or a new one every round: Medieval,
+> Cyberpunk, Pirates, Anime, Christmas, Wild West and eighteen more. Each draws the whole board
+> its own way, with its own animations, and most bring their own music. When the look changes
+> mid-match, it sweeps across the board.
+>
+> _[loop: 4-change-of-look-en.gif]_
+>
+> **Special towers**
+>
+> Switch them on for a wilder game: nine towers, from Big Bertha's crater to a chain of
+> lightning and a lullaby that sends enemy cannons to sleep. They are off by default, so the
+> classic game stays classic.
+>
+> _[loop: 5-special-towers.gif]_
+>
+> **Tournaments**
+>
+> Lead your team through a league and a knockout against a field of named rivals. Friends can
+> join your team, and your progress is saved between matches.
+>
+> **Mouse or controller**
+>
+> Played with the mouse alone — two buttons and the wheel — or with a controller. In English and
+> German.
+
+**German**
+
+> **Ein Spiel aus Kanonen und Mauern**
+>
+> Jede Runde hat drei Phasen:
+>
+> - **Stell deine Kanonen auf**, hinter deinen Mauern.
+> - **Feuer!** Schieß Löcher in die Mauern deiner Gegner, während sie auf deine schießen.
+> - **Bau deine Mauern wieder auf**, mit Teilen jeder Form, bevor die Zeit abläuft.
+>
+> Eine Mauer umschließt eine Burg nur, wenn sie ganz herum geht — auch um die Ecken. Kanonen
+> außerhalb umschlossenen Bodens verstummen. Umschließt du keine Burg, verlierst du ein Leben
+> und bekommst eine neue Burg für den Neuanfang. Nach zehn Runden gewinnt die beste Punktzahl
+> unter denen, die noch im Spiel sind.
+>
+> _[Loop: 1-place-cannons.gif]_
+>
+> _[Loop: 2-combat.gif]_
+>
+> _[Loop: 3-rebuild.gif]_
+>
+> **Gemeinsam spielen**
+>
+> Zwei bis acht Spieler, jeder gegen jeden oder in Teams. Öffne eine Steam-Lobby — öffentlich,
+> für Freunde oder nur auf Einladung — und besetze jeden freien Platz mit einem Bot, in zehn
+> Stärkestufen. Oder tritt allein gegen die Bots an.
+>
+> **24 Optiken**
+>
+> Wähl eine Optik fürs Bauen und eine für den Kampf, oder jede Runde eine neue: Mittelalter,
+> Cyberpunk, Piraten, Anime, Weihnachten, Wilder Westen und achtzehn weitere. Jede zeichnet das
+> ganze Spielfeld auf ihre Art, mit eigenen Animationen, und die meisten bringen eigene Musik
+> mit. Wechselt die Optik mitten im Spiel, fegt sie über das Spielfeld.
+>
+> _[Loop: 4-change-of-look-de.gif]_
+>
+> **Spezialtürme**
+>
+> Schalte sie für ein wilderes Spiel ein: neun Türme, vom Krater der Dicken Berta bis zu einer
+> Kette aus Blitzen und einem Schlaflied, das gegnerische Kanonen einschlafen lässt.
+> Anfangs sind sie aus, damit das klassische Spiel klassisch bleibt.
+>
+> _[Loop: 5-special-towers.gif]_
+>
+> **Turniere**
+>
+> Führ dein Team durch eine Liga und eine K.-o.-Runde gegen ein Feld rivalisierender Teams. Freunde
+> können deinem Team beitreten, und dein Fortschritt wird zwischen den Spielen gespeichert.
+>
+> **Maus oder Controller**
+>
+> Gespielt mit der Maus allein — zwei Tasten und das Mausrad — oder mit einem Controller. Auf
+> Englisch und Deutsch.
+
+### 6.4 The store's settings
+
+- **Tags**, in order of weight, to check against the Tag Wizard's list: Strategy, Multiplayer,
+  Online PvP, Free to Play, Casual, Action, Arcade, Real-Time, PvP, Team-Based, Party Game,
+  Destruction, Base Building, Artillery, Colorful, Stylized, 2D, Retro, Medieval, Controller.
+  Castles in place of Medieval if the Wizard has it. Left out on purpose: Local Multiplayer,
+  Tower Defense, Pixel Graphics (§4.3).
+- **Genre**: Strategy, Action, Casual. **Price**: Free.
+- **Features**: Single-player, Online PvP, Online Co-op; Full controller support once checked
+  on the Steam build; no achievements, no cloud at launch.
+- **Languages**: English and German — interface, subtitles (the texts); no audio.
+- **System requirements** (draft; memory still to measure):
+
+  |           | Minimum                                                                  |
+  | --------- | ------------------------------------------------------------------------ |
+  | OS        | Windows 10 64-bit; Linux 64-bit (Steam Linux Runtime)                    |
+  | Processor | a dual-core from the last ten years — to confirm                         |
+  | Memory    | 4 GB RAM — to confirm by measuring an eight-player match                 |
+  | Graphics  | any GPU with WebGL 2; integrated graphics run eight players at 58–60 fps |
+  | Network   | broadband for online play                                                |
+  | Storage   | 500 MB                                                                   |
+
+### 6.5 The icon: candidates
+
+72 candidates at 512 × 512 in `D:\ClaudeCode\BollfortStoreDrafts\icons\` (outside the
+repository), `index.html` showing each at 184 px (Steam's app icon) and 32 px (a taskbar's);
+made again by `npm run icons -w @bollfort/storeart -- <dir>` against the dev server
+(`?icons=app`, `client/src/appIcon.ts`). Three ideas in all 24 styles:
+
+- **The crowned main castle**, close up in its ring (`castle-*`). To my eye it reads best at
+  32 px where the castle is plain and the crown bright: Minimal, Toy bricks, Cartoon, Mythos.
+  Parchment shows map lettering at the edges; Stadium a trophy rather than a castle.
+- **A castle and a cannon in their ring** (`ring-*`): the game in one square, but at 32 px the
+  cannon and the castle merge into one red block in most styles.
+- **The title's B** in each style's lettering (`letter-*`): to my eye the strongest at 32 px. Minimal's
+  rainbow B (pink) matches the capsules' title; Cyberpunk's neon and Cartoon's are the clearest.
+  Some letterings are drawn open on the right (Noir, Stadium, Anime), Opera's B is music notes.
+
+All are opaque, as Valve asks; the player's colour is red throughout (player 1) and could be any.
+
+### 6.6 The loops: candidates
+
+Ten GIFs in `D:\ClaudeCode\BollfortStoreDrafts\loops\`, 616 px wide, at the game's own speed, cut
+from the trailer's raw clips (`trailer-build\half\clips\`) by `make-loops.sh` beside them:
+
+| Loop           | Shows                                                            | Size   |
+| -------------- | ---------------------------------------------------------------- | ------ |
+| 01-dance       | Cartoon: the ring closed, the ground filling, the castle dancing | 2.4 MB |
+| 02-rebuild     | the same from earlier: two pieces into the gaps, then the dance  | 3.6 MB |
+| 03-jolly-roger | Pirates: a castle sealed, the flag going up                      | 0.7 MB |
+| 04-wipe-cyber  | the change of look, Medieval to Cyberpunk, under "Fire!"         | 2.0 MB |
+| 05-wipe-sakura | the change of look, Sakura to Opera, under "Rebuild"             | 1.3 MB |
+| 06-barrage     | a duel's combat close up (12 fps to fit)                         | 4.2 MB |
+| 07-eight       | the camera pulling out over eight islands (13 fps to fit)        | 4.2 MB |
+| 08-lightning   | the Lightning Tower's chain                                      | 0.9 MB |
+| 09-bertha      | Big Bertha's crater                                              | 3.1 MB |
+| 10-tournament  | a tournament match's end                                         | 4.3 MB |
+
+**To decide**: the clips carry the game's English text — the HUD's top bar ("REBUILD YOUR
+WALLS", "Bot 2", "You", the scores) and in the wipes the phase banners ("FIRE!", "REBUILD").
+Valve asks text in images to be translated. The bar can be cropped off (a 16:9 picture becomes a
+little wider); the banners are the wipes' moment. Or the German page gets its own loops, filmed
+with `&lang=de`, which means filming again.
+
+### 6.7 The event art: candidates
+
+`D:\ClaudeCode\BollfortStoreDrafts\event\`, by `npm start -w @bollfort/storeart -- <dir>
+event-cover event-header`: the cover (800 × 450) and the header (1920 × 622), each plain Medieval
+and with Cyberpunk, Anime, Pirates or Mythos above the line, as the capsules were tried. The
+header's two islands fill only its middle, sea at the sides. Anime's board carries a sound word
+("DOKAN!"), text again. Valve's template for the header is still to read.
+
+### 6.8 Second round (2026-11-06, after the user's feedback)
+
+**The icon.** The user liked Cartoon's crowned castle large, but no castle read at 32 px with its
+walls; only the B did. New: **the crowned castle alone** (`keep-*`, in
+`D:\ClaudeCode\BollfortStoreDrafts\icons-castle\`) — sealed in its ring, so its crown is whole and
+a style's castle alive, and the ring then left undrawn (a castle on open ground had its crown grey
+and broken, as an unsealed main castle's is). The user's lean: Minimal, to match the trailer.
+An idea to weigh: a Windows `.ico` holds a picture per size, and Steam's shortcut icon takes ICO —
+the castle at 256 and 184, the B at 48, 32 and 16. Which picture Steam takes for its 184 px app
+icon is not known.
+
+**New loops**, scenes the trailer does not have, filmed with `&labels=0` — no text on the screen
+but a phase banner's and the big countdown's digits — those with a banner in English and German.
+Filmed by `TRAILER_SET=loops [TRAILER_LANG=de] npm run trailer -w @bollfort/storeart -- record`
+into `trailer-build\loops\<lang>\clips\`; cut by `cut-loops.sh` with `loops2-en.txt` and
+`loops2-de.txt`, all in `D:\ClaudeCode\BollfortStoreDrafts\`, the GIFs in `loops2\en\` and
+`loops2\de\` with `loops2\index.html`. Every one under 4.7 MB (5,000,000 bytes, in case Valve's
+5 MB means that).
+
+| Loop                      | Shows                                                         | MB      |
+| ------------------------- | ------------------------------------------------------------- | ------- |
+| wipe-christmas-halloween  | Christmas to Halloween under "Fire!" / "Feuer!"               | 0.8     |
+| wipe-bricks-glass         | Toy bricks to Stained glass under "Fire!", three islands      | 0.9     |
+| wipe-undersea-oktoberfest | Under the sea to Oktoberfest under "Rebuild" / "Wiederaufbau" | 1.7     |
+| wipe-electric-chocolate   | Electric to Chocolate under "Rebuild", three islands          | 1.4     |
+| cannons-office            | Office: guns placed in a sealed ring, close up                | 0.3     |
+| cannons-chocolate         | Chocolate: the same                                           | 0.3     |
+| seal-sports               | Stadium: a castle sealed, the crowd's wave                    | 0.3     |
+| seal-cartoon-b, -c, -d    | Cartoon: three more rings closed and castles dancing          | 2.8–4.6 |
+| build-undersea            | Under the sea: pieces laid, close up                          | 3.5     |
+| build-oktoberfest         | Oktoberfest: the same                                         | 0.4     |
+| tower-frost               | the Frost Cannon's frozen tiles, Night                        | 4.1     |
+| tower-lullaby             | the Lullaby Tower's sleeping guns, Medieval                   | 4.2     |
+| climax-night              | the final round's combat, Night                               | 3.8     |
+| climax-pirates            | the final round's combat, Pirates                             | 2.7     |
+| barrage-electric          | a duel's combat, Electric                                     | 4.4     |
+| barrage-undersea          | a duel's combat, Under the sea                                | 4.1     |
+
+Seen in their frames: the cannon loops show only one or two guns placed — the bot places them in
+the phase's first seconds — and the final round's loops show its dusk and embers, but Night's
+blood moon and the Pirates' Kraken did not show in the frames looked at.
+
+**Cartoon's combat, almost seamless** (the user's wish, 2026-11-06): the person's castle dancing,
+its guns firing throughout, four takes (`combat-cartoon-a` to `-d`: rounds 2 and 3, seeds 7, 3
+and 11, the camera close on the person's island or between the two), filmed with `&timer=0` as
+well — the big countdown hidden, as its count jumping back at the seam gave the loop away. Each
+4.5 s from 0.6 s into the combat, its last 0.6 s crossfaded into its own first frames
+(`seamless-loop.sh` in the drafts folder), so the end runs back into the start; only the holes
+shot in walls fade back at the seam. In `loops3\`, 4.2–4.4 MB each.

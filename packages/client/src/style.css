@@ -8311,6 +8311,23 @@ html.store-clean #corner {
   display: none !important;
 }
 
+/* The store page's loops (`&labels=0`): the phase banner's word and the big timer's digits, no
+   other text. */
+html.store-no-labels #hud,
+html.store-no-labels .you-are-here,
+html.store-no-labels .team-tag,
+html.store-no-labels .island-banner,
+html.store-no-labels .final-stamp,
+html.store-no-labels .phase-call small,
+html.store-no-labels .phase-call .ranking,
+html.store-no-labels .place-icons .hint {
+  display: none !important;
+}
+
+html.store-no-timer .big-timer {
+  display: none !important;
+}
+
 html.store-art #hud,
 html.store-art #banner,
 html.store-art #corner,

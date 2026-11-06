@@ -69,6 +69,13 @@ export function installStoreArt(params: URLSearchParams): void {
   // The store's screenshots (`&clean=1`, with `&autopilot=1`): play as it is, the corner's
   // Sound, Full screen and Pause left out.
   if (params.get('clean') === '1') document.documentElement.classList.add('store-clean');
+  // The store page's loops (`&labels=0`, STORE_PAGE.md §4.4): play with no words but the phase
+  // banner's — Valve asks text in a picture to be translated, and a banner is filmed in each
+  // language — the score bar, names, tags, ranking and hints left out.
+  if (params.get('labels') === '0') document.documentElement.classList.add('store-no-labels');
+  // And the big countdown as well (`&timer=0`), for a loop that runs seamlessly: a count from 7 to
+  // 2 jumping back to 7 gives its seam away.
+  if (params.get('timer') === '0') document.documentElement.classList.add('store-no-timer');
   const mode = storeArtMode(params);
   if (mode === null) return;
   const root = document.documentElement;

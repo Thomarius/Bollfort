@@ -37,7 +37,20 @@ const SHAKE = ((): number => {
 })();
 const SHAKE_FOLDER =
   SHAKE === 1 ? [] : [SHAKE === 0 ? 'still' : SHAKE === 0.5 ? 'half' : `shake-${SHAKE}`];
-const OUT = resolve(process.env['TRAILER_OUT'] ?? join(ROOT, 'trailer-build', ...SHAKE_FOLDER));
+/**
+ * The store page's loops (`TRAILER_SET=loops`, STORE_PAGE.md §4.4): scenes of their own, not the
+ * trailer's, filmed with no words on the screen but a phase banner's (`&labels=0`) — Valve asks
+ * text in a picture to be translated — and those with a banner once in each language
+ * (`TRAILER_LANG=de`), into `trailer-build/loops/<lang>/`.
+ */
+const SET = process.env['TRAILER_SET'] === 'loops' ? 'loops' : 'trailer';
+const LANG = process.env['TRAILER_LANG'] === 'de' ? 'de' : 'en';
+const OUT = resolve(
+  process.env['TRAILER_OUT'] ??
+    (SET === 'loops'
+      ? join(ROOT, 'trailer-build', 'loops', LANG)
+      : join(ROOT, 'trailer-build', ...SHAKE_FOLDER)),
+);
 const MUSIC = join(ROOT, 'assets', 'trailer', 'BollfortTrailer.mp3');
 const DISPLAY = process.env['DISPLAY'] ?? ':0';
 /**
@@ -88,6 +101,8 @@ interface Clip {
    * game renders too few frames of at full speed, and stutters (2026-11-04).
    */
   slow?: number;
+  /** A phase banner in the picture, so filmed in each language (the loops). */
+  banner?: boolean;
 }
 
 const MEDIEVAL_TO_CYBERPUNK = { buildStyle: 'pixel', combatStyle: 'cyberpunk' };
@@ -360,6 +375,191 @@ const CLIPS: Clip[] = [
 // --- The cut -------------------------------------------------------------------------------
 
 /**
+ * The store page's loops (2026-11-06, the user's list): changes of look into combat under "Fire!"
+ * and into building, cannons placed, a seal in Stadium and three more in Cartoon, building close
+ * up, the Frost Cannon and the Lullaby Tower, the final round's climax, and barrages — none of
+ * them a scene of the trailer. Filmed generously; the loops are cut from them by hand.
+ */
+const CLOSE = { cameraZoom: '1.8', cameraOn: 'you' };
+const DUEL = { cameraZoom: '1.4', cameraOn: 'duel' };
+const LOOP_CLIPS: Clip[] = [
+  ...(
+    [
+      ['wipe-christmas-halloween', '2', '3', 'christmas', 'halloween'],
+      ['wipe-bricks-glass', '3', '2', 'bricks', 'glass'],
+    ] as const
+  ).map(([name, players, round, buildStyle, combatStyle]) => ({
+    name,
+    params: { players, snapshot: 'cannon_place', round, buildStyle, combatStyle },
+    slow: 0.5,
+    moment: { kind: 'wipe' } as const,
+    before: 1.2,
+    after: 3.5,
+    banner: true,
+  })),
+  ...(
+    [
+      ['wipe-undersea-oktoberfest', '2', '3', 'undersea', 'oktoberfest'],
+      ['wipe-electric-chocolate', '3', '4', 'electric', 'chocolate'],
+    ] as const
+  ).map(([name, players, round, combatStyle, buildStyle]) => ({
+    name,
+    params: { players, snapshot: 'combat', round, buildStyle, combatStyle },
+    slow: 0.5,
+    moment: { kind: 'wipe' } as const,
+    before: 1.2,
+    after: 3.5,
+    banner: true,
+  })),
+  {
+    name: 'cannons-office',
+    params: { players: '2', snapshot: 'cannon_place', round: '3', style: 'office', ...CLOSE },
+    // Filmed at once: the bot places its guns in the phase's first seconds.
+    settleMs: 300,
+    moment: { kind: 'ready' },
+    before: 0,
+    after: 7,
+  },
+  {
+    name: 'cannons-chocolate',
+    params: { players: '2', snapshot: 'cannon_place', round: '2', style: 'chocolate', ...CLOSE },
+    // Filmed at once: the bot places its guns in the phase's first seconds.
+    settleMs: 300,
+    moment: { kind: 'ready' },
+    before: 0,
+    after: 7,
+  },
+  {
+    name: 'seal-sports',
+    params: {
+      players: '2',
+      snapshot: 'build',
+      round: '1',
+      style: 'sports',
+      cameraZoom: '1.3',
+      cameraOn: 'you',
+    },
+    slow: 0.5,
+    moment: { kind: 'effect', effect: 'sealed' },
+    before: 2,
+    after: 4,
+  },
+  ...(
+    [
+      ['seal-cartoon-b', '2', '3', '1'],
+      ['seal-cartoon-c', '3', '11', '2'],
+      ['seal-cartoon-d', '2', '2', '1'],
+    ] as const
+  ).map(([name, players, seed, round]) => ({
+    name,
+    params: { players, seed, snapshot: 'build', round, style: 'cartoon', ...CLOSE },
+    slow: 0.5,
+    moment: { kind: 'effect', effect: 'sealed' } as const,
+    before: 2.7,
+    after: 4,
+  })),
+  {
+    name: 'build-undersea',
+    params: { players: '2', snapshot: 'build', round: '3', style: 'undersea', ...CLOSE },
+    moment: { kind: 'ready' },
+    before: 0,
+    after: 7,
+  },
+  {
+    name: 'build-oktoberfest',
+    params: {
+      players: '2',
+      seed: '11',
+      snapshot: 'build',
+      round: '4',
+      style: 'oktoberfest',
+      ...CLOSE,
+    },
+    moment: { kind: 'ready' },
+    before: 0,
+    after: 7,
+  },
+  // A tower bought in the cannon phase, then its combat: the frost on the tiles it hits, the
+  // guns it lulls. The film runs from "Fire!" through the combat; the loop is cut after it.
+  {
+    name: 'tower-frost',
+    params: { ...TOWERS, style: 'night', tower: 'frost3', ...DUEL },
+    moment: { kind: 'wipe' },
+    before: 0.5,
+    after: 14,
+  },
+  {
+    name: 'tower-lullaby',
+    params: { ...TOWERS, style: 'pixel', tower: 'lullaby3', ...DUEL },
+    moment: { kind: 'wipe' },
+    before: 0.5,
+    after: 14,
+  },
+  // The final round's combat, its climax: Night's blood moon, the Pirates' Kraken.
+  {
+    name: 'climax-night',
+    params: { players: '2', rounds: '3', snapshot: 'combat', round: '3', style: 'night' },
+    moment: { kind: 'ready' },
+    before: 0,
+    after: 10,
+  },
+  {
+    name: 'climax-pirates',
+    params: { players: '2', rounds: '3', snapshot: 'combat', round: '3', style: 'pirates' },
+    moment: { kind: 'ready' },
+    before: 0,
+    after: 10,
+  },
+  {
+    name: 'barrage-electric',
+    params: { players: '2', snapshot: 'combat', round: '6', style: 'electric', ...DUEL },
+    moment: { kind: 'ready' },
+    before: 0,
+    after: 7,
+  },
+  {
+    name: 'barrage-undersea',
+    params: {
+      players: '2',
+      seed: '11',
+      snapshot: 'combat',
+      round: '5',
+      style: 'undersea',
+      ...DUEL,
+    },
+    moment: { kind: 'ready' },
+    before: 0,
+    after: 7,
+  },
+  // Cartoon's combat close on the person's castle, its guns firing throughout and the castle
+  // dancing, for a loop that runs almost seamlessly (the user's, 2026-11-06): four takes.
+  ...(
+    [
+      ['combat-cartoon-a', '7', '2', '1.6', 'you'],
+      ['combat-cartoon-b', '7', '3', '1.6', 'you'],
+      ['combat-cartoon-c', '3', '3', '1.4', 'you'],
+      ['combat-cartoon-d', '11', '2', '1.5', 'duel'],
+    ] as const
+  ).map(([name, seed, round, cameraZoom, cameraOn]) => ({
+    name,
+    params: {
+      players: '2',
+      seed,
+      snapshot: 'combat',
+      round,
+      style: 'cartoon',
+      cameraZoom,
+      cameraOn,
+      // No countdown: a count jumping back at the loop's seam would give it away.
+      timer: '0',
+    },
+    moment: { kind: 'ready' } as const,
+    before: 0,
+    after: 9,
+  })),
+];
+
+/**
  * The trailer, second by second against the music (STEAM.md: it steps up at about 14.5 and
  * 28.5 seconds, peaks from 43 and fades from 47.3; it ends at 51.1, and the title is held four
  * seconds more in silence). Each shot takes `length` seconds of a clip from `from` seconds after
@@ -443,7 +643,8 @@ function clipUrl(clip: Clip): string {
     clean: '1',
     level: '7',
     seed: '7',
-    lang: 'en',
+    lang: LANG,
+    ...(SET === 'loops' ? { labels: '0' } : {}),
     ...clip.params,
     ...(clip.slow === undefined ? {} : { trailerSlow: String(clip.slow) }),
     ...(SHAKE === 1 ? {} : { shake: String(SHAKE) }),
@@ -778,8 +979,10 @@ async function record(names: string[], calibrate: boolean): Promise<void> {
   )
     ? JSON.parse(readFileSync(join(OUT, 'clips', 'moments.json'), 'utf8'))
     : {};
-  for (const clip of CLIPS) {
+  for (const clip of SET === 'loops' ? LOOP_CLIPS : CLIPS) {
     if (names.length > 0 && !names.includes(clip.name)) continue;
+    // A loop with no banner has no words to translate: filmed once, in English.
+    if (SET === 'loops' && LANG !== 'en' && clip.banner !== true) continue;
     console.log(clip.name);
     const k = clip.slow ?? 1;
     await page.goto(clipUrl(clip));
