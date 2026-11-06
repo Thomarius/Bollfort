@@ -51,6 +51,10 @@ npx tsx tools/headless/src/botReplay.ts recordings/<id>.jsonl --watch 2 --rounds
 tools/screenshots.sh /tmp/shots [scene...]   # client in fixed states, against the dev server
 npm start     -w @bollfort/storeart -- /tmp/art [asset...]   # Steam's store art candidates and a contact sheet; `final` the chosen set
 npm run shots -w @bollfort/storeart -- /tmp/shots [shot...]   # Steam's screenshot candidates, a player's view, and a contact sheet
+npm run trailer -w @bollfort/storeart -- calibrate|record [clip...]|captions|assemble   # the trailer, filmed live (docs/TRAILER.md); TRAILER_SHAKE=0.5 is Steam's
+TRAILER_SET=loops npm run trailer -w @bollfort/storeart -- record   # the store description's scenes (TRAILER_LANG=de for the banners')
+sh tools/storeart/loops.sh          # the store description's loops, cut from those scenes into assets/store/description/
+npm run icons -w @bollfort/storeart -- /tmp/icons [castle|ring|letter|keep|bare...]   # app icon candidates in every style, at 184 and 32 px
 npm start     -w @bollfort/desktop  # the desktop app, after npm run build
 npm run package -w @bollfort/desktop # its portable file for this system, into packages/desktop/release/
 ```
@@ -67,7 +71,7 @@ leave your seat undriven on the way, so you are soon knocked out), `&speed=10`,
 (`&buildStyle=`, `&combatStyle=` for one), `&watch=1&level=8` to observe a bot match (`&personality=offensive` fixes every bot's),
 `?demo=1` the demo at once (`&speed=10` to cycle its matches),
 `&rounds=12` for the round cap, `&specials=1` for special towers (`&tower=bertha3`, a tower at its cost, the person's),
-`&teams=2` for teams of two in seat order, `&storeArt=scene` the board alone with the title over it (`&title=`, `&titleWidth=`, `&shade=1|band`, `&split=0.5` a change of look held still; `?storeArt=logo` the title alone, transparent), `&autopilot=1` a bot plays the person's seat, shown as a person plays it (the ghost, the reticle), `&clean=1` without the corner's buttons, `&cameraZoom=1.9&cameraOn=you|duel` the camera held close in play, `?icons=sheet` every style's cannon icon side by side
+`&teams=2` for teams of two in seat order, `&storeArt=scene` the board alone with the title over it (`&title=`, `&titleWidth=`, `&shade=1|band`, `&split=0.5` a change of look held still; `?storeArt=logo` the title alone, transparent), `&autopilot=1` a bot plays the person's seat, shown as a person plays it (the ghost, the reticle), `&clean=1` without the corner's buttons, `&labels=0` no words on the screen but a phase banner's (`&timer=0` without the big countdown too), `&reticle=0` no aiming cursor nor towers' emblems, `&shake=0.5` the screen's shake at a strength (`0` none), `&cameraZoom=1.9&cameraOn=you|duel` the camera held close in play, `?icons=sheet` every style's cannon icon side by side, `?icons=app&kind=castle|ring|letter|keep|bare` the app's icon candidates
 (`?icons=boards` each style's board, for checking a refactor pixel for pixel), `?gaps=preview`
 the corner gaps' ping in every style, `&lang=de` (or `hes`) for a
 language (not saved). `?tournament=new` and `?tournament=resume` open the tournament screens,
@@ -179,8 +183,18 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-11-03; the latest release **v0.9.32**, 2026-11-03, protocol 35, recording format 4,
+**Done** (2026-11-06; the latest release **v0.9.32**, 2026-11-03, protocol 35, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
+
+- **The store page's material, the app's icon** (ARCHIVE 15zo, 2026-11-06, STEAM.md S4, made on the
+  user's gaming PC): the texts in English and German, tags, features and system requirements ready to
+  type in (`docs/STORE_PAGE.md`); the description's loops in `assets/store/description/`, filmed
+  with `&labels=0` and cut by `tools/storeart/loops.sh`; the app's icon, Minimal's B, on the .exe
+  (its own `.ico`: Windows read no all-PNG one), the AppImage and the windows; the portable app's
+  splash, which still read Bollwerk. Developer and publisher: the user's own name.
+- **The store's art and the trailer** (ARCHIVE 15zn, 2026-11-04 to 2026-11-06): capsules, library
+  art and logo, eight screenshots in `assets/store/`; the trailer, 55 s, filmed again on the gaming
+  PC (`docs/TRAILER.md`) at half the screen's shake, the music at −14 LUFS.
 
 - **The host's Remove and Find a game** (ARCHIVE 15zj, 2026-11-03, STEAM.md K and B; protocol 35):
   a guest removed in the lobby goes back to the menu and is refused by the room for its life, by
@@ -561,7 +575,11 @@ which a test session needs the server rebuilt and every page reloaded for):
   in `docs/STEAM.md`. N, R, K and B done (ARCHIVE 15zh–15zj); T, the transport interface at
   both ends with a fake network and whole matches over it (ARCHIVE 15zl); and C, native controller
   support — the match, the menus, the bindings, glyphs, the Deck's screen and an on-screen keyboard
-  (ARCHIVE 15zm, played by the user with a real pad). S1, the spike on App ID 480, next.
+  (ARCHIVE 15zm, played by the user with a real pad); S4's material that needs no account
+  (ARCHIVE 15zn, 15zo). **S1, the spike on App ID 480, next**: its code on the `s1-steam-spike`
+  branch, to be run by the user on two machines with two accounts. Should it still wait, the next
+  steps (the user's, 2026-11-06, `STORE_PAGE.md` §5): measure the system requirements — the
+  packaged app's memory and processor in an eight-player match — and see the icon on Linux.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

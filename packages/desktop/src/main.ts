@@ -29,7 +29,7 @@ const BUILT_FROM = __BOLLFORT_COMMIT__;
 const here = dirname(fileURLToPath(import.meta.url));
 const root = app.isPackaged ? process.resourcesPath : resolve(here, '..', '..', '..');
 /**
- * The app's icon, Minimal's B (STORE_PAGE.md §6.1, the user's choice, 2026-11-06): Steam's shortcut
+ * The app's icon, Minimal's B (ARCHIVE 15zo, the user's choice, 2026-11-06): Steam's shortcut
  * icon, the .exe's and the AppImage's (`build.win.icon`, `build.linux.icon`), and the windows'
  * — shipped beside the client at the path it has in the repository, so it is found either way.
  */

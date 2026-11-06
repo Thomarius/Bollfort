@@ -87,7 +87,10 @@ S1 comes before the fee is paid, and its answers decide S3's binding work.
 in §9.1); R, no recordings in packaged builds (2026-11-03, ARCHIVE 15zi); K, the host's Remove,
 and B, Find a game (2026-11-03, ARCHIVE 15zj, protocol 35); T, the transport interface at both
 ends, the fake network and whole matches over it (2026-11-04, ARCHIVE 15zl, §7.1); C, native
-controller support in five parts (2026-11-04, ARCHIVE 15zm, §8).
+controller support in five parts (2026-11-04, ARCHIVE 15zm, §8); and S4's material that needs
+no account — the art, the trailer, the texts, the loops and the icon (2026-11-04 to 2026-11-06,
+ARCHIVE 15zn, 15zo, `STORE_PAGE.md`). **Next**: S1, the spike, its code on the
+`s1-steam-spike` branch, to be run by the user on two machines.
 
 ## 3. The Steam build (S1, S2)
 
@@ -526,97 +529,19 @@ in progress are lost once, and the desktop app's old data folder stays behind.
 
 - **The Steamworks account**: onboarding, the fee, the tax form (W-8BEN or its equivalent, so the
   US withholding is not 30%), and the waiting period (30 or 21 days, Valve's pages disagree).
-- **The store page**: the description in the game's own words, English and German; tags; free; the
-  screenshots only of play, made by `tools/screenshots.sh`; no links in the description; the
-  content survey (no AI content ships in the game; the code's assistance is not what the survey
-  asks about); the IARC rating.
-- **The capsules and logo — chosen** (2026-11-04, the user's, in two rounds): the set is in
-  `assets/store/` under Steam's names. Made by `tools/storeart` from the game itself: the
-  client's store-art mode (`client/src/storeArt.ts`, `?storeArt=scene|logo`) shows only the board
-  of a watched match — round 3, mid-combat, top-level bots, seed 7 — with the title in a style's own
-  lettering over it, and the tool takes the picture at each size, with a contact sheet to choose
-  from. The direction: the **Medieval board under Minimal's rainbow lettering**, the letters
-  outlined dark so they read on any board, and the game's **change of look mid-match held still**
-  across the picture (`&split=`), **Cyberpunk above the line** and Medieval below, the same moment
-  of one match on both sides. The small capsule plain on a band ruled in gold, as the game's
-  announcements run, so its title nearly fills it; the library's logo the rainbow title alone,
-  transparent. Tried and dropped: Minimal's board (too plain for the game's range of looks) and
-  Medieval's stone lettering (grey on grey). `final` renders the chosen set again, should a look
-  change:
-  `npm start -w @bollfort/storeart -- assets/store final`, with the dev server running.
-
-  Valve's sizes (its pages, read 2026-11-04; the main and vertical capsules' from a summary, to
-  check on the live page before upload): header capsule 920 × 430, also the library header;
-  small 462 × 174, the logo nearly filling it; main 1232 × 706; vertical 748 × 896; library
-  capsule 600 × 900; library hero 3840 × 1240, no text at all, the middle 860 × 380 always shown;
-  library logo 1280 wide on transparency, nothing but the title. On every capsule the title is the
-  only text, legible. Still to make: the community icons (their page not yet read).
-
-- **The screenshots — chosen** (2026-11-04, the user's, in three rounds): eight in
-  `assets/store/screenshots/`, numbered in the order Steam is to show them — the change of look
-  Medieval to Cyberpunk under "Fire!", a Noir duel, a close-up of building in Sakura, the Lightning
-  Tower's chain, eight players late in Oktoberfest, the Allerdickste Bertha's explosion, the Laser's
-  beam, and placing cannons close up in Christmas. All a player's view at 1920 × 1080: the person's
-  seat played by a bot and shown as a person plays it (`&autopilot=1`, `client/src/autopilot.ts`:
-  the ghost glides to the bot's tile, turned as it turned it, rests, and the move is made as a
-  click makes it), the corner's buttons left out (`&clean=1`), the camera held close in play where
-  wanted (`&cameraZoom=1.9&cameraOn=you|duel`), and a tower's effect caught as it fires (the match
-  screen marks each on the page, `data-effect`). `npm run shots -w @bollfort/storeart` renders the
-  candidates and a contact sheet. Two players and close-ups show far more than four islands do,
-  the user's finding; a tower shot starts from the cannon phase before, or none is bought.
-
-- **The trailer — final** (2026-11-04, the user's, after four cuts): 55 seconds, **without the
-  screen's shake** — many people dislike it, in videos above all (the user's); since 2026-11-05
-  **at half of it**, the version taken for Steam (below). First made by
-  `TRAILER_SHAKE=0 npm run trailer -w @bollfort/storeart -- record`, then `captions` and
-  `assemble`, into `trailer-build/still/BollfortTrailer.mp4` (git-ignored, some 76 MB; also as
-  `trailer-build/BollfortTrailer-noshake.mp4`); the version with the shake is kept beside it. On
-  `BollfortTrailer.mp3` (`assets/trailer/`), shortened by the user; for the trailer's description:
-  _Music by Viacheslav Starostin from Pixabay_ (Pixabay Content License), linked to
-  `https://pixabay.com/users/starostin-46826676/`. The game does not play the track, so it is not
-  in the game's Credits.
-
-  The cut, against the music's sections: **Ready… Aim…** as the "Fire!" banner sweeps four
-  Medieval islands into Cyberpunk, the shooting in step with the countdown (0–6 s); the loop —
-  _Fire at their walls_ close on a duel, _Rebuild yours_ over one shot of the player's ring
-  closed piece by piece and sealed (to 14.5); **24 styles** over seven looks cut on the beat, a change of look
-  among them (to 28.5); **Up to 8 players** as the camera pulls out over eight islands, **Online
-  multiplayer and bots** over a team match, **Special towers** over the lightning, the wave, the
-  laser and the Bertha's crater, **Tournaments** over a team match's end, the camera pushing onto
-  the winners (to 43); half-second cuts of the most action (to 46.8, the music's climax); then the
-  rainbow title over the Cyberpunk split, the shooting running on through the fade, **Free on
-  Steam** held in the silence (to 55). H.264 High and AAC at 48 kHz, 1920 × 1080 at 60 frames.
-  The music as loud as the game's, −14 LUFS with peaks under −1.5 dBTP, brought down linearly by
-  `assemble` (2026-11-05): the track as mastered, −9 LUFS, had left the trailer some 5 dB louder
-  than the game and most videos (the user's ear, then measured).
-
-  **Filmed again on the user's gaming PC** (2026-11-05: the development machine's integrated
-  graphics left it a little laggy; an RTX 3070, filmed by DirectX's desktop duplication and NVENC,
-  the steps in `docs/TRAILER.md`), with two changes, the user's: no aiming cursor nor the towers'
-  emblems in combat (`&reticle=0`; the building ghosts stay), and **two castles sealed** close up —
-  Cartoon's, its castle coming alive and dancing, under _Rebuild yours_, and Pirates', the
-  Jolly Roger going up, among the styles. Cartoon's is round 1, the main castle's starting ring
-  breached in the first combat and closed round its three sleeping cannons, which wake as the
-  ground fills: round 5's outlying castle, with no room for a gun beside a crowd of them, was not
-  the game's core (the user's). It is the loop's whole rebuilding shot, 4.3 s from 2.7 s before
-  the seal, under _Rebuild yours_ alone: a Pixel building shot and the seal, two seconds each
-  under two captions, went by too fast to follow (the user's). Repeated frames 0–9% a clip, the
-  heavy moments 0–3%.
-
-  **The version for Steam: half the shake** (2026-11-05, the user's choice between two made in
-  full): `TRAILER_SHAKE=0.5`, `&shake=0.5` — half as far over the same 260 ms — into
-  `trailer-build/half/BollfortTrailer.mp4` (git-ignored, some 88 MB), its clips and captions kept
-  beside it to cut again without filming. The version without the shake was made and dropped.
-
-  Filmed first live from a browser window on the user's screen with ffmpeg's x11grab and x264, the
-  person's seat on the autopilot, the camera moved in the game, the captions in Rubik. What the
-  making found: the graphics card's encoder (VAAPI) stuttered more on this machine, whose graphics
-  share memory with the processor; heavy moments — a change of look, the eight-island pull-out, the
-  fireworks, the end card — are filmed slowed (the page's clock at a half or a quarter, sped up
-  again in the cut), which leaves no repeated frames; slowing CSS animations through the DevTools
-  protocol as well slowed the frame times twice and froze the game; and the game's banner eases in
-  from the top for seconds, so a change of look is timed to the banner crossing the middle.
-
+- **The store page — prepared** (2026-11-04 to 2026-11-06), all but what needs the account:
+  the texts in English and German, the tags, features, languages and system requirements, ready
+  to type in, in [`STORE_PAGE.md`](./STORE_PAGE.md), with what is still open there (§5). In
+  `assets/store/`: the capsules and the library's art and logo, eight screenshots, the shortcut
+  icon (Minimal's B, also the desktop app's), and the description's loops. The trailer, 55 s at
+  half the screen's shake, is `trailer-build/half/BollfortTrailer.mp4` (not in git), made again
+  by `docs/TRAILER.md`; its music credited in its description: _Music by Viacheslav Starostin
+  from Pixabay_ (Pixabay Content License), linked to `https://pixabay.com/users/starostin-46826676/`.
+  How each was made and chosen: ARCHIVE 15zn (the art and the trailer) and 15zo (the texts, the
+  loops, the icon). Remade by `tools/storeart` against the dev server:
+  `npm start -w @bollfort/storeart -- assets/store final` for the capsules, `npm run shots` for
+  screenshot candidates, `npm run trailer` for the trailer and (`TRAILER_SET=loops`) the loops' clips,
+  `sh tools/storeart/loops.sh` for the loops, `npm run icons` for icon candidates.
 - **Coming Soon** for at least two weeks; submitted for review at least 7 working days before.
 - **The depots**: Windows and Linux, the unpacked app (not the AppImage) under the Steam Linux
   Runtime, the binding's native module for each, no `steam_appid.txt`.
@@ -627,7 +552,7 @@ in progress are lost once, and the desktop app's old data folder stays behind.
 ### 9.3 The users' test and the launch (S5)
 
 - **Keys** for the testers (up to 2,500 for testing, free), on the password-protected beta branch.
-- **The checklist** in the repo (`docs/STEAM_CHECKLIST.md`), run before every Steam build:
+- **The checklist**, [`STEAM_CHECKLIST.md`](./STEAM_CHECKLIST.md) (written 2026-11-06, the spike's questions first), run before every Steam build:
   - host and invite, in each lobby type;
   - join from an invite with the game closed and with it running;
   - join from the friends list, and from the browser;

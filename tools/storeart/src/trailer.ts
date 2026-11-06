@@ -38,7 +38,7 @@ const SHAKE = ((): number => {
 const SHAKE_FOLDER =
   SHAKE === 1 ? [] : [SHAKE === 0 ? 'still' : SHAKE === 0.5 ? 'half' : `shake-${SHAKE}`];
 /**
- * The store page's loops (`TRAILER_SET=loops`, STORE_PAGE.md §4.4): scenes of their own, not the
+ * The store page's loops (`TRAILER_SET=loops`, ARCHIVE 15zo): scenes of their own, not the
  * trailer's, filmed with no words on the screen but a phase banner's (`&labels=0`) — Valve asks
  * text in a picture to be translated — and those with a banner once in each language
  * (`TRAILER_LANG=de`), into `trailer-build/loops/<lang>/`.

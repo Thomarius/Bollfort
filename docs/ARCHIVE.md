@@ -11438,3 +11438,113 @@ typing into the field as it goes.
 
 A bug was caught before its commit by walking with a PlayStation pad: the pause menu wrote its
 hint before finding its Leave button, and threw as a match opened.
+
+## 15zn. The store's art and the trailer, S4 (2026-11-04 to 2026-11-06)
+
+The pictures and the film of the Steam store page (STEAM.md §9.2), made from the game itself by
+`tools/storeart` against the dev server, so each can be made again when a look changes.
+
+**The capsules and the logo** (2026-11-04, the user's, in two rounds), in `assets/store/` under
+Steam's names. The client's store-art mode (`client/src/storeArt.ts`, `?storeArt=scene|logo`)
+shows only the board of a watched match — round 3, mid-combat, top-level bots, seed 7 — with the
+title in a style's own lettering over it; the tool takes the picture at each size, with a contact
+sheet. The direction: the Medieval board under Minimal's rainbow lettering, the letters outlined
+dark so they read on any board, and the game's change of look held still across the picture
+(`&split=`), Cyberpunk above the line, the same moment of one match on both sides. The small
+capsule plain on a band ruled in gold, so its title nearly fills it; the library's logo the title
+alone, transparent. Dropped: Minimal's board (too plain for the game's range of looks) and
+Medieval's stone lettering (grey on grey). `npm start -w @bollfort/storeart -- assets/store final`
+renders the chosen set again.
+
+**The screenshots** (2026-11-04, the user's, in three rounds): eight in `assets/store/screenshots/`,
+numbered in Steam's order, all a player's view at 1920 × 1080 — the person's seat played by a bot
+shown as a person plays it (`&autopilot=1`, `client/src/autopilot.ts`: the ghost glides to the
+bot's tile, turned as it turned it, rests, and the move is made as a click makes it), the corner's
+buttons left out (`&clean=1`), the camera held close where wanted (`&cameraZoom`, `&cameraOn`),
+and a tower's effect caught as it fires (`data-effect` on the page). Two players and close-ups
+showed far more than four islands did (the user's finding).
+
+**The trailer**, 55 seconds on `assets/trailer/BollfortTrailer.mp3` (Pixabay, shortened by the
+user; credited in the trailer's description, not the game's Credits, as the game never plays it).
+Filmed live from a browser window with the person's seat on the autopilot, cut to the music's
+sections by `tools/storeart/src/trailer.ts`, captioned in Rubik: Ready… Aim… as "Fire!" sweeps four
+Medieval islands into Cyberpunk; the loop, _Fire at their walls_ close on a duel and _Rebuild
+yours_ over one shot of a ring closed and sealed; 24 styles on the beat; 8 players, online and
+bots, the towers, tournaments; half-second cuts of the most action to the music's climax; the
+title over the Cyberpunk split and _Free on Steam_ in the silence. Four cuts on the development
+machine (2026-11-04), and what they found: the graphics card's encoder (VAAPI) stuttered worse on
+graphics sharing the processor's memory; heavy moments are filmed slowed — the page's clock at a
+half or a quarter, sped up again in the cut — which leaves no repeated frames; slowing CSS
+animations through the DevTools protocol as well slowed the frame times twice and froze the game;
+the game's banner eases in from the top for seconds, so a change of look is timed to it crossing
+the middle.
+
+**Filmed again on the user's gaming PC** (2026-11-05, `docs/TRAILER.md`): an RTX 3070, the screen
+taken by DirectX's desktop duplication (`ddagrab`) and encoded by NVENC; repeated frames 0–9% a
+clip, 0–3% at the heavy moments, where the development machine had left it a little laggy. No
+aiming cursor nor towers' emblems (`&reticle=0`), the user's. Three changes after watching it, the
+user's: **the shake at half** (`&shake=0.5`, half as far over the same 260 ms, `TRAILER_SHAKE`) —
+a version without it was made in full and dropped, the shake being disliked in videos; **the
+Cartoon seal in round 1**, the main castle's starting ring closed round its three sleeping
+cannons, which wake as the ground fills — round 5's had been an outlying castle with no room for
+a gun beside a crowd of them; and **one rebuilding shot** of 4.3 s under _Rebuild yours_ alone,
+where a Pixel building shot and the seal, two seconds each under two captions, went by too fast
+to follow. Then **the music at the game's loudness**: the trailer measured −9.3 LUFS with peaks at
+−0.2 dBTP, the track as mastered, some 5 dB over the game and most videos (the user's ear);
+`assemble` now measures it and brings it to −14 LUFS with peaks under −1.5 dBTP by a linear
+`loudnorm`, one gain, its dynamics kept. And the captions lost their full stops, as only two had
+any. The version for Steam is `trailer-build/half/BollfortTrailer.mp4` (git-ignored), its clips
+kept to cut again without filming.
+
+## 15zo. The store page's material, the app's icon and the splash (2026-11-06)
+
+What S4 needs that no Steamworks account does, gathered in `docs/STORE_PAGE.md`: the texts, the
+settings, the description's loops, the icon and the events' art. Made on the gaming PC.
+
+**The texts** (STORE_PAGE.md §4): the short description and About This Game in English and German
+— du, British English as the game's own texts, plain, the whimsy left to the pictures — the tags,
+features and system requirements, with the user's decisions: "free" left out (Steam shows the
+price), Single-player, Online PvP and Online Co-op claimed, not every style and tower listed, the
+developer and publisher the user's own name, as Bollfort is a one-off. The AI disclosure is to be
+answered from the form as it stands: two answers the user obtained said no disclosure is needed,
+the second asked about Claude Code itself (a development tool, no AI content in the game).
+
+**The loops.** Valve asks text in a picture to be translated, and the first ten loops, cut from the
+trailer's clips, carried the HUD's English. So the description's loops are scenes of their own,
+filmed with no words on the screen but a phase banner's (`&labels=0`: the score bar, names, tags,
+ranking and hints hidden, the banner's word and the countdown's digits kept), those with a banner
+in English and German — the recorder's second set, `TRAILER_SET=loops`, `TRAILER_LANG=de`. 22 were
+filmed, then four takes of Cartoon's combat for a loop running almost seamlessly: its last 0.6 s
+crossfaded into its own first frames, and filmed with `&timer=0`, the countdown hidden, as its
+count jumping back gave the seam away. The user chose one loop for each stage of a round — cannons
+placed (Chocolate), combat (Cartoon, seamless), a seal (Stadium, its crowd's wave), the change of
+look into combat under "Fire!" and "Feuer!" (Christmas to Halloween) — and the Frost Cannon, in
+`assets/store/description/`: 9.8 MB a page, under Valve's 15, each under 4.7 MB in case 5 MB means
+5,000,000 bytes, the heavy ones at 12–16 frames a second. `tools/storeart/loops.sh` cuts them from
+the filmed clips, byte for byte as committed. Seen in the candidates and not chosen: the cannon
+phase's guns are placed in its first seconds, so a loop of it shows one or two; the final round's
+climax showed its dusk and embers but not Night's blood moon nor the Pirates' Kraken.
+
+**The icon.** The desktop app had none and showed Electron's. 120 candidates, drawn by every style
+through its own `Scene` (`?icons=app`, `client/src/appIcon.ts`; `npm run icons -w
+@bollfort/storeart` saves them with a sheet at 184 and 32 px): the crowned castle in its ring, a
+castle and a cannon in theirs, the castle alone, crowned and not, and the title's B in each
+style's lettering. At 32 px no castle read, the cannon and the castle one red block; only the B
+did, and the user chose Minimal's, to match the trailer. A castle on open ground had its crown grey
+and broken, as an unsealed main castle's is, so the castle alone is sealed in its ring and the
+ring left undrawn. `assets/store/shortcut_icon.png` (512 × 512, opaque) is Steam's shortcut icon,
+the AppImage's and the windows' (shipped beside the client, `icon` in both `BrowserWindow`s), and
+`shortcut_icon.ico` the .exe's. electron-builder's own conversion stored every size as PNG, which
+Windows could not load from the .exe — its generic icon, read straight from the file past the
+shell's cache — so the .ico is made by ffmpeg with 32-bit bitmaps to 128 px and PNG only at 256.
+The PNG keeps an alpha channel, opaque throughout: saved without one, Windows read no PNG in an
+icon. Checked on the packaged .exe, its window's title bar and the taskbar; the AppImage's is not
+yet seen.
+
+**The events' art**: a cover (800 × 450) and a header (1920 × 622) added to the store-art tool's
+assets, the capsules' board and title; the header's two islands fill only its middle, and Anime's
+board carries a sound word ("DOKAN!"), text again. Not chosen yet.
+
+**The splash** of the portable Windows app still read BOLLWERK: `packages/desktop/splash.ps1` spells
+the title letter by letter, so the rename (15zh) searched for the word and never met it. Drawn
+again; the repository holds the old name nowhere else but the docs' history.
