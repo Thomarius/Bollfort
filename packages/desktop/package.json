@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The desktop app for releases: the server behind a minimal window (PLAN 11.17)",
+  "description": "Bollfort: shoot down your rivals' walls, then rebuild your own",
   "main": "dist/main.js",
   "scripts": {
     "typecheck": "tsc --noEmit",
