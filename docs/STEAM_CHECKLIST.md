@@ -7,16 +7,28 @@ the build's commit. The first part is the spike's (S1, STEAM.md §3.3), run once
 
 ## 0. The spike (S1, once)
 
-Its code is on the `s1-steam-spike` branch (`spike/steam/`). Each answer goes into STEAM.md §3.3.
+Its code is on the `s1-steam-spike` branch (`spike/steam/`; the evening's steps in its README).
+Each answer goes into STEAM.md §3.3. What one account can show is checked by
+`spike/steam/auto.mjs`, done on Windows (2026-11-07, all passed: the binding, the overlay and the
+invite dialogs, `RestartAppIfNecessary`, the three lobby types, no firewall prompt,
+`+connect_lobby` read, Steam not running, a whole match on the spike's server). What is left:
 
-- [ ] **The binding builds and loads** for our Electron, on Windows and on Linux.
-- [ ] **The overlay** (Shift+Tab) shows over the game's window, and its invite dialog opens.
+- [ ] **`npm run auto` on the Linux machine** (spike README, "The automated part"): the binding on
+      Linux, and the rest as on Windows.
+- [ ] **The overlay on Linux**, the spike started from Steam's library as a non-Steam game (Steam
+      injects it only into what it starts): Shift+Tab and the invite dialog.
 - [ ] **The old P2P carries a match**: eight seats, people and bots, a whole match with no hash
-      mismatch at the 30-tick hash rate; note the latency and anything that stalls.
-- [ ] **A guest can invite**, not only the lobby's owner.
-- [ ] **An invite with the game closed** starts it with `+connect_lobby <id>`; **with it
-      running**, it arrives as `GameLobbyJoinRequested`.
-- [ ] **`RestartAppIfNecessary`**: started outside Steam, does the game belong under Steam's start?
+      mismatch at the 30-tick hash rate, each machine hosting once; note the latency and anything
+      that stalls, and how a 10 s and a 30 s outage on the guest recover.
+- [ ] **An invite with the game running** arrives as `GameLobbyJoinRequested` and seats the guest;
+      **Join Game** from the friends list does the same.
+- [ ] **An invite with the game closed**: what Steam does on 480 (it starts Spacewar, not ours —
+      the real test needs our App ID).
+- [ ] **A Public lobby seen from the other account** in `getLobbies()`, and joined.
+- [ ] **An Invite-only lobby** joined by invite.
+- [ ] **A guest can invite**, not only the lobby's owner (needs a third account).
+- [ ] **A controller under Steam Input**: the pad's name in the page, and the game played with it;
+      **Steam's gamepad keyboard** in Big Picture.
 
 ## 1. Hosting and joining
 
