@@ -255,19 +255,27 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
   Co-op (friends in one team against bot teams); Full controller support once checked on the
   Steam build; Steam Deck later, by review. No achievements, no cloud at launch (STEAM.md §10).
 - **Languages**: English and German — interface, subtitles (the texts); no audio.
-- **System requirements** (draft; the processor and memory still to measure, §5):
+- **System requirements** (measured 2026-11-07, ARCHIVE 15zp):
 
-  |           | Minimum                                                                  |
-  | --------- | ------------------------------------------------------------------------ |
-  | OS        | Windows 10 64-bit; Linux 64-bit (Steam Linux Runtime)                    |
-  | Processor | a dual-core from the last ten years — to confirm                         |
-  | Memory    | 4 GB RAM — to confirm by measuring an eight-player match                 |
-  | Graphics  | any GPU with WebGL 2; integrated graphics run eight players at 58–60 fps |
-  | Network   | broadband for online play; none against bots                             |
-  | Storage   | 500 MB (the unpacked Windows app 431 MB, 2026-11-06)                     |
+  |           | Minimum                                               | Recommended                  |
+  | --------- | ----------------------------------------------------- | ---------------------------- |
+  | OS        | Windows 10 64-bit; Linux 64-bit (Steam Linux Runtime) | Windows 11; a current distro |
+  | Processor | 64-bit, 2 cores                                       | 4 cores                      |
+  | Memory    | 4 GB RAM                                              | 8 GB RAM                     |
+  | Graphics  | integrated graphics with WebGL 2 (DirectX 11)         | any dedicated card           |
+  | Network   | broadband for online play; none against bots          | the same                     |
+  | Storage   | 500 MB                                                | the same                     |
 
-  Electron 44 needs Windows 10 or later. The 58–60 fps is ARCHIVE 12n's (AMD Renoir); the page
-  took 356 MB in an eight-player match (ARCHIVE 14b), Electron's other processes on top.
+  What the figures stand on — the packaged app in an eight-player match of bots, every process
+  of it sampled (`tools/storeart/src/sysreq.ts`): **memory** 0.9–1.0 GB private on average, 1.27
+  GB at its peak, 1.3 GB working set, from round 1 and from round 8 alike, so 4 GB leaves Windows
+  itself room and 8 GB a browser beside it. **Processor**: about one core busy on average, 2.6 at
+  the peak; held to two threads of an i7-8700K the game kept 59.5–59.7 fps, late in the match too,
+  and on one thread it fell to 54 fps with 9% of frames slow — so two cores at the least, and
+  older or slower cores than this one's may need the four recommended. **Graphics**: integrated
+  AMD Renoir graphics ran eight players at 58–60 fps (ARCHIVE 12n); Electron draws WebGL through
+  Direct3D 11 on Windows. **Storage**: the unpacked Windows app is 431 MB. Electron 44 needs
+  Windows 10 or later.
 
 - **The content survey and the IARC questionnaire**: cartoon violence against walls and cannons
   only, no people hurt (Anime's heroes and Stadium's sportsmen are guns of their style — note
@@ -285,9 +293,11 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
 
 **Next steps while the spike (S1) waits** (the user's, 2026-11-06):
 
-- **Measure the system requirements**: the packaged app in an eight-player match against bots,
-  every process's memory in Task Manager, and the processor's load — for §4.3's memory and
-  processor lines. On the gaming PC; a weaker machine would say more about the minimum.
+- ~~**Measure the system requirements**~~ — done 2026-11-07 on the gaming PC (ARCHIVE 15zp, §4.3):
+  six runs of an eight-player match, the whole app's memory and processor sampled, a weaker
+  processor seen by holding the app to two threads and to one. Not measured: a slow processor of
+  its own, nor styles other than the default looks (Minimal and Medieval), which cost at most
+  some 1 ms a frame each (ARCHIVE 14zc–14zo).
 - ~~**See the icon on Linux**~~ — done 2026-11-06 on the development machine (Cinnamon): the
   AppImage built locally shows the B in the panel (the window's class `bollfort` matching the
   .desktop file's `StartupWMClass`) and as the file's icon in Nemo. Its .desktop `Comment`, read
