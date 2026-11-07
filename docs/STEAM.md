@@ -106,6 +106,8 @@ ARCHIVE 15zn, 15zo, `STORE_PAGE.md`). **Next**: S1, the spike, its code on the
   initialisation fails anyway, the app plays locally — bots, tournaments — with a notice that
   online play needs Steam. It never crashes. Whether to call `RestartAppIfNecessary` is S1's
   question _(to confirm)_.
+- **On Linux without Chromium's sandbox** (`--no-sandbox`, appended by the app under the Steam
+  flag): with Steam's overlay preloaded the sandbox stalls the start for 70–80 s (§3.3).
 - **No launcher under Steam**: the desktop app's control window (start, stop, ports, the link,
   UPnP, the firewall) is a launcher, which Deck Verified refuses. The Steam build opens the game's
   window directly, its server started in the background on a free local port, never offered to
@@ -156,10 +158,27 @@ every check passed, on Windows and then on Linux, Ubuntu under X11):
   have one window, or make the game's first (§3.1 has one). On Linux Steam injects the overlay
   only into what it starts (`LD_PRELOAD`), so a build started from a terminal has none: the
   Steam build is started by Steam, and the spike's Linux test starts it as a non-Steam game.
-  Confirmed on Linux: started from a terminal, no overlay's library in the process, no overlay
-  on Shift+Tab, and no error from the API's dialogs; after `lobby.openInviteDialog` the
-  screenshot shows part of a Steam friends list beside the game window, most likely Steam's own
-  window rather than an overlay — the test from the library will tell.
+  **On the Linux desktop the overlay does not draw at all** (2026-11-07, Ubuntu under X11, AMD
+  Renoir): the spike started from Steam's library as a non-Steam game has the overlay's library
+  in every process and Steam starts its overlay helper for it — five times in one start, about
+  one per Chromium process, each inheriting `LD_PRELOAD` — and Chromium draws in hardware
+  (ANGLE on OpenGL through GLX, GPU compositing on, the GPU in the main process as
+  `electronEnableSteamOverlay` sets it), yet Shift+Tab and the API's dialogs show nothing, with
+  no error. Tried, all without an overlay: ANGLE on Vulkan (`--use-angle=vulkan`, Steam's Vulkan
+  layer is on) and on EGL (`--use-angle=gl-egl`), both of which drop Chromium to software
+  compositing; `--no-zygote`; `--single-process`, which opens no window. Electron 44 ships no
+  ANGLE libraries on Linux (it is linked in), so swapping them is no way either. The Deck's Game
+  Mode draws the overlay in its compositor, gamescope, not inside the game, so the Deck most
+  likely has it regardless _(to confirm on a Deck)_. On the Linux desktop invites still work
+  from Steam's own friends list (Invite to game), which needs no overlay.
+- **Chromium's sandbox stalls the start under Steam on Linux**: started by Steam, with the
+  overlay's library preloaded, the window took 70–80 s to appear; with `--no-sandbox` 1 s, and
+  0.5 s without the overlay at all (`--disable-gpu` changed nothing). The Steam build on Linux
+  must start without the sandbox, set by the app itself (S2), as Steam's launch options are the
+  player's. In a non-Steam shortcut, Steam takes `--no-sandbox` alone as launch options:
+  `%command% --no-sandbox` ran `--no-sandbox` as the program. And Steam counts the spike as
+  AppID 480, the ID it initialises with, so the shortcut's Play button turns back at once —
+  a spike's quirk, gone with our own App ID.
 - **5, in part**: `+connect_lobby <id>` is read from the command line and joined; a lobby that
   does not exist is refused without a crash. Steam's own handing over still needs two accounts.
 - **6**: `false` on 480, with Steam running and without, on both systems; as expected with

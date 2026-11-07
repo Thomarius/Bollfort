@@ -579,8 +579,9 @@ which a test session needs the server rebuilt and every page reloaded for):
   (ARCHIVE 15zm, played by the user with a real pad); S4's material that needs no account
   (ARCHIVE 15zn, 15zo). **S1, the spike on App ID 480, next**: its code on the `s1-steam-spike`
   branch, to be run by the user on two machines with two accounts; what one account can show is
-  checked by its `auto.mjs`, passed on Windows (2026-11-07, STEAM.md §3.3: the overlay draws in the
-  first window made), the Linux run and the two-account part left. The steps meant for its wait
+  checked by its `auto.mjs`, passed on Windows and Linux (2026-11-07, STEAM.md §3.3: the overlay
+  draws in the first window made on Windows, not at all on the Linux desktop; under Steam on Linux
+  the app must start without Chromium's sandbox), the two-account part left. The steps meant for its wait
   are done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
   packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
   recommended), on Windows and then on the Linux machine's Ryzen 3 and integrated Renoir

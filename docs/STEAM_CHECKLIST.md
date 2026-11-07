@@ -12,8 +12,12 @@ Each answer goes into STEAM.md §3.3. Everything one account can show was checke
 `spike/steam/auto.mjs` on both machines (Windows and Linux, 2026-11-07, all passed), so only the
 tests by hand are left:
 
-- [ ] **The overlay on Linux**, the spike started from Steam's library as a non-Steam game (Steam
-      injects it only into what it starts): Shift+Tab and the invite dialog.
+- [x] **The overlay on Linux**, the spike started from Steam's library as a non-Steam game, with
+      `--no-sandbox` alone as its launch options (2026-11-07): **it does not draw** on the Linux
+      desktop (STEAM.md §3.3). On the Linux machine invite from Steam's friends list (right-click
+      a friend → Invite to game), not from the spike's invite buttons.
+- [ ] **The overlay on a Steam Deck** in Game Mode, if one is at hand: Shift+Tab's equivalent
+      (the Steam button) and the invite dialog over the game.
 - [ ] **The old P2P carries a match**: eight seats, people and bots, a whole match with no hash
       mismatch at the 30-tick hash rate, each machine hosting once; note the latency and anything
       that stalls, and how a 10 s and a 30 s outage on the guest recover.
