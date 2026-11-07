@@ -3,6 +3,8 @@ dist/
 release/
 # The Steam spike's log files, when it runs from the repository.
 spike/steam/logs/
+# The automated checks' reports and screenshots (auto.mjs).
+spike/steam/auto-results/
 coverage/
 *.tsbuildinfo
 .vite/

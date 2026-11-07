@@ -8,7 +8,8 @@
   "scripts": {
     "build": "node build.mjs",
     "start": "node build.mjs && electron .",
-    "package": "node build.mjs && electron-builder --publish never"
+    "package": "node build.mjs && electron-builder --publish never",
+    "auto": "node auto.mjs"
   },
   "dependencies": {
     "steamworks.js": "0.4.0",
@@ -16,7 +17,8 @@
   },
   "devDependencies": {
     "electron": "44.5.1",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "playwright-core": "^1.63.0"
   },
   "build": {
     "appId": "io.github.thomarius.bollfort.steamspike",

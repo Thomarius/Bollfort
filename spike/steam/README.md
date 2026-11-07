@@ -25,6 +25,49 @@ Steps are written as **Do**, **Expect** and **Note**. Fill in the results sheet 
 
 ---
 
+## The automated part, one machine at a time
+
+Everything that needs only one Steam account is checked by `auto.mjs`, which drives the packaged
+spike through its control window with Playwright and writes a report, logs and screenshots to
+`spike/steam/auto-results/<time>/`. Run on B (Windows) on 2026-11-07, every check passed (STEAM.md
+§3.3 has the answers). **Run it on A (Linux) before the evening**, from a checkout of this branch,
+Steam running and logged in, at the desktop (it moves windows, presses Shift+Tab and takes
+screenshots — hands off for a few minutes; the match takes longer and needs no watching):
+
+```bash
+git fetch && git checkout s1-steam-spike
+npm ci && npm run build                       # the game's client, which the spike serves
+cd spike/steam && npm ci && npm run package   # release/linux-unpacked, as the CI build
+sudo apt install xdotool gnome-screenshot     # Shift+Tab and the screenshots (X11; on Wayland, grim)
+npm run auto                                  # start, sockets, lobbies, overlay, connect, match
+npm run auto -- --only nosteam                # shuts Steam down, starts the spike, starts Steam again
+```
+
+Or point it at the CI download with `--app ~/spike/BollfortSteamSpike-linux`. `--only` and
+`--skip` take any of `start,sockets,lobbies,overlay,connect,match,nosteam`. Send the results
+folder. On Linux the overlay is expected missing: Steam loads it only into games it starts
+itself, so the overlay checks of Parts 2b and 2e on A need the spike added to Steam as a
+non-Steam game and started from the library.
+
+What it checks, so the evening need not:
+
+| Check   | What                                                                                                                                 |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| start   | Steam initialised, name and ID (Q1); `restartAppIfNecessary` (Q6); the overlay's library in the process                              |
+| sockets | the server on 127.0.0.1 only, nothing listening beyond the machine: no firewall prompt                                               |
+| lobbies | Friends, Public, Invite only each made, the game window in Bollfort's lobby, the room published; only the Public one in `getLobbies` |
+| overlay | Shift+Tab and the API's friends dialog, `openInviteDialog`, `activateInviteDialog`: screenshots                                      |
+| connect | `+connect_lobby <id>` taken from the command line and tried, a bad lobby refused without a crash                                     |
+| match   | a whole eight-seat match on the spike's server (the host idle, seven bots), no game error                                            |
+| nosteam | Steam shut down: the spike says so and runs on; Steam started again and logged in                                                    |
+
+**Found on B**: the overlay draws in the **first window made** — the control window — whichever
+window is in front; with the control window closed it draws over the game window, the invite
+dialog too. So in Parts 2b and 2e, look for the overlay in the control window. The Steam build has
+one window (STEAM.md §3.1), where this does not arise.
+
+---
+
 ## Before the evening
 
 1. **Download the newest builds.** On GitHub: **Actions** → **Steam spike** → the newest run with a
@@ -93,6 +136,10 @@ prompt (nothing listens beyond the machine).
 - `restartAppIfNecessary` on each (expected `false`) → **Q6**.
 - Any firewall prompt.
 
+These notes come from `auto.mjs` already: on B (2026-11-07) Steam user shown, `false`, no
+listening socket beyond the machine; on A from its own run. Starting is still needed for what
+follows.
+
 **Mark** `1` on both.
 
 ## Part 2 — A hosts a Friends lobby; overlay and invite (Q2, Q5)
@@ -107,6 +154,12 @@ log: `lobby … made (friends)`, then `room … published in the lobby`.
 **Do:** click into A's **game** window, press **Shift+Tab**; close the overlay again with
 Shift+Tab.
 **Note:** overlay appears over the game window: yes / no.
+On B this was seen by `auto.mjs`: the overlay draws in the **control** window, the first one
+made, whichever is in front. Look there. On A, started from a terminal, there is likely no
+overlay at all, and then no invite dialog either: Steam injects the overlay on Linux only into
+what it starts. If `npm run auto` on A said so, add the spike to Steam (**Games → Add a
+Non-Steam Game**, the program `bollfort-steam-spike`) and start it from the library for this
+Part.
 
 **2c. The invite dialog.**
 **Do:** in A's control window, **Invite (lobby.openInviteDialog)**.
@@ -121,9 +174,9 @@ notification).
 and B's name appears on a seat in A's game window.
 **Note:** `GameLobbyJoinRequested` in B's log: yes / no. B seated in A's room: yes / no.
 
-**2e. The overlay on B.**
-**Do:** click into B's game window, Shift+Tab, then Shift+Tab again.
-**Note:** overlay over the game window on Windows: yes / no.
+**2e. The overlay on B.** Done by `auto.mjs` on 2026-11-07: the overlay and both invite dialogs
+open on Windows, in the control window while it is open, over the game window once it is alone.
+Skip.
 
 **Mark** `2` on both.
 
