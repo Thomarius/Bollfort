@@ -55,6 +55,7 @@ npm run trailer -w @bollfort/storeart -- calibrate|record [clip...]|captions|ass
 TRAILER_SET=loops npm run trailer -w @bollfort/storeart -- record   # the store description's scenes (TRAILER_LANG=de for the banners')
 sh tools/storeart/loops.sh          # the store description's loops, cut from those scenes into assets/store/description/
 npm run icons -w @bollfort/storeart -- /tmp/icons [castle|ring|letter|keep|bare...]   # app icon candidates in every style, at 184 and 32 px
+npx tsx tools/storeart/src/sysreq.ts NAME [--fullscreen] [--affinity 0x5] [--round 8]   # the packaged app's memory, processor and frames, eight bots (Windows)
 npm start     -w @bollfort/desktop  # the desktop app, after npm run build
 npm run package -w @bollfort/desktop # its portable file for this system, into packages/desktop/release/
 ```
@@ -577,10 +578,10 @@ which a test session needs the server rebuilt and every page reloaded for):
   support — the match, the menus, the bindings, glyphs, the Deck's screen and an on-screen keyboard
   (ARCHIVE 15zm, played by the user with a real pad); S4's material that needs no account
   (ARCHIVE 15zn, 15zo). **S1, the spike on App ID 480, next**: its code on the `s1-steam-spike`
-  branch, to be run by the user on two machines with two accounts. Should it still wait, the next
-  steps (the user's, 2026-11-06, `STORE_PAGE.md` §5): measure the system requirements — the
-  packaged app's memory and processor in an eight-player match (the icon on Linux seen,
-  2026-11-06).
+  branch, to be run by the user on two machines with two accounts. The steps meant for its wait
+  are done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
+  packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
+  recommended).
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

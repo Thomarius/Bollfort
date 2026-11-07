@@ -11548,3 +11548,37 @@ board carries a sound word ("DOKAN!"), text again. Not chosen yet.
 **The splash** of the portable Windows app still read BOLLWERK: `packages/desktop/splash.ps1` spells
 the title letter by letter, so the rename (15zh) searched for the word and never met it. Drawn
 again; the repository holds the old name nowhere else but the docs' history.
+
+## 15zp. The system requirements measured (2026-11-07)
+
+The store page's minimum and recommended lines (STORE_PAGE.md §4.3) from the packaged desktop
+app itself, on the user's gaming PC (i7-8700K, 6 cores and 12 threads, 16 GB, RTX 3070).
+`tools/storeart/src/sysreq.ts` starts `release/win-unpacked/Bollfort.exe` with a devtools port,
+clicks Play here, starts an eight-player match of top-level bots in the game window
+(`?autostart=1&watch=1&players=8&level=8`, every bot planning in the page's worker), and for
+four minutes samples every process of the app — six of them — for memory and processor time
+every two seconds while the page times its own frames. `--affinity` holds the app to some of
+the processor's threads once the match runs, to see a weaker processor through this one.
+
+| Run                        | Private MB, avg / peak | Cores busy, avg / peak | fps  | 99th % frame | Over 25 ms |
+| -------------------------- | ---------------------- | ---------------------- | ---- | ------------ | ---------- |
+| Window 1384 × 861, round 1 | 871 / 1024             | 1.15 / 2.58            | 60.0 | 17.2 ms      | 0.01%      |
+| Full screen 2560 × 1440    | 912 / 1171             | 0.87 / 2.26            | 60.0 | 17.2 ms      | 0%         |
+| Full screen, two threads   | 956 / 1144             | 0.93 / 1.88            | 59.7 | 17.6 ms      | 0.5%       |
+| Full screen, one thread    | 1013 / 1209            | 0.76 / 0.98            | 53.7 | 50.1 ms      | 9.0%       |
+| Full screen, from round 8  | 955 / 1268             | 0.96 / 2.21            | 59.7 | 17.2 ms      | 0.38%      |
+| From round 8, two threads  | 952 / 1206             | 0.80 / 1.64            | 59.5 | 17.9 ms      | 0.78%      |
+
+The working set peaked at 1.25–1.30 GB in every run. **The whole app takes three times the
+page**: 356 MB had been the page's own in an eight-player match (14b), and Electron's main,
+GPU and helper processes come on top, so 4 GB is the minimum that leaves Windows its share and
+8 GB the recommendation. **Two threads keep the game smooth**, late in a match too, and one
+does not — every eleventh frame slow — so the minimum is two cores, four recommended, since
+this processor's cores are quicker than an old dual-core's. Late rounds cost little more than
+early ones: more guns and shells, the same drawing. The graphics line stays 12n's: integrated
+Renoir graphics at 58–60 fps with eight players; Electron draws WebGL through Direct3D 11.
+
+Not measured: a slow processor of its own (affinity takes threads away, not speed), the styles
+other than the default looks, Minimal for building and Medieval for combat, which the
+performance work put at most at some 1 ms a frame each (14zc–14zo), and the machine without
+Sunshine encoding its screen for the user's stream, a few percent of processor and card.
