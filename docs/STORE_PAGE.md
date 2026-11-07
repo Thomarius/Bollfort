@@ -255,7 +255,7 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
   Co-op (friends in one team against bot teams); Full controller support once checked on the
   Steam build; Steam Deck later, by review. No achievements, no cloud at launch (STEAM.md §10).
 - **Languages**: English and German — interface, subtitles (the texts); no audio.
-- **System requirements** (measured 2026-11-07, ARCHIVE 15zp):
+- **System requirements** (measured 2026-11-07 on Windows and Linux, ARCHIVE 15zp):
 
   |           | Minimum                                               | Recommended                  |
   | --------- | ----------------------------------------------------- | ---------------------------- |
@@ -269,13 +269,17 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
   What the figures stand on — the packaged app in an eight-player match of bots, every process
   of it sampled (`tools/storeart/src/sysreq.ts`): **memory** 0.9–1.0 GB private on average, 1.27
   GB at its peak, 1.3 GB working set, from round 1 and from round 8 alike, so 4 GB leaves Windows
-  itself room and 8 GB a browser beside it. **Processor**: about one core busy on average, 2.6 at
+  itself room and 8 GB a browser beside it; on Linux less, 0.78–0.85 GB proportional (PSS) on
+  average and 0.94 GB at the peak. **Processor**: about one core busy on average, 2.6 at
   the peak; held to two threads of an i7-8700K the game kept 59.5–59.7 fps, late in the match too,
-  and on one thread it fell to 54 fps with 9% of frames slow — so two cores at the least, and
-  older or slower cores than this one's may need the four recommended. **Graphics**: integrated
-  AMD Renoir graphics ran eight players at 58–60 fps (ARCHIVE 12n); Electron draws WebGL through
-  Direct3D 11 on Windows. **Storage**: the unpacked Windows app is 431 MB. Electron 44 needs
-  Windows 10 or later.
+  and on one thread it fell to 54 fps with 9% of frames slow — so two cores at the least. On a
+  slow processor of its own, a Ryzen 3 4300U (a 2020 laptop's, four cores, no SMT), held to two
+  cores: 56–58 fps, 4–6% of frames a refresh late; so two cores hold, the four recommended for
+  room. **Graphics**: the packaged AppImage on that machine's integrated AMD Renoir graphics, full
+  screen at 2560 × 1440, eight players: 58.2–58.3 fps, 2.6–2.9% of frames a refresh late (in the
+  window 58.7) — the graphics line holds for the real app. Electron draws WebGL through Direct3D
+  11 on Windows, through OpenGL (Mesa's radeonsi) on Linux. **Storage**: the unpacked Windows app
+  is 431 MB, the Linux one 347 MB (its AppImage 178 MB). Electron 44 needs Windows 10 or later.
 
 - **The content survey and the IARC questionnaire**: cartoon violence against walls and cannons
   only, no people hurt (Anime's heroes and Stadium's sportsmen are guns of their style — note
@@ -302,7 +306,9 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
   AppImage built locally shows the B in the panel (the window's class `bollfort` matching the
   .desktop file's `StartupWMClass`) and as the file's icon in Nemo. Its .desktop `Comment`, read
   from `package.json`'s `description`, had been a developer's note; now the game's line.
-- **Measure the requirements on the Linux machine too** (the user's, 2026-11-07, to be done on
+- ~~**Measure the requirements on the Linux machine too**~~ — done 2026-11-07 (ARCHIVE 15zp,
+  §4.3): `sysreq.ts` runs on Linux, five runs on the Ryzen 3 4300U and its Renoir graphics, the
+  lines unchanged. The plan, as it was (the user's, 2026-11-07, to be done on
   the development machine). Why: it is the weaker machine — integrated AMD Renoir graphics and
   slower cores, where the gaming PC could only take threads away — so it says more about the
   minimum; and the graphics line rests on a browser's measurement (ARCHIVE 12n), not the packaged
