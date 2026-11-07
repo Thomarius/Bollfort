@@ -55,7 +55,7 @@ npm run trailer -w @bollfort/storeart -- calibrate|record [clip...]|captions|ass
 TRAILER_SET=loops npm run trailer -w @bollfort/storeart -- record   # the store description's scenes (TRAILER_LANG=de for the banners')
 sh tools/storeart/loops.sh          # the store description's loops, cut from those scenes into assets/store/description/
 npm run icons -w @bollfort/storeart -- /tmp/icons [castle|ring|letter|keep|bare...]   # app icon candidates in every style, at 184 and 32 px
-npx tsx tools/storeart/src/sysreq.ts NAME [--fullscreen] [--affinity 0x5] [--round 8]   # the packaged app's memory, processor and frames, eight bots (Windows)
+npx tsx tools/storeart/src/sysreq.ts NAME [--fullscreen] [--affinity 0x5] [--round 8]   # the packaged app's memory, processor and frames, eight bots (Windows, Linux)
 npm start     -w @bollfort/desktop  # the desktop app, after npm run build
 npm run package -w @bollfort/desktop # its portable file for this system, into packages/desktop/release/
 ```
@@ -581,9 +581,9 @@ which a test session needs the server rebuilt and every page reloaded for):
   branch, to be run by the user on two machines with two accounts. The steps meant for its wait
   are done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
   packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
-  recommended). **Next on the Linux machine** (the user's, 2026-11-07): the same measured there,
-  on its integrated graphics, `sysreq.ts` made to run on Linux first — the steps in
-  `STORE_PAGE.md` §5.
+  recommended), on Windows and then on the Linux machine's Ryzen 3 and integrated Renoir
+  graphics, `sysreq.ts` running on both: 56–59 fps at full screen, two slow cores enough, the
+  lines unchanged.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

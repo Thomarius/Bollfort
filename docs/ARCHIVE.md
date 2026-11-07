@@ -11582,3 +11582,33 @@ Not measured: a slow processor of its own (affinity takes threads away, not spee
 other than the default looks, Minimal for building and Medieval for combat, which the
 performance work put at most at some 1 ms a frame each (14zc–14zo), and the machine without
 Sunshine encoding its screen for the user's stream, a few percent of processor and card.
+
+**On Linux, the same day**, on the development machine: a Ryzen 3 4300U (four cores, no SMT,
+14 GB) with its integrated Renoir graphics, the weaker machine and a slow processor of its own,
+which the gaming PC could only imitate. `sysreq.ts` learnt Linux: it starts the newest
+`release/*-linux.AppImage` in a process group of its own, takes the app's processes from /proc —
+the AppImage's runtime and its whole tree, and anything running from the image's mount, not by
+name — and their processor ticks from `/proc/<pid>/stat` (`ps` counts whole seconds),
+`taskset -a` for the affinity, `wmctrl` to put the game window on xrandr's primary display, and
+records the WebGL renderer, to prove the card drew and not a software fallback. Memory is not
+Windows' measure: the processes' resident sets overlap on Electron's libraries, so their sum
+(1.3–1.4 GB here) overstates the app; the proportional set (PSS) is the honest total, the
+unshared pages (USS) the nearest to Windows' private bytes.
+
+| Run (Linux, 2560 × 1440 display) | USS MB, avg / peak | PSS MB, avg / peak | Cores busy, avg / peak | fps  | Over 25 ms |
+| -------------------------------- | ------------------ | ------------------ | ---------------------- | ---- | ---------- |
+| Window 1080 × 988, round 1       | 694 / 769          | 848 / 923          | 1.09 / 2.49            | 58.7 | 2.1%       |
+| Full screen, round 1             | 633 / 717          | 787 / 870          | 1.13 / 2.48            | 58.3 | 2.6%       |
+| Full screen, from round 8        | 632 / 728          | 786 / 880          | 0.89 / 2.02            | 58.2 | 2.9%       |
+| Full screen, two cores           | 625 / 698          | 777 / 852          | 1.01 / 1.94            | 57.6 | 3.8%       |
+| From round 8, two cores          | 659 / 720          | 811 / 874          | 0.81 / 1.70            | 56.3 | 5.8%       |
+
+Nine processes; the renderer ANGLE on OpenGL 4.6, Mesa's radeonsi. The median frame was 16.7 ms
+in every run, the slow ones a refresh missed (33 ms) — one frame in 35 to one in 17, against
+Windows' one in a few hundred — and the window, a third of full screen's pixels, slow as often,
+so the slow frames are more the processor than the card. **Every line stands**: integrated
+graphics keep close to 60 fps at full screen in the real app, two slow cores keep 56–58 fps late
+in the match, and the app takes less memory than on Windows. The game window opens on the
+portrait monitor beside the main one here; a first set of runs, before `wmctrl`, measured full
+screen there (1080 × 1920) and, on round 1 only, 51.5 fps with 15% slow, against 58.1 from round
+8 — not repeated on the main display, so set aside as an outlier rather than explained.
