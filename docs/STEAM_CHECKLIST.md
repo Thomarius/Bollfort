@@ -8,13 +8,10 @@ the build's commit. The first part is the spike's (S1, STEAM.md §3.3), run once
 ## 0. The spike (S1, once)
 
 Its code is on the `s1-steam-spike` branch (`spike/steam/`; the evening's steps in its README).
-Each answer goes into STEAM.md §3.3. What one account can show is checked by
-`spike/steam/auto.mjs`, done on Windows (2026-11-07, all passed: the binding, the overlay and the
-invite dialogs, `RestartAppIfNecessary`, the three lobby types, no firewall prompt,
-`+connect_lobby` read, Steam not running, a whole match on the spike's server). What is left:
+Each answer goes into STEAM.md §3.3. Everything one account can show was checked by
+`spike/steam/auto.mjs` on both machines (Windows and Linux, 2026-11-07, all passed), so only the
+tests by hand are left:
 
-- [ ] **`npm run auto` on the Linux machine** (spike README, "The automated part"): the binding on
-      Linux, and the rest as on Windows.
 - [ ] **The overlay on Linux**, the spike started from Steam's library as a non-Steam game (Steam
       injects it only into what it starts): Shift+Tab and the invite dialog.
 - [ ] **The old P2P carries a match**: eight seats, people and bots, a whole match with no hash

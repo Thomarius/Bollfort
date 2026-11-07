@@ -144,11 +144,11 @@ It answers:
 Our lobbies on 480 are tagged with a lobby data key, since every developer shares that App ID.
 The spike's code is thrown away. S2 and S3 build the real thing on what it found.
 
-**Answered on one machine** (2026-11-07, Windows, the packaged spike driven by
-`spike/steam/auto.mjs`, every check passed; the same script is for the Linux machine):
+**Answered on one machine** (2026-11-07, the packaged spike driven by `spike/steam/auto.mjs`,
+every check passed, on Windows and then on Linux, Ubuntu under X11):
 
 - **1, Windows**: `steamworks.js` 0.4.0 loads in Electron 44 and initialises on 480, the user's
-  name and ID read. Linux by its own run of the script.
+  name and ID read. **Linux** the same, the spike packaged on the machine.
 - **2, Windows**: the overlay's library is loaded into the process, and Shift+Tab, the friends
   dialog and both invite dialogs (`lobby.openInviteDialog`, `overlay.activateInviteDialog`) open.
   **The overlay draws in the first window made**, whichever is in front: in the spike's control
@@ -156,19 +156,25 @@ The spike's code is thrown away. S2 and S3 build the real thing on what it found
   have one window, or make the game's first (§3.1 has one). On Linux Steam injects the overlay
   only into what it starts (`LD_PRELOAD`), so a build started from a terminal has none: the
   Steam build is started by Steam, and the spike's Linux test starts it as a non-Steam game.
+  Confirmed on Linux: started from a terminal, no overlay's library in the process, no overlay
+  on Shift+Tab, and no error from the API's dialogs; after `lobby.openInviteDialog` the
+  screenshot shows part of a Steam friends list beside the game window, most likely Steam's own
+  window rather than an overlay — the test from the library will tell.
 - **5, in part**: `+connect_lobby <id>` is read from the command line and joined; a lobby that
   does not exist is refused without a crash. Steam's own handing over still needs two accounts.
-- **6**: `false` on 480, with Steam running and without; as expected with `steam_appid.txt`, so
-  the decision stays S2's.
+- **6**: `false` on 480, with Steam running and without, on both systems; as expected with
+  `steam_appid.txt`, so the decision stays S2's.
 - **Lobbies**: Friends, Public and Invite only are made, and only the Public one is in
   `getLobbies()` — among the 50 it returns on 480, which is the list's cap, so ours was found
-  by luck of distance as much as by right; a lobby left a moment ago may still be listed.
+  by luck of distance as much as by right; a lobby left a moment ago may still be listed. The
+  same on Linux.
 - **Nothing listens beyond the machine** (the server and relay on 127.0.0.1): no firewall prompt.
 - **Steam not running**: initialisation fails with "Cannot create IPC pipe to Steam client
   process", and the spike says so and runs on. Steam shut down and started again by the script.
+  The same on Linux.
 - **A whole eight-seat match** on the spike's own server (the host idle, seven bots) to the end
-  screen in 10.9 minutes, no game error: the bundled server under Electron is sound, so anything
-  the two-machine test finds is the channel's.
+  screen in 10.9 minutes (10.8 on Linux), no game error and no hash mismatch: the bundled
+  server under Electron is sound, so anything the two-machine test finds is the channel's.
 
 ## 4. The games browser (B)
 
