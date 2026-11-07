@@ -581,7 +581,9 @@ which a test session needs the server rebuilt and every page reloaded for):
   branch, to be run by the user on two machines with two accounts. The steps meant for its wait
   are done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
   packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
-  recommended).
+  recommended). **Next on the Linux machine** (the user's, 2026-11-07): the same measured there,
+  on its integrated graphics, `sysreq.ts` made to run on Linux first — the steps in
+  `STORE_PAGE.md` §5.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

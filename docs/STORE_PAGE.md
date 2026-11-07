@@ -302,6 +302,26 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
   AppImage built locally shows the B in the panel (the window's class `bollfort` matching the
   .desktop file's `StartupWMClass`) and as the file's icon in Nemo. Its .desktop `Comment`, read
   from `package.json`'s `description`, had been a developer's note; now the game's line.
+- **Measure the requirements on the Linux machine too** (the user's, 2026-11-07, to be done on
+  the development machine). Why: it is the weaker machine — integrated AMD Renoir graphics and
+  slower cores, where the gaming PC could only take threads away — so it says more about the
+  minimum; and the graphics line rests on a browser's measurement (ARCHIVE 12n), not the packaged
+  app's, while the Linux build, drawing through OpenGL rather than Direct3D, was not measured at
+  all. What:
+  1. **Make `tools/storeart/src/sysreq.ts` run on Linux**: it is Windows-only so far. Start the
+     AppImage (`npm run build`, `npm run package -w @bollfort/desktop`, then
+     `packages/desktop/release/Bollfort-*-linux.AppImage`) with `--remote-debugging-port=9222`,
+     as it starts the .exe; read the app's processes from `ps` (every process of the AppImage —
+     find them by the parent's tree or by the mount's path, not by a name of `bollfort` alone —
+     their RSS and their processor time, summed) in place of PowerShell's `Get-Process`;
+     `taskset` for `--affinity` if wanted; the logical processors from `nproc`. The rest — the
+     window found by its `#play`, the match, the frame clock, the results — is the same.
+  2. **Three runs** of four minutes, eight bots: in the window; in full screen; in full screen
+     from round 8 (`--round 8`). Look at each run's screenshot: eight islands in play.
+  3. **Read them against §4.3**: if full screen keeps close to 60 fps on the integrated graphics,
+     the graphics line holds for the real app; if not, raise it, or name a resolution that does.
+     Memory on Linux beside Windows' 1.3 GB. Then STORE_PAGE.md §4.3 and ARCHIVE 15zp's note
+     extended with the Linux figures.
 
 **Before or at S4:**
 
