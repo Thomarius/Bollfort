@@ -4,7 +4,8 @@
 //   npx tsx tools/steambench/src/bench.ts [scenario...] [--reverse] [--app DIR] [--out DIR]
 //                                         [--no-deploy] [--reset]
 //
-// Scenarios: join, public, private, match, lag, outage, reversed, restart (all, in that order, by
+// Scenarios: start (the Steam build, S2; --steam-restart shuts Steam down for its last part),
+// join, public, private, match, lag, outage, reversed, restart (all, in that order, by
 // default). The app under test is the S1 spike's Linux build (`spike/steam/release/linux-unpacked`
 // on the branch `s1-steam-spike`), copied into the VM first. Both Steams running and logged in;
 // the desktop left alone. lag and outage need `sudo -n /usr/sbin/tc` (a sudoers line). --reset
@@ -17,6 +18,7 @@ import type { Page } from 'playwright';
 import { App, within, type AppState } from './app.js';
 import { busy, LocalMachine, sleep, VmMachine, type Machine } from './machines.js';
 import { Network, type Shape } from './network.js';
+import { scenarioStart } from './steamBuild.js';
 
 const REPO = path.resolve(import.meta.dirname, '../../..');
 const argv = process.argv.slice(2);
@@ -26,13 +28,23 @@ const opt = (name: string): string | undefined => {
 };
 const flag = (name: string): boolean => argv.includes(`--${name}`);
 const valued = new Set(
-  ['--app', '--out'].flatMap((o) => {
+  ['--app', '--out', '--steam-app'].flatMap((o) => {
     const at = argv.indexOf(o);
     return at >= 0 ? [argv[at + 1] ?? ''] : [];
   }),
 );
 
-const ALL = ['join', 'public', 'private', 'match', 'lag', 'outage', 'reversed', 'restart'] as const;
+const ALL = [
+  'start',
+  'join',
+  'public',
+  'private',
+  'match',
+  'lag',
+  'outage',
+  'reversed',
+  'restart',
+] as const;
 type Scenario = (typeof ALL)[number];
 const asked = argv.filter((a) => !a.startsWith('--') && !valued.has(a));
 for (const a of asked)
@@ -40,6 +52,10 @@ for (const a of asked)
 const SCENARIOS: Scenario[] = asked.length > 0 ? (asked as Scenario[]) : [...ALL];
 
 const APP_DIR = path.resolve(opt('app') ?? path.join(REPO, 'spike/steam/release/linux-unpacked'));
+/** The Steam build (STEAM.md §3.5) for `start`, packaged with BOLLFORT_STEAM=1. */
+const STEAM_DIR = path.resolve(
+  opt('steam-app') ?? path.join(REPO, 'packages/desktop/release/steam/linux-unpacked'),
+);
 const STAMP = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
 const OUT = path.resolve(opt('out') ?? path.join(REPO, 'steambench-results', STAMP));
 /** Both seats played by the autopilot, so the guest's moves cross Steam too. */
@@ -591,7 +607,9 @@ const OUTAGE: MatchPlan = {
 // --- Main --------------------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  if (!fs.existsSync(path.join(APP_DIR, 'bollfort-steam-spike')))
+  // `start` alone needs neither the spike nor the VM.
+  const spike = SCENARIOS.some((s) => s !== 'start') || flag('reset');
+  if (spike && !fs.existsSync(path.join(APP_DIR, 'bollfort-steam-spike')))
     throw new Error(`no app in ${APP_DIR}: build the spike first (spike/steam, npm run package)`);
   const local: Machine = new LocalMachine(APP_DIR);
   const vm = new VmMachine();
@@ -603,7 +621,7 @@ async function main(): Promise<void> {
     return;
   }
   fs.mkdirSync(OUT, { recursive: true });
-  if (!flag('no-deploy')) {
+  if (spike && !flag('no-deploy')) {
     say('copying the app into the VM');
     vm.deploy(APP_DIR);
   }
@@ -618,7 +636,14 @@ async function main(): Promise<void> {
     run.figures['host'] = host.label;
     say(`=== ${scenario}: ${host.label} hosts`);
     try {
-      if ((scenario === 'lag' || scenario === 'outage') && network === null) {
+      if (scenario === 'start') {
+        await scenarioStart(
+          STEAM_DIR,
+          (c, ok, d) => run.check(c, ok, d ?? ''),
+          (n, t) => run.save(n, t),
+          flag('steam-restart'),
+        );
+      } else if ((scenario === 'lag' || scenario === 'outage') && network === null) {
         run.check(
           'shaping available',
           false,

@@ -21,8 +21,10 @@ jobs:
         include:
           - os: windows-latest
             file: packages/desktop/release/*.exe
+            steam: packages/desktop/release/steam/win-unpacked
           - os: ubuntu-latest
             file: packages/desktop/release/*.AppImage
+            steam: packages/desktop/release/steam/linux-unpacked
     runs-on: ${{ matrix.os }}
     env:
       # electron-builder fetches the Electron it packages; the one npm would install is not used.
@@ -50,6 +52,20 @@ jobs:
           name: bollfort-${{ matrix.os }}
           path: ${{ matrix.file }}
           if-no-files-found: error
+      # The Steam build (STEAM.md 3.5, S2): a plain folder, as a Steam depot takes it. Kept as
+      # the run's download only, never published here; the upload to Steam waits for S4.
+      - name: Package for Steam
+        shell: bash
+        env:
+          BOLLFORT_STEAM: '1'
+        run: |
+          export BOLLFORT_VERSION="${BOLLFORT_VERSION#v}"
+          npm run package -w @bollfort/desktop
+      - uses: actions/upload-artifact@v5
+        with:
+          name: steam-${{ matrix.os }}
+          path: ${{ matrix.steam }}
+          if-no-files-found: error
 
   release:
     # Only a tag publishes; a run by hand stops at the artifacts.
@@ -62,6 +78,8 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           path: files
+          # The portable files only: the Steam folders are not for the GitHub release.
+          pattern: bollfort-*
           merge-multiple: true
       - name: Publish the release
         env:

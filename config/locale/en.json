@@ -123,6 +123,7 @@
   "sound.on": "Sound on",
   "fullscreen.enter": "Full screen",
   "fullscreen.leave": "Window",
+  "steam.missing": "Steam isn't running: you can play against bots, but playing online needs Steam.",
   "sound.off": "Sound off",
   "style.flat": "Minimal",
   "style.pixel": "Medieval",

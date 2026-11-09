@@ -39,14 +39,24 @@ function commit() {
 
 const shared = { bundle: true, logLevel: 'info', target: 'node22' };
 
+/**
+ * The Steam build (STEAM.md §3.5), `BOLLFORT_STEAM=1`: `entry.ts` takes `steamMain.ts` in
+ * place of the launcher, and only then is `steamworks.js` reached.
+ */
+const steam = process.env.BOLLFORT_STEAM === '1';
+
 await build({
   ...shared,
-  entryPoints: [resolve(here, 'src', 'main.ts')],
+  entryPoints: [resolve(here, 'src', 'entry.ts')],
   outfile: resolve(here, 'dist', 'main.js'),
-  define: { __BOLLFORT_COMMIT__: JSON.stringify(commit()) },
+  define: {
+    __BOLLFORT_COMMIT__: JSON.stringify(commit()),
+    __BOLLFORT_STEAM__: JSON.stringify(steam),
+  },
   platform: 'node',
   format: 'esm',
-  external: ['electron', 'bufferutil', 'utf-8-validate'],
+  // steamworks.js is a native module, loaded from node_modules at run time (Steam build only).
+  external: ['electron', 'bufferutil', 'utf-8-validate', 'steamworks.js'],
   plugins: [ssdpPackageJson],
   // ws is CommonJS, and needs a real `require` inside an ES module; see the server's build.
   banner: {
@@ -61,6 +71,16 @@ await build({
   ...shared,
   entryPoints: [resolve(here, 'src', 'preload.ts')],
   outfile: resolve(here, 'dist', 'preload.cjs'),
+  platform: 'node',
+  format: 'cjs',
+  external: ['electron'],
+});
+
+// The Steam build's game window: Steam's state and the window's fullscreen for the page.
+await build({
+  ...shared,
+  entryPoints: [resolve(here, 'src', 'gamePreload.ts')],
+  outfile: resolve(here, 'dist', 'gamePreload.cjs'),
   platform: 'node',
   format: 'cjs',
   external: ['electron'],

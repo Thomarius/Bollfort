@@ -37,6 +37,7 @@ import { installDemo, startDemo } from './demo.js';
 import { openKeyboard } from './padKeyboard.js';
 import { startPadLoop } from './padLoop.js';
 import { installStoreArt, storeArtMode } from './storeArt.js';
+import { gameHost, steamMissing } from './host.js';
 
 /**
  * Bollfort client.
@@ -187,5 +188,11 @@ function start(): void {
     tournamentExits(params.get('private') !== '1').play(save.id);
   } else {
     showMenu();
+    // The Steam build started without Steam plays locally, and says online play needs it.
+    void gameHost()
+      ?.steam()
+      .then((steam) => {
+        if (steamMissing(steam)) showMenu(t('steam.missing'));
+      });
   }
 }

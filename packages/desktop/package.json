@@ -71,5 +71,8 @@
     }
   },
   "author": "Thomas Arnold",
-  "desktopName": "bollfort.desktop"
+  "desktopName": "bollfort.desktop",
+  "dependencies": {
+    "steamworks.js": "0.4.0"
+  }
 }

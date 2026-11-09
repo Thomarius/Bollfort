@@ -2,6 +2,7 @@ import { defaultConfigBundle, validateConfigBundle } from '@bollfort/config';
 
 import { Audio } from './audio.js';
 import { onLanguageChange, setLanguage, startingLanguage, t } from './i18n.js';
+import { gameHost } from './host.js';
 import { withIcon } from './icons.js';
 import { installBackdrop } from './decor.js';
 import { applyMotion } from './motion.js';
@@ -124,17 +125,22 @@ document.addEventListener('focusin', placeTip);
  * page may not go full screen.
  */
 function installFullscreenButton(): void {
-  if (!document.fullscreenEnabled) return;
+  // The Steam build switches its window, not the page: Esc, the game's pause, would leave the
+  // page's (STEAM.md §3.5).
+  const host = gameHost();
+  if (host === null && !document.fullscreenEnabled) return;
   const button = document.createElement('button');
   button.id = 'fullscreen';
+  let hostFull = false;
+  const full = (): boolean => (host === null ? document.fullscreenElement !== null : hostFull);
   const show = (): void => {
-    button.innerHTML =
-      document.fullscreenElement === null
-        ? withIcon('expand', t('fullscreen.enter'))
-        : withIcon('shrink', t('fullscreen.leave'));
+    button.innerHTML = full()
+      ? withIcon('shrink', t('fullscreen.leave'))
+      : withIcon('expand', t('fullscreen.enter'));
   };
   button.addEventListener('click', () => {
-    if (document.fullscreenElement === null) {
+    if (host !== null) void host.setFullscreen(!hostFull);
+    else if (document.fullscreenElement === null) {
       void document.documentElement.requestFullscreen().catch(() => undefined);
     } else {
       void document.exitFullscreen().catch(() => undefined);
@@ -142,7 +148,16 @@ function installFullscreenButton(): void {
     // Off the button, so Space or Enter later cannot press it again unseen.
     button.blur();
   });
-  document.addEventListener('fullscreenchange', show);
+  if (host !== null) {
+    host.onFullscreen((on) => {
+      hostFull = on;
+      show();
+    });
+    void host.fullscreen().then((on) => {
+      hostFull = on;
+      show();
+    });
+  } else document.addEventListener('fullscreenchange', show);
   onLanguageChange(show);
   show();
   corner.append(button);
