@@ -11612,3 +11612,61 @@ in the match, and the app takes less memory than on Windows. The game window ope
 portrait monitor beside the main one here; a first set of runs, before `wmctrl`, measured full
 screen there (1080 × 1920) and, on round 1 only, 51.5 fps with 15% slow, against 58.1 from round
 8 — not repeated on the main display, so set aside as an outlier rather than explained.
+
+## 15zq. S1, the spike, and the Steam bench (2026-11-07 to 2026-11-09)
+
+STEAM.md §3.3 holds the answers and §3.4 the bench; this is how they were reached.
+
+**The spike** (branch `s1-steam-spike`, never merged): the game unchanged, its host's server
+inside an Electron app with `steamworks.js` 0.4.0, and each guest's page talking to a relay on
+its own machine that carries every WebSocket message over Steam's old P2P (reliable sends) to the
+host's relay and on to the server. `auto.mjs` checked what one account can (2026-11-07, on
+Windows and Linux): the binding, the overlay — which draws on Windows in the first window made
+and not at all on the Linux desktop — lobbies of each type, `+connect_lobby`, no listening socket,
+Steam missing, and a whole match on the bundled server.
+
+**The first two-machine evening (2026-11-08) joined no lobby**: every guest's page said "kein
+Server antwortet unter ws://127.0.0.1:8091", the host's log "WebSocket was closed before the
+connection was established". The P2P session took 3.9 s to set up — the first ping's round trip
+on every attempt, every later one 3 ms — while the page waits 2 s for the welcome
+(`SERVER_WAIT_MS`), then closes its socket; the host's open and the guest's close arrived
+together. On one machine the session is instant, so `auto.mjs` could not see it. The guest now
+opens the game only once the host has answered a ping.
+
+**The bench** came of the question whether the tests could run without two people. A VM on the
+development machine (libvirt, Ubuntu 24.04's cloud image with Xfce, 2 cores, 4 GB, virgl) with a
+second account, arnoldex83, reproduced the two machines' 4 s first contact; a trial match between
+them ran clean, the VM's game at 17 fps and this machine's at 53 with 83% of its cores busy —
+enough for correctness, not for speed. The user approved the design (§3.4) and the sudoers line
+for `tc`; the bench was built in `tools/steambench` and run the same day. Its own first faults:
+the scenario named on the command line was dropped by the options' parsing; `pkill` on the VM
+never matched, Electron showing its whole path; the frame meter died on tsx's `__name` helper in
+the page (its scripts go as text since); and a cut was judged by a line logged before it.
+
+| Scenario | Result (2026-11-09)                                                                 |
+| -------- | ----------------------------------------------------------------------------------- |
+| join     | 5 of 5 seated, first answer 3.8–4.0 s, seated after 13–15 s                         |
+| public   | listed by `getLobbies` (50 on 480, 1 ours), joined from the list                    |
+| private  | an Invite-only lobby joined by `+connect_lobby`, seated                             |
+| match    | three runs, 9.8 min, end screens alike, no rejoin or mismatch, 9–10 ms round trip   |
+| reversed | the VM hosting: the same, 12 ms                                                     |
+| lag      | +50 and +150 ms round trip (measured 55, 156), then 1% loss each way (24 ms): clean |
+| outage   | 10 s lived through; after 30 and 90 s the guest never back                          |
+| restart  | the guest's app killed in the match: Steam refuses it the lobby                     |
+
+**Why a guest cannot come back**: a cut network takes the guest's whole Steam client offline, and
+Steam drops it from the lobby within 10 s; the P2P session fails after some 20 s of silence and is
+made again some 20 s after the network returns; then the spike's host refuses the rejoining socket
+("not in the lobby"), and the refusal closes nothing, so the page hangs on Reconnecting while a bot
+plays the seat. A restarted app cannot join the lobby at all, closed at the start. These are S3's
+to design: readmission by Steam ID, a way back for the match's own players, a refusal that closes.
+
+**By hand** (the user and Mausica): the overlay works on Windows; invites and Join Game seat the
+guest with the game running, Invite only by invite alone; a closed game starts Spacewar, 480's
+own; a controller works under Steam Input; and a guest's invite seats a third account (Q4).
+An Invite-only invite failing in the VM, and a crash there ("No packet available"), were two
+spikes started at once on one Steam client, reading each other's packets: the spike keeps one
+instance since, a second start handing over its `+connect_lobby`.
+
+Two things seen in the bench's matches are a room match's, not Steam's, and wait in PLAN item 9:
+every bot marked AWAY, and the last wrong-phase refusal shown all match.

@@ -89,8 +89,9 @@ and B, Find a game (2026-11-03, ARCHIVE 15zj, protocol 35); T, the transport int
 ends, the fake network and whole matches over it (2026-11-04, ARCHIVE 15zl, §7.1); C, native
 controller support in five parts (2026-11-04, ARCHIVE 15zm, §8); and S4's material that needs
 no account — the art, the trailer, the texts, the loops and the icon (2026-11-04 to 2026-11-06,
-ARCHIVE 15zn, 15zo, `STORE_PAGE.md`). **Next**: S1, the spike, its code on the
-`s1-steam-spike` branch, to be run by the user on two machines.
+ARCHIVE 15zn, 15zo, `STORE_PAGE.md`); S1, the spike, every question answered, and H, the test
+bench (2026-11-07 to 2026-11-09, ARCHIVE 15zq, §3.3, §3.4). **Next**: the fork's decision
+(§3.2), then S2.
 
 ## 3. The Steam build (S1, S2)
 
@@ -129,6 +130,12 @@ Linux.
 - The newer networking (Valve's relay, `FakePacket*` for testing bad networks) is needed only if
   the old P2P does not carry a match well. That is S1's main question. Whether the relay is free
   is not stated _(to confirm)_.
+
+**Decided: no fork** (2026-11-09, the user's, on S1's answers, §3.3). The old P2P carries a
+match cleanly under delay and loss, so the newer networking is not needed; on our own App ID the
+lobby list holds only our lobbies, so filters are not needed either. Without `setLobbyType` the
+host chooses the lobby's type before hosting, not in the lobby screen (§7.2 follows). No Rust in
+the release workflow.
 
 ### 3.3 S1, the spike
 
@@ -227,7 +234,9 @@ every check passed, on Windows and then on Linux, Ubuntu under X11):
   joined the lobby while the first took the host's answers, so its game never opened. The spike
   now keeps one instance, a second start handing over its `+connect_lobby`; the Steam build
   must do the same.
-- **4** is still open: it needs a third account.
+- **4, yes**: a guest invites too (2026-11-09). The VM's arnoldex83 hosted and invited Arnoldex,
+  who invited Mausica86 on the Windows machine from Steam's friends list; she was seated in the
+  lobby.
 
 ### 3.4 The test bench (H)
 
@@ -405,7 +414,8 @@ in the client package, whose types have no Node, so it cannot start the real ser
 ### 7.2 What the players see (S3)
 
 - **Play** opens a table with bots, as now. Under Steam it is also a lobby, **Friends** by
-  default; the host chooses Public, Friends or Invite only in the lobby screen until the start.
+  default; the host chooses Public, Friends or Invite only before hosting (no fork, §3.2), fixed once
+  the lobby is made.
 - **Invite**: a button in the lobby opens Steam's friend picker in the overlay. An invite accepted
   with the game closed starts it into the lobby (`+connect_lobby`); with the game running it joins
   from wherever the player is, after asking if they are in a match.
