@@ -30,6 +30,9 @@ describe('licences', () => {
       expect(names).toContain(name);
     for (const p of packages) expect(p.text.length, p.name).toBeGreaterThan(100);
     const file = readFileSync(path.join(REPO, 'THIRD_PARTY_LICENSES.md'), 'utf8');
-    expect(file, 'stale: run `npm run licences`').toBe(noticesMarkdown(packages));
+    // By line, so a failure on CI shows what differs rather than two truncated strings.
+    expect(file.split('\n'), 'stale: run `npm run licences`').toEqual(
+      noticesMarkdown(packages).split('\n'),
+    );
   }, 120_000);
 });

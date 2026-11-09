@@ -347,7 +347,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 ## @koromix/koffi-win32-x64
 
-Version 3.3.7, MIT. The text is koffi's.
+Version 3.3.7, MIT, https://koffi.dev/. The text is koffi's.
 
 ```text
 MIT License

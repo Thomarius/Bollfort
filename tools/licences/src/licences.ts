@@ -40,7 +40,8 @@ export interface Shipped {
  * build's native modules. koffi's binary for each system is a package of its own, of which
  * only Windows' and Linux's x64 builds are packaged.
  */
-const UNPACKED = ['steamworks.js', 'koffi', '@koromix/koffi-linux-x64', '@koromix/koffi-win32-x64'];
+const SYSTEM_BINARIES = ['@koromix/koffi-linux-x64', '@koromix/koffi-win32-x64'];
+const UNPACKED = ['steamworks.js', 'koffi', ...SYSTEM_BINARIES];
 
 /**
  * Packages published without a licence's text, and the text that covers them: another
@@ -156,11 +157,12 @@ interface PackageJson {
 }
 
 /**
- * A package's own package.json, or for another system's binary, which npm installs only there
- * (koffi's for Windows, on Linux), its entry in the lockfile: the same version and licence.
+ * A package's own package.json, or for a system's own binary (`system`), which npm installs
+ * only on that system, its entry in the lockfile: the same version and licence everywhere.
  */
-function packageJson(dir: string): PackageJson {
-  if (existsSync(dir)) return JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8'));
+function packageJson(dir: string, system: boolean): PackageJson {
+  if (existsSync(dir) && !system)
+    return JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf8'));
   const key = path.relative(REPO, dir).replaceAll('\\', '/');
   const lock = JSON.parse(readFileSync(path.join(REPO, 'package-lock.json'), 'utf8')) as {
     packages: Record<string, { version?: string; license?: string } | undefined>;
@@ -175,7 +177,13 @@ function packageJson(dir: string): PackageJson {
 }
 
 function describe(dir: string, parts: Part[]): Shipped {
-  const json = packageJson(dir);
+  // A system's own binary is described from the lockfile even where it is installed, and with
+  // its lender's link: each system installs only its own, and the list written on Windows had
+  // differed from Linux's by the installed one's link (the v0.9.33 release, 2026-11-09).
+  const system = SYSTEM_BINARIES.includes(
+    path.relative(path.join(REPO, 'node_modules'), dir).replaceAll('\\', '/'),
+  );
+  const json = packageJson(dir, system);
   const lender = BORROWED[json.name];
   let text = existsSync(dir) && lender === undefined ? licenceText(dir) : null;
   let textFrom: string | null = null;
@@ -194,7 +202,12 @@ function describe(dir: string, parts: Part[]): Shipped {
   // CRLF was stored as LF, and the next run on CI then found the list stale (2026-11-09).
   text = text.replace(/\r\n?/g, '\n');
   const repo = typeof json.repository === 'string' ? json.repository : json.repository?.url;
+  const lent =
+    system && lender?.package !== undefined
+      ? (packageJson(path.join(REPO, 'node_modules', lender.package), false).homepage ?? null)
+      : null;
   const url =
+    lent ??
     json.homepage ??
     repo
       ?.replace(/^git\+/, '')
