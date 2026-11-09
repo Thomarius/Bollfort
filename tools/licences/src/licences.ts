@@ -190,6 +190,9 @@ function describe(dir: string, parts: Part[]): Shipped {
     textFrom = lender.from;
   }
   if (text === null) throw new Error(`${json.name}: no licence file, and none borrowed`);
+  // Line endings as the repository keeps them (LF, by .gitattributes): a package's file in
+  // CRLF was stored as LF, and the next run on CI then found the list stale (2026-11-09).
+  text = text.replace(/\r\n?/g, '\n');
   const repo = typeof json.repository === 'string' ? json.repository : json.repository?.url;
   const url =
     json.homepage ??
