@@ -94,7 +94,8 @@ bench (2026-11-07 to 2026-11-09, ARCHIVE 15zq, §3.3, §3.4); no fork (§3.2); S
 (2026-11-09, ARCHIVE 15zr, §3.5); S3, Steam lobbies, built and passing every scenario of the
 bench on the Linux machine, outage and restart included (2026-11-09, ARCHIVE 15zs, §7.3).
 **Next**: S3's checks by hand with two people (S3.5): Steam's friend picker in the overlay, an
-invite accepted during a match, a guest restarted coming back; then S4.
+invite accepted while the invited player is in a match of their own, a guest restarted coming
+back; then S4. Before them, the design point **S3.6** (§7.3): a player who dropped invited again.
 
 ## 3. The Steam build (S1, S2)
 
@@ -656,8 +657,8 @@ in the client package, whose types have no Node, so it cannot start the real ser
   the code, and coming back by it after a restart.
 - **The order**: S3.1 and S3.2 (the transport, identity, rejoining — the core, tested on the
   fake); then the FFI step for avatars on 480; then S3.3 and S3.4 in the client; then a bench
-  run on the Linux machine. By hand with two people: the overlay's picker, an invite accepted in
-  a match, a guest restarted coming back.
+  run on the Linux machine. By hand with two people: the overlay's picker, an invite accepted while the invited player is in a match of their own
+  (the question to leave it), a guest restarted coming back.
 - **Left for our App ID** (S4): rich presence's texts, an invite starting a closed game, and the
   lobby list holding only our lobbies.
 
@@ -714,7 +715,29 @@ restart. The host's first answer 3.8–3.9 s every time (`OPEN_WAIT_MS` 10 s); a
 in the match each time; a guest killed mid-match offered Back to the match and in it again in
 23 s. Avatars on both end screens, `koffi` on `libsteam_api.so` (arnoldex83 has none: Steam's
 "?"). The faults were the adapter's, three, fixed. Left by hand with two people: the overlay's
-picker, an invite accepted in a match, a guest restarted coming back.
+picker, an invite accepted while the invited player is in a match of their own, a guest restarted coming back.
+
+**S3.6 Nobody new joins a running match; a player who left may be invited again** (the user's,
+2026-11-09, for the next session's design and build):
+
+- **Invites and joins are for the lobby only**, before the match starts. That holds already: the
+  host's Steam lobby is joinable only before the start and while a seat is free (`steamPlay.ts`,
+  `open`), and the room refuses anyone not seated once the match runs. So there is no question of
+  which seat a newcomer would take.
+- **The exception: a player who left comes back to their own seat.** Already by Back to the
+  match and by the host's Steam code, readmitted by Steam ID (the bench's restart and outage,
+  ARCHIVE 15zs). **Not yet by an invite**: the lobby is not joinable during the match, so an
+  invite to the dropped player fails with "no game".
+- **Proposed**: while a match runs and a person's seat is away, the lobby stays joinable, and the
+  room decides — the seat's own Steam ID takes it back, anyone else is told the match is under way
+  and stays in the menu, never seated. Steam's joinability is one switch for everyone, so the
+  room, which knows the Steam IDs, must sort them. Rich presence's Join stays off during a match
+  (`connect` only while open for newcomers), so friends are not invited to try. To settle in the
+  design: whether the host must invite, or the friends list's Join also serves the dropped player;
+  the refused newcomer's message; and a test on the fake network, then the bench.
+- **The by-hand check named "an invite accepted during a match"** means the other thing: the
+  invited player is in a match of their own when the invite arrives, and is asked first whether
+  to leave it (S3.3). Not joining a running match.
 
 ## 8. Controller support (C)
 

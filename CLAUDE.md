@@ -598,7 +598,9 @@ which a test session needs the server rebuilt and every page reloaded for):
   15zs, 2026-11-09; protocol 36): P2P transport, rejoining by Steam ID, lobbies, codes, invites,
   Back to the match, avatars (`koffi`) and Steam's language — outage and restart, where the spike
   failed, included. **Next: S3's checks by hand with two people** (the overlay's friend picker, an
-  invite accepted in a match, a guest restarted coming back), then S4. The steps meant for S3's wait
+  invite accepted while in a match of one's own, a guest restarted coming back), then S4; and first
+  STEAM.md's **S3.6**, the user's: nobody new joins a running match, but a player who left may be
+  invited back to their own seat, which an invite cannot do yet. The steps meant for S3's wait
   were done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
   packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
   recommended), on Windows and then on the Linux machine's Ryzen 3 and integrated Renoir
