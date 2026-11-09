@@ -589,10 +589,12 @@ which a test session needs the server rebuilt and every page reloaded for):
   S3 must solve (§3.3); a guest's invite seats a third account (Q4). **S1 is done** (ARCHIVE
   15zq); no fork of `steamworks.js` (§3.2). **S2, the Steam build, is done** (ARCHIVE 15zr,
   §3.5): `BOLLFORT_STEAM=1` builds `steamMain.ts`, packaged to `release/steam/`, checked by the
-  bench's `start`. **Next: S3, Steam lobbies (§7), in a fresh session, its design first** — with
-  S1's findings: the 4 s first contact, a seated player readmitted by Steam ID after an outage or
-  a restart, a refused link closed (§3.3). The steps meant for its wait
-  are done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
+  bench's `start`. **S3, Steam lobbies (§7.3), is built and passes the whole bench** (ARCHIVE
+  15zs, 2026-11-09; protocol 36): P2P transport, rejoining by Steam ID, lobbies, codes, invites,
+  Back to the match, avatars (`koffi`) and Steam's language — outage and restart, where the spike
+  failed, included. **Next: S3's checks by hand with two people** (the overlay's friend picker, an
+  invite accepted in a match, a guest restarted coming back), then S4. The steps meant for S3's wait
+  were done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
   packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
   recommended), on Windows and then on the Linux machine's Ryzen 3 and integrated Renoir
   graphics, `sysreq.ts` running on both: 56–59 fps at full screen, two slow cores enough, the

@@ -3,6 +3,7 @@
 // through the game page's `window.bollfortHost` — the Steam build has no control window.
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import { chromium, type Browser, type Page } from 'playwright';
@@ -149,15 +150,20 @@ export async function scenarioStart(
       timeout: 30_000,
       stdio: 'ignore',
     });
-    let handed: string[] = [];
-    for (let i = 0; i < 20 && !handed.includes(lobby); i++) {
-      handed = [...handed, ...((await host<string[]>(page, 'lobbies')) ?? [])];
-      if (!handed.includes(lobby)) await sleep(250);
+    // The page takes a handed lobby at once and tries to join it (S3's `startSteamJoins`), so
+    // the queue behind `lobbies` is empty by the time the bench could read it (2026-11-09): the
+    // build's own log says whether the lobby arrived — a join of this made-up ID, failed.
+    const startLog = path.join(os.homedir(), '.config', 'Bollfort', 'start.log');
+    let handed = '';
+    for (let i = 0; i < 40 && handed === ''; i++) {
+      const lines = fs.existsSync(startLog) ? fs.readFileSync(startLog, 'utf8').split('\n') : [];
+      handed = lines.find((l) => l.includes(`lobby ${lobby}`))?.trim() ?? '';
+      if (handed === '') await sleep(250);
     }
     check(
       'a second start hands its lobby over and quits',
-      second.status === 0 && handed.includes(lobby),
-      `exit ${second.status}, handed ${JSON.stringify(handed)}`,
+      second.status === 0 && handed !== '',
+      `exit ${second.status}, ${handed === '' ? 'no join of the lobby logged' : handed}`,
     );
     await within(page.screenshot({ path: '/dev/null' }), 5000, undefined);
   } finally {

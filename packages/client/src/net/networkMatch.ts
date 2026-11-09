@@ -9,7 +9,6 @@ import {
   type Action,
   type MatchEvent,
   type MatchState,
-  type Rejection,
 } from '@bollfort/sim';
 
 import type { ServerConnection } from './connection.js';
@@ -55,7 +54,6 @@ export class NetworkMatch {
    * drew from the old one is to be drawn again (`takeResynced`).
    */
   private replaced = false;
-  lastRejection: Rejection | null = null;
   /** Who paused the match, as the server last said; null while it runs. */
   pausedBy: number | null = null;
 
@@ -134,7 +132,8 @@ export class NetworkMatch {
       }
 
       case 'rejected':
-        this.lastRejection = message.reason as Rejection;
+        // Not shown: the corner line it once filled went unread, and the shake and the
+        // cannon count say what a refused move would (the user's, 2026-11-09).
         return;
 
       case 'paused':

@@ -141,9 +141,14 @@ export class App implements AppUnderTest {
   /** The app's log, from its file on its machine. */
   lines(): string[] {
     try {
-      return this.machine
-        .sh(`cat '${this.machine.appDir}'/logs/*.log 2>/dev/null || true`)
-        .split('\n');
+      return (
+        this.machine
+          .sh(`cat '${this.machine.appDir}'/logs/*.log 2>/dev/null || true`)
+          .split('\n')
+          // The newline ending the file is no line: counted, it made the next line written skipped
+          // by a `from` taken before it (the outage's "answers again", 2026-11-09).
+          .filter((l) => l !== '')
+      );
     } catch {
       return [];
     }

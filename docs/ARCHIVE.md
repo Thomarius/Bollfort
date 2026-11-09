@@ -11706,3 +11706,60 @@ folders as downloads, kept out of the GitHub release.
 twice: straight into fullscreen, the overlay on Shift+Tab, the button, Quit, the notice without
 Steam. Left for our App ID: a closed game started by an invite, `RestartAppIfNecessary`, the
 Linux runtime container, the Deck.
+
+## 15zs. S3, Steam lobbies, and its first bench run (2026-11-09)
+
+S3 was designed and built on the Windows gaming PC in one day (STEAM.md §7.3, its sections S3.1 to
+S3.5 with what each built): the transport over Steam's P2P and a seat's Steam ID in the room
+(protocol 36), readmitting a seated player by it after an outage or a restart; Steam lobbies with
+the room, the host's Steam code, invites, Find a game from Steam's list, Back to the match;
+avatars through `koffi` on Steam's flat C API, since `steamworks.js` has no friends interface; and
+Steam's language on the first start. Checked there with one account; everything with two waited
+for the Linux machine, where the bench runs (STEAM.md §3.4), and a handoff, `S3_BENCH_RUN.md`, was
+written for it and is retired here.
+
+**The bench on the Linux machine** (this machine as Arnoldex against the VM as arnoldex83), the
+Steam build packaged afresh — the pull had not yet been installed or built. Every scenario passed,
+some 60 minutes for the whole set:
+
+- **start**: the page in 1.7–2.2 s, again without the sandbox as one process, fullscreen, the
+  server on 127.0.0.1 only, a second start handing its lobby over, SIGTERM quitting in 0.5–0.7 s.
+- **join**, **public**, **private**, **code**: seated every time; the host's first answer over P2P
+  3.8–3.9 s in every try of the run (the guest waits 10 s, `OPEN_WAIT_MS`), seated 13–18 s on.
+- **match**, **lag** (+50 and +150 ms round trips, 1% loss), **reversed** (the VM hosting): the end
+  screens alike, no rejoin, no mismatch, no game error, no P2P session failed.
+- **outage**: cuts of 10, 30 and 90 s. The host answered again after 11.6, 60 and 120 s — after
+  the longer two Steam had given the session up and made it again — and the guest's game was in
+  the match after each; the ends alike. The spike could not come back from either long cut.
+- **restart**: the guest's app killed mid-match, started again: Back to the match offered, and in
+  the match 23 s after; the ends alike. The spike could not do this at all.
+- **Avatars** on both end screens: the FFI's first run on Linux, `libsteam_api.so`. arnoldex83's
+  "?" is Steam's own picture for an account without one (the user's).
+
+**Three faults, all the adapter's**, as the handoff expected of an adapter never run:
+
+- The second start's check read the queue of handed lobbies, which the page now empties itself as
+  it joins (`startSteamJoins`): it reads the build's `start.log` for the join instead.
+- Every deploy after the first failed: the VM's `chrome-sandbox` is root's after one, and rsync as
+  the tester could not chgrp it. Removed with sudo before copying.
+- The 10 s cut's "the host answers again" was never seen: the log's lines were split on newlines
+  and the empty string after the last counted as a line, so a `from` taken before the cut skipped
+  the first line written after it — that one. Empty lines are dropped, in the spike's adapter too.
+
+**Two things on the screen, neither Steam's** (both PLAN §11's item 9 since that morning, gone
+from it now):
+
+- **Every bot was AWAY** on the score bar. A bot's seat, made as a match starts, has no connection,
+  and the page marked any seat without one away. Since the AWAY tag (15zc), in every room match
+  with bots; read from `room.ts` rather than tried in a plain room, since the seat is made the same
+  way there. A seat is away now only if a person's (`!isBot`), in the match and the lobby after
+  it, with a test.
+- **"Wrong phase" in the corner all match**: the HUD's bottom-right line showed the server's last
+  refusal of a move and nothing cleared it — here the autopilot's moves, which land after their
+  ghost glides there. The user's decision: **refusals are not shown at all**; nobody reads that
+  corner, and the bad piece's shake and the cannon count say what a refusal would. The line now
+  says only "Watching" for a match watched on this computer; the 25 `rejection.*` texts are gone
+  from the three locales. The server still sends `rejected`, the client ignores it.
+
+Left by hand with two people (STEAM.md S3.5): Steam's friend picker in the overlay, an invite
+accepted during a match, a guest restarted coming back.

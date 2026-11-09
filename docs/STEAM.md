@@ -91,8 +91,10 @@ controller support in five parts (2026-11-04, ARCHIVE 15zm, §8); and S4's mater
 no account — the art, the trailer, the texts, the loops and the icon (2026-11-04 to 2026-11-06,
 ARCHIVE 15zn, 15zo, `STORE_PAGE.md`); S1, the spike, every question answered, and H, the test
 bench (2026-11-07 to 2026-11-09, ARCHIVE 15zq, §3.3, §3.4); no fork (§3.2); S2, the Steam build
-(2026-11-09, ARCHIVE 15zr, §3.5). **Next**: S3, Steam lobbies (§7), its design first, with S1's
-findings (§3.3) in it.
+(2026-11-09, ARCHIVE 15zr, §3.5); S3, Steam lobbies, built and passing every scenario of the
+bench on the Linux machine, outage and restart included (2026-11-09, ARCHIVE 15zs, §7.3).
+**Next**: S3's checks by hand with two people (S3.5): Steam's friend picker in the overlay, an
+invite accepted during a match, a guest restarted coming back; then S4.
 
 ## 3. The Steam build (S1, S2)
 
@@ -701,6 +703,15 @@ drawn again as Steam's "?" gives way) on the lobby's seat cards, the score bar a
 avatar on its card in the packaged build. The score bar's and the end screen's need a second person
 (a table of bots plays locally, without the room): the bench's first run. Rich presence's texts wait
 for our App ID's localisation file (S4).
+
+**The bench passed** (2026-11-09, on the Linux machine against the VM, ARCHIVE 15zs): every
+scenario on the Steam build — start, join, public, private, code, match, lag, outage, reversed and
+restart. The host's first answer 3.8–3.9 s every time (`OPEN_WAIT_MS` 10 s); after the 30 s and
+90 s cuts the host answered again after 60 and 120 s, the session made again, and the guest's game
+in the match each time; a guest killed mid-match offered Back to the match and in it again in
+23 s. Avatars on both end screens, `koffi` on `libsteam_api.so` (arnoldex83 has none: Steam's
+"?"). The faults were the adapter's, three, fixed. Left by hand with two people: the overlay's
+picker, an invite accepted in a match, a guest restarted coming back.
 
 ## 8. Controller support (C)
 

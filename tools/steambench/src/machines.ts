@@ -176,6 +176,9 @@ export class VmMachine implements Machine {
   }
   /** Copies the app under test in; Electron refuses to start unless chrome-sandbox is root's. */
   deploy(appDir: string): void {
+    // The last deploy's chrome-sandbox is root's, and rsync as the tester cannot chgrp or
+    // chmod it, so it failed every copy after the first (2026-11-09): gone before copying.
+    this.sh(`sudo rm -f ${this.appDir}/chrome-sandbox`);
     execFileSync(
       'rsync',
       [

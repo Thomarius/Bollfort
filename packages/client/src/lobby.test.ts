@@ -179,6 +179,13 @@ describe('lobby', () => {
     expect(rows(html)[2]).toContain('>away<');
   });
 
+  it('never marks a bot away, which has no connection of its own', () => {
+    // A bot's seat, made as a match starts, comes back to the lobby after it.
+    const bot = { ...seat(2, 'Bot 3', false), isBot: true };
+    const html = lobbyMarkup(view({ seats: [seat(0, 'Ada'), seat(1, 'Bo'), bot] }));
+    expect(rows(html)[2]).not.toContain('>away<');
+  });
+
   it('offers the code for copying rather than only for reading', () => {
     const html = lobbyMarkup(view({ code: 'QX7K2M' }));
     expect(html).toContain('QX7K2M');

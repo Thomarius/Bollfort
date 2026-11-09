@@ -43,7 +43,7 @@ export interface Session {
   readonly pausedBy: number | null;
   /** Pauses or resumes: at once locally, and for everyone once a server agrees. */
   setPaused(paused: boolean): void;
-  /** Extra line for the HUD: watching, or the last move the server refused. */
+  /** Extra line for the HUD: watching a match on this computer. */
   status(): string;
   /** The connection, for the badge beside Pause; null for a match on this computer. */
   network(): NetworkReading | null;
@@ -223,8 +223,7 @@ export function networkSession(
       return match.pausedBy;
     },
     setPaused: (paused) => match.requestPause(paused),
-    status: () =>
-      match.lastRejection === null ? '' : t(`rejection.${match.lastRejection}` as const),
+    status: () => '',
     network: () => ({
       latencyMs: connection.latencyMs,
       behind: match.behind,
@@ -240,7 +239,11 @@ export function networkSession(
       const now = seats();
       if (now !== seen) {
         seen = now;
-        away = new Set(now.filter((seat) => !seat.connected).map((seat) => seat.playerId));
+        // A bot's seat has no connection and is never away: every bot's card said AWAY
+        // online (the S3 bench, 2026-11-09). A person dropped keeps `isBot` false.
+        away = new Set(
+          now.filter((seat) => !seat.connected && !seat.isBot).map((seat) => seat.playerId),
+        );
       }
       return away;
     },

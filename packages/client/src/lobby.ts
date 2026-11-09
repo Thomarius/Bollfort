@@ -408,7 +408,7 @@ function seatRow(
         ? `<em class="tag you">${t('lobby.tagYou')}</em>`
         : '',
       isHostSeat ? `<em class="tag host">${t('lobby.tagHost')}</em>` : '',
-      seat.connected ? '' : `<em class="tag away">${t('lobby.tagAway')}</em>`,
+      seat.connected || seat.isBot ? '' : `<em class="tag away">${t('lobby.tagAway')}</em>`,
       // Every guest says when they are ready; the host's Start is theirs.
       isHostSeat
         ? ''

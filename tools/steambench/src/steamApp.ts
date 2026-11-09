@@ -205,7 +205,14 @@ export class SteamApp implements AppUnderTest {
 
   lines(): string[] {
     try {
-      return this.machine.sh(`cat ${LOG} 2>/dev/null || true`).split('\n');
+      return (
+        this.machine
+          .sh(`cat ${LOG} 2>/dev/null || true`)
+          .split('\n')
+          // The newline ending the file is no line: counted, it made the next line written skipped
+          // by a `from` taken before it (the outage's "answers again", 2026-11-09).
+          .filter((l) => l !== '')
+      );
     } catch {
       return [];
     }
