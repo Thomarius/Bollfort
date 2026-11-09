@@ -1871,8 +1871,8 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    everywhere (2026-11-03, STEAM.md §9.1). The decisions and the packages are in
    [`STEAM.md`](./STEAM.md): N, R, K and B done (ARCHIVE 15zh–15zj), T and C (15zl, 15zm), and
    S4's material that needs no account — art, trailer, texts, loops, icon (15zn, 15zo,
-   [`STORE_PAGE.md`](./STORE_PAGE.md)). S1, the spike, done with the Steam bench (ARCHIVE 15zq). Open: the fork's decision (STEAM.md
-   §3.2), S2, S3, the rest of S4, and S5.
+   [`STORE_PAGE.md`](./STORE_PAGE.md)). S1, the spike, done with the Steam bench (ARCHIVE 15zq); no fork; S2, the Steam build
+   (ARCHIVE 15zr). Open: S3, next, its design first; the rest of S4, and S5.
 9. **Seen in the Steam bench's matches** (2026-11-09, the user watching; to look into later,
    neither Steam's — both are a room match's, online without Steam too, and probably older):
    - **Every bot marked AWAY ("weg")** on the score bar, the whole match. The page marks a seat

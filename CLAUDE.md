@@ -587,7 +587,11 @@ which a test session needs the server rebuilt and every page reloaded for):
   `bollfort-guest`, with a second account, arnoldex83, the network shaped by `tc`): matches over
   P2P clean, also under delay and loss; a guest cut off or restarted cannot get back in, which
   S3 must solve (§3.3); a guest's invite seats a third account (Q4). **S1 is done** (ARCHIVE
-  15zq); next the fork's decision (STEAM.md §3.2), then S2. The steps meant for its wait
+  15zq); no fork of `steamworks.js` (§3.2). **S2, the Steam build, is done** (ARCHIVE 15zr,
+  §3.5): `BOLLFORT_STEAM=1` builds `steamMain.ts`, packaged to `release/steam/`, checked by the
+  bench's `start`. **Next: S3, Steam lobbies (§7), in a fresh session, its design first** — with
+  S1's findings: the 4 s first contact, a seated player readmitted by Steam ID after an outage or
+  a restart, a refused link closed (§3.3). The steps meant for its wait
   are done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
   packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
   recommended), on Windows and then on the Linux machine's Ryzen 3 and integrated Renoir

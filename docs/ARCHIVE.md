@@ -11670,3 +11670,39 @@ instance since, a second start handing over its `+connect_lobby`.
 
 Two things seen in the bench's matches are a room match's, not Steam's, and wait in PLAN item 9:
 every bot marked AWAY, and the last wrong-phase refusal shown all match.
+
+## 15zr. S2, the Steam build (2026-11-09)
+
+The plan in STEAM.md §3.5, approved the same morning with the user's decisions: fullscreen by
+default, `RestartAppIfNecessary` once the App ID is ours, the Deck in S5 with a Deck owner the
+user knows; and no fork of `steamworks.js` (§3.2), the old P2P being enough.
+
+**Built**: `BOLLFORT_STEAM=1` makes the desktop's `entry.ts` take `steamMain.ts` instead of the
+launcher, so a GitHub build never bundles or loads `steamworks.js` (0.4.0, unpacked beside the
+app in the Steam folder). The start's decisions are a pure function (`steam.ts`, tested). The
+game's window is the first and only one; the page learns of the app through
+`window.bollfortHost` (`gamePreload.ts`, `client/src/host.ts`): Steam's state, the lobbies an
+invite asked for (for S3), the window's fullscreen and Quit. Packaging with the flag writes
+`release/steam/<os>-unpacked` and refuses any `steam_appid.txt`; the release workflow builds both
+folders as downloads, kept out of the GitHub release.
+
+**Found on the way**, each by a test rather than a guess:
+
+- The sandbox switch set from inside the app came too late on Linux: Chromium's helper processes
+  were already sandboxed and the page's crashed on /dev/shm. The app starts itself again with
+  `--no-sandbox`, the single-instance lock taken first so a second start hands over at once — the
+  bench's second start had otherwise handed over only after the restart.
+- The bench's start without Steam failed at 90 s, though the app is up in 1.1 s without Steam
+  (`steamworks.init` fails in 20–30 ms): the bench's stop had given up after 10 s, the first
+  instance still held the lock, and the new start handed over to it. The cause, SIGTERM leaving
+  the app running past 30 s — as Steam stops games on Linux — is fixed (0.4 s); `start.log`, added
+  to find it, stays for players. An earlier "61 s" was a mismeasurement: the server had moved to
+  the next port while a dying instance held 8080.
+- On Windows the user found the Full screen button a click behind: the window does not yet say it
+  is fullscreen as the page first asks. The app answers with the state it set. And the user asked
+  for Quit in the menu, which the Deck needs.
+
+**Tested**: on Linux by the bench's `start`, every check (STEAM.md §3.5); on Windows by the user,
+twice: straight into fullscreen, the overlay on Shift+Tab, the button, Quit, the notice without
+Steam. Left for our App ID: a closed game started by an invite, `RestartAppIfNecessary`, the
+Linux runtime container, the Deck.

@@ -90,8 +90,9 @@ ends, the fake network and whole matches over it (2026-11-04, ARCHIVE 15zl, §7.
 controller support in five parts (2026-11-04, ARCHIVE 15zm, §8); and S4's material that needs
 no account — the art, the trailer, the texts, the loops and the icon (2026-11-04 to 2026-11-06,
 ARCHIVE 15zn, 15zo, `STORE_PAGE.md`); S1, the spike, every question answered, and H, the test
-bench (2026-11-07 to 2026-11-09, ARCHIVE 15zq, §3.3, §3.4). **Next**: the fork's decision
-(§3.2), then S2.
+bench (2026-11-07 to 2026-11-09, ARCHIVE 15zq, §3.3, §3.4); no fork (§3.2); S2, the Steam build
+(2026-11-09, ARCHIVE 15zr, §3.5). **Next**: S3, Steam lobbies (§7), its design first, with S1's
+findings (§3.3) in it.
 
 ## 3. The Steam build (S1, S2)
 
@@ -317,7 +318,7 @@ desktop left alone.
 it is the bench's only target until then, and the reference to compare S3 against. Then the
 branch is deleted.
 
-### 3.5 S2, the Steam build — the plan (approved 2026-11-09)
+### 3.5 S2, the Steam build (done 2026-11-09)
 
 **The aim**: a Steam build of the desktop app that starts straight into the game under Steam.
 Lobbies, invites, names and avatars stay S3's (§7). Built and tested on App ID 480; the App ID
@@ -392,6 +393,25 @@ becomes ours once the fee is paid (S4). Some two to three sessions, S2.2 and S2.
 **Not testable on 480**, so left for our App ID, after the fee and before the testers' beta:
 a closed game started by an invite, `RestartAppIfNecessary`, the Linux runtime container, and the
 Deck.
+
+**Built and tested** (2026-11-09, ARCHIVE 15zr). On Linux by the bench's `start` scenario, every
+check passing: the page up in 1.1–1.5 s, one window, fullscreen, Steam ready, the server on
+127.0.0.1 only, a second start handing its lobby over, SIGTERM ending it in 0.4 s, and with
+Steam shut down local play and the menu's notice. On Windows by the user: straight into the game
+fullscreen, the overlay on Shift+Tab, the Full screen button, the menu's new **Quit**, and the
+notice without Steam. What the plan did not foresee:
+
+- **Linux's sandbox is switched off by the command line only**: set from inside, it comes after
+  Chromium's helper processes started, and the page's crashed. The app starts itself again with
+  `--no-sandbox` (about a second); **from S4, Steamworks' launch options pass it** (ours to set,
+  not the player's), which saves that.
+- **SIGTERM, as Steam stops a game on Linux, left the app running** past 30 s; it now ends as a
+  closed window does.
+- **On Windows the window is not yet fullscreen as the page first asks**: the app answers with the
+  state it set, or the button runs a click behind.
+- **`start.log`** in the app's data folder holds the start's steps with their times — what a
+  player can send when the game does not come up.
+- **Quit** in the menu of the desktop app (the user's): the Deck has no window to close.
 
 ## 4. The games browser (B)
 
