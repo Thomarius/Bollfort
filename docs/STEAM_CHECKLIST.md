@@ -7,8 +7,9 @@ the build's commit. The first part is the spike's (S1, STEAM.md §3.3), run once
 
 ## 0. The spike (S1, once)
 
-Its code is on the `s1-steam-spike` branch (`spike/steam/`); the evening's steps are in
-`docs/STEAM_SPIKE_TEST.md`. Each answer goes into STEAM.md §3.3. Everything one account can show
+Its code was on the branch `s1-steam-spike` (`spike/steam/`), its steps by hand in its
+`spike/steam/README.md`; the branch was deleted once S3 passed the bench (2026-11-09, its last
+commit `185c2ae02705`), with the steps' copies on `main`. Each answer went into STEAM.md §3.3. Everything one account can show
 was checked by `spike/steam/auto.mjs` on both machines (Windows and Linux, 2026-11-07, all
 passed), so only the tests by hand are left:
 
@@ -16,7 +17,7 @@ passed), so only the tests by hand are left:
       `--no-sandbox` alone as its launch options (2026-11-07): **it does not draw** on the Linux
       desktop (STEAM.md §3.3). Where the Linux machine invites, try the spike's invite button
       (a dialog may open in Steam's own window) and else Steam's friends list (right-click a
-      friend → Invite to game); STEAM_SPIKE_TEST.md says so at each step.
+      friend → Invite to game); the spike's README says so at each step.
 - [ ] **The overlay on a Steam Deck** in Game Mode, if one is at hand: Shift+Tab's equivalent
       (the Steam button) and the invite dialog over the game.
 - [ ] **The old P2P carries a match**: eight seats, people and bots, a whole match with no hash

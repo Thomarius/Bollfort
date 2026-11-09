@@ -40,6 +40,8 @@ jobs:
       - run: npm ci
       # Every sound shipped must be credited, as its licence asks (CREDITS.md).
       - run: npx vitest run packages/config/src/audioFiles.test.ts
+      # And every npm package shipped has its licence beside the app (THIRD_PARTY_LICENSES.md).
+      - run: npx vitest run tools/licences
       - run: npm run build
       # A tag is v1.2.3; the files want 1.2.3.
       - name: Package
@@ -88,4 +90,4 @@ jobs:
           gh release create "${{ github.ref_name }}" files/* \
             --repo "${{ github.repository }}" \
             --title "Bollfort ${{ github.ref_name }}" \
-            --notes "Portable builds of Bollfort ${{ github.ref_name }}: the .exe for Windows 11, the .AppImage for Linux (mark it executable first). Unsigned, so Windows warns of an unknown publisher on first start. An unofficial fan game inspired by Rampart (Atari Games, 1990), not affiliated with or endorsed by Warner Bros. Entertainment, which owns the Rampart trademark; see CREDITS.md for the audio's authors and licences."
+            --notes "Portable builds of Bollfort ${{ github.ref_name }}: the .exe for Windows 11, the .AppImage for Linux (mark it executable first). Unsigned, so Windows warns of an unknown publisher on first start. An unofficial fan game inspired by Rampart (Atari Games, 1990), not affiliated with or endorsed by Warner Bros. Entertainment, which owns the Rampart trademark; see CREDITS.md for the audio's authors and licences, and THIRD_PARTY_LICENSES.md, beside the app, for the open-source packages it uses."

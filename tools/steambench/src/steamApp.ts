@@ -1,6 +1,6 @@
-// S3's Steam build as the app under test (STEAM.md §7.3, S3.5), in the spike's shape (`App`),
-// so the scenarios run on it unchanged. It has no control window: it is driven through its game
-// page — `window.bollfortHost` and the page's own buttons — and read from its `start.log`.
+// S3's Steam build as the app under test (STEAM.md §7.3, S3.5), in the shape the scenarios were
+// written for with the S1 spike (`AppUnderTest`). It has no control window: it is driven through
+// its game page — `window.bollfortHost` and the page's own buttons — and read from its `start.log`.
 import { chromium, type Browser, type Page } from 'playwright';
 
 import { within, type AppState, type AppUnderTest } from './app.js';

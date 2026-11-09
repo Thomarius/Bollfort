@@ -1,5 +1,5 @@
 #cloud-config
-# The second Steam account's machine for the spike's automated tests: Xfce logged in on its own,
+# The second Steam account's machine for the Steam bench (STEAM.md 3.4): Xfce logged in on its own,
 # Steam started with the desktop, reachable over SSH with the key beside this file only.
 hostname: bollfort-guest
 users:

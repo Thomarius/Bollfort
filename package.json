@@ -24,6 +24,7 @@
     "format:check": "prettier --check .",
     "soak": "tsx tools/headless/src/soak.ts",
     "credits": "tsx packages/config/src/writeCredits.ts",
+    "licences": "tsx tools/licences/src/write.ts",
     "check": "tsx tools/check.ts"
   },
   "devDependencies": {

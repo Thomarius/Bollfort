@@ -18,11 +18,15 @@ title where known, author, licence, source, changes), or by its folder's credit 
 ending in `/`, which is how the sound effects, all CC0, are one line (`sfx/`). `npm run
 credits` writes `CREDITS.md` from it, and a test fails when that file is stale or any file
 is uncredited. Every sound is from OpenGameArt.org, but three music tracks and the styles' 21 from
-Pixabay (Pixabay Content License, credited to their authors as they ask).
+Pixabay (Pixabay Content License, credited to their authors as they ask). **Every npm package a
+build ships has its licence** in `THIRD_PARTY_LICENSES.md`, written by `npm run licences`
+(`tools/licences`) from what the builds actually bundle and carried beside the desktop app; a
+test fails when it is stale, so run it after adding or updating a dependency.
 
 **`docs/PLAN.md` is the design and the open work** — read it before changing rules,
-terrain or bots; a design of its own (`docs/SPECIAL_TOWERS.md`) lives
-beside it until built, then is retired into the ARCHIVE. **`docs/ARCHIVE.md`** records how each decision
+terrain or bots; a design of its own lives beside it until built, then is retired into the
+ARCHIVE — except **`docs/SPECIAL_TOWERS.md`**, finished but kept as the towers' reference (the
+user's, 2026-11-09): their rules, costs and balance, which the code cites by section. **`docs/ARCHIVE.md`** records how each decision
 was reached, with the measurements and the reverted attempts; consult it before re-trying
 something. This file is the orientation.
 
@@ -33,6 +37,7 @@ npm install
 npm start                           # build, then serve the game at http://localhost:8080
 npm run check                       # format, lint, typecheck, test — must pass before committing
 npm run credits                     # CREDITS.md, from the audio manifest's credits
+npm run licences                    # THIRD_PARTY_LICENSES.md, from what the builds bundle
 npm run soak                        # the weekend soak again (ARCHIVE 12h), resumable; --list, --trial, --summary
 npm run build                       # client + server bundles, both needed by the image
 npm run dev   -w @bollfort/client   # play offline at http://localhost:5173
@@ -185,7 +190,7 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-11-06; the latest release **v0.9.32**, 2026-11-03, protocol 35, recording format 4,
+**Done** (2026-11-09; the latest release **v0.9.33**, 2026-11-09, protocol 36, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
 
 - **The store page's material, the app's icon** (ARCHIVE 15zo, 2026-11-06, STEAM.md S4, made on the
@@ -406,7 +411,7 @@ which a test session needs the server rebuilt and every page reloaded for):
   choice (ARCHIVE 14j); the generic cannon kept behind `art.cannonIcons: "generic"`, to switch
   back to; `?icons=sheet` shows every style's.
 
-- **Special towers** (2026-10-14 to 2026-10-16, ARCHIVE 13zk–13zo, the design and what is open in
+- **Special towers** (2026-10-14 to 2026-10-16, ARCHIVE 13zk–13zo, the towers' reference
   `docs/SPECIAL_TOWERS.md`): Big Bertha, the Architect, the Rapid Cannon and (2026-10-17, ARCHIVE
   13zs, v0.9.8) the Lightning Tower — a strike on the instant that
   jumps from wall to wall, its chance from the seed — and (2026-10-17, ARCHIVE 13zz) the
@@ -578,8 +583,8 @@ which a test session needs the server rebuilt and every page reloaded for):
   both ends with a fake network and whole matches over it (ARCHIVE 15zl); and C, native controller
   support — the match, the menus, the bindings, glyphs, the Deck's screen and an on-screen keyboard
   (ARCHIVE 15zm, played by the user with a real pad); S4's material that needs no account
-  (ARCHIVE 15zn, 15zo). **S1, the spike on App ID 480**: its code on the `s1-steam-spike`
-  branch, to be run by the user on two machines with two accounts; what one account can show is
+  (ARCHIVE 15zn, 15zo). **S1, the spike on App ID 480**: its code was on the branch `s1-steam-spike`
+  (deleted 2026-11-09, its last commit `185c2ae02705`), run by the user on two machines with two accounts; what one account can show is
   checked by its `auto.mjs`, passed on Windows and Linux (2026-11-07, STEAM.md §3.3: the overlay
   draws in the first window made on Windows, not at all on the Linux desktop; under Steam on Linux
   the app must start without Chromium's sandbox). The two-account part run 2026-11-08 and 09, by

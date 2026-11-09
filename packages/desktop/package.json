@@ -26,7 +26,15 @@
     "files": [
       "dist/**/*",
       "ui/**/*",
-      "package.json"
+      "package.json",
+      "!**/node_modules/@types/**",
+      "!**/node_modules/undici-types/**"
+    ],
+    "extraFiles": [
+      {
+        "from": "../../THIRD_PARTY_LICENSES.md",
+        "to": "THIRD_PARTY_LICENSES.md"
+      }
     ],
     "extraResources": [
       {

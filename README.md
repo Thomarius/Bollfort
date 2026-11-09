@@ -236,4 +236,6 @@ The code is MIT. The audio is under its authors' own open licences, listed in
 `npm run credits` — a release cannot be built while any sound is uncredited. The menus' typefaces,
 [Inter](https://github.com/rsms/inter) and [Rubik](https://github.com/googlefonts/rubik), are
 under the SIL Open Font License 1.1, its text beside them in `assets/fonts/` and named in the
-game's Credits.
+game's Credits. The open-source packages the builds carry are listed with their licences in
+[`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md), which the desktop app has beside it, made
+from what the builds bundle by `npm run licences`; a test fails when it is stale.

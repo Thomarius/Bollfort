@@ -11763,3 +11763,47 @@ from it now):
 
 Left by hand with two people (STEAM.md S3.5): Steam's friend picker in the overlay, an invite
 accepted during a match, a guest restarted coming back.
+
+## 15zt. The spike retired, and the third-party licences (2026-11-09)
+
+**The spike's leftovers removed**, the Steam build having passed every scenario it failed (15zs):
+the bench's target for it (`--target spike`) and its adapter (`App`, driven through the spike's
+control window), its build here and its folder in the VM, and its test's steps on `main`,
+`STEAM_SPIKE_TEST.md` and its German — the branch's own README keeps them. And the branch
+`s1-steam-spike`, as STEAM.md §3.4 had planned once S3 passed (the user's), its last commit
+`185c2ae02705`; what it found is in 15zq and STEAM.md §3.3. The other documents were looked through: each
+still serves (the store page's and the trailer's for S4, the checklist for S5); `SPECIAL_TOWERS.md`, finished since 15t, stays
+as the towers' reference, which the code cites by section (the user's), not retired as a finished
+design otherwise is.
+
+**The third-party licences** (STEAM.md §9.2's open point for S4): `npm run licences`
+(`tools/licences`) writes `THIRD_PARTY_LICENSES.md`, a table of every npm package a build ships
+— version, licence, which builds — then each licence's text whole. The desktop app carries it
+beside Electron's own two files (`extraFiles`); a test bundles the builds afresh and fails when
+the file is stale (some seconds).
+
+- **Taken from what the builds bundle, not from the lockfile**: the client through Vite with a
+  plugin reading the module IDs (its bots' worker and the styles' modules included), the desktop
+  app's processes, windows and the server through esbuild's metafile, as `build.js` makes them,
+  both builds' defines; and the Steam build's unpacked native modules by name. The lockfile's
+  production tree of the three shipped packages held 75 packages, the desktop bundle 20: koffi's
+  binaries for twenty systems, type packages, and the parts of libp2p that tree-shaking drops.
+  34 packages ship: Pixi and its parts and the fonts in the page; the UPnP library, `ws` and zod
+  in the app; steamworks.js and koffi in the Steam build.
+- **Nine published no licence text**, or only a line saying they are dual licensed: koffi's
+  per-system binaries take koffi's file; for Pixi's fork of colord, the four achingbrain
+  packages, `@libp2p/logger`, `freeport-promise` and `multiformats` the MIT text was fetched from
+  each repository (the dual ones, Apache-2.0 OR MIT, taken under MIT), kept in
+  `tools/licences/texts/`; `err-code` has none anywhere, its README naming MIT, so the MIT text
+  with its author as holder.
+- **Not packaged any more**: `@types/node` and `undici-types`, which the Steam build carried as
+  steamworks.js's dependency, types only; steamworks.js and koffi still load without them.
+- **The store page's legal notice**, a line in English and German (STORE_PAGE.md §4.3): the
+  copyright, the open-source licences named and where the list is, the audio credited, Valve's
+  trademarks. Not covered by the list, noted for S4: the crates compiled into steamworks.js's
+  native module (Rust, under their own licences), which its package does not list.
+
+**Released as v0.9.33** (2026-11-09), the first since v0.9.32 a week before: protocol 36, S3's
+Steam lobbies in the Steam build (the release run's downloads, never the GitHub release), the
+licences beside the app, and since v0.9.32 the controller support, the store's art and the
+fixes of 15zs. The release workflow checks the licences list as it checks the credits.

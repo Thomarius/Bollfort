@@ -290,8 +290,16 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
   Claude Code, with which the code was written, is a development tool, not AI content in the game
   or its marketing. Valve's 2024 wording named code among "pre-generated" content; the form's
   present wording decides.
-- **The legal notice**, if the form has one: © 2026 Thomas Arnold; audio credited in the game.
-  No Rampart (§1).
+- **The legal notice**, if the form has one (2026-11-09; no Rampart, §1):
+
+  > © 2026 Thomas Arnold. Uses open-source software under its own licences, listed in
+  > THIRD_PARTY_LICENSES.md in the game's folder; music and sounds by their authors, credited in
+  > the game. Steam and the Steam logo are trademarks of Valve Corporation.
+
+  Its German: _© 2026 Thomas Arnold. Verwendet Open-Source-Software unter deren eigenen Lizenzen,
+  aufgeführt in THIRD_PARTY_LICENSES.md im Ordner des Spiels; Musik und Geräusche von ihren
+  Urhebern, genannt im Spiel. Steam und das Steam-Logo sind Marken der Valve Corporation._ The
+  list itself is in the app (§4.3's depots), not on the page: the field is for a line.
 
 ## 5. Still open
 

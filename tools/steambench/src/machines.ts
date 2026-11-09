@@ -10,23 +10,16 @@ export const VM_NAME = 'bollfort-guest';
 /** The VM's state folder: its SSH key and known hosts (`vm/create.sh`), never the repository. */
 export const VM_DIR = process.env['STEAMBENCH_VM_DIR'] ?? path.join(os.homedir(), 'vm', VM_NAME);
 /**
- * What the bench runs: the S1 spike, or S3's Steam build (STEAM.md §7.3) — its program, the
- * ports its server takes, and where it lives on the VM.
+ * What the bench runs: S3's Steam build (STEAM.md §7.3) — its program, the ports its server
+ * takes, and where it lives on the VM. The S1 spike was the other, until 2026-11-09.
  */
 export interface Target {
-  readonly name: 'spike' | 'steam';
+  readonly name: string;
   readonly exe: string;
   /** Its server's ports, waited free after a stop. */
   readonly ports: readonly number[];
   readonly vmAppDir: string;
 }
-
-export const SPIKE: Target = {
-  name: 'spike',
-  exe: 'bollfort-steam-spike',
-  ports: [8090, 8091],
-  vmAppDir: '/home/tester/spike',
-};
 
 /** The Steam build's server tries the config's port upward; one app a machine takes the first. */
 export const STEAM_BUILD: Target = {
@@ -105,7 +98,7 @@ export class LocalMachine implements Machine {
   readonly cdpPort = 9223;
   constructor(
     readonly appDir: string,
-    readonly target: Target = SPIKE,
+    readonly target: Target = STEAM_BUILD,
   ) {}
 
   sh(command: string, timeoutMs = 20_000): string {
@@ -145,7 +138,7 @@ export class VmMachine implements Machine {
   readonly appDir: string;
   private readonly ip = vmAddress();
 
-  constructor(readonly target: Target = SPIKE) {
+  constructor(readonly target: Target = STEAM_BUILD) {
     this.appDir = target.vmAppDir;
   }
   private tunnel: ChildProcess | null = null;
@@ -210,7 +203,7 @@ export class VmMachine implements Machine {
     );
   }
   async stop(): Promise<void> {
-    // Electron shows its path whole (`/home/tester/spike/…`); the bracket keeps the pattern
+    // Electron shows its path whole (`/home/tester/bollfort/…`); the bracket keeps the pattern
     // from matching the shell that runs it.
     const exe = this.target.exe;
     this.sh(`pkill -f '${this.appDir}/[${exe.slice(0, 1)}]${exe.slice(1)}' ; true`);

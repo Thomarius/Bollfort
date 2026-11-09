@@ -4,3 +4,5 @@ release
 coverage
 *.tsbuildinfo
 .claude/
+# Written by `npm run licences`, the licences' texts verbatim.
+THIRD_PARTY_LICENSES.md

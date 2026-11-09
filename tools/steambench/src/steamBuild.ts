@@ -1,6 +1,6 @@
 // The bench's `start` scenario (STEAM.md §3.5, S2.4): the packaged Steam build on this machine,
-// started as Steam would start it, its start-up checked. Driven over CDP as the spike is, but
-// through the game page's `window.bollfortHost` — the Steam build has no control window.
+// started as Steam would start it, its start-up checked. Driven over CDP as the bench's other
+// scenarios are, through the game page's `window.bollfortHost` — the Steam build has no control window.
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
