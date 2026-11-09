@@ -28,12 +28,27 @@ export interface AppState {
   initError: string | null;
 }
 
+/** The app under test as the scenarios drive it: the spike's `App`, or the build's `SteamApp`. */
+export interface AppUnderTest {
+  readonly machine: Machine;
+  readonly label: string;
+  start(args: readonly string[]): Promise<void>;
+  state(ms?: number): Promise<AppState | null>;
+  /** `list` (the public lobbies, `{ id }`) and `join` (a lobby by its ID), as the spike names them. */
+  call(name: string, ...args: unknown[]): Promise<unknown>;
+  host(type: 'friends' | 'public' | 'private'): Promise<string>;
+  game(ms?: number): Promise<Page | null>;
+  lines(): string[];
+  waitLog(re: RegExp, ms: number, from?: number): Promise<RegExpMatchArray | null>;
+  stop(): Promise<void>;
+}
+
 /** A promise given up after `ms`: a page across a cut network never answers. */
 export function within<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
   return Promise.race([promise.catch(() => fallback), sleep(ms).then(() => fallback)]);
 }
 
-export class App {
+export class App implements AppUnderTest {
   private browser: Browser | null = null;
   private control: Page | null = null;
 

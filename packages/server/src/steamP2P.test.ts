@@ -227,3 +227,18 @@ describe('asking a host where its game is', () => {
     }
   });
 });
+
+describe('a ping', () => {
+  it('is answered by every host a link is open to, its round trip told', () => {
+    const w = wire();
+    const heard: string[] = [];
+    w.guest.onPong = (host, ms) => heard.push(`${host} ${ms >= 0}`);
+    w.guest.ping(Date.now());
+    expect(heard).toEqual([]);
+    w.guest.dial(HOST, events().e);
+    w.guest.dial(HOST, events().e);
+    w.guest.ping(Date.now());
+    expect(heard).toEqual([`${HOST} true`]);
+    expect(w.guest.dialled).toBe(2);
+  });
+});

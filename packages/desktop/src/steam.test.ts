@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { connectLobby, savedFullscreen, serverPorts, startPlan, SPACEWAR } from './steam.js';
+import {
+  connectLobby,
+  pageQuery,
+  savedFullscreen,
+  serverPorts,
+  startPlan,
+  SPACEWAR,
+} from './steam.js';
 
 describe('the Steam build starting', () => {
   it('goes without the sandbox on Linux only', () => {
@@ -38,5 +45,13 @@ describe('the Steam build starting', () => {
   it("tries the config's port and those above it", () => {
     expect(serverPorts(8080, 3)).toEqual([8080, 8081, 8082]);
     expect(serverPorts(65534, 5)).toEqual([65534, 65535]);
+  });
+});
+
+describe('the page’s query', () => {
+  it('is what --game-params gives, plain parameters only', () => {
+    expect(pageQuery(['bollfort', '--game-params', 'autopilot=1'])).toBe('?autopilot=1');
+    expect(pageQuery(['bollfort'])).toBe('');
+    expect(pageQuery(['bollfort', '--game-params', 'x=<script>'])).toBe('');
   });
 });

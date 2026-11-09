@@ -297,6 +297,7 @@ spike passes it on to the game's address. The spike's branch takes main's client
 | outage   | in a match, the guest cut for 10 s, then 30 s, then 90 s: recovered, caught up, or lost    |
 | reversed | `match` with the VM hosting                                                                |
 | restart  | the guest's app killed in a match and started again with `+connect_lobby`: back in or not  |
+| code     | the Steam build's alone (S3): the guest types the host's code into the menu, twice         |
 
 **What a run counts**: the time to Steam's first answer and to the seat; round trip (mean,
 highest), the host's silences, send failures, largest packet; sockets opened in a match (a
@@ -315,8 +316,18 @@ needs Steam, the VM and the desktop). `npx tsx tools/steambench/src/bench.ts [sc
 desktop left alone.
 
 **The spike** stays on its branch, frozen but kept, until S3's build passes the same scenarios:
-it is the bench's only target until then, and the reference to compare S3 against. Then the
-branch is deleted.
+the reference to compare S3 against. Then the branch is deleted.
+
+**The Steam build as the target** (2026-11-09, S3.5): `--target steam`, the default now, runs
+the scenarios on `packages/desktop/release/steam/linux-unpacked` (`SteamApp`, `steamApp.ts`, in
+the spike's `App`'s shape): driven through its game page — `window.bollfortHost` and the page's
+own buttons, Play with the lobby's type, Join with a code, Back to the match — and read from its
+`start.log`, whose lines say what the spike's did (`the host answered over Steam after …`,
+`joined lobby …`, `the host answers again, after …`, `game error: …`); `--game-params
+autopilot=1` reaches its page; its stats carry the lobby, the round trip (pings every 2 s) and the
+links dialled, past the first a rejoin. Under it **restart** comes back by Back to the match, and
+must: the spike could not. `--target spike` runs the spike as before. Not yet run: the bench
+needs the Linux machine and its VM.
 
 ### 3.5 S2, the Steam build (done 2026-11-09)
 

@@ -9,9 +9,32 @@ import path from 'node:path';
 export const VM_NAME = 'bollfort-guest';
 /** The VM's state folder: its SSH key and known hosts (`vm/create.sh`), never the repository. */
 export const VM_DIR = process.env['STEAMBENCH_VM_DIR'] ?? path.join(os.homedir(), 'vm', VM_NAME);
-/** Where the app under test lives on the VM. */
-const VM_APP_DIR = '/home/tester/spike';
-const EXE = 'bollfort-steam-spike';
+/**
+ * What the bench runs: the S1 spike, or S3's Steam build (STEAM.md §7.3) — its program, the
+ * ports its server takes, and where it lives on the VM.
+ */
+export interface Target {
+  readonly name: 'spike' | 'steam';
+  readonly exe: string;
+  /** Its server's ports, waited free after a stop. */
+  readonly ports: readonly number[];
+  readonly vmAppDir: string;
+}
+
+export const SPIKE: Target = {
+  name: 'spike',
+  exe: 'bollfort-steam-spike',
+  ports: [8090, 8091],
+  vmAppDir: '/home/tester/spike',
+};
+
+/** The Steam build's server tries the config's port upward; one app a machine takes the first. */
+export const STEAM_BUILD: Target = {
+  name: 'steam',
+  exe: 'bollfort',
+  ports: [8080, 8081],
+  vmAppDir: '/home/tester/bollfort',
+};
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -69,31 +92,33 @@ function cpuOf(stat: string): { idle: number; total: number } {
 }
 
 /** The start command: no sandbox, as the Steam build on Linux (STEAM.md 3.1), DevTools on. */
-function startCommand(dir: string, port: number, args: readonly string[]): string {
+function startCommand(exe: string, dir: string, port: number, args: readonly string[]): string {
   const quoted = args.map((a) => `'${a.replace(/'/g, `'\\''`)}'`).join(' ');
   return (
-    `cd '${dir}' && rm -rf logs && DISPLAY=\${DISPLAY:-:0} setsid -f ./${EXE} --no-sandbox ` +
+    `cd '${dir}' && rm -rf logs && DISPLAY=\${DISPLAY:-:0} setsid -f ./${exe} --no-sandbox ` +
     `--remote-debugging-port=${port} ${quoted} > run.log 2>&1 < /dev/null`
   );
 }
 
-const PORTS = [8090, 8091];
-
 export class LocalMachine implements Machine {
   readonly where = 'local';
   readonly cdpPort = 9223;
-  constructor(readonly appDir: string) {}
+  constructor(
+    readonly appDir: string,
+    readonly target: Target = SPIKE,
+  ) {}
 
   sh(command: string, timeoutMs = 20_000): string {
     return execFileSync('sh', ['-c', command], { encoding: 'utf8', timeout: timeoutMs });
   }
   start(args: readonly string[]): void {
-    this.sh(startCommand(this.appDir, this.cdpPort, args));
+    this.sh(startCommand(this.target.exe, this.appDir, this.cdpPort, args));
   }
   async stop(): Promise<void> {
     // pkill without a shell, so its pattern cannot match the command that runs it; it fails
     // when nothing matches.
-    for (const pattern of [path.join(this.appDir, EXE), `./${EXE} --no-sandbox`])
+    const exe = this.target.exe;
+    for (const pattern of [path.join(this.appDir, exe), `./${exe} --no-sandbox`])
       try {
         execFileSync('pkill', ['-f', pattern]);
       } catch {
@@ -101,7 +126,7 @@ export class LocalMachine implements Machine {
       }
     for (let i = 0; i < 30; i++) {
       const busy = this.sh(
-        `ss -ltnH '( sport = :${PORTS.join(' or sport = :')} or sport = :${this.cdpPort} )'`,
+        `ss -ltnH '( sport = :${this.target.ports.join(' or sport = :')} or sport = :${this.cdpPort} )'`,
       );
       if (busy.trim() === '') return;
       await sleep(1000);
@@ -117,8 +142,12 @@ export class LocalMachine implements Machine {
 export class VmMachine implements Machine {
   readonly where = 'vm';
   readonly cdpPort = 19222;
-  readonly appDir = VM_APP_DIR;
+  readonly appDir: string;
   private readonly ip = vmAddress();
+
+  constructor(readonly target: Target = SPIKE) {
+    this.appDir = target.vmAppDir;
+  }
   private tunnel: ChildProcess | null = null;
 
   private sshArgs(): string[] {
@@ -157,16 +186,16 @@ export class VmMachine implements Machine {
         '-e',
         ['ssh', ...this.sshArgs()].join(' '),
         `${appDir}/`,
-        `tester@${this.ip}:${VM_APP_DIR}/`,
+        `tester@${this.ip}:${this.appDir}/`,
       ],
       { timeout: 300_000 },
     );
     this.sh(
-      `cd ${VM_APP_DIR} && sudo chown root:root chrome-sandbox && sudo chmod 4755 chrome-sandbox`,
+      `cd ${this.appDir} && sudo chown root:root chrome-sandbox && sudo chmod 4755 chrome-sandbox`,
     );
   }
   start(args: readonly string[]): void {
-    this.sh(startCommand(VM_APP_DIR, 9222, args));
+    this.sh(startCommand(this.target.exe, this.appDir, 9222, args));
     this.openTunnel();
   }
   private openTunnel(): void {
@@ -180,9 +209,11 @@ export class VmMachine implements Machine {
   async stop(): Promise<void> {
     // Electron shows its path whole (`/home/tester/spike/…`); the bracket keeps the pattern
     // from matching the shell that runs it.
-    this.sh(`pkill -f '${VM_APP_DIR}/[b]${EXE.slice(1)}' ; true`);
+    const exe = this.target.exe;
+    this.sh(`pkill -f '${this.appDir}/[${exe.slice(0, 1)}]${exe.slice(1)}' ; true`);
+    const ports = [...this.target.ports, 9222];
     for (let i = 0; i < 30; i++) {
-      const busy = this.sh(`ss -ltnH '( sport = :8090 or sport = :8091 or sport = :9222 )'`);
+      const busy = this.sh(`ss -ltnH '( sport = :${ports.join(' or sport = :')} )'`);
       if (busy.trim() === '') return;
       await sleep(1000);
     }

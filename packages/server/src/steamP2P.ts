@@ -33,6 +33,8 @@ export const FRAME = {
   closedByGuest: 3,
   /** Guest to host: where is your game? Its number in place of a link's. */
   ask: 4,
+  /** Guest to host: a ping, its text the guest's to read back. */
+  ping: 5,
   /** Host to guest: the link is open, the server holds it. */
   opened: 11,
   /** Host to guest: a message. */
@@ -41,6 +43,8 @@ export const FRAME = {
   closedByHost: 13,
   /** Host to guest: the answer to an ask, of the same number — the host's `here`, or empty. */
   here: 14,
+  /** Host to guest: a ping's answer, its text the ping's. */
+  pong: 15,
 } as const;
 export type FrameKind = (typeof FRAME)[keyof typeof FRAME];
 
@@ -157,6 +161,9 @@ export class SteamHost {
       case FRAME.ask:
         sendFrame(this.send, from, FRAME.here, frame.link, this.here() ?? '');
         return;
+      case FRAME.ping:
+        sendFrame(this.send, from, FRAME.pong, frame.link, frame.text);
+        return;
       default:
         return;
     }
@@ -257,9 +264,23 @@ export class SteamGuest {
     return this.links.size;
   }
 
+  /** Links ever dialled, for the bench: past the first, each is a rejoin. */
+  dialled = 0;
+
+  /** Told of each pong: the host, and the round trip in milliseconds. */
+  onPong: ((host: string, ms: number) => void) | null = null;
+
+  /** Pings every host this end has a link open to, timed by `now`. */
+  ping(now: number): void {
+    const hosts = new Set<string>();
+    for (const entry of this.links.values()) if (entry.state === 'open') hosts.add(entry.host);
+    for (const host of hosts) sendFrame(this.send, host, FRAME.ping, 0, String(now));
+  }
+
   /** Opens a link to the host with this Steam ID: a `Dial` of the page's, in shape. */
   dial(host: string, events: GuestLinkEvents): GuestLink {
     const link = this.next++ >>> 0;
+    this.dialled++;
     const entry: GuestEntry = { host, events, state: 'opening', queue: [], timer: null };
     this.links.set(link, entry);
     entry.timer = this.timers.setTimeout(() => {
@@ -314,6 +335,11 @@ export class SteamGuest {
   receive(from: string, packet: Uint8Array): void {
     const frame = decodeFrame(packet);
     if (frame === null) return;
+    if (frame.kind === FRAME.pong) {
+      const sent = Number(frame.text);
+      if (Number.isFinite(sent)) this.onPong?.(from, Date.now() - sent);
+      return;
+    }
     if (frame.kind === FRAME.here) {
       const asking = this.asking.get(frame.link);
       if (asking !== undefined && asking.host === from) asking.answer(frame.text || null);

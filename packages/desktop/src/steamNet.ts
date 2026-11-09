@@ -35,7 +35,19 @@ export interface SteamNetStats {
   sessionFailures: number;
   hostLinks: number;
   guestLinks: number;
+  /** Links this app's page has dialled: past the first in a match, each is a rejoin. */
+  guestLinksDialled: number;
+  /** Round trips to the host, from pings every `PING_MS`: the last, the highest, the sum. */
+  rtt: number | null;
+  rttMax: number | null;
+  rttSum: number;
+  rttCount: number;
 }
+
+/** How often a guest pings the hosts it has links to, for the round trip and silences. */
+const PING_MS = 2000;
+/** A host silent longer than this, then answering, is logged as back (the bench's outage). */
+const SILENCE_MS = 5000;
 
 export interface SteamNet {
   readonly guest: SteamGuest;
@@ -58,6 +70,10 @@ export function startSteamNet(
     readPackets: 0,
     readBytes: 0,
     sessionFailures: 0,
+    rtt: null as number | null,
+    rttMax: null as number | null,
+    rttSum: 0,
+    rttCount: 0,
   };
   const send = (to: string, packet: Uint8Array): boolean => {
     let ok = false;
@@ -91,6 +107,22 @@ export function startSteamNet(
     guest.sessionFailed(remote.toString());
   });
 
+  // The round trip to each host, and a host heard again after a silence (the bench's outage).
+  const lastPong = new Map<string, number>();
+  guest.onPong = (from, ms) => {
+    const now = Date.now();
+    const last = lastPong.get(from);
+    // A silence of minutes is a game left and another joined, not an outage.
+    if (last !== undefined && now - last > SILENCE_MS && now - last < 10 * 60_000)
+      log(`the host answers again, after ${((now - last) / 1000).toFixed(1)} s`);
+    lastPong.set(from, now);
+    counts.rtt = ms;
+    counts.rttMax = Math.max(counts.rttMax ?? 0, ms);
+    counts.rttSum += ms;
+    counts.rttCount++;
+  };
+  const pinging = setInterval(() => guest.ping(Date.now()), PING_MS);
+
   const poll = setInterval(() => {
     for (;;) {
       const size = client.networking.isP2PPacketAvailable();
@@ -114,9 +146,15 @@ export function startSteamNet(
 
   return {
     guest,
-    stats: () => ({ ...counts, hostLinks: host.size, guestLinks: guest.size }),
+    stats: () => ({
+      ...counts,
+      hostLinks: host.size,
+      guestLinks: guest.size,
+      guestLinksDialled: guest.dialled,
+    }),
     stop() {
       clearInterval(poll);
+      clearInterval(pinging);
       host.closeAll();
       guest.closeAll();
       request.disconnect();

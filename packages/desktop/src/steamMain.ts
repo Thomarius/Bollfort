@@ -13,6 +13,7 @@ import {
   NO_STEAM,
   STEAM_APP_ID,
   savedFullscreen,
+  pageQuery,
   serverPorts,
   startPlan,
   type SteamInfo,
@@ -209,7 +210,9 @@ async function run(): Promise<void> {
   });
   ipcMain.on('steam-link-send', (_event, id: number, text: string) => links?.send(id, text));
   ipcMain.on('steam-link-close', (_event, id: number) => links?.close(id));
-  ipcMain.handle('host-steam-stats', () => net?.stats() ?? null);
+  ipcMain.handle('host-steam-stats', () =>
+    net === null ? null : { ...net.stats(), lobby: lobby?.id ?? null },
+  );
 
   // The Steam lobby beside the page's room, and finding another's game (S3.3). Each answers
   // as though nothing were there without Steam.
@@ -238,7 +241,13 @@ async function run(): Promise<void> {
   ipcMain.handle('host-lobby-list', () => lobby?.list() ?? []);
   ipcMain.handle('host-find', async (_event, host: unknown) => {
     if (net === null || typeof host !== 'string' || !/^\d{1,20}$/.test(host)) return null;
+    const asked = Date.now();
     const answer = await net.guest.ask(host);
+    log(
+      answer === null
+        ? `the host ${host} did not answer over Steam`
+        : `the host answered over Steam after ${((Date.now() - asked) / 1000).toFixed(1)} s`,
+    );
     try {
       return answer === null ? null : (JSON.parse(answer) as unknown);
     } catch {
@@ -347,10 +356,15 @@ async function run(): Promise<void> {
     quit();
   });
   window.webContents.once('did-finish-load', () => log('game page loaded'));
+  // The page's errors and warnings in the log, for a player to send and the bench to read.
+  window.webContents.on('console-message', (details) => {
+    if (details.level === 'error' || details.level === 'warning')
+      log(`game ${details.level}: ${details.message.slice(0, 300)}`);
+  });
   // A page loaded again has none of its links: close them, the hosts told.
   window.webContents.on('did-start-navigation', (details) => {
     if (details.isMainFrame && !details.isSameDocument) links?.closeAll();
   });
   log('window made');
-  void window.loadURL(`http://127.0.0.1:${server.port}`);
+  void window.loadURL(`http://127.0.0.1:${server.port}/${pageQuery(process.argv)}`);
 }

@@ -81,3 +81,15 @@ export function savedFullscreen(saved: unknown): boolean {
 export function serverPorts(first: number, count = 20): number[] {
   return Array.from({ length: count }, (_, i) => first + i).filter((p) => p <= 65535);
 }
+
+/**
+ * `--game-params a=1&b=2` as the game page's query, or nothing: how the bench has both seats
+ * played by the autopilot (`autopilot=1`, STEAM.md §3.4), as it did the spike's. Only a page's
+ * own parameters, which any browser may set as well.
+ */
+export function pageQuery(argv: readonly string[]): string {
+  const at = argv.indexOf('--game-params');
+  const params = at >= 0 ? argv[at + 1] : undefined;
+  if (params === undefined || !/^[\w=&.,-]{1,200}$/.test(params)) return '';
+  return `?${params}`;
+}

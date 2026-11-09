@@ -78,10 +78,11 @@ export class SteamLobby {
     this.leave();
     try {
       this.current = await this.client.matchmaking.joinLobby(BigInt(lobby));
-      this.log(`lobby ${lobby} joined`);
+      // In the words the bench looks for (tools/steambench), as the spike's were.
+      this.log(`joined lobby ${lobby}`);
       return this.current.getOwner().steamId64.toString();
     } catch (e) {
-      this.log(`lobby ${lobby} not joined: ${(e as Error).message}`);
+      this.log(`join failed: lobby ${lobby}: ${(e as Error).message}`);
       return null;
     }
   }
@@ -92,6 +93,11 @@ export class SteamLobby {
     this.current.leave();
     this.current = null;
     this.room = null;
+  }
+
+  /** The lobby's ID, made or joined, or null: for the bench. */
+  get id(): string | null {
+    return this.current?.id.toString() ?? null;
   }
 
   invite(): void {

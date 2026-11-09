@@ -1,22 +1,33 @@
 // The Steam test bench (STEAM.md 3.4): multiplayer over Steam between this machine (Arnoldex)
 // and the VM "bollfort-guest" (a second account), every path by script.
 //
-//   npx tsx tools/steambench/src/bench.ts [scenario...] [--reverse] [--app DIR] [--out DIR]
-//                                         [--no-deploy] [--reset]
+//   npx tsx tools/steambench/src/bench.ts [scenario...] [--target steam|spike] [--reverse]
+//                                         [--app DIR] [--out DIR] [--no-deploy] [--reset]
 //
 // Scenarios: start (the Steam build, S2; --steam-restart shuts Steam down for its last part),
-// join, public, private, match, lag, outage, reversed, restart (all, in that order, by
-// default). The app under test is the S1 spike's Linux build (`spike/steam/release/linux-unpacked`
-// on the branch `s1-steam-spike`), copied into the VM first. Both Steams running and logged in;
-// the desktop left alone. lag and outage need `sudo -n /usr/sbin/tc` (a sudoers line). --reset
-// only removes any shaping left by a crashed run.
+// join, public, private, code, match, lag, outage, reversed, restart (all, in that order, by
+// default). The app under test is the Steam build (`--target steam`, the default; S3, its
+// Linux folder `packages/desktop/release/steam/linux-unpacked`, packaged with BOLLFORT_STEAM=1)
+// or the S1 spike (`--target spike`, `spike/steam/release/linux-unpacked` on the branch
+// `s1-steam-spike`), copied into the VM first. `code` is the Steam build's alone. Both Steams
+// running and logged in; the desktop left alone. lag and outage need `sudo -n /usr/sbin/tc` (a
+// sudoers line). --reset only removes any shaping left by a crashed run.
 import fs from 'node:fs';
 import path from 'node:path';
 
 import type { Page } from 'playwright';
 
-import { App, within, type AppState } from './app.js';
-import { busy, LocalMachine, sleep, VmMachine, type Machine } from './machines.js';
+import { App, within, type AppState, type AppUnderTest } from './app.js';
+import {
+  busy,
+  LocalMachine,
+  sleep,
+  SPIKE,
+  STEAM_BUILD,
+  VmMachine,
+  type Machine,
+} from './machines.js';
+import { SteamApp } from './steamApp.js';
 import { Network, type Shape } from './network.js';
 import { scenarioStart } from './steamBuild.js';
 
@@ -28,7 +39,7 @@ const opt = (name: string): string | undefined => {
 };
 const flag = (name: string): boolean => argv.includes(`--${name}`);
 const valued = new Set(
-  ['--app', '--out', '--steam-app'].flatMap((o) => {
+  ['--app', '--out', '--steam-app', '--target'].flatMap((o) => {
     const at = argv.indexOf(o);
     return at >= 0 ? [argv[at + 1] ?? ''] : [];
   }),
@@ -39,6 +50,7 @@ const ALL = [
   'join',
   'public',
   'private',
+  'code',
   'match',
   'lag',
   'outage',
@@ -51,10 +63,17 @@ for (const a of asked)
   if (!(ALL as readonly string[]).includes(a)) throw new Error(`no scenario ${a}`);
 const SCENARIOS: Scenario[] = asked.length > 0 ? (asked as Scenario[]) : [...ALL];
 
-const APP_DIR = path.resolve(opt('app') ?? path.join(REPO, 'spike/steam/release/linux-unpacked'));
 /** The Steam build (STEAM.md §3.5) for `start`, packaged with BOLLFORT_STEAM=1. */
 const STEAM_DIR = path.resolve(
   opt('steam-app') ?? path.join(REPO, 'packages/desktop/release/steam/linux-unpacked'),
+);
+/** S3's Steam build by default; the spike, the reference it is compared with, by `--target spike`. */
+const TARGET = opt('target') === 'spike' ? SPIKE : STEAM_BUILD;
+if (opt('target') !== undefined && !['spike', 'steam'].includes(opt('target') ?? ''))
+  throw new Error(`no target ${opt('target')}: spike or steam`);
+const APP_DIR = path.resolve(
+  opt('app') ??
+    (TARGET === SPIKE ? path.join(REPO, 'spike/steam/release/linux-unpacked') : STEAM_DIR),
 );
 const STAMP = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
 const OUT = path.resolve(opt('out') ?? path.join(REPO, 'steambench-results', STAMP));
@@ -115,7 +134,7 @@ class Run {
 
 function writeReport(): void {
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(results, null, 1));
-  const md = [`# Steam bench, ${STAMP}`, '', `App: \`${APP_DIR}\``, ''];
+  const md = [`# Steam bench, ${STAMP}`, '', `App (${TARGET.name}): \`${APP_DIR}\``, ''];
   for (const r of results) {
     const failed = r.checks.filter((c) => c.ok === false).length;
     md.push(
@@ -234,7 +253,7 @@ interface Table {
 }
 
 async function hostTable(
-  host: App,
+  host: AppUnderTest,
   type: 'friends' | 'public' | 'private',
 ): Promise<{ lobby: string; game: Page }> {
   await host.start(PARAMS);
@@ -246,13 +265,19 @@ async function hostTable(
 }
 
 /** The guest started by `+connect_lobby`, as Steam starts a game for an invite. */
-async function joinGuest(guest: App, lobby: string): Promise<Omit<Table, 'lobby' | 'hostGame'>> {
+async function joinGuest(
+  guest: AppUnderTest,
+  lobby: string,
+): Promise<Omit<Table, 'lobby' | 'hostGame'>> {
   const started = Date.now();
   await guest.start([...PARAMS, '+connect_lobby', lobby]);
   return seatGuest(guest, started);
 }
 
-async function seatGuest(guest: App, started: number): Promise<Omit<Table, 'lobby' | 'hostGame'>> {
+async function seatGuest(
+  guest: AppUnderTest,
+  started: number,
+): Promise<Omit<Table, 'lobby' | 'hostGame'>> {
   const answer = await guest.waitLog(/the host answered over Steam after ([\d.]+) s/, 45_000);
   const guestGame = await guest.game(answer === null ? 5000 : 60_000);
   let seatedMs: number | null = null;
@@ -284,7 +309,7 @@ function logIssues(lines: string[]): { errors: string[]; p2pFailed: string[]; wa
 
 // --- The scenarios -----------------------------------------------------------------------------
 
-async function scenarioJoin(run: Run, host: App, guest: App): Promise<void> {
+async function scenarioJoin(run: Run, host: AppUnderTest, guest: AppUnderTest): Promise<void> {
   const { lobby } = await hostTable(host, 'friends');
   const tries = [];
   for (let i = 1; i <= 5; i++) {
@@ -307,7 +332,7 @@ async function scenarioJoin(run: Run, host: App, guest: App): Promise<void> {
 }
 
 /** An Invite-only lobby, joined as Steam starts a game for an accepted invite. */
-async function scenarioPrivate(run: Run, host: App, guest: App): Promise<void> {
+async function scenarioPrivate(run: Run, host: AppUnderTest, guest: AppUnderTest): Promise<void> {
   const { lobby } = await hostTable(host, 'private');
   const t = await joinGuest(guest, lobby);
   const joined = guest.lines().find((l) => /joined lobby|join failed|never named a room/.test(l));
@@ -325,7 +350,36 @@ async function scenarioPrivate(run: Run, host: App, guest: App): Promise<void> {
   run.save('guest.log', guest.lines().join('\n'));
 }
 
-async function scenarioPublic(run: Run, host: App, guest: App): Promise<void> {
+/**
+ * The Steam build's code (STEAM.md §7.3): the guest types the host's code into the menu, as a
+ * player sent it does — twice, its app started afresh between, in the host's lobby both times.
+ * The guest reaches the host over P2P directly, no lobby asked.
+ */
+async function scenarioCode(run: Run, host: AppUnderTest, guest: AppUnderTest): Promise<void> {
+  if (!(host instanceof SteamApp) || !(guest instanceof SteamApp))
+    throw new Error("code is the Steam build's");
+  await hostTable(host, 'friends');
+  const code = await host.code();
+  run.check('the host shows its Steam code', code !== null && /^[A-Z2-9]{7}$/.test(code), code);
+  if (code === null) return;
+  for (let i = 1; i <= 2; i++) {
+    const started = Date.now();
+    await guest.start(PARAMS);
+    await guest.joinByCode(code);
+    const t = await seatGuest(guest, started);
+    run.check(
+      `by code ${i}: seated`,
+      t.seatedMs !== null,
+      `first answer ${t.firstAnswer ?? '-'} s, seated after ${t.seatedMs === null ? '-' : (t.seatedMs / 1000).toFixed(1)} s`,
+    );
+    run.save(`guest-${i}.log`, guest.lines().join('\n'));
+    await guest.stop();
+    await sleep(5000);
+  }
+  run.save('host.log', host.lines().join('\n'));
+}
+
+async function scenarioPublic(run: Run, host: AppUnderTest, guest: AppUnderTest): Promise<void> {
   const { lobby } = await hostTable(host, 'public');
   const started = Date.now();
   await guest.start(PARAMS);
@@ -355,8 +409,8 @@ interface MatchPlan {
 
 async function scenarioMatch(
   run: Run,
-  host: App,
-  guest: App,
+  host: AppUnderTest,
+  guest: AppUnderTest,
   plan: MatchPlan,
   network: Network | null,
 ): Promise<void> {
@@ -437,13 +491,22 @@ async function scenarioMatch(
       say("killing the guest's app in the match");
       await guest.stop();
       const again = Date.now();
-      await guest.start([...PARAMS, '+connect_lobby', lobby]);
-      const joined = await guest.waitLog(/joined lobby|join failed|never/, 30_000);
-      run.check(
-        'restarted: Steam lets it into the lobby again',
-        joined !== null && /joined lobby/.test(joined[0]),
-        joined?.[0] ?? 'nothing in 30 s',
-      );
+      let joined: RegExpMatchArray | null = null;
+      if (guest instanceof SteamApp) {
+        // S3 (STEAM.md §7.3): the lobby is closed in a match; Back to the match takes the seat
+        // back by Steam ID, over P2P straight to the host.
+        await guest.start(PARAMS);
+        const offered = await guest.backToMatch(30_000);
+        run.check('restarted: Back to the match offered', offered, offered ? '' : 'not in 30 s');
+      } else {
+        await guest.start([...PARAMS, '+connect_lobby', lobby]);
+        joined = await guest.waitLog(/joined lobby|join failed|never/, 30_000);
+        run.check(
+          'restarted: Steam lets it into the lobby again',
+          joined !== null && /joined lobby/.test(joined[0]),
+          joined?.[0] ?? 'nothing in 30 s',
+        );
+      }
       const page = await guest.game(30_000);
       const inMatch =
         page !== null &&
@@ -459,10 +522,13 @@ async function scenarioMatch(
         ));
       run.check(
         'restarted: back in the match',
-        inMatch ? true : null,
+        // The spike could not (S1); the Steam build must (S3).
+        inMatch ? true : guest instanceof SteamApp ? false : null,
         `${((Date.now() - again) / 1000).toFixed(0)} s; ${page?.url() ?? 'no game window'}`,
       );
-      events.push(`${at().toFixed(0)} s: guest restarted, ${joined?.[0] ?? 'no join'}`);
+      events.push(
+        `${at().toFixed(0)} s: guest restarted, ${guest instanceof SteamApp ? 'Back to the match' : (joined?.[0] ?? 'no join')}`,
+      );
       guestGame = page;
       if (page !== null) await instrument(page);
     }
@@ -607,10 +673,16 @@ const OUTAGE: MatchPlan = {
 // --- Main --------------------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  // `start` alone needs neither the spike nor the VM.
+  // `start` alone needs neither the app under test on both machines nor the VM.
   const spike = SCENARIOS.some((s) => s !== 'start') || flag('reset');
-  if (spike && !fs.existsSync(path.join(APP_DIR, 'bollfort-steam-spike')))
-    throw new Error(`no app in ${APP_DIR}: build the spike first (spike/steam, npm run package)`);
+  if (spike && !fs.existsSync(path.join(APP_DIR, TARGET.exe)))
+    throw new Error(
+      TARGET === SPIKE
+        ? `no app in ${APP_DIR}: build the spike first (spike/steam, npm run package)`
+        : `no app in ${APP_DIR}: npm run build, then BOLLFORT_STEAM=1 npm run package -w @bollfort/desktop`,
+    );
+  if (TARGET === SPIKE && SCENARIOS.includes('code'))
+    throw new Error("the spike has no code to join by: code is the Steam build's");
   fs.mkdirSync(OUT, { recursive: true });
   if (!spike) {
     // `start` alone: this machine only, the VM left as it is, even shut down.
@@ -627,8 +699,8 @@ async function main(): Promise<void> {
     say(`report: ${path.join(OUT, 'report.md')}`);
     return;
   }
-  const local: Machine = new LocalMachine(APP_DIR);
-  const vm = new VmMachine();
+  const local: Machine = new LocalMachine(APP_DIR, TARGET);
+  const vm = new VmMachine(TARGET);
   const shaping = Network.canShape();
   const network = shaping ? new Network(vm) : null;
   network?.clear();
@@ -640,8 +712,10 @@ async function main(): Promise<void> {
     say('copying the app into the VM');
     vm.deploy(APP_DIR);
   }
-  const apps = { local: new App(local, 'this machine'), vm: new App(vm, 'the VM') };
-  const roles = (reverse: boolean): [App, App] =>
+  const make = (machine: Machine, label: string): AppUnderTest =>
+    TARGET === SPIKE ? new App(machine, label) : new SteamApp(machine, label);
+  const apps = { local: make(local, 'this machine'), vm: make(vm, 'the VM') };
+  const roles = (reverse: boolean): [AppUnderTest, AppUnderTest] =>
     reverse ? [apps.vm, apps.local] : [apps.local, apps.vm];
   say(`scenarios: ${SCENARIOS.join(', ')}; results in ${OUT}`);
 
@@ -667,6 +741,7 @@ async function main(): Promise<void> {
       } else if (scenario === 'join') await scenarioJoin(run, host, guest);
       else if (scenario === 'public') await scenarioPublic(run, host, guest);
       else if (scenario === 'private') await scenarioPrivate(run, host, guest);
+      else if (scenario === 'code') await scenarioCode(run, host, guest);
       else if (scenario === 'lag') await scenarioMatch(run, host, guest, LAG, network);
       else if (scenario === 'outage') await scenarioMatch(run, host, guest, OUTAGE, network);
       else if (scenario === 'restart')
