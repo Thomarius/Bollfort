@@ -139,8 +139,12 @@ function installFullscreenButton(): void {
       : withIcon('expand', t('fullscreen.enter'));
   };
   button.addEventListener('click', () => {
-    if (host !== null) void host.setFullscreen(!hostFull);
-    else if (document.fullscreenElement === null) {
+    if (host !== null) {
+      void host.setFullscreen(!hostFull).then((on) => {
+        hostFull = on;
+        show();
+      });
+    } else if (document.fullscreenElement === null) {
       void document.documentElement.requestFullscreen().catch(() => undefined);
     } else {
       void document.exitFullscreen().catch(() => undefined);

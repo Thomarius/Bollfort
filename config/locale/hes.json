@@ -694,6 +694,7 @@
   "hud.towerCap": "{tower}: schun so viele wie erlaubt",
   "hud.towerDear": "{tower} braucht {cost}",
   "menu.findGame": "Schbiel finne",
+  "menu.quit": "Feierowend",
   "browser.title": "Schbiel finne",
   "browser.filterMode": "Modus",
   "browser.filterTowers": "Spezialtürm",

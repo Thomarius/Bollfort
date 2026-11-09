@@ -694,6 +694,7 @@
   "hud.towerCap": "{tower}: schon so viele wie erlaubt",
   "hud.towerDear": "{tower} braucht {cost}",
   "menu.findGame": "Spiel finden",
+  "menu.quit": "Beenden",
   "browser.title": "Spiel finden",
   "browser.filterMode": "Modus",
   "browser.filterTowers": "Spezialtürme",

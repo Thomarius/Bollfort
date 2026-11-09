@@ -697,6 +697,7 @@
   "hud.towerCap": "{tower}: the most allowed already stand",
   "hud.towerDear": "{tower} needs {cost}",
   "menu.findGame": "Find a game",
+  "menu.quit": "Quit",
   "browser.title": "Find a game",
   "browser.filterMode": "Mode",
   "browser.filterTowers": "Special towers",

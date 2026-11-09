@@ -4,6 +4,7 @@ import { howToPlaySeen, openHowToPlay } from './howToPlay.js';
 import { withIcon } from './icons.js';
 import { openCredits } from './credits.js';
 import { openOptions } from './options.js';
+import { gameHost } from './host.js';
 import { lookName, lookPicture, LookRotation, openLookGallery, type LookChoices } from './looks.js';
 import { escape } from './html.js';
 import { parseRoomList } from './browser.js';
@@ -159,6 +160,7 @@ export function showMenu(notice: string | null = null, findGame = false): void {
       <div class="split find-row">
         <button id="find-game">${withIcon('search', t('menu.findGame'))}</button>
       </div>
+      ${gameHost() === null ? '' : `<div class="split quit-row"><button id="quit" class="quiet">${withIcon('power', t('menu.quit'))}</button></div>`}
       ${notice === null || findGame ? '' : `<p class="notice menu-notice">${escape(notice)}</p>`}
       </section>
       <section class="home-looks">
@@ -169,6 +171,12 @@ export function showMenu(notice: string | null = null, findGame = false): void {
     </div>
   `;
   checkServer();
+  // The desktop app's own way out (2026-11-09, the user's): a Steam game, on the Deck above
+  // all, has no window to close. Absent in a browser, which has its own.
+  document.querySelector('#quit')?.addEventListener('click', () => {
+    audio.play('select');
+    void gameHost()?.quit();
+  });
   document.querySelector('#find-game')?.addEventListener('click', () => {
     audio.play('select');
     findGames();

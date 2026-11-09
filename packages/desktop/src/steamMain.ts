@@ -150,13 +150,28 @@ async function run(): Promise<void> {
   let window: BrowserWindow | null = null;
   let server: RunningServer | null = null;
   let quitting = false;
+  const quit = (): void => {
+    if (quitting) return;
+    quitting = true;
+    void (server?.stop() ?? Promise.resolve()).finally(() => app.exit(0));
+  };
 
   ipcMain.handle('host-steam', () => steam);
   ipcMain.handle('host-lobbies', () => lobbiesAsked.splice(0));
-  ipcMain.handle('host-fullscreen', () => window?.isFullScreen() ?? false);
-  ipcMain.handle('host-set-fullscreen', (_event, on: boolean) =>
-    window?.setFullScreen(on === true),
-  );
+  /**
+   * The window's fullscreen as last set or reported. On Windows the window does not yet say
+   * it is fullscreen as the page first asks, and the page's button ran one click behind
+   * (2026-11-09): the state set is the answer, the window's events correct it after.
+   */
+  let full = savedFullscreen(readSettings());
+  ipcMain.handle('host-fullscreen', () => full);
+  ipcMain.handle('host-set-fullscreen', (_event, on: boolean) => {
+    full = on === true;
+    window?.setFullScreen(full);
+    saveFullscreen(full);
+    return full;
+  });
+  ipcMain.handle('host-quit', () => quit());
 
   app.on('second-instance', (_event, argv) => {
     const lobby = startPlan(process.platform, argv, STEAM_APP_ID).connectLobby;
@@ -176,7 +191,7 @@ async function run(): Promise<void> {
   window = new BrowserWindow({
     width: 1400,
     height: 900,
-    fullscreen: savedFullscreen(readSettings()),
+    fullscreen: full,
     title: 'Bollfort',
     icon,
     backgroundColor: '#0a0a12',
@@ -186,25 +201,18 @@ async function run(): Promise<void> {
       autoplayPolicy: 'no-user-gesture-required',
     },
   });
-  const tell = (): void => window?.webContents.send('host-fullscreen', window.isFullScreen());
-  window.on('enter-full-screen', () => {
-    saveFullscreen(true);
-    tell();
-  });
-  window.on('leave-full-screen', () => {
-    saveFullscreen(false);
-    tell();
-  });
+  const tell = (on: boolean): void => {
+    full = on;
+    saveFullscreen(on);
+    window?.webContents.send('host-fullscreen', on);
+  };
+  window.on('enter-full-screen', () => tell(true));
+  window.on('leave-full-screen', () => tell(false));
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:\/\//.test(url)) void shell.openExternal(url);
     return { action: 'deny' };
   });
   // Closing the window ends the app, the server first, so its port is free after.
-  const quit = (): void => {
-    if (quitting) return;
-    quitting = true;
-    void (server?.stop() ?? Promise.resolve()).finally(() => app.exit(0));
-  };
   window.on('close', (event) => {
     if (quitting) return;
     event.preventDefault();

@@ -18,7 +18,9 @@ export interface GameHost {
   steam(): Promise<HostSteam>;
   lobbies(): Promise<string[]>;
   fullscreen(): Promise<boolean>;
-  setFullscreen(on: boolean): Promise<void>;
+  /** Sets the window's fullscreen; the state it now has. */
+  setFullscreen(on: boolean): Promise<boolean>;
+  quit(): Promise<void>;
   onFullscreen(listener: (on: boolean) => void): void;
 }
 

@@ -12,7 +12,9 @@ const host = {
   steam: (): Promise<SteamInfo> => ipcRenderer.invoke('host-steam'),
   lobbies: (): Promise<string[]> => ipcRenderer.invoke('host-lobbies'),
   fullscreen: (): Promise<boolean> => ipcRenderer.invoke('host-fullscreen'),
-  setFullscreen: (on: boolean): Promise<void> => ipcRenderer.invoke('host-set-fullscreen', on),
+  setFullscreen: (on: boolean): Promise<boolean> => ipcRenderer.invoke('host-set-fullscreen', on),
+  /** The app closed, as its window's close button would (the menu's Quit). */
+  quit: (): Promise<void> => ipcRenderer.invoke('host-quit'),
   onFullscreen: (listener: (on: boolean) => void): void => {
     ipcRenderer.on('host-fullscreen', (_event, on: boolean) => listener(on));
   },
