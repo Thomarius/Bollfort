@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 import type { PageLinkEvent } from './pageLinks.js';
 import type { SteamInfo } from './steam.js';
-import type { LobbyKind, ListedLobby } from './steamLobby.js';
+import type { AskedLobby, LobbyKind, ListedLobby } from './steamLobby.js';
 import type { Avatar } from './steamAvatars.js';
 import type { SteamNetStats } from './steamNet.js';
 
@@ -14,7 +14,7 @@ import type { SteamNetStats } from './steamNet.js';
  */
 const host = {
   steam: (): Promise<SteamInfo> => ipcRenderer.invoke('host-steam'),
-  lobbies: (): Promise<string[]> => ipcRenderer.invoke('host-lobbies'),
+  lobbies: (): Promise<AskedLobby[]> => ipcRenderer.invoke('host-lobbies'),
   fullscreen: (): Promise<boolean> => ipcRenderer.invoke('host-fullscreen'),
   setFullscreen: (on: boolean): Promise<boolean> => ipcRenderer.invoke('host-set-fullscreen', on),
   /** The app closed, as its window's close button would (the menu's Quit). */
@@ -53,6 +53,8 @@ const host = {
   lobbyLeave: (): void => ipcRenderer.send('host-lobby-leave'),
   /** Steam's friend picker in the overlay, for the lobby. */
   lobbyInvite: (): void => ipcRenderer.send('host-lobby-invite'),
+  /** A Steam invite to the lobby sent straight to one player, by Steam ID: Invite back (S3.6). */
+  lobbyInviteUser: (steamId: string): void => ipcRenderer.send('host-lobby-invite-user', steamId),
   /** Joins a lobby: its owner's Steam ID, or null. */
   lobbyJoin: (lobby: string): Promise<string | null> =>
     ipcRenderer.invoke('host-lobby-join', lobby),

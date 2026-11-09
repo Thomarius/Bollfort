@@ -65,6 +65,7 @@ describe('the open games browser', () => {
     expect(joinRefusedNotice('room_full')).toMatch(/filled up/);
     expect(joinRefusedNotice('no_room')).toMatch(/closed/);
     expect(joinRefusedNotice('removed')).toMatch(/removed you/);
+    expect(joinRefusedNotice('match_running')).toMatch(/under way/);
     expect(joinRefusedNotice('no_capacity')).toBeNull();
   });
 });

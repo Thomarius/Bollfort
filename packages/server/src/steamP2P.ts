@@ -111,9 +111,10 @@ export class SteamHost {
     private readonly accept: (peer: Peer, steamId: string) => Session,
     /**
      * What the host answers a guest asking where its game is (S3.3): the room's code and the
-     * lobby's ID, as the page set them, or null while it hosts none.
+     * lobby's ID, as the page set them, and where the asker stands in it (S3.6), or null while
+     * it hosts none.
      */
-    private readonly here: () => string | null = () => null,
+    private readonly here: (asker: string) => string | null = () => null,
   ) {}
 
   /** Links open now, for the bench's counters. */
@@ -159,7 +160,7 @@ export class SteamHost {
         this.drop(key);
         return;
       case FRAME.ask:
-        sendFrame(this.send, from, FRAME.here, frame.link, this.here() ?? '');
+        sendFrame(this.send, from, FRAME.here, frame.link, this.here(from) ?? '');
         return;
       case FRAME.ping:
         sendFrame(this.send, from, FRAME.pong, frame.link, frame.text);

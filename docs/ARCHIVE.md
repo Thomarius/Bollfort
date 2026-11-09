@@ -11807,3 +11807,36 @@ the file is stale (some seconds).
 Steam lobbies in the Steam build (the release run's downloads, never the GitHub release), the
 licences beside the app, and since v0.9.32 the controller support, the store's art and the
 fixes of 15zs. The release workflow checks the licences list as it checks the credits.
+
+## 15zu. S3.6, coming back to a match over Steam (2026-11-09)
+
+The user's design (STEAM.md §7.3, S3.6): nobody new joins a running match, but a player who left
+comes back as fast as possible — by the host's invite, by themselves, and on restarting the game
+asked whether to rejoin. Decided with the user before building: no Join in the friends list during
+a match (friends would only be refused); Invite back in the pause menu, which covers the score
+bar's cards; the restart's prompt with Rejoin and Leave it, a short notice when the match is over;
+a lobby's seat held 10 s for a person who dropped; a tournament's lobby no different from any.
+
+- **Why an invite failed**: every invite went through the Steam lobby, closed for the match, so a
+  dropped player was told "no game" before the host was asked. The lobby now stays joinable
+  while a person's seat is away (`lobbyOpenness`), the room refusing anyone unseated as
+  `match_running`; Find a game leaves out a lobby marked `running`.
+- **Faster than the lobby**: a running game hears who invited, and an invite from the kept
+  match's host dials them straight back (`joinRoute`); the host's answer to "where is your game"
+  now says whether the asker holds a seat and the round (`Room.standing`, `hereAnswer`), so a
+  seated player skips the lobby altogether.
+- **The host's Invite back**: Steam's `InviteUserToLobby` through `koffi` (`steamInvite.ts`), as
+  the avatars' calls — `steamworks.js` has only the overlay's picker, which draws nothing on the
+  Linux desktop.
+- **The lobby hold** (`reconnect.lobbyHoldMs`, 10 s) holds for every room and also for a guest who
+  left on purpose, which the server cannot tell apart; a held seat goes to a bot at the start.
+- **Found on the way**: a tournament's room under Steam had no Steam lobby at all, so teammates
+  could reach it only by code; it has one now, with its Steam code and Invite friends.
+
+**The bench** (on the Linux machine against the VM, the Steam build): `restart` now rejoins from
+the prompt — offered, back in the match 20 s after the app was started again, both end screens
+alike; `invite`, new — the prompt left, the host's Invite back sent by Steam, the invite accepted
+on the guest with `steam://joinlobby/480/<lobby>/<host>` and handed by Steam to the running game
+with the inviter (`GameLobbyJoinRequested`), back in the match 22 s after the restart, some 8 s
+after the invite; `join`, `public`, `private` and `code` again unchanged, every check passed. Left
+for our App ID: an invite starting a closed game.

@@ -59,8 +59,8 @@ export function startSteamNet(
   client: Client,
   accept: (peer: Peer, steamId: string) => Session,
   log: (line: string) => void,
-  /** The host's answer to a guest asking where its game is (`SteamLobby.here`). */
-  here: () => string | null = () => null,
+  /** The host's answer to a guest asking where its game is, by the asker's Steam ID. */
+  here: (asker: string) => string | null = () => null,
 ): SteamNet {
   const counts = {
     sentPackets: 0,

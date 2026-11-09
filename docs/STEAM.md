@@ -95,7 +95,8 @@ bench (2026-11-07 to 2026-11-09, ARCHIVE 15zq, §3.3, §3.4); no fork (§3.2); S
 bench on the Linux machine, outage and restart included (2026-11-09, ARCHIVE 15zs, §7.3).
 **Next**: S3's checks by hand with two people (S3.5): Steam's friend picker in the overlay, an
 invite accepted while the invited player is in a match of their own, a guest restarted coming
-back; then S4. Before them, the design point **S3.6** (§7.3): a player who dropped invited again.
+back; then S4. **S3.6** (§7.3), a player who dropped coming back by an invite or the restart's
+prompt, built and passing the bench (2026-11-09, ARCHIVE 15zu).
 
 ## 3. The Steam build (S1, S2)
 
@@ -717,24 +718,59 @@ in the match each time; a guest killed mid-match offered Back to the match and i
 "?"). The faults were the adapter's, three, fixed. Left by hand with two people: the overlay's
 picker, an invite accepted while the invited player is in a match of their own, a guest restarted coming back.
 
-**S3.6 Nobody new joins a running match; a player who left may be invited again** (the user's,
-2026-11-09, for the next session's design and build):
+**S3.6 Nobody new joins a running match; a player who left comes back as fast as possible**
+(the user's, 2026-11-09; designed and built the same day):
 
-- **Invites and joins are for the lobby only**, before the match starts. That holds already: the
-  host's Steam lobby is joinable only before the start and while a seat is free (`steamPlay.ts`,
-  `open`), and the room refuses anyone not seated once the match runs. So there is no question of
-  which seat a newcomer would take.
-- **The exception: a player who left comes back to their own seat.** Already by Back to the
-  match and by the host's Steam code, readmitted by Steam ID (the bench's restart and outage,
-  ARCHIVE 15zs). **Not yet by an invite**: the lobby is not joinable during the match, so an
-  invite to the dropped player fails with "no game".
-- **Proposed**: while a match runs and a person's seat is away, the lobby stays joinable, and the
-  room decides — the seat's own Steam ID takes it back, anyone else is told the match is under way
-  and stays in the menu, never seated. Steam's joinability is one switch for everyone, so the
-  room, which knows the Steam IDs, must sort them. Rich presence's Join stays off during a match
-  (`connect` only while open for newcomers), so friends are not invited to try. To settle in the
-  design: whether the host must invite, or the friends list's Join also serves the dropped player;
-  the refused newcomer's message; and a test on the fake network, then the bench.
+- **Invites and joins are for the lobby only**, before the match starts. A match under way
+  takes back only those seated in it; anyone else reaching it — by code, or through its lobby,
+  which is joinable while a player is away — is refused as `match_running` ("That match is
+  already under way: only its players can come back to it") and leaves the Steam lobby again.
+- **The lobby stays joinable while a person's seat is away** (`lobbyOpenness`): Steam's
+  joinability is one switch for everyone, and only the lobby reaches a game started by an
+  invite, or a player on another device — both arrive with nothing but the lobby's ID. Rich
+  presence's Join follows the newcomers' openness alone (the user's: friends would only be
+  refused), and the lobby data says `running`, so Find a game leaves it out.
+- **The host invites back from the pause menu**: a button for each player away, Invite Bo back,
+  with Steam's invite sent straight to that player (`InviteUserToLobby` through `koffi`, as the
+  avatars, `steamInvite.ts`) — no overlay, so it works on the Linux desktop too; the button says
+  Bo invited for 15 s. The pause menu covers the score bar's cards, so the buttons are there
+  alone. Only the host's page shows them (the guests join Steam's lobby only best effort).
+- **An invite from the host of the match left goes straight back** (`joinRoute`): a running game
+  hears who invited (`GameLobbyJoinRequested`'s `friend_steam_id`), and the inviter being the
+  kept match's host, the app dials them over P2P directly, no lobby join on the way. Without
+  asking if that match is what is on screen, its link given up; an invite from the host whose
+  table the page is at, its link holding, is no news. Anything else goes through the lobby.
+- **The host's answer says where the asker stands** (`hereAnswer`, `Room.standing`): seated or
+  not, the match started, finished, its round, and the host's Steam name. A join finding the
+  asker seated skips the lobby, and the room gives the seat back by Steam ID.
+- **Started again with a match kept**, and no invite: the host is asked in the background; while
+  the match runs with the seat in it, a prompt over the menu — "Your match is still running: Bo's
+  match is still being played (Round 5 / 10). A bot is playing your seat until you are back.",
+  **Rejoin** or **Leave it**, which forgets the match (the host's invite still brings the player
+  back). Over or unanswered, the match is forgotten and the menu says "That match has ended."
+  Back to the match stays in the menu as before, under the prompt.
+- **A lobby's seat is held 10 s for a person who dropped** (`reconnect.lobbyHoldMs`, the user's):
+  a blip comes back to the seat the host gave them, and the page tries to for as long; then the
+  seat is free for anyone. A held seat does not hold up the start and goes to a bot at it. It
+  holds for every room, the browser's too, and for a guest who left on purpose — the server
+  cannot tell the two apart.
+- **A tournament's lobby is any lobby** (the user's): its room has its Steam lobby, its code and
+  Invite friends, as a single match's — it had none until now, so teammates could reach it only
+  by code — and its matches the same Invite back.
+- **Tests**: the room's hold and standing (`room.test.ts`), the routes and the answer
+  (`rejoin.test.ts`), the lobby's openness and data (`steamPlay.test.ts`, `lobbyData.test.ts`),
+  the host's answer (`steamLobby.test.ts`), and a stranger refused over the fake Steam with the
+  match unharmed (`steamTransport.test.ts`). **The bench**: `restart` now rejoins from the prompt;
+  `invite`, new, kills the guest at 180 s, starts it again and leaves the prompt, clicks the
+  host's Invite back and accepts it on the guest with `steam://joinlobby/480/<lobby>/<host>`, as
+  accepting an invite does — checked: the button and Steam's send, Steam handing the running game
+  the invite with the inviter, back in the match. If Steam hands nothing over, the page is given
+  the invite instead, and that check fails.
+- **The bench passed** (2026-11-09, ARCHIVE 15zu): `restart` back from the prompt in 20 s;
+  `invite` — the button, Steam's send, Steam handing the running game the invite with its
+  inviter, back in the match 22 s after the restart; `join`, `public`, `private` and `code` again.
+- **Left for our App ID** (S4): an invite starting a closed game (on 480 Steam would start
+  Spacewar), which then comes back through the lobby.
 - **The by-hand check named "an invite accepted during a match"** means the other thing: the
   invited player is in a match of their own when the invite arrives, and is asked first whether
   to leave it (S3.3). Not joining a running match.

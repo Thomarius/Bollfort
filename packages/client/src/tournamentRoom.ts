@@ -15,6 +15,7 @@ import { NetworkMatch } from './net/networkMatch.js';
 import { stageLabel } from './tournamentText.js';
 import { preferredTower } from './towers.js';
 import { browserId } from './browserId.js';
+import { hostSteamRoom, lobbyKind, steamPlay, type SteamRoom } from './steam/steamPlay.js';
 
 /**
  * A tournament's room on the server (ARCHIVE 12zj), held by its host for as long as
@@ -70,6 +71,12 @@ export class TournamentRoom {
   private readonly pinging: ReturnType<typeof setInterval>;
   /** A match under way or over in the room, as it last said: the seat is kept through both. */
   private playing = false;
+  /**
+   * The Steam lobby beside the room under the Steam build, as a single match's lobby has
+   * (STEAM.md §7.3): teammates join and come back through it as through any other; null
+   * outside Steam.
+   */
+  steam: SteamRoom | null = null;
 
   private constructor(readonly connection: ServerConnection) {
     this.match = new NetworkMatch(connection);
@@ -104,6 +111,8 @@ export class TournamentRoom {
       return null;
     }
     const room = new TournamentRoom(connection);
+    const steam = steamPlay();
+    if (steam !== null) room.steam = await hostSteamRoom(steam, first.code, lobbyKind());
     room.receive(first);
     // The host's own tower, as they chose it last, for matches that play towers.
     room.special(preferredTower());
@@ -151,6 +160,8 @@ export class TournamentRoom {
   close(): void {
     clearInterval(this.pinging);
     this.connection.close();
+    this.steam?.left();
+    this.steam = null;
   }
 
   private receive(message: ServerMessage): void {
@@ -159,7 +170,7 @@ export class TournamentRoom {
       case 'welcome':
         this.code = message.code;
         this.hostId = message.hostId;
-        return;
+        break;
       case 'room':
         this.code = message.code;
         this.hostId = message.hostId;
@@ -168,13 +179,14 @@ export class TournamentRoom {
         this.invite =
           message.internet === null ? null : `${message.internet}/?join=${message.code}`;
         if (!message.started) this.onChange?.();
-        return;
+        break;
       case 'snapshot':
         this.playing = true;
         this.onSnapshot?.();
-        return;
+        break;
       default:
-        return;
+        break;
     }
+    this.steam?.heard(message, this.playing, this.match.finished);
   }
 }

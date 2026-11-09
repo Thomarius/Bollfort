@@ -133,6 +133,7 @@ const REFUSALS: Record<string, TextKey> = {
   no_room: 'refusal.no_room',
   removed: 'lobby.removed',
   room_full: 'refusal.room_full',
+  match_running: 'refusal.match_running',
 };
 
 /**
@@ -152,6 +153,8 @@ export function joinRefusedNotice(code: string): string | null {
       return t('browser.refused.full');
     case 'no_room':
       return t('browser.refused.closed');
+    case 'match_running':
+      return t('browser.refused.running');
     case 'removed':
       return t('lobby.removed');
     default:

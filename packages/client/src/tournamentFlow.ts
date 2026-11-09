@@ -122,7 +122,9 @@ function showTournament(open: Open, notice: string | null): void {
           ]
         : room.people.map((p) => (p.playerId === room.hostId ? { ...p, playerId: hostSeat } : p));
     const view: LobbyView = {
-      code: room?.code ?? null,
+      // Under Steam the host's Steam code, and Invite friends, as a single match's lobby has.
+      code: room?.steam?.code ?? room?.code ?? null,
+      steamInvite: room?.steam?.invite !== undefined,
       playerCount: table.seats.length,
       hostId: hostSeat,
       humanPlayer: hostSeat,
@@ -149,6 +151,7 @@ function showTournament(open: Open, notice: string | null): void {
       hostBot: none,
       move: (from, to) => room?.move(from, to),
       remove: (seat) => room?.remove(seat),
+      ...(room?.steam?.invite === undefined ? {} : { invite: room.steam.invite }),
       start: () => {
         if (room !== null) {
           room.onChange = null;
@@ -280,6 +283,7 @@ function playOnline(open: Open, room: TournamentRoom, progress: Progress): void 
         () => true,
         () => true,
         () => room.people,
+        room.steam?.inviteBack,
       ),
       setup,
       {

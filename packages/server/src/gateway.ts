@@ -144,7 +144,13 @@ export class Gateway {
         if (
           room.join(connection, message.name, message.token, message.browserId, steamId) === null
         ) {
-          connection.send({ type: 'error', code: 'room_full', message: 'that room is full' });
+          // A match under way takes back only those seated in it (S3.6), told so: its Steam
+          // lobby stays joinable while one of them is away, so others may reach it.
+          connection.send(
+            room.started
+              ? { type: 'error', code: 'match_running', message: 'that match is under way' }
+              : { type: 'error', code: 'room_full', message: 'that room is full' },
+          );
           return;
         }
         joined.set(connection.id, room);

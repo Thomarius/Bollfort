@@ -48,7 +48,8 @@ Joining:
 - [ ] From an invite with the game **running**, in the menu and in another window of the game;
       and while the invited player is **in a match of their own**: asked first whether to leave it.
 - [ ] **Nobody new joins a running match**: an invite or Join to a lobby whose match has started
-      seats nobody (STEAM.md S3.6).
+      seats nobody, told the match is under way; no Join in the friends list during a match, and
+      the match not in Find a game (STEAM.md S3.6).
 - [ ] From the **friends list** (Join Game), and from **Find a game**.
 - [ ] Names and avatars are the players' Steam ones, in the lobby and in the match.
 
@@ -59,8 +60,10 @@ Joining:
       browser — and is refused each time.
 - [ ] The **host quits** mid-match: every guest is told, and nobody is left on a dead board.
 - [ ] A **guest drops** mid-match (network cut, or the game killed) and **comes back**: the seat
-      is played by a bot meanwhile, and the guest rejoins it with the board right — by Back to the
-      match, by the host's code, and invited again by the host (S3.6, once built).
+      is played by a bot meanwhile, and the guest rejoins it with the board right — by the
+      restart's prompt, Back to the match, the host's code, and the host's **Invite back** in the
+      pause menu, accepted with the game running and with it closed (S3.6).
+- [ ] A guest drops **in the lobby** and comes back within 10 s: the same seat; after, it is free.
 
 ## 3. Play
 

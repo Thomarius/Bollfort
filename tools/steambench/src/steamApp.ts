@@ -177,17 +177,60 @@ export class SteamApp implements AppUnderTest {
     await page.click('#join');
   }
 
-  /** The menu's Back to the match, once it shows; false if it never does. */
-  async backToMatch(ms = 30_000): Promise<boolean> {
+  /**
+   * Started again with a match kept (S3.6): the prompt offering to rejoin it, once the host has
+   * said it still runs — clicked if `accept`; false if it never shows.
+   */
+  async rejoinOffered(ms = 30_000, accept = true): Promise<boolean> {
     const page = this.page;
     if (page === null) return false;
     const shown = await within(
-      page.waitForSelector('#back-to-match', { timeout: ms }).then(() => true),
+      page.waitForSelector('.steam-join-asked [data-join]', { timeout: ms }).then(() => true),
       ms + 5000,
       false,
     );
-    if (shown) await page.click('#back-to-match');
+    if (shown && accept) await page.click('.steam-join-asked [data-join]');
     return shown;
+  }
+
+  /**
+   * The host's Invite back (S3.6): the pause menu opened, the first player away invited, the
+   * match resumed. The Steam ID invited, or null if no button showed.
+   */
+  async inviteBack(ms = 30_000): Promise<string | null> {
+    const page = this.page;
+    if (page === null) return null;
+    await page.click('#pause');
+    const button = '.pause-overlay .invites [data-invite]:not([disabled])';
+    const shown = await within(
+      page.waitForSelector(button, { timeout: ms }).then(() => true),
+      ms + 5000,
+      false,
+    );
+    const id = shown ? await page.getAttribute(button, 'data-invite') : null;
+    if (shown) await page.click(button);
+    await page.click('.pause-overlay .resume');
+    return id;
+  }
+
+  /**
+   * An invite accepted, as Steam's friends list or the overlay does: Steam told to join the
+   * lobby, which it hands to the running game (`GameLobbyJoinRequested`, with the inviter).
+   */
+  acceptInvite(lobby: string, inviter: string): void {
+    this.machine.sh(
+      `DISPLAY=\${DISPLAY:-:0} setsid -f steam 'steam://joinlobby/480/${lobby}/${inviter}' > /dev/null 2>&1 < /dev/null`,
+    );
+  }
+
+  /** As though Steam had handed the game an invite from `inviter`: the page loaded for it. */
+  async inviteByPage(lobby: string, inviter: string): Promise<void> {
+    const page = this.page;
+    if (page === null) throw new Error(`${this.label}: no game page`);
+    const url = new URL(page.url());
+    url.searchParams.set('steamLobby', lobby);
+    url.searchParams.set('steamFrom', inviter);
+    await page.goto(url.toString());
   }
 
   async game(ms = 60_000): Promise<Page | null> {

@@ -53,6 +53,11 @@ export interface Seat {
   bot: boolean;
   /** Ticks remaining before a dropped player is handed to a bot. */
   graceTicks: number;
+  /**
+   * In the lobby, milliseconds the seat is still held for a person whose connection dropped,
+   * or 0: the seat goes once it runs out, free for anyone (`reconnect.lobbyHoldMs`).
+   */
+  heldMs: number;
   /** The special tower the person here chose, or null; a bot's seat brings its draw. */
   special: TowerVariant | null;
   /** The ID the person's browser sent, or null; kept to refuse them once removed. */
@@ -63,6 +68,16 @@ export interface Seat {
    * once removed.
    */
   steamId: string | null;
+}
+
+/** Where a person stands in a room, as `Room.standing` tells it. */
+export interface RoomStanding {
+  seated: boolean;
+  started: boolean;
+  finished: boolean;
+  /** The match's round, 0 for the opening or before a match. */
+  round: number;
+  maxRounds: number | null;
 }
 
 export interface RoomOptions {
@@ -188,11 +203,31 @@ export class Room {
   }
 
   /**
+   * Where the person with this Steam ID stands in the room, for the host's answer to a player
+   * asking after their game (STEAM.md §7.3, S3.6): whether they hold a seat, and whether its
+   * match is running and at which round — so a restarted guest is offered only a match that
+   * is still theirs to go back to.
+   */
+  standing(steamId: string): RoomStanding {
+    const state = this.match?.state ?? null;
+    return {
+      seated: this.seats.some((s) => s.steamId === steamId),
+      started: this.match !== null,
+      finished: this.match?.finished === true,
+      round: state?.round ?? 0,
+      maxRounds: state?.ruleset.scoring.maxRounds ?? null,
+    };
+  }
+
+  /**
    * Whether every guest has said they are ready, so the host may start. The host's own
    * Start is their ready, and the bots are always ready.
    */
   get everyoneReady(): boolean {
-    return this.seats.every((seat) => seat.playerId === this.hostId || seat.bot || seat.ready);
+    // A seat held for a guest who dropped (S3.6) does not hold the start up: it goes at it.
+    return this.seats.every(
+      (seat) => seat.playerId === this.hostId || seat.bot || seat.ready || seat.connection === null,
+    );
   }
 
   get empty(): boolean {
@@ -240,6 +275,7 @@ export class Room {
         this.match !== null && seat.playerId === this.hostId && this.hostBot !== null;
       seat.bot = watching;
       seat.graceTicks = 0;
+      seat.heldMs = 0;
       this.sendWelcome(seat);
       this.match?.sendSnapshot(seat);
       const pausedBy = this.match?.pausedBy ?? null;
@@ -261,6 +297,7 @@ export class Room {
       ready: false,
       bot: false,
       graceTicks: 0,
+      heldMs: 0,
       special: null,
       browserId: browserId ?? null,
       steamId: steamId ?? null,
@@ -277,19 +314,44 @@ export class Room {
     if (!seat) return;
     seat.connection = null;
     if (this.match === null) {
-      // Nothing has started: drop the seat, and leave everybody else where they sit — the
-      // host may have put them there. It used to renumber everyone, which undid the
-      // seating and never told the renumbered who they had become.
-      this.seats.splice(this.seats.indexOf(seat), 1);
-      if (seat.playerId === this.hostId && this.seats.length > 0) {
-        this.hostId = Math.min(...this.seats.map((s) => s.playerId));
-      }
+      // Nothing has started: the seat held a while for a blip to come back to (S3.6), then
+      // free for anyone.
+      seat.heldMs = this.options.server.reconnect.lobbyHoldMs;
+      if (seat.heldMs <= 0) this.free(seat);
     } else {
       // Mid-match: hold the seat open, and let a bot play it in the meantime so the
       // match does not stall for everyone else.
       seat.graceTicks = this.ticksFor(this.options.server.reconnect.botTakeoverDelayMs);
     }
     this.broadcastRoom();
+  }
+
+  /**
+   * A lobby's seat given up: dropped, and everybody else left where they sit — the host may
+   * have put them there. It used to renumber everyone, which undid the seating and never
+   * told the renumbered who they had become.
+   */
+  private free(seat: Seat): void {
+    const at = this.seats.indexOf(seat);
+    if (at < 0) return;
+    this.seats.splice(at, 1);
+    if (seat.playerId === this.hostId && this.seats.length > 0) {
+      this.hostId = Math.min(...this.seats.map((s) => s.playerId));
+    }
+  }
+
+  /** Lobby seats whose hold ran out freed; whether any was. */
+  private releaseHeld(elapsedMs: number): boolean {
+    let freed = false;
+    for (const seat of [...this.seats]) {
+      if (seat.connection !== null || seat.heldMs <= 0) continue;
+      seat.heldMs -= elapsedMs;
+      if (seat.heldMs <= 0) {
+        this.free(seat);
+        freed = true;
+      }
+    }
+    return freed;
   }
 
   handle(connection: Connection, message: ClientMessage): void {
@@ -571,6 +633,8 @@ export class Room {
     // Unequal teams cannot start. The host's controls never produce them, so this only
     // turns away a crafted message.
     if (!teamsBalanced(this.teams, this.settings.teamSize)) return;
+    // A seat still held for a guest who dropped in the lobby (S3.6) is a bot's from here.
+    for (const seat of this.seats.filter((s) => s.connection === null && !s.bot)) this.free(seat);
     // Fill the rest of the table with bots so a match can start under-subscribed — in the
     // seats nobody holds, which after the host's moves need not be the last ones.
     for (let i = 0; i < this.playerCount; i++) {
@@ -584,6 +648,7 @@ export class Room {
         ready: true,
         bot: true,
         graceTicks: 0,
+        heldMs: 0,
         special: null,
         browserId: null,
         steamId: null,
@@ -733,6 +798,7 @@ export class Room {
       seat.bot = false;
       seat.ready = false;
       seat.graceTicks = 0;
+      seat.heldMs = 0;
     }
     // The host came back in their own seat, or — had they left — whoever sits lowest.
     this.hostId = this.seats.some((s) => s.playerId === this.lobbyHost)
@@ -744,6 +810,7 @@ export class Room {
   update(elapsedMs: number): void {
     if (this.empty) this.idle += elapsedMs;
     else this.idle = 0;
+    if (this.match === null && this.releaseHeld(elapsedMs)) this.broadcastRoom();
     this.match?.update(elapsedMs);
   }
 

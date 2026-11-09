@@ -1,6 +1,8 @@
 import type * as Steamworks from 'steamworks.js';
 import type { matchmaking } from 'steamworks.js/client.js';
 
+import type { InviteUser } from './steamInvite.js';
+
 /**
  * The Steam lobby beside a room (STEAM.md §7.3, S3.3): made by the host as the room is, its
  * data the games browser's listing, closed to joins while a match runs; joined by a guest for
@@ -23,11 +25,40 @@ const LOBBY_TYPE: Record<LobbyKind, matchmaking.LobbyType> = {
 /** Seats at the largest table. */
 const MAX_MEMBERS = 8;
 
+/** A lobby an invite or Join asked for, and who invited, where Steam says. */
+export interface AskedLobby {
+  lobby: string;
+  from: string | null;
+}
+
 /** A lobby as Find a game reads it. */
 export interface ListedLobby {
   lobby: string;
   owner: string;
   data: Record<string, string>;
+}
+
+/** Where the asker stands in the host's room (`Room.standing`). */
+export interface Standing {
+  seated: boolean;
+  started: boolean;
+  finished: boolean;
+  round: number;
+  maxRounds: number | null;
+}
+
+/**
+ * The host's answer to a guest asking where its game is (S3.3): its room, its lobby, the
+ * host's Steam name, and where the asker stands there (S3.6) — what a restarted guest's
+ * prompt says, and whether it is offered at all. Null while the host hosts nothing.
+ */
+export function hereAnswer(
+  where: { room: string; lobby: string | null } | null,
+  standing: (room: string) => Standing | null,
+  host: string | null,
+): string | null {
+  if (where === null) return null;
+  return JSON.stringify({ ...where, host, you: standing(where.room) });
 }
 
 export class SteamLobby {
@@ -38,12 +69,13 @@ export class SteamLobby {
   constructor(
     private readonly client: Client,
     private readonly log: (line: string) => void,
+    private readonly sendInvite: InviteUser | null = null,
   ) {}
 
-  /** The host's answer to a guest asking where its game is, or null while it hosts none. */
-  here(): string | null {
+  /** Where the page's game is, for a guest asking: its room and lobby, or null while it hosts none. */
+  where(): { room: string; lobby: string | null } | null {
     if (this.room === null) return null;
-    return JSON.stringify({ room: this.room, lobby: this.current?.id.toString() ?? null });
+    return { room: this.room, lobby: this.current?.id.toString() ?? null };
   }
 
   async create(kind: LobbyKind): Promise<string | null> {
@@ -102,6 +134,14 @@ export class SteamLobby {
 
   invite(): void {
     this.current?.openInviteDialog();
+  }
+
+  /** A Steam invite to this lobby sent straight to one player: Invite back (S3.6). */
+  inviteUser(steamId: string): void {
+    if (this.current === null || this.sendInvite === null) return;
+    const sent = this.sendInvite(this.current.id.toString(), steamId);
+    // In the words the bench looks for (tools/steambench).
+    this.log(sent ? `invited ${steamId} back` : `invite to ${steamId} not sent`);
   }
 
   /** Steam's public lobbies of this App ID, with their data and owners. */

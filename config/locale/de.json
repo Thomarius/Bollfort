@@ -706,5 +706,15 @@
   "steam.joinAsked.title": "Einem anderen Spiel beitreten?",
   "steam.joinAsked.body": "Du verlässt das Spiel, in dem du gerade bist.",
   "steam.joinAsked.join": "Beitreten",
-  "steam.joinAsked.stay": "Bleiben"
+  "steam.joinAsked.stay": "Bleiben",
+  "browser.refused.running": "Dieses Spiel läuft schon: Nur seine Spieler können zurück hinein.",
+  "refusal.match_running": "das Spiel läuft schon",
+  "steam.rejoining": "Zurück ins Spiel …",
+  "steam.rejoinAsked.title": "Dein Spiel läuft noch",
+  "steam.rejoinAsked.body": "Das Spiel bei {host} läuft noch ({round}). Ein Bot spielt deinen Platz, bis du zurück bist.",
+  "steam.rejoinAsked.rejoin": "Zurück ins Spiel",
+  "steam.rejoinAsked.leave": "Verlassen",
+  "pause.inviteBack": "{name} zurück einladen",
+  "pause.inviteBackTip": "Schickt {name} eine Steam-Einladung zurück auf den eigenen Platz.",
+  "pause.invited": "{name} eingeladen"
 }

@@ -706,5 +706,15 @@
   "steam.joinAsked.title": "Bei em annern Schbiel mitmache?",
   "steam.joinAsked.body": "Dann bist de aus dem Schbiel raus, wo de grad drin bist.",
   "steam.joinAsked.join": "Mitmache",
-  "steam.joinAsked.stay": "Dobleiwe"
+  "steam.joinAsked.stay": "Dobleiwe",
+  "browser.refused.running": "Des Schbiel läfft schun: Nur die, wo midschbiele, kenne zerick.",
+  "refusal.match_running": "des Schbiel läfft schun",
+  "steam.rejoining": "Zerick ins Schbiel …",
+  "steam.rejoinAsked.title": "Dei Schbiel läfft noch",
+  "steam.rejoinAsked.body": "Des Schbiel bei {host} läfft noch ({round}). En Bot hockt so lang uff deim Platz, bis de widder do bist.",
+  "steam.rejoinAsked.rejoin": "Zerick ins Schbiel",
+  "steam.rejoinAsked.leave": "Loss es",
+  "pause.inviteBack": "{name} zerick eilade",
+  "pause.inviteBackTip": "Schiggt {name} e Steam-Eiladung zerick uff sein Platz.",
+  "pause.invited": "{name} eigelade"
 }

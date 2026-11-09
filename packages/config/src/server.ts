@@ -40,6 +40,12 @@ export const ServerConfigSchema = z.strictObject({
   reconnect: z.strictObject({
     botTakeoverDelayMs: z.number().int().nonnegative(),
     /**
+     * How long a seat is held in the lobby, before a match, for a person whose connection
+     * dropped: a blip comes back to the seat the host put them in, and only after this is the
+     * seat free for someone else (STEAM.md §7.3, S3.6; 10 s, the user's, 2026-11-09).
+     */
+    lobbyHoldMs: z.number().int().nonnegative(),
+    /**
      * How often every socket is pinged. One that has answered nothing — no pong, no message —
      * by the next ping is dropped, so a connection silent for one to two of these reaches the
      * bot takeover; a half-open one (Wi-Fi gone, a laptop asleep) otherwise lingered until TCP

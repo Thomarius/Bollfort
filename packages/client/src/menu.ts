@@ -14,9 +14,10 @@ import { SplitTitle } from './decor.js';
 import { app, showError, audio } from './app.js';
 import { preferredStyles, saveStyles, storedName, saveName } from './prefs.js';
 import { joinSteam, openLobby } from './lobbyFlow.js';
-import { keptMatch } from './steam/backToMatch.js';
+import { forgetMatch, keptMatch } from './steam/backToMatch.js';
+import { joinRoute, readHostAnswer, stillPlaying } from './steam/rejoin.js';
 import { listingOfLobby } from './steam/lobbyData.js';
-import { LOBBY_KINDS, lobbyKind, setLobbyKind, steamPlay } from './steam/steamPlay.js';
+import { LOBBY_KINDS, guestAt, lobbyKind, setLobbyKind, steamPlay } from './steam/steamPlay.js';
 import { enhanceChoices } from './choices.js';
 import type { RoomListing } from '@bollfort/protocol';
 import { openNewTournament, openResumeList, type TournamentExits } from './tournamentMenu.js';
@@ -172,7 +173,7 @@ function wireSteamRows(): void {
       showMenu(t('steam.matchOver'));
       return;
     }
-    void joinSteam(readCommon(), kept.host, kept.room).catch((e: unknown) =>
+    void joinSteam(readCommon(), kept.host, true).catch((e: unknown) =>
       showError(t('error.couldNotJoin'), e),
     );
   });
@@ -382,38 +383,138 @@ export function showMenu(notice: string | null = null, findGame = false): void {
  * or asked to join while it runs. On the menu it is joined at once; anywhere else the player
  * is asked first, and the page loaded afresh to join, which takes down whatever game was on
  * it — a room left, a match given up — as cleanly as leaving does.
+ *
+ * Coming back (S3.6): an invite from the host of the match this player left goes straight
+ * back to it, no lobby on the way — without asking, if that match is what is on screen, its
+ * link lost; an invite from the host whose table this page is at is no news. And started
+ * with no invite but a match kept, the host is asked whether it still runs, and the player
+ * offered to rejoin it.
  */
 export function startSteamJoins(): void {
   const steam = steamPlay();
   if (steam === null) return;
-  const asked = new URLSearchParams(location.search).get('steamLobby');
-  const joinLobby = async (lobby: string): Promise<void> => {
-    const owner = await steam.host.lobbyJoin(lobby);
+  const query = new URLSearchParams(location.search);
+  const askedLobby = query.get('steamLobby');
+  const askedFrom = query.get('steamFrom');
+  const go = async (asked: { lobby: string; from: string | null }): Promise<void> => {
+    const route = joinRoute(asked, keptMatch(), null);
+    // Straight to the host who invited, the lobby skipped: the room gives the seat back by
+    // Steam ID, or seats a newcomer if its next match is being set — whatever it now hosts.
+    if (route.kind === 'back') {
+      await joinSteam(readCommon(), route.host);
+      return;
+    }
+    const owner = await steam.host.lobbyJoin(asked.lobby);
     if (owner === null) showMenu(t('steam.noGame'));
     else await joinSteam(readCommon(), owner);
   };
+  const reloadFor = (asked: { lobby: string; from: string | null }): void => {
+    const url = new URL(location.href);
+    url.searchParams.set('steamLobby', asked.lobby);
+    if (asked.from !== null) url.searchParams.set('steamFrom', asked.from);
+    location.replace(url.toString());
+  };
   const take = async (): Promise<void> => {
     const lobbies = await steam.host.lobbies();
-    const lobby = lobbies.at(-1);
-    if (lobby === undefined) return;
+    const asked = lobbies.at(-1);
+    if (asked === undefined) return;
+    const guest = guestAt();
+    const route = joinRoute(asked, keptMatch(), guest?.linked === true ? guest.host : null);
+    if (route.kind === 'here') return;
     if (document.querySelector('.menu.home') !== null) {
-      void joinLobby(lobby).catch((e: unknown) => showError(t('error.couldNotJoin'), e));
+      void go(asked).catch((e: unknown) => showError(t('error.couldNotJoin'), e));
       return;
     }
-    askToLeave(() => {
-      const url = new URL(location.href);
-      url.searchParams.set('steamLobby', lobby);
-      location.replace(url.toString());
-    });
+    // The match left, on screen with its link given up: back to it without asking.
+    if (route.kind === 'back' && guest !== null && guest.host === route.host) {
+      reloadFor(asked);
+      return;
+    }
+    askToLeave(() => reloadFor(asked));
   };
-  if (asked !== null && /^\d{1,20}$/.test(asked)) {
+  if (askedLobby !== null && /^\d{1,20}$/.test(askedLobby)) {
     // Once only: a reload of the page later must not join it again.
     const url = new URL(location.href);
     url.searchParams.delete('steamLobby');
+    url.searchParams.delete('steamFrom');
     history.replaceState(null, '', url.toString());
-    void joinLobby(asked).catch((e: unknown) => showError(t('error.couldNotJoin'), e));
-  } else void take();
+    const from = askedFrom !== null && /^\d{1,20}$/.test(askedFrom) ? askedFrom : null;
+    void go({ lobby: askedLobby, from }).catch((e: unknown) =>
+      showError(t('error.couldNotJoin'), e),
+    );
+  } else {
+    void steam.host
+      .lobbies()
+      .then((lobbies) => {
+        const asked = lobbies.at(-1);
+        if (asked !== undefined) return go(asked);
+        offerKeptMatch();
+        return undefined;
+      })
+      .catch((e: unknown) => showError(t('error.couldNotJoin'), e));
+  }
   steam.host.onJoinAsked(() => void take());
+}
+
+/**
+ * Started again with a match kept (S3.6): its host asked whether it still runs with this
+ * player's seat in it — and if so, while the menu is still what is on screen, the player is
+ * offered to rejoin it; if not, the match is forgotten, and the menu says so.
+ */
+function offerKeptMatch(): void {
+  const steam = steamPlay();
+  const kept = keptMatch();
+  if (steam === null || kept === null) return;
+  void steam.host.find(kept.host).then((answer) => {
+    const found = readHostAnswer(answer);
+    if (keptMatch()?.host !== kept.host) return; // left or joined meanwhile
+    const onMenu = document.querySelector('.menu.home') !== null;
+    if (!stillPlaying(found)) {
+      forgetMatch();
+      if (onMenu) showMenu(t('steam.matchOver'));
+      return;
+    }
+    if (!onMenu) return;
+    askToRejoin(found.host ?? '?', roundText(found.you.round, found.you.maxRounds), () => {
+      void joinSteam(readCommon(), kept.host, true).catch((e: unknown) =>
+        showError(t('error.couldNotJoin'), e),
+      );
+    });
+  });
+}
+
+/** The round a running match is at, as the HUD's label says it. */
+function roundText(round: number, cap: number | null): string {
+  if (round === 0) return t('round.opening');
+  return cap === null ? t('round.label', { round }) : t('round.labelOf', { round, cap });
+}
+
+/** Offers to rejoin a match still running; Leave it forgets it. */
+function askToRejoin(host: string, round: string, rejoin: () => void): void {
+  document.querySelector('.steam-join-asked')?.remove();
+  const root = document.createElement('div');
+  root.className = 'how-to-play steam-join-asked';
+  root.innerHTML = `
+    <div class="panel">
+      <h2>${t('steam.rejoinAsked.title')}</h2>
+      <p>${escape(t('steam.rejoinAsked.body', { host, round }))}</p>
+      <div class="split">
+        <button class="primary" data-join>${withIcon('resume', t('steam.rejoinAsked.rejoin'))}</button>
+        <button class="quiet" data-stay>${t('steam.rejoinAsked.leave')}</button>
+      </div>
+    </div>`;
+  root.querySelector('[data-join]')?.addEventListener('click', () => {
+    audio.play('select');
+    root.remove();
+    rejoin();
+  });
+  root.querySelector('[data-stay]')?.addEventListener('click', () => {
+    audio.play('select');
+    root.remove();
+    forgetMatch();
+    showMenu();
+  });
+  document.body.append(root);
 }
 
 /** Asks before leaving the game on screen for another; `join` if the player says so. */

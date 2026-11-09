@@ -65,7 +65,23 @@ export interface PauseActions {
   looks?(): void;
   /** Opens How to play at the phase being played, returning its closing (ARCHIVE 14zq). */
   howToPlay?(): () => void;
+  /**
+   * The players whose seat is away and who can be invited back, each by an ID and name — the
+   * Steam host's, online (STEAM.md §7.3, S3.6); absent anywhere else.
+   */
+  invitable?(): readonly Invitable[];
+  /** Invites one of them back. */
+  inviteBack?(id: string): void;
 }
+
+/** A player the pause menu offers to invite back. */
+export interface Invitable {
+  id: string;
+  name: string;
+}
+
+/** How long a player's button says they were invited, before it offers again. */
+const INVITED_MS = 15_000;
 
 export class PauseControls {
   private readonly button: HTMLButtonElement;
@@ -77,6 +93,11 @@ export class PauseControls {
   private closeHowTo: (() => void) | null = null;
   /** What the line says, so the DOM is touched only when it changes. */
   private shown: string | null = null;
+  /** The Invite back row, and what it shows, so it is written only when that changes. */
+  private invites!: HTMLDivElement;
+  private invitesShown = '';
+  /** When each player was last invited back, by ID. */
+  private readonly invitedAt = new Map<string, number>();
   private paused = false;
   private over = false;
   private readonly stopListening: () => void;
@@ -133,10 +154,23 @@ export class PauseControls {
         ? ''
         : `<button class="how-to quiet">${t('menu.howToPlay')}</button>`) +
       `</div>` +
+      // Invite back, a button for each player away (S3.6): written as they come and go.
+      `<div class="actions invites" hidden></div>` +
       `<button class="leave-match quiet">${t('pause.leave')}</button>` +
       `<small class="esc-hint"></small></div>`;
     this.line = this.overlay.querySelector<HTMLParagraphElement>('.who')!;
     this.leaving = this.overlay.querySelector<HTMLButtonElement>('.leave-match')!;
+    this.invites = this.overlay.querySelector<HTMLDivElement>('.invites')!;
+    this.invitesShown = '';
+    this.invites.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-invite]');
+      const id = button?.dataset.invite;
+      if (id === undefined || button?.disabled === true) return;
+      actions.click();
+      actions.inviteBack?.(id);
+      this.invitedAt.set(id, performance.now());
+      this.writeInvites();
+    });
     this.writeHints();
     // The language, mid-match, is written into this menu by `onLanguageChange`, the HUD's at
     // the next frame.
@@ -205,6 +239,8 @@ export class PauseControls {
     if (this.button.hidden !== over) this.button.hidden = over;
     this.showButton();
     const text = pausedBy === null || over ? null : pauseText(pausedBy, humanPlayer, names);
+    // Players come and go while the menu is open: asked each frame, written on a change.
+    if (text !== null) this.writeInvites();
     if (text === this.shown) return;
     const opening = this.shown === null && text !== null;
     this.shown = text;
@@ -217,6 +253,30 @@ export class PauseControls {
       this.leaving.classList.remove('confirm');
       this.leaving.textContent = t('pause.leave');
     }
+  }
+
+  /**
+   * The Invite back row as it stands: a button for each player away, saying for a while that
+   * they were invited once clicked. Written only when that changes, as it is asked each frame.
+   */
+  private writeInvites(): void {
+    const now = performance.now();
+    const people = this.actions.invitable?.() ?? [];
+    const rows = people.map((p) => {
+      const at = this.invitedAt.get(p.id);
+      return { ...p, invited: at !== undefined && now - at < INVITED_MS };
+    });
+    const key = rows.map((r) => `${r.id}:${r.name}:${r.invited}`).join('|');
+    if (key === this.invitesShown) return;
+    this.invitesShown = key;
+    this.invites.hidden = rows.length === 0;
+    this.invites.innerHTML = rows
+      .map((r) =>
+        r.invited
+          ? `<button class="quiet" data-invite="${escape(r.id)}" disabled>${escape(t('pause.invited', { name: r.name }))}</button>`
+          : `<button class="quiet" data-invite="${escape(r.id)}" data-tip="${escape(t('pause.inviteBackTip', { name: r.name }))}">${withIcon('join', escape(t('pause.inviteBack', { name: r.name })))}</button>`,
+      )
+      .join('');
   }
 
   private hideHowTo(): void {

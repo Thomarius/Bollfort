@@ -6,3 +6,4 @@ export { repoRoot } from './paths.js';
 export { Gateway, type Peer, type Session } from './gateway.js';
 export { startServer, type RunningServer, type ServerOptions, type StartResult } from './server.js';
 export type { InternetStatus } from './upnp.js';
+export type { RoomStanding } from './room.js';

@@ -39,5 +39,12 @@ describe('a Steam lobby’s data', () => {
     expect(listingOfLobby(HOST, { ...good, players: '99' })).toBeNull();
     expect(listingOfLobby(HOST, { ...good, host: '' })).toBeNull();
     expect(listingOfLobby('109775240000000000', good)).toBeNull();
+    // A match under way, its lobby joinable for a player away (S3.6): never listed.
+    expect(listingOfLobby(HOST, { ...good, running: '1' })).toBeNull();
+    const running = lobbyDataOf(
+      { host: 'Bo', people: 1, playerCount: 4, teamSize: 1, towers: false, tournament: null },
+      true,
+    );
+    expect(listingOfLobby(HOST, running)).toBeNull();
   });
 });

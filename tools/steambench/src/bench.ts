@@ -5,7 +5,7 @@
 //                                         [--app DIR] [--out DIR] [--no-deploy] [--reset]
 //
 // Scenarios: start (the Steam build, S2; --steam-restart shuts Steam down for its last part),
-// join, public, private, code, match, lag, outage, reversed, restart (all, in that order, by
+// join, public, private, code, match, lag, outage, reversed, restart, invite (all, in that order, by
 // default). The app under test is the Steam build (S3, its Linux folder
 // `packages/desktop/release/steam/linux-unpacked`, packaged with BOLLFORT_STEAM=1), copied into
 // the VM first (the S1 spike, once its reference, is gone: ARCHIVE 15zt). Both Steams
@@ -47,6 +47,7 @@ const ALL = [
   'outage',
   'reversed',
   'restart',
+  'invite',
 ] as const;
 type Scenario = (typeof ALL)[number];
 const asked = argv.filter((a) => !a.startsWith('--') && !valued.has(a));
@@ -390,6 +391,11 @@ interface MatchPlan {
   cuts?: { atS: number; seconds: number }[];
   /** The guest's app killed at a second into the match and started again. */
   restartAtS?: number;
+  /**
+   * Coming back by the host's invite (S3.6): the guest's app killed at that second and started
+   * again, its prompt left; the host's Invite back in the pause menu, accepted on the guest.
+   */
+  invite?: boolean;
 }
 
 async function scenarioMatch(
@@ -476,12 +482,34 @@ async function scenarioMatch(
       say("killing the guest's app in the match");
       await guest.stop();
       const again = Date.now();
-      if (!(guest instanceof SteamApp)) throw new Error("restart is the Steam build's");
-      // S3 (STEAM.md §7.3): the lobby is closed in a match; Back to the match takes the seat
-      // back by Steam ID, over P2P straight to the host.
+      if (!(guest instanceof SteamApp) || !(host instanceof SteamApp))
+        throw new Error("restart is the Steam build's");
+      // S3.6 (STEAM.md §7.3): started again, the host asked whether the match still runs and the
+      // player offered to rejoin it; the seat taken back by Steam ID, over P2P to the host.
       await guest.start(PARAMS);
-      const offered = await guest.backToMatch(30_000);
-      run.check('restarted: Back to the match offered', offered, offered ? '' : 'not in 30 s');
+      const offered = await guest.rejoinOffered(30_000, plan.invite !== true);
+      run.check('restarted: offered to rejoin', offered, offered ? '' : 'not in 30 s');
+      if (plan.invite === true) {
+        // The prompt left: the host invites the player back from the pause menu instead.
+        const hostFrom = host.lines().length;
+        const guestFrom = guest.lines().length;
+        const invited = await host.inviteBack(30_000);
+        const sent = await host.waitLog(/invited \d+ back/, 10_000, hostFrom);
+        run.check(
+          'invite: Invite back in the pause menu, sent by Steam',
+          invited !== null && sent !== null,
+          invited === null ? 'no button' : (sent?.[0] ?? 'not sent'),
+        );
+        const hostId = (await host.state())?.steamId ?? '';
+        guest.acceptInvite(lobby, hostId);
+        const handed = await guest.waitLog(/join asked: lobby \d+ from \d+/, 20_000, guestFrom);
+        run.check(
+          'invite: Steam handed the invite to the running game, with the inviter',
+          handed !== null,
+          handed?.[0] ?? 'nothing in 20 s: taken by the page instead',
+        );
+        if (handed === null) await guest.inviteByPage(lobby, hostId);
+      }
       const page = await guest.game(30_000);
       const inMatch =
         page !== null &&
@@ -501,7 +529,9 @@ async function scenarioMatch(
         inMatch,
         `${((Date.now() - again) / 1000).toFixed(0)} s; ${page?.url() ?? 'no game window'}`,
       );
-      events.push(`${at().toFixed(0)} s: guest restarted, Back to the match`);
+      events.push(
+        `${at().toFixed(0)} s: guest restarted, ${plan.invite === true ? 'invited back' : 'rejoined from the prompt'}`,
+      );
       guestGame = page;
       if (page !== null) await instrument(page);
     }
@@ -714,6 +744,8 @@ async function main(): Promise<void> {
       else if (scenario === 'outage') await scenarioMatch(run, host, guest, OUTAGE, network);
       else if (scenario === 'restart')
         await scenarioMatch(run, host, guest, { restartAtS: 180 }, network);
+      else if (scenario === 'invite')
+        await scenarioMatch(run, host, guest, { restartAtS: 180, invite: true }, network);
       else await scenarioMatch(run, host, guest, {}, network);
     } catch (e) {
       run.check('ran to the end', false, (e as Error).message.split('\n')[0]);

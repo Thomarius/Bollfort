@@ -407,6 +407,13 @@ export async function runSession(
         ...(exits.leaveConfirm === undefined ? {} : { leaveConfirm: exits.leaveConfirm }),
         volumes: audio,
         click: () => audio.play('select'),
+        // Invite back, for the Steam host, a button for each player away (S3.6).
+        ...(session.inviteBack === undefined
+          ? {}
+          : {
+              invitable: () => session.invitable?.() ?? [],
+              inviteBack: (id: string) => session.inviteBack?.(id),
+            }),
         // How to play over the pause menu, at the section of the phase being played.
         howToPlay: () =>
           openHowToPlay(undefined, () => audio.play('select'), howToSectionFor(session.state)),

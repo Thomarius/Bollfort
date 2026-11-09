@@ -16,7 +16,8 @@ export interface HostSteam {
 /** The Steam build's bridge, as `gamePreload.ts` exposes it. */
 export interface GameHost {
   steam(): Promise<HostSteam>;
-  lobbies(): Promise<string[]>;
+  /** Lobbies an invite or Join asked for, and who invited where Steam says (S3.6). */
+  lobbies(): Promise<{ lobby: string; from: string | null }[]>;
   fullscreen(): Promise<boolean>;
   /** Sets the window's fullscreen; the state it now has. */
   setFullscreen(on: boolean): Promise<boolean>;
@@ -37,6 +38,7 @@ export interface GameHost {
   lobbyJoinable(joinable: boolean): void;
   lobbyLeave(): void;
   lobbyInvite(): void;
+  lobbyInviteUser(steamId: string): void;
   lobbyJoin(lobby: string): Promise<string | null>;
   lobbyList(): Promise<{ lobby: string; owner: string; data: Record<string, string> }[]>;
   find(host: string): Promise<unknown>;

@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { RetryPolicy } from './connection.js';
+import type { ServerMessage } from '@bollfort/protocol';
+
+import { ServerConnection, type RetryPolicy } from './connection.js';
 import { FakeNetwork } from './fakeNetwork.js';
 import { FakeSteam } from './fakeSteam.js';
 import { MATCH_TIMEOUT_MS, expectFaithful, table, type Table } from './matchTable.testing.js';
@@ -105,6 +107,29 @@ describe('a match over Steam’s P2P', () => {
       t.playOut();
       expectFaithful(t);
       expect(again.match.humanPlayer).toBe(before);
+    },
+    MATCH_TIMEOUT_MS,
+  );
+
+  it(
+    'refuses anyone not seated in a match under way, saying so, the match unharmed (S3.6)',
+    () => {
+      const t = steamTable(2, 3, 11);
+      t.pass(15_000);
+      // Its Steam lobby stays joinable while a player is away: someone else may reach it.
+      const STRANGER = '76561198000000099';
+      t.steam.machine(STRANGER);
+      const stranger = new ServerConnection(HOST, steamRetry, t.steam.dialFrom(STRANGER, HOST));
+      const heard: ServerMessage[] = [];
+      stranger.onMessage((m) => heard.push(m));
+      void stranger.connect();
+      stranger.joinRoom('Cy', t.code);
+      t.pass(10_000);
+      expect(heard.find((m) => m.type === 'error')).toMatchObject({ code: 'match_running' });
+      expect(heard.some((m) => m.type === 'welcome')).toBe(false);
+      stranger.close();
+      t.playOut();
+      expectFaithful(t);
     },
     MATCH_TIMEOUT_MS,
   );

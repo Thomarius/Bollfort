@@ -19,6 +19,7 @@
   },
   "reconnect": {
     "botTakeoverDelayMs": 5000,
+    "lobbyHoldMs": 10000,
     "heartbeatMs": 5000
   },
   "lobbySettings": {

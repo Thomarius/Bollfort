@@ -2,9 +2,15 @@ import type { ServerMessage } from '@bollfort/protocol';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { GameHost } from '../host.js';
-import { keptMatch } from './backToMatch.js';
+import { keepMatch, keptMatch } from './backToMatch.js';
 import { steamCodeOf } from './steamCode.js';
-import { guestSteamRoom, hostSteamRoom, type SteamPlay } from './steamPlay.js';
+import {
+  guestAt,
+  guestSteamRoom,
+  hostSteamRoom,
+  lobbyOpenness,
+  type SteamPlay,
+} from './steamPlay.js';
 
 const ME = '76561198005395758';
 const HOST = '76561198000000001';
@@ -57,6 +63,7 @@ function fakePlay() {
     lobbyJoinable: (on: boolean) => asked.push(`joinable ${on}`),
     lobbyLeave: () => asked.push('leave'),
     lobbyInvite: () => asked.push('invite'),
+    lobbyInviteUser: (id: string) => asked.push(`invite user ${id}`),
     presence: (values: Record<string, string | null>) =>
       asked.push(`presence ${values.status} ${values.connect}`),
   } as unknown as GameHost;
@@ -87,11 +94,49 @@ describe('the host’s Steam lobby beside the room', () => {
       'presence lobby null',
       'data people=4',
       'presence match null',
+      'data people=4', // marked running, for Find a game to leave out (S3.6)
       'invite',
       'room null',
       'leave',
       'presence null null',
     ]);
+  });
+
+  it('stays joinable through a match while a person is away, Join and the list closed (S3.6)', async () => {
+    const { play, asked } = fakePlay();
+    const steam = await hostSteamRoom(play, 'ABCDEF', 'public');
+    const away = room(2, true);
+    away.seats[1] = { ...away.seats[1]!, connected: false };
+    steam.heard(room(2, true), true, false);
+    asked.length = 0;
+    steam.heard(away, true, false);
+    steam.heard(room(2, true), true, false); // back
+    steam.heard(away, true, false);
+    steam.heard(away, true, true); // the match over: nothing to come back to
+    expect(asked.filter((a) => a.startsWith('joinable'))).toEqual([
+      'joinable true',
+      'joinable false',
+      'joinable true',
+      'joinable false',
+    ]);
+    // Never Join in the friends list during the match: friends would only be refused.
+    expect(asked.filter((a) => a.startsWith('presence') && !a.endsWith('null'))).toEqual([]);
+  });
+
+  it('counts no bot as away, and no seat before the match', () => {
+    const away = room(2);
+    away.seats[1] = { ...away.seats[1]!, connected: false };
+    expect(lobbyOpenness(away, false)).toEqual({ joinable: true, newcomers: true });
+    const bots = room(2, true);
+    bots.seats[1] = { ...bots.seats[1]!, connected: false, isBot: true };
+    expect(lobbyOpenness(bots, false)).toEqual({ joinable: false, newcomers: false });
+  });
+
+  it('sends Invite back straight to the player', async () => {
+    const { play, asked } = fakePlay();
+    const steam = await hostSteamRoom(play, 'ABCDEF', 'friends');
+    steam.inviteBack?.(HOST);
+    expect(asked.at(-1)).toBe(`invite user ${HOST}`);
   });
 
   it('offers no Join in the friends list when it is Invite only', async () => {
@@ -134,5 +179,24 @@ describe('a guest’s Steam side', () => {
     steam.heard(room(2, true), true, false);
     steam.left();
     expect(keptMatch()).toBeNull();
+  });
+
+  it('forgets a match left, back at its host’s table between matches', () => {
+    const { play } = fakePlay();
+    keepMatch(HOST, 'ABCDEF');
+    const steam = guestSteamRoom(play, HOST, 'ABCDEF');
+    steam.heard(room(2), false, false);
+    expect(keptMatch()).toBeNull();
+  });
+
+  it('says whose table the page is at, and whether its link holds', () => {
+    const { play } = fakePlay();
+    let linked = true;
+    const steam = guestSteamRoom(play, HOST, 'ABCDEF', () => linked);
+    expect(guestAt()).toEqual({ host: HOST, linked: true });
+    linked = false;
+    expect(guestAt()).toEqual({ host: HOST, linked: false });
+    steam.left();
+    expect(guestAt()).toBeNull();
   });
 });

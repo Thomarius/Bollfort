@@ -12,6 +12,7 @@ import { Gateway, type Peer, type Session } from './gateway.js';
 import { openRecordingStore } from './recordings.js';
 import { codeVersion } from './version.js';
 import { RoomManager } from './rooms.js';
+import type { RoomStanding } from './room.js';
 import { PortOpener, type InternetStatus } from './upnp.js';
 
 /**
@@ -85,6 +86,11 @@ export interface RunningServer {
    * Steam ID on its far end (STEAM.md §7.3).
    */
   accept(peer: Peer, steamId?: string): Session;
+  /**
+   * Where the person with this Steam ID stands in the room of this code, or null when there
+   * is no such room: for the host's answer to a guest asking after their game (S3.6).
+   */
+  standing(room: string, steamId: string): RoomStanding | null;
 }
 
 /** A start that could not bind: told as such, so a caller can say so rather than crash. */
@@ -363,6 +369,7 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
         rooms.refreshLobbies();
       },
       accept: (peer, steamId) => gateway.accept(peer, steamId),
+      standing: (room, steamId) => rooms.get(room)?.standing(steamId) ?? null,
       port: actualPort,
       host,
       // The addresses to open, not the one bound: a browser refuses http://0.0.0.0:8080.

@@ -12,7 +12,10 @@ import { steamCodeOf } from './steamCode.js';
  */
 export const LOBBY_TAG = 'bollfort';
 
-export function lobbyDataOf(listing: Omit<RoomListing, 'code'>): Record<string, string> {
+export function lobbyDataOf(
+  listing: Omit<RoomListing, 'code'>,
+  running = false,
+): Record<string, string> {
   return {
     [LOBBY_TAG]: String(PROTOCOL_VERSION),
     host: listing.host,
@@ -21,6 +24,9 @@ export function lobbyDataOf(listing: Omit<RoomListing, 'code'>): Record<string, 
     teamSize: String(listing.teamSize),
     towers: listing.towers ? '1' : '0',
     tournament: listing.tournament ?? '',
+    // A match under way keeps its lobby joinable while a player is away, for them to come
+    // back by (S3.6); Find a game must not list it.
+    running: running ? '1' : '0',
   };
 }
 
@@ -35,7 +41,7 @@ const count = (text: string | undefined, min: number, max: number): number | nul
  * another protocol, or garbled — anyone may write a lobby's data on 480.
  */
 export function listingOfLobby(owner: string, data: Record<string, string>): RoomListing | null {
-  if (data[LOBBY_TAG] !== String(PROTOCOL_VERSION)) return null;
+  if (data[LOBBY_TAG] !== String(PROTOCOL_VERSION) || data.running === '1') return null;
   const code = steamCodeOf(owner);
   const playerCount = count(data.players, 2, 8);
   const people = count(data.people, 1, 8);

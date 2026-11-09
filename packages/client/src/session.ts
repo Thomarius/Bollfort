@@ -57,6 +57,13 @@ export interface Session {
   /** Players' Steam avatars by player, as their seats name them (S3.4); none outside Steam. */
   avatars?(): ReadonlyMap<number, string>;
   /**
+   * The people away whom this page may invite back, by Steam ID — the Steam host's, in a match
+   * still running (S3.6); absent or empty anywhere else.
+   */
+  invitable?(): readonly { id: string; name: string }[];
+  /** A Steam invite straight to one of them. */
+  inviteBack?(steamId: string): void;
+  /**
    * Leaving for the menu: online the connection closes, so the seat goes to a bot after
    * the grace a dropped player gets (§6), and no ping is left running behind the menu.
    */
@@ -191,6 +198,8 @@ export function networkSession(
   isHost: () => boolean = () => false,
   hostHere: () => boolean = () => true,
   seats: () => readonly Seat[] = () => [],
+  /** The Steam host's invite straight to a player (S3.6); absent for a guest or outside Steam. */
+  inviteBack?: (steamId: string) => void,
 ): Session {
   // Kept until the seats change, since the HUD asks every frame.
   let seen: readonly Seat[] | null = null;
@@ -259,6 +268,19 @@ export function networkSession(
       }
       return pictured.map;
     },
+    ...(inviteBack === undefined
+      ? {}
+      : {
+          invitable: () =>
+            !isHost() || match.finished
+              ? []
+              : seats()
+                  .filter(
+                    (seat) => !seat.connected && !seat.isBot && typeof seat.steamId === 'string',
+                  )
+                  .map((seat) => ({ id: seat.steamId as string, name: seat.name })),
+          inviteBack,
+        }),
     leave: () => connection.close(),
     // The host gone, or the room, nobody will call the next match: the summary keeps only
     // its way back to the menu, where a guest once waited on the button for good.

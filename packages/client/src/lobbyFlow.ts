@@ -31,6 +31,7 @@ import { NetworkMatch } from './net/networkMatch.js';
 import { STEAM_RETRY } from './net/steamDial.js';
 import type { LobbyKind } from './host.js';
 import { forgetMatch } from './steam/backToMatch.js';
+import { readHostAnswer, stillPlaying } from './steam/rejoin.js';
 import { onAvatars } from './steam/avatars.js';
 import { steamIdOfCode } from './steam/steamCode.js';
 import {
@@ -518,23 +519,27 @@ const STEAM_WELCOME_WAIT_MS = 10_000;
  * Joins a host's game over Steam (STEAM.md §7.3, S3.3), however it was asked for — a code,
  * Find a game, an invite, Join in the friends list, Back to the match: the host's app asked
  * over P2P where its game is, its lobby joined for Steam's own view of who plays together,
- * then its room over P2P. `kept` is Back to the match's room, taken even if the host now says
- * another: the seat is the server's to give back, by Steam ID.
+ * then its room over P2P. The host's answer says whether this player holds a seat there
+ * (S3.6): if so the room gives it back, by Steam ID. `back` is for the match this player left —
+ * Back to the match, the restart's prompt, the host's Invite back — and goes only to a match
+ * still running with their seat in it, forgetting it otherwise.
  */
-export async function joinSteam(common: Common, host: string, kept?: string): Promise<void> {
+export async function joinSteam(common: Common, host: string, back = false): Promise<void> {
   const steam = steamPlay();
   if (steam === null) return;
-  app!.innerHTML = `<div class="menu interim"><h1>${t('steam.joining')}</h1><p class="note">${t('menu.lookingForServer')}</p></div>`;
-  const found = (await steam.host.find(host)) as { room?: unknown; lobby?: unknown } | null;
-  const room = kept ?? (typeof found?.room === 'string' ? found.room : null);
+  // A question over the menu — the restart's prompt, another invite's — answered by this join.
+  document.querySelector('.steam-join-asked')?.remove();
+  app!.innerHTML = `<div class="menu interim"><h1>${t(back ? 'steam.rejoining' : 'steam.joining')}</h1><p class="note">${t('menu.lookingForServer')}</p></div>`;
+  const found = readHostAnswer(await steam.host.find(host));
+  const room = back ? (stillPlaying(found) ? found.room : null) : (found?.room ?? null);
   if (room === null) {
-    if (kept !== undefined) forgetMatch();
-    showMenu(t(kept === undefined ? 'steam.noGame' : 'steam.matchOver'));
+    if (back) forgetMatch();
+    showMenu(t(back ? 'steam.matchOver' : 'steam.noGame'));
     return;
   }
-  // Best effort: the seat does not depend on it, and a lobby closed for its match refuses.
-  if (kept === undefined && typeof found?.lobby === 'string')
-    void steam.host.lobbyJoin(found.lobby);
+  // Best effort: the seat does not depend on it, and one held is given back without it.
+  const lobby = found?.lobby ?? null;
+  if (found?.you?.seated !== true && lobby !== null) void steam.host.lobbyJoin(lobby);
 
   const connection = new ServerConnection(host, STEAM_RETRY, steam.dial);
   connection.browserId = browserId();
@@ -548,12 +553,18 @@ export async function joinSteam(common: Common, host: string, kept?: string): Pr
   connection.joinRoom(steam.name, room);
   const first = await answered;
   if (first?.type === 'welcome') {
-    roomLobby(common, connection, room, first, guestSteamRoom(steam, host, room));
+    roomLobby(
+      common,
+      connection,
+      room,
+      first,
+      guestSteamRoom(steam, host, room, () => connection.state !== 'closed'),
+    );
     return;
   }
   connection.close();
   steam.host.lobbyLeave();
-  if (kept !== undefined) {
+  if (back) {
     forgetMatch();
     showMenu(t('steam.matchOver'));
     return;
@@ -565,6 +576,12 @@ export async function joinSteam(common: Common, host: string, kept?: string): Pr
   }
   showMenu(t('steam.noGame'));
 }
+
+/**
+ * How long the room holds a lobby's seat for a guest who dropped, as the server's
+ * `reconnect.lobbyHoldMs` (S3.6): the page tries to get back to it for as long.
+ */
+const LOBBY_HOLD_MS = 10_000;
 
 /** The lobby with no server: the table lives here, under the same rules as a room's. */
 /**
@@ -891,6 +908,7 @@ function roomLobby(
               () => match.humanPlayer === hostId,
               () => hostHere,
               () => view?.seats ?? [],
+              steam?.inviteBack,
             ),
             setup,
             // The next match is the host's to send from their tournament.
@@ -922,8 +940,18 @@ function roomLobby(
   });
 
   // A drop in a match is got back by rejoining the seat, which the server keeps through the
-  // match and its summary; in the lobby a seat left is gone, so a drop there is the end.
-  connection.rejoinWhile(() => started);
+  // match and its summary; in the lobby only while the room holds the seat (S3.6), after which
+  // it is anyone's, and the drop the end.
+  let droppedAt: number | null = null;
+  connection.onMessage((message) => {
+    if (message.type === 'welcome') droppedAt = null;
+  });
+  connection.rejoinWhile(() => {
+    if (started) return true;
+    const now = Date.now();
+    droppedAt ??= now;
+    return now - droppedAt < LOBBY_HOLD_MS;
+  });
   connection.onLost(() => {
     // In a match the screen says so over the board (`connectionNotice.ts`).
     if (!started && !refused) showMenu(t('connection.lobbyLost'));

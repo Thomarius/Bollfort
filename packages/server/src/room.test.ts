@@ -645,6 +645,93 @@ describe('a seat under Steam', () => {
   });
 });
 
+describe('a lobby seat dropped', () => {
+  const HOLD = defaultConfigBundle.server.reconnect.lobbyHoldMs;
+  const lastRoom = (client: TestClient): Extract<ServerMessage, { type: 'room' }> =>
+    client.received.filter((m) => m.type === 'room').at(-1) as Extract<
+      ServerMessage,
+      { type: 'room' }
+    >;
+
+  it('is held for its person a while, back in the seat the host gave them (S3.6)', () => {
+    const r = room(4);
+    const ada = new TestClient('a');
+    const bo = new TestClient('b');
+    r.join(ada, 'Ada');
+    r.join(bo, 'Bo', undefined, undefined, '76561198000000002');
+    r.handle(ada, { type: 'configure', move: { from: 1, to: 3 } });
+    r.leave(bo);
+    expect(lastRoom(ada).seats.find((s) => s.name === 'Bo')).toMatchObject({
+      playerId: 3,
+      connected: false,
+    });
+    // Nobody else takes it meanwhile: a newcomer gets the next free seat.
+    const cy = new TestClient('c');
+    expect(r.join(cy, 'Cy')).toBe(1);
+    r.update(HOLD - 100);
+    // Back by Steam ID, as a restarted app would be, or by the token, as a page.
+    expect(r.join(new TestClient('b2'), 'Bo', undefined, undefined, '76561198000000002')).toBe(3);
+    r.update(HOLD);
+    expect(lastRoom(ada).seats.find((s) => s.name === 'Bo')).toMatchObject({
+      playerId: 3,
+      connected: true,
+    });
+  });
+
+  it('is free for anyone once the hold runs out', () => {
+    const r = room(2);
+    const ada = new TestClient('a');
+    const bo = new TestClient('b');
+    r.join(ada, 'Ada');
+    r.join(bo, 'Bo');
+    r.leave(bo);
+    expect(r.join(new TestClient('c'), 'Cy')).toBeNull(); // still Bo's
+    r.update(HOLD);
+    expect(lastRoom(ada).seats.map((s) => s.name)).toEqual(['Ada']);
+    expect(r.join(new TestClient('c2'), 'Cy')).toBe(1);
+    // Bo's token is a stranger's now: no seat left for him.
+    expect(r.join(new TestClient('b2'), 'Bo', bo.token)).toBeNull();
+  });
+
+  it('does not hold up the start, and goes to a bot at it', () => {
+    const r = room(3);
+    const ada = new TestClient('a');
+    const bo = new TestClient('b');
+    r.join(ada, 'Ada');
+    r.join(bo, 'Bo');
+    r.leave(bo); // never said ready
+    expect(r.everyoneReady).toBe(true);
+    r.handle(ada, { type: 'start' });
+    expect(r.started).toBe(true);
+    const seats = lastRoom(ada).seats;
+    expect(seats.filter((s) => s.isBot)).toHaveLength(2);
+    expect(seats.some((s) => s.name === 'Bo')).toBe(false);
+  });
+});
+
+describe('where a Steam player stands', () => {
+  it('says whether they hold a seat, and the match’s round, for the host’s answer', () => {
+    const r = room(2, 5);
+    const ada = new TestClient('a');
+    const bo = new TestClient('b');
+    r.join(ada, 'Ada', undefined, undefined, '76561198000000001');
+    r.join(bo, 'Bo', undefined, undefined, '76561198000000002');
+    expect(r.standing('76561198000000002')).toEqual({
+      seated: true,
+      started: false,
+      finished: false,
+      round: 0,
+      maxRounds: null,
+    });
+    r.start();
+    run(r, 30);
+    r.leave(bo);
+    expect(r.standing('76561198000000002')).toMatchObject({ seated: true, started: true });
+    expect(r.standing('76561198000000002').maxRounds).toBe(ada.state!.ruleset.scoring.maxRounds);
+    expect(r.standing('76561198000000003').seated).toBe(false);
+  });
+});
+
 describe('the host removing a guest', () => {
   /** The host Ada and two guests, Bo and Cy, at a lobby of four. */
   function table(): { r: Room; ada: TestClient; bo: TestClient; cy: TestClient } {
@@ -914,6 +1001,9 @@ describe('seating, chosen by the host', () => {
     r.join(b, 'Bo');
     r.join(c, 'Cy');
     r.leave(a);
+    // Held for Ada a while first, in case she is only gone for a moment (S3.6).
+    expect(lastRoom(b).hostId).toBe(0);
+    r.update(defaultConfigBundle.server.reconnect.lobbyHoldMs);
     expect(lastRoom(b).hostId).toBe(1);
   });
 

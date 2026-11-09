@@ -709,5 +709,15 @@
   "steam.joinAsked.title": "Join another game?",
   "steam.joinAsked.body": "You will leave the game you are in.",
   "steam.joinAsked.join": "Join",
-  "steam.joinAsked.stay": "Stay"
+  "steam.joinAsked.stay": "Stay",
+  "browser.refused.running": "That match is already under way: only its players can come back to it.",
+  "refusal.match_running": "that match is under way",
+  "steam.rejoining": "Back to the match…",
+  "steam.rejoinAsked.title": "Your match is still running",
+  "steam.rejoinAsked.body": "{host}’s match is still being played ({round}). A bot is playing your seat until you are back.",
+  "steam.rejoinAsked.rejoin": "Rejoin",
+  "steam.rejoinAsked.leave": "Leave it",
+  "pause.inviteBack": "Invite {name} back",
+  "pause.inviteBackTip": "Sends {name} a Steam invite back to their seat.",
+  "pause.invited": "{name} invited"
 }

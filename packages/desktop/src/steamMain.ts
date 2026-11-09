@@ -20,7 +20,8 @@ import {
 } from './steam.js';
 import { PageLinks, type PageLinkEvent } from './pageLinks.js';
 import { AvatarWatch, steamAvatarSource } from './steamAvatars.js';
-import { SteamLobby, type LobbyKind } from './steamLobby.js';
+import { SteamLobby, hereAnswer, type AskedLobby, type LobbyKind } from './steamLobby.js';
+import { steamInviteUser, type InviteUser } from './steamInvite.js';
 import { startSteamNet, type SteamNet } from './steamNet.js';
 
 /**
@@ -80,8 +81,13 @@ if (!app.requestSingleInstanceLock()) {
   void run();
 }
 
-/** Lobbies handed on by a second start or the command line, for S3's joining. */
-const lobbiesAsked: string[] = plan.connectLobby === null ? [] : [plan.connectLobby];
+/**
+ * Lobbies handed on by a second start or the command line, for S3's joining, with who invited
+ * where Steam says (`GameLobbyJoinRequested`): a returning player's app dials that host straight
+ * back (S3.6). A start by `+connect_lobby` names nobody.
+ */
+const lobbiesAsked: AskedLobby[] =
+  plan.connectLobby === null ? [] : [{ lobby: plan.connectLobby, from: null }];
 
 type SteamClient = ReturnType<typeof Steamworks.init>;
 
@@ -235,6 +241,9 @@ async function run(): Promise<void> {
   );
   ipcMain.on('host-lobby-leave', () => lobby?.leave());
   ipcMain.on('host-lobby-invite', () => lobby?.invite());
+  ipcMain.on('host-lobby-invite-user', (_event, steamId: unknown) => {
+    if (typeof steamId === 'string' && /^\d{1,20}$/.test(steamId)) lobby?.inviteUser(steamId);
+  });
   ipcMain.handle('host-lobby-join', (_event, id: unknown) =>
     typeof id === 'string' ? (lobby?.join(id) ?? null) : null,
   );
@@ -268,8 +277,10 @@ async function run(): Promise<void> {
   });
 
   /** A lobby to join, asked by an invite or Join in Steam's friends list: the page told. */
-  const askJoin = (lobby: string): void => {
-    lobbiesAsked.push(lobby);
+  const askJoin = (lobby: string, from: string | null = null): void => {
+    // In the words the bench looks for (tools/steambench).
+    log(`join asked: lobby ${lobby}${from === null ? '' : ` from ${from}`}`);
+    lobbiesAsked.push({ lobby, from });
     if (window !== null && !window.isDestroyed()) window.webContents.send('steam-join-asked');
   };
   app.on('second-instance', (_event, argv) => {
@@ -286,18 +297,26 @@ async function run(): Promise<void> {
   log(`server on ${server.port}`);
   if (steamClient !== null && steam.ready) {
     const running = server;
-    const steamLobby = new SteamLobby(steamClient, log);
+    let inviteUser: InviteUser | null = null;
+    try {
+      inviteUser = steamInviteUser();
+    } catch (e) {
+      log(`no direct invites: ${(e as Error).message}`);
+    }
+    const steamLobby = new SteamLobby(steamClient, log, inviteUser);
     lobby = steamLobby;
     const p2p = startSteamNet(
       steamClient,
       (peer, steamId) => running.accept(peer, steamId),
       log,
-      () => steamLobby.here(),
+      (asker) =>
+        hereAnswer(steamLobby.where(), (room) => running.standing(room, asker), steam.name),
     );
     // An invite accepted, or Join in Steam's friends list, while the game runs.
     steamClient.callback.register(
       8 as callback.SteamCallback.GameLobbyJoinRequested,
-      ({ lobby_steam_id }) => askJoin(lobby_steam_id.toString()),
+      ({ lobby_steam_id, friend_steam_id }) =>
+        askJoin(lobby_steam_id.toString(), friend_steam_id.toString()),
     );
     net = p2p;
     links = new PageLinks((host, events) => p2p.guest.dial(host, events), tellPage);
