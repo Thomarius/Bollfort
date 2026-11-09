@@ -483,6 +483,11 @@ export async function openLobby(
         botTowers: remembered.botTowers,
       });
     }
+    // `&rounds=N`, the round cap for this room alone: how the Steam bench plays short matches
+    // where the end screen, not the late game, is what it checks (STEAM.md §3.4).
+    const rounds = askedRounds();
+    if (code === null && rounds !== null)
+      connection.send({ type: 'configure', settings: { maxRounds: rounds } });
     const steamRoom =
       steam !== null && code === null
         ? await hostSteamRoom(steam, first.code, kind ?? lobbyKind())
@@ -575,6 +580,15 @@ export async function joinSteam(common: Common, host: string, back = false): Pro
     return;
   }
   showMenu(t('steam.noGame'));
+}
+
+/** `&rounds=N` from the address, within the lobby's bounds, or null. */
+function askedRounds(): number | null {
+  const asked = params.get('rounds');
+  if (asked === null || !/^\d{1,2}$/.test(asked)) return null;
+  const n = Number(asked);
+  const { min, max } = SETTING_BOUNDS.maxRounds;
+  return n >= min && n <= max ? n : null;
 }
 
 /**
@@ -856,7 +870,13 @@ function roomLobby(
         };
         // The host's own table kept for the next one, as the room reports it — not a
         // tournament's, which is the tournament's.
-        if (!message.started && message.tournament === null && match.humanPlayer === hostId) {
+        // Nor one whose rounds the address set, which is a test's, not the host's choice.
+        if (
+          !message.started &&
+          message.tournament === null &&
+          match.humanPlayer === hostId &&
+          askedRounds() === null
+        ) {
           saveTable(tableOf(view));
         }
         if (!message.started) {

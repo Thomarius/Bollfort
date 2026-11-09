@@ -2,14 +2,15 @@
 // and the VM "bollfort-guest" (a second account), every path by script.
 //
 //   npx tsx tools/steambench/src/bench.ts [scenario...] [--reverse]
-//                                         [--app DIR] [--out DIR] [--no-deploy] [--reset]
+//                                         [--app DIR] [--out DIR] [--no-deploy] [--reset] [--full]
 //
 // Scenarios: start (the Steam build, S2; --steam-restart shuts Steam down for its last part),
 // join, public, private, code, match, lag, outage, reversed, restart, invite (all, in that order, by
 // default). The app under test is the Steam build (S3, its Linux folder
 // `packages/desktop/release/steam/linux-unpacked`, packaged with BOLLFORT_STEAM=1), copied into
 // the VM first (the S1 spike, once its reference, is gone: ARCHIVE 15zt). Both Steams
-// running and logged in; the desktop left alone. lag and outage need `sudo -n /usr/sbin/tc` (a
+// running and logged in; the desktop left alone. Only `match` plays all ten rounds; the other
+// matches are three to seven (`&rounds=`), and --full plays every one to ten. lag and outage need `sudo -n /usr/sbin/tc` (a
 // sudoers line). --reset only removes any shaping left by a crashed run.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -65,6 +66,12 @@ const STAMP = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
 const OUT = path.resolve(opt('out') ?? path.join(REPO, 'steambench-results', STAMP));
 /** Both seats played by the autopilot, so the guest's moves cross Steam too. */
 const PARAMS = ['--game-params', 'autopilot=1'];
+/**
+ * The host's: both seats on autopilot, and the match's rounds where a scenario plays fewer than
+ * the rules' ten (`&rounds=`). --full plays every match to ten.
+ */
+const hostParams = (rounds: number | undefined): string[] =>
+  rounds === undefined || flag('full') ? PARAMS : ['--game-params', `autopilot=1&rounds=${rounds}`];
 /** A match of ten rounds takes some 11 minutes; past this, it is stuck. */
 const MATCH_LIMIT_MS = 25 * 60_000;
 
@@ -241,8 +248,9 @@ interface Table {
 async function hostTable(
   host: AppUnderTest,
   type: 'friends' | 'public' | 'private',
+  rounds?: number,
 ): Promise<{ lobby: string; game: Page }> {
-  await host.start(PARAMS);
+  await host.start(hostParams(rounds));
   const lobby = await host.host(type);
   const game = await host.game();
   if (game === null) throw new Error('the host has no game window');
@@ -385,6 +393,12 @@ async function scenarioPublic(run: Run, host: AppUnderTest, guest: AppUnderTest)
 }
 
 interface MatchPlan {
+  /**
+   * The match's rounds, fewer than ten where the end screen and the hashes are what is checked,
+   * not the late game: a match of ten blocks the machine for some 10 minutes (the user's,
+   * 2026-11-09). Only `match` plays all ten, for the clean figures.
+   */
+  rounds?: number;
   /** Shaping from a second into the match, per direction. */
   shapes?: { atS: number; name: string; shape: Shape }[];
   /** The guest cut off at a second into the match, for so many seconds. */
@@ -405,7 +419,7 @@ async function scenarioMatch(
   plan: MatchPlan,
   network: Network | null,
 ): Promise<void> {
-  const { lobby, game: hostGame } = await hostTable(host, 'friends');
+  const { lobby, game: hostGame } = await hostTable(host, 'friends', plan.rounds);
   const seat = await joinGuest(guest, lobby);
   run.check('seated', seat.seatedMs !== null, `first answer ${seat.firstAnswer ?? '-'} s`);
   if (seat.seatedMs === null) return;
@@ -658,18 +672,24 @@ async function scenarioMatch(
 }
 
 /** One direction each: a round trip gains twice. */
+// A round takes about a minute, the opening a little more: the events come as early as they
+// can, each with a round or more of play after it before the end screen.
 const LAG: MatchPlan = {
+  rounds: 5,
   shapes: [
     { atS: 0, name: 'round trip +50 ± 10 ms', shape: { delayMs: 25, jitterMs: 5, lossPct: 0 } },
-    { atS: 220, name: 'round trip +150 ± 30 ms', shape: { delayMs: 75, jitterMs: 15, lossPct: 0 } },
-    { atS: 440, name: '1% loss each way', shape: { delayMs: 0, jitterMs: 0, lossPct: 1 } },
+    { atS: 110, name: 'round trip +150 ± 30 ms', shape: { delayMs: 75, jitterMs: 15, lossPct: 0 } },
+    { atS: 220, name: '1% loss each way', shape: { delayMs: 0, jitterMs: 0, lossPct: 1 } },
   ],
 };
+// The 90 s cut is back some two minutes after it starts (Steam makes the session again some 20 s
+// after the network returns, the page's rejoin then): ended by 390 s, a round of play after.
 const OUTAGE: MatchPlan = {
+  rounds: 7,
   cuts: [
-    { atS: 120, seconds: 10 },
-    { atS: 240, seconds: 30 },
-    { atS: 400, seconds: 90 },
+    { atS: 60, seconds: 10 },
+    { atS: 110, seconds: 30 },
+    { atS: 180, seconds: 90 },
   ],
 };
 
@@ -743,9 +763,18 @@ async function main(): Promise<void> {
       else if (scenario === 'lag') await scenarioMatch(run, host, guest, LAG, network);
       else if (scenario === 'outage') await scenarioMatch(run, host, guest, OUTAGE, network);
       else if (scenario === 'restart')
-        await scenarioMatch(run, host, guest, { restartAtS: 180 }, network);
+        await scenarioMatch(run, host, guest, { rounds: 4, restartAtS: 120 }, network);
       else if (scenario === 'invite')
-        await scenarioMatch(run, host, guest, { restartAtS: 180, invite: true }, network);
+        await scenarioMatch(
+          run,
+          host,
+          guest,
+          { rounds: 4, restartAtS: 120, invite: true },
+          network,
+        );
+      // `reversed` checks the roles swapped, not the match: three rounds.
+      else if (scenario === 'reversed')
+        await scenarioMatch(run, host, guest, { rounds: 3 }, network);
       else await scenarioMatch(run, host, guest, {}, network);
     } catch (e) {
       run.check('ran to the end', false, (e as Error).message.split('\n')[0]);

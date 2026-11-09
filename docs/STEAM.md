@@ -316,8 +316,12 @@ clicks; Windows itself; a controller under Steam Input.
 
 **Where**: `tools/steambench/` on main, its own workspace package, outside `npm run check` (it
 needs Steam, the VM and the desktop). `npx tsx tools/steambench/src/bench.ts [scenario...]
-[--reverse] [--app DIR] [--reset]`. A full set takes about an hour and a half, unattended, the
-desktop left alone.
+[--reverse] [--app DIR] [--reset] [--full]`. A full set takes about an hour, unattended, the
+desktop left alone. **Only `match` plays all ten rounds** (the user's, 2026-11-09: a match of ten
+blocks the machine for some 10 minutes): `reversed` plays 3, `restart` and `invite` 4, `lag` 5,
+`outage` 7, each event as early as it can come with a round of play after it, through the host's
+`&rounds=` (the lobby's `maxRounds` bounds now 1–20, the rounds no longer being offered there);
+`--full` plays every match to ten, as before (about an hour and a half).
 
 **The spike** stayed on its branch, frozen but kept, until S3's build passed the same scenarios:
 the reference to compare S3 against. Then the branch was deleted (2026-11-09, ARCHIVE 15zt, its
