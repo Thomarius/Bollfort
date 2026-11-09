@@ -59,7 +59,12 @@ class TestClient implements Connection {
     }
   }
 
-  close(): void {}
+  /** Why the room closed this link, each time it did. */
+  readonly closedWith: string[] = [];
+
+  close(reason: string): void {
+    this.closedWith.push(reason);
+  }
 }
 
 function room(playerCount: number, seed = 1): Room {
@@ -602,6 +607,44 @@ describe('room manager', () => {
   });
 });
 
+describe('a seat under Steam', () => {
+  it('gives a seat back by Steam ID alone, as to an app started again (STEAM.md §7.3)', () => {
+    const STEAM_BO = '76561198000000002';
+    const r = room(3, 5);
+    const a = new TestClient('a');
+    const b = new TestClient('b');
+    r.join(a, 'Ada', undefined, undefined, '76561198000000001');
+    r.join(b, 'Bo', undefined, undefined, STEAM_BO);
+    r.start();
+    run(r, 200);
+    const player = b.playerId;
+
+    // No token, and the old link not yet heard to go: the new one takes the seat over.
+    const again = new TestClient('b2');
+    expect(r.join(again, 'Bo', undefined, undefined, STEAM_BO)).toBe(player);
+    expect(b.closedWith).toHaveLength(1);
+    expect(again.state!.tick).toBeGreaterThanOrEqual(200);
+    // The old link going after changes nothing for the new one.
+    r.leave(b);
+    run(r, 100);
+    expect(again.desyncs).toEqual([]);
+    expect(hashMatchState(again.state!)).toBe(hashMatchState(a.state!));
+    const seats = (
+      again.received.filter((m) => m.type === 'room').at(-1) as Extract<
+        ServerMessage,
+        { type: 'room' }
+      >
+    ).seats;
+    expect(seats.find((s) => s.playerId === player)).toMatchObject({
+      connected: true,
+      steamId: STEAM_BO,
+    });
+
+    // Someone else, by Steam ID, gets no seat in a match under way.
+    expect(r.join(new TestClient('c'), 'Cy', undefined, undefined, '76561198000000003')).toBeNull();
+  });
+});
+
 describe('the host removing a guest', () => {
   /** The host Ada and two guests, Bo and Cy, at a lobby of four. */
   function table(): { r: Room; ada: TestClient; bo: TestClient; cy: TestClient } {
@@ -634,6 +677,17 @@ describe('the host removing a guest', () => {
     r.start();
     r.rematch();
     expect(r.refuses('browser-bo')).toBe(true);
+  });
+
+  it('refuses a removed guest by their Steam ID too', () => {
+    const r = room(4);
+    const ada = new TestClient('a');
+    const bo = new TestClient('b');
+    r.join(ada, 'Ada', undefined, undefined, '76561198000000001');
+    r.join(bo, 'Bo', undefined, undefined, '76561198000000002');
+    r.handle(ada, { type: 'remove', seat: bo.playerId });
+    expect(r.refuses(undefined, undefined, '76561198000000002')).toBe(true);
+    expect(r.refuses(undefined, undefined, '76561198000000001')).toBe(false);
   });
 
   it('is the host’s alone, in the lobby only, and never of themselves', () => {

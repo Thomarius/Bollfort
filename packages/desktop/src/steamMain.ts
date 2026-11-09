@@ -16,6 +16,8 @@ import {
   startPlan,
   type SteamInfo,
 } from './steam.js';
+import { PageLinks, type PageLinkEvent } from './pageLinks.js';
+import { startSteamNet, type SteamNet } from './steamNet.js';
 
 /**
  * The Steam build (STEAM.md §3.5, S2): no launcher, the game's window first and only, its
@@ -77,6 +79,9 @@ if (!app.requestSingleInstanceLock()) {
 /** Lobbies handed on by a second start or the command line, for S3's joining. */
 const lobbiesAsked: string[] = plan.connectLobby === null ? [] : [plan.connectLobby];
 
+/** Steam's client once initialised, for its P2P (S3). */
+let steamClient: ReturnType<typeof Steamworks.init> | null = null;
+
 /** Steam set up, or null when Steam is starting the app again itself (Q6). */
 function initSteam(): SteamInfo | null {
   // Loaded only here: a native module, shipped unpacked, in the Steam build alone.
@@ -93,6 +98,7 @@ function initSteam(): SteamInfo | null {
   steamworks.electronEnableSteamOverlay();
   try {
     const client = steamworks.init(STEAM_APP_ID);
+    steamClient = client;
     return {
       ready: true,
       name: client.localplayer.getName(),
@@ -123,7 +129,7 @@ function saveFullscreen(on: boolean): void {
   }
 }
 
-async function startOwnServer(): Promise<RunningServer> {
+async function startOwnServer(steamId: string | null): Promise<RunningServer> {
   const bundle = loadConfigBundle(root);
   for (const port of serverPorts(bundle.server.port)) {
     const result = await startServer({
@@ -136,6 +142,8 @@ async function startOwnServer(): Promise<RunningServer> {
       record: !app.isPackaged,
       recordingsDir: join(app.getPath('userData'), 'recordings'),
       ...(app.isPackaged ? { commit: __BOLLFORT_COMMIT__ } : {}),
+      // A socket here is the host's own page: it sits as the host's Steam ID (STEAM.md §7.3).
+      ...(steamId === null ? {} : { localSteamId: steamId }),
     });
     if (result.ok) return result.server;
   }
@@ -149,10 +157,13 @@ async function run(): Promise<void> {
   log(steam.ready ? `Steam ready: ${steam.name}` : `no Steam: ${steam.error}`);
   let window: BrowserWindow | null = null;
   let server: RunningServer | null = null;
+  let net: SteamNet | null = null;
+  let links: PageLinks | null = null;
   let quitting = false;
   const quit = (): void => {
     if (quitting) return;
     quitting = true;
+    net?.stop();
     void (server?.stop() ?? Promise.resolve()).finally(() => app.exit(0));
   };
 
@@ -173,6 +184,22 @@ async function run(): Promise<void> {
   });
   ipcMain.handle('host-quit', () => quit());
 
+  // The page's links to other hosts over Steam (S3.1): opened, sent on and closed by the page's
+  // own numbers, what they say sent back to it. Without Steam every link fails at once.
+  const tellPage = (event: PageLinkEvent): void => {
+    if (window !== null && !window.isDestroyed()) window.webContents.send('steam-link', event);
+  };
+  ipcMain.on('steam-link-open', (_event, id: number, host: string) => {
+    if (links !== null) links.open(id, host);
+    else {
+      tellPage({ id, event: 'error' });
+      tellPage({ id, event: 'close' });
+    }
+  });
+  ipcMain.on('steam-link-send', (_event, id: number, text: string) => links?.send(id, text));
+  ipcMain.on('steam-link-close', (_event, id: number) => links?.close(id));
+  ipcMain.handle('host-steam-stats', () => net?.stats() ?? null);
+
   app.on('second-instance', (_event, argv) => {
     const lobby = startPlan(process.platform, argv, STEAM_APP_ID).connectLobby;
     if (lobby !== null) lobbiesAsked.push(lobby);
@@ -183,8 +210,15 @@ async function run(): Promise<void> {
 
   await app.whenReady();
   log('app ready');
-  server = await startOwnServer();
+  server = await startOwnServer(steam.steamId);
   log(`server on ${server.port}`);
+  if (steamClient !== null && steam.ready) {
+    const running = server;
+    const p2p = startSteamNet(steamClient, (peer, steamId) => running.accept(peer, steamId), log);
+    net = p2p;
+    links = new PageLinks((host, events) => p2p.guest.dial(host, events), tellPage);
+    log('Steam P2P ready');
+  }
   // The first window made, and the only one: on Windows the overlay draws in the first
   // (STEAM.md §3.3). Fullscreen at the window, not the page's: Esc, the game's pause, would
   // otherwise leave it.
@@ -225,6 +259,10 @@ async function run(): Promise<void> {
     quit();
   });
   window.webContents.once('did-finish-load', () => log('game page loaded'));
+  // A page loaded again has none of its links: close them, the hosts told.
+  window.webContents.on('did-start-navigation', (details) => {
+    if (details.isMainFrame && !details.isSameDocument) links?.closeAll();
+  });
   log('window made');
   void window.loadURL(`http://127.0.0.1:${server.port}`);
 }

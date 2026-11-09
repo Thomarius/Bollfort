@@ -57,6 +57,12 @@ export interface Seat {
   special: TowerVariant | null;
   /** The ID the person's browser sent, or null; kept to refuse them once removed. */
   browserId: string | null;
+  /**
+   * The Steam ID the person came by under the Steam build (STEAM.md §7.3), or null: who they
+   * are, by which they take their seat back after an outage or a restart, and are refused
+   * once removed.
+   */
+  steamId: string | null;
 }
 
 export interface RoomOptions {
@@ -200,32 +206,46 @@ export class Room {
 
   // ---------------------------------------------------------------- membership
 
-  /** Whether the host has removed whoever joins with this browser ID or token. */
-  refuses(browserId?: string, token?: string): boolean {
+  /** Whether the host has removed whoever joins with this browser ID, token or Steam ID. */
+  refuses(browserId?: string, token?: string, steamId?: string): boolean {
     return (
+      (steamId !== undefined && this.removed.has(`steam:${steamId}`)) ||
       (browserId !== undefined && this.removed.has(`id:${browserId}`)) ||
       (token !== undefined && this.removed.has(`token:${token}`))
     );
   }
 
-  join(connection: Connection, name: string, token?: string, browserId?: string): number | null {
-    if (token !== undefined) {
-      const seat = this.seats.find((s) => s.token === token);
-      if (seat) {
-        // Reclaiming a seat a bot has been holding — unless it is the seat the host
-        // gave to a bot on purpose, which stays the bot's: they came back to watch.
-        seat.connection = connection;
-        const watching =
-          this.match !== null && seat.playerId === this.hostId && this.hostBot !== null;
-        seat.bot = watching;
-        seat.graceTicks = 0;
-        this.sendWelcome(seat);
-        this.match?.sendSnapshot(seat);
-        const pausedBy = this.match?.pausedBy ?? null;
-        if (pausedBy !== null) connection.send({ type: 'paused', paused: true, by: pausedBy });
-        this.broadcastRoom();
-        return seat.playerId;
-      }
+  join(
+    connection: Connection,
+    name: string,
+    token?: string,
+    browserId?: string,
+    steamId?: string,
+  ): number | null {
+    // Under Steam a person is known by their Steam ID, so their seat is theirs again without
+    // the token, which a restarted app lost with its page (STEAM.md §7.3).
+    const own =
+      (steamId === undefined ? undefined : this.seats.find((s) => s.steamId === steamId)) ??
+      (token === undefined ? undefined : this.seats.find((s) => s.token === token));
+    if (own) {
+      const seat = own;
+      // A link the seat still holds is one the server has not yet heard go — a restarted
+      // guest's old one, or one an outage outlasted: the new link takes over, the old closed.
+      const old = seat.connection;
+      // Reclaiming a seat a bot has been holding — unless it is the seat the host
+      // gave to a bot on purpose, which stays the bot's: they came back to watch.
+      seat.connection = connection;
+      if (old !== null && old.id !== connection.id) old.close('your seat was taken up again');
+      const watching =
+        this.match !== null && seat.playerId === this.hostId && this.hostBot !== null;
+      seat.bot = watching;
+      seat.graceTicks = 0;
+      this.sendWelcome(seat);
+      this.match?.sendSnapshot(seat);
+      const pausedBy = this.match?.pausedBy ?? null;
+      if (pausedBy !== null) connection.send({ type: 'paused', paused: true, by: pausedBy });
+      this.broadcastRoom();
+      return seat.playerId;
     }
 
     if (this.match !== null) return null; // no new seats once a match is running
@@ -243,6 +263,7 @@ export class Room {
       graceTicks: 0,
       special: null,
       browserId: browserId ?? null,
+      steamId: steamId ?? null,
     };
     this.seats.push(seat);
     if (this.seats.length === 1) this.hostId = seat.playerId;
@@ -305,6 +326,7 @@ export class Room {
         if (guest === undefined || guest === seat) return;
         this.removed.add(`token:${guest.token}`);
         if (guest.browserId !== null) this.removed.add(`id:${guest.browserId}`);
+        if (guest.steamId !== null) this.removed.add(`steam:${guest.steamId}`);
         this.seats.splice(this.seats.indexOf(guest), 1);
         guest.connection?.send({ type: 'removed' });
         this.broadcastRoom();
@@ -564,6 +586,7 @@ export class Room {
         graceTicks: 0,
         special: null,
         browserId: null,
+        steamId: null,
       });
     }
 
@@ -742,6 +765,7 @@ export class Room {
       connected: seat.connection !== null,
       ready: seat.ready,
       special: seat.special,
+      steamId: seat.steamId,
     }));
   }
 

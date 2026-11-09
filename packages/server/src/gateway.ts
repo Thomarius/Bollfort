@@ -60,7 +60,13 @@ export class Gateway {
     private readonly now: () => number = () => Date.now(),
   ) {}
 
-  accept(peer: Peer): Session {
+  /**
+   * A link accepted, with who is on its far end where the transport knows it: the sender's
+   * Steam ID, which Steam stamps on every packet (STEAM.md §7.3). The client never states it,
+   * as the server owns identity; with it a person takes their seat back after an outage or a
+   * restart, and is refused once removed.
+   */
+  accept(peer: Peer, steamId?: string): Session {
     const { maxMessageBytes, maxTournamentBytes, maxMessagesPerSecond } = this.bundle.server.limits;
     const joined = this.joined;
     const rooms = this.rooms;
@@ -119,7 +125,7 @@ export class Gateway {
           connection.send({ type: 'error', code: 'no_capacity', message: 'server is full' });
           return;
         }
-        room.join(connection, message.name, undefined, message.browserId);
+        room.join(connection, message.name, undefined, message.browserId, steamId);
         joined.set(connection.id, room);
         return;
       }
@@ -130,12 +136,14 @@ export class Gateway {
           connection.send({ type: 'error', code: 'no_room', message: 'no room with that code' });
           return;
         }
-        // Removed by its host (STEAM.md §5): by this browser's ID, or the seat's token.
-        if (room.refuses(message.browserId, message.token)) {
+        // Removed by its host (STEAM.md §5): by this browser's ID, the seat's token, or Steam ID.
+        if (room.refuses(message.browserId, message.token, steamId)) {
           connection.send({ type: 'error', code: 'removed', message: 'removed by the host' });
           return;
         }
-        if (room.join(connection, message.name, message.token, message.browserId) === null) {
+        if (
+          room.join(connection, message.name, message.token, message.browserId, steamId) === null
+        ) {
           connection.send({ type: 'error', code: 'room_full', message: 'that room is full' });
           return;
         }

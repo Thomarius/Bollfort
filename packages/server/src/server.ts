@@ -8,7 +8,7 @@ import { PROTOCOL_VERSION, type RoomList } from '@bollfort/protocol';
 import { WebSocketServer, type WebSocket } from 'ws';
 
 import { openableUrls } from './addresses.js';
-import { Gateway } from './gateway.js';
+import { Gateway, type Peer, type Session } from './gateway.js';
 import { openRecordingStore } from './recordings.js';
 import { codeVersion } from './version.js';
 import { RoomManager } from './rooms.js';
@@ -54,6 +54,11 @@ export interface ServerOptions {
   opener?: PortOpener;
   /** The config's `reconnect.heartbeatMs` by default; short in tests. */
   heartbeatMs?: number;
+  /**
+   * Under the Steam build, the host's Steam ID, given to every socket: the server is on
+   * 127.0.0.1 alone there, so a socket is the host's own page (STEAM.md §7.3).
+   */
+  localSteamId?: string;
 }
 
 export interface RunningServer {
@@ -75,6 +80,11 @@ export interface RunningServer {
    * router's opened port.
    */
   setInvite(url: string | null): void;
+  /**
+   * Takes a link another transport carries — Steam's P2P under the Steam build — with the
+   * Steam ID on its far end (STEAM.md §7.3).
+   */
+  accept(peer: Peer, steamId?: string): Session;
 }
 
 /** A start that could not bind: told as such, so a caller can say so rather than crash. */
@@ -278,14 +288,17 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
   wss.on('connection', (socket: WebSocket) => {
     heard.add(socket);
     socket.on('pong', () => heard.add(socket));
-    const session = gateway.accept({
-      send(text) {
-        if (socket.readyState === socket.OPEN) socket.send(text);
+    const session = gateway.accept(
+      {
+        send(text) {
+          if (socket.readyState === socket.OPEN) socket.send(text);
+        },
+        close() {
+          socket.close();
+        },
       },
-      close() {
-        socket.close();
-      },
-    });
+      options.localSteamId,
+    );
     socket.on('message', (raw: Buffer | string) => {
       heard.add(socket);
       session.receive(typeof raw === 'string' ? raw : raw.toString('utf8'));
@@ -349,6 +362,7 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
         if (url !== null) log(`reachable from the internet at ${url}`);
         rooms.refreshLobbies();
       },
+      accept: (peer, steamId) => gateway.accept(peer, steamId),
       port: actualPort,
       host,
       // The addresses to open, not the one bound: a browser refuses http://0.0.0.0:8080.

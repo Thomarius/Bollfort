@@ -20,9 +20,9 @@ import { SnapshotSchema } from './snapshot.js';
  * towers, fixed for its whole length and sent with its table (2026-10-28). 34: the Subwoofer,
  * its variants, its ruleset key and the snapshot's waves (2026-10-30). 35: the host's Remove, a
  * browser's ID on joining, and the games browser's listing with towers and without rounds
- * (STEAM.md K and B, 2026-11-03).
+ * (STEAM.md K and B, 2026-11-03). 36: a seat's Steam ID, for its avatar (STEAM.md §7.3, S3).
  */
-export const PROTOCOL_VERSION = 35;
+export const PROTOCOL_VERSION = 36;
 
 /**
  * A player's intent. The server overwrites `player` with the sender's own seat before
@@ -64,6 +64,9 @@ export const ActionSchema = z.discriminatedUnion('kind', [
  */
 export const BrowserIdSchema = z.string().min(8).max(64);
 
+/** A Steam ID: its 64 bits as decimal digits. */
+export const SteamIdSchema = z.string().regex(/^\d{1,20}$/);
+
 export const SeatSchema = z.strictObject({
   playerId: z.number().int().nonnegative(),
   name: z.string(),
@@ -76,6 +79,12 @@ export const SeatSchema = z.strictObject({
    * out itself.
    */
   special: TowerVariantSchema.nullable(),
+  /**
+   * The Steam ID of the person in this seat under the Steam build, for their avatar: the
+   * server's, taken from the link they came by (STEAM.md §7.3), never what a page claims.
+   * Null or absent outside Steam and for bots.
+   */
+  steamId: SteamIdSchema.nullable().optional(),
 });
 export type Seat = z.infer<typeof SeatSchema>;
 

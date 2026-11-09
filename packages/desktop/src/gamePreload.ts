@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
+import type { PageLinkEvent } from './pageLinks.js';
 import type { SteamInfo } from './steam.js';
+import type { SteamNetStats } from './steamNet.js';
 
 /**
  * What the Steam build's game window may ask of the app (STEAM.md §3.5): Steam's state, the
@@ -18,6 +20,18 @@ const host = {
   onFullscreen: (listener: (on: boolean) => void): void => {
     ipcRenderer.on('host-fullscreen', (_event, on: boolean) => listener(on));
   },
+  /**
+   * Links to another player's game over Steam (STEAM.md §7.3), by the page's own numbers: the
+   * address is the host's Steam ID. What they say comes back through `onLink`.
+   */
+  linkOpen: (id: number, host: string): void => ipcRenderer.send('steam-link-open', id, host),
+  linkSend: (id: number, text: string): void => ipcRenderer.send('steam-link-send', id, text),
+  linkClose: (id: number): void => ipcRenderer.send('steam-link-close', id),
+  onLink: (listener: (event: PageLinkEvent) => void): void => {
+    ipcRenderer.on('steam-link', (_event, value: PageLinkEvent) => listener(value));
+  },
+  /** Steam's P2P traffic, for the bench (§3.4); null without Steam. */
+  steamStats: (): Promise<SteamNetStats | null> => ipcRenderer.invoke('host-steam-stats'),
 };
 
 export type GameHost = typeof host;

@@ -22,7 +22,17 @@ export interface GameHost {
   setFullscreen(on: boolean): Promise<boolean>;
   quit(): Promise<void>;
   onFullscreen(listener: (on: boolean) => void): void;
+  /** A link to another player's game over Steam, by this page's own number (`net/steamDial.ts`). */
+  linkOpen(id: number, host: string): void;
+  linkSend(id: number, text: string): void;
+  linkClose(id: number): void;
+  onLink(listener: (event: HostLinkEvent) => void): void;
 }
+
+/** What a link over Steam says, as the app passes it on. */
+export type HostLinkEvent =
+  | { id: number; event: 'open' | 'close' | 'error' }
+  | { id: number; event: 'message'; text: string };
 
 /** The Steam build's bridge, or null anywhere else. */
 export function gameHost(): GameHost | null {

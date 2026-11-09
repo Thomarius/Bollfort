@@ -1596,6 +1596,7 @@
       "badBehindTicks": 15,
       "reconnectDelaysMs": [500, 1000, 2000, 4000, 5000],
       "reconnectTries": 15,
+      "steamReconnectTries": 120,
       "resyncLimit": 3
     }
   },

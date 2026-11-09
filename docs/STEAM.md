@@ -510,8 +510,8 @@ in the client package, whose types have no Node, so it cannot start the real ser
 ### 7.2 What the players see (S3)
 
 - **Play** opens a table with bots, as now. Under Steam it is also a lobby, **Friends** by
-  default; the host chooses Public, Friends or Invite only before hosting (no fork, §3.2), fixed once
-  the lobby is made.
+  default; the host chooses Public, Friends or Invite only in Play, before hosting (no fork,
+  §3.2), fixed once the lobby is made.
 - **Invite**: a button in the lobby opens Steam's friend picker in the overlay. An invite accepted
   with the game closed starts it into the lobby (`+connect_lobby`); with the game running it joins
   from wherever the player is, after asking if they are in a match.
@@ -519,7 +519,7 @@ in the client package, whose types have no Node, so it cannot start the real ser
 - **Rich presence**: "In the lobby", "In a match, round 5 of 10", "In a tournament", in English
   and German _(the localisation file's format to confirm)_.
 - **Names and avatars**: a seat's name is the Steam name, so there is no name field under Steam.
-  The avatar is on the seat card and in the browser.
+  The avatar is on the seat card, in the browser and in the match (§7.3).
 - **At the start** the lobby closes to joins (`setJoinable(false)`). A match is never joined in
   progress.
 - **The host leaving** ends the match, as now. Handing the server to a guest is for later.
@@ -527,6 +527,136 @@ in the client package, whose types have no Node, so it cannot start the real ser
 - **Versions**: the protocol version is in the lobby data. A lobby on another version is hidden.
 - **The language** from Steam's (`getCurrentGameLanguage`) on first start, then the player's own
   choice.
+
+### 7.3 S3's design (draft, 2026-11-09, for the user's approval)
+
+**Decided** (2026-11-09, the user's, answering the draft's questions):
+
+- **Rejoining must work in a match**, after an outage and after a restart: **by Steam ID, over
+  P2P to the host directly**, never through the lobby, which drops a guest cut off for 10 s and
+  is closed to joins once the match starts (§3.3).
+- **Join by code stays** under Steam: some prefer it, and it is the fallback when Steam's friends
+  list fails to hand a join over.
+- **The lobby's type is chosen in Play, before hosting**: no new step in the lobby screen.
+- **Avatars in the match too**, not only on the lobby's cards and in Find a game.
+- **Every multiplayer bench run is on the user's Linux machine** with its VM (§3.4); this machine
+  builds and prepares, and checks what one account can.
+
+**S3.1 The transport: Steam's P2P behind the main process**
+
+- **No relay socket** as the spike had: the guest's page dials through the preload (`dialSteam`,
+  a `Dial` of §7.1, its address the host's Steam ID), its main process carries the text over P2P,
+  reliable sends; the host's main process hands each link to the server's `Gateway` as a `Peer`
+  (`steamPeer`), in-process. The host's own page stays on its WebSocket to 127.0.0.1.
+- **Framing** as the spike's, `[kind][link][payload]`: open, opened, data, close, refused, ping,
+  pong. A message is one packet — reliable sends take up to 1 MB, the largest message
+  (`maxTournamentBytes`) is 256 KB — so nothing is split; a send over 1 MB closes the link.
+- **The link opens once the host has answered** (`opened`), with its own wait (10 s, configured)
+  before it fails: Steam's first contact takes 3.8–4.1 s between machines (§3.3), so the page's
+  `SERVER_WAIT_MS` (2 s) starts only after it.
+- **A failed session closes every link to that Steam ID** (`P2PSessionConnectFail`), on both
+  sides, so the gateway's `closed` and the page's rejoin both run. Packets read every 2 ms, as the
+  spike's, since a commit comes thirty times a second.
+- **Tests**: a fake Steam (the P2P calls and callbacks, in memory, with a delay and cuts) under
+  the same transport suite as the fake network's (`transport.test.ts`), the framing a pure
+  function — in `npm run check`.
+
+**S3.2 Identity and rejoining**
+
+- **The server owns identity, by Steam ID**: a `Peer` may carry an identity, the sender's Steam
+  ID, which the client never states — the host's main process takes it from the packet. The
+  host's own WebSocket on 127.0.0.1 is given the host's (an option of `startServer`, the Steam
+  build's only). The gateway uses it in place of the browser ID (§5) and the seat's token.
+- **A seated player is readmitted by Steam ID**, link or none, lobby member or not, for as long as
+  the match runs: a join from a Steam ID holding a seat takes that seat, closing any old link
+  still thought open. The room already holds a gone player's seat for the match, a bot playing
+  it (ARCHIVE 15zc); only the claim changes.
+- **A refusal closes the link** (`refused`, with the reason): the page's rejoin gives up or tries
+  again instead of hanging on Reconnecting (S1's guest, §3.3).
+- **The page keeps trying longer under Steam**: the session is made again some 20 s after the
+  network is back, so the rejoin's tries run while the match does, with Leave match on the notice
+  (ARCHIVE 15zc) — not the 15 tries of about a minute a WebSocket gets.
+- **After a restart**: as a guest's page joins a room, its app keeps the host's Steam ID and the
+  room's code in its settings, cleared when the match ends or is left. Started again with one
+  kept, the menu shows **Back to the match** (a button, as every action has one); refused, it
+  says the match has ended and forgets it.
+- **Remove** (§5) refuses by Steam ID, the host's lobby too (a removed member is not readmitted
+  through it).
+- **Admission is the host's server's alone**: anyone reaching the host may take a free seat while
+  the room is in its lobby, as anyone with a code may outside Steam; Invite only means unlisted
+  and with no Join in the friends list, not a check. A match in progress takes no one new.
+
+**S3.3 Lobbies, codes and Play**
+
+- **Play** in the menu gains a three-way choice under it, **Friends**, **Public**, **Invite only**,
+  Friends by default, remembered; Find a game's Host a single match is always Public. A new
+  tournament's room takes the same remembered choice. Without Steam the choice is not shown.
+- **The Steam lobby is made with the room** (`createLobby`, eight members), its data the
+  listing's (§4): protocol, players, team size, towers, tournament, people, the host's name —
+  updated as the room changes. `setJoinable(false)` at the start, `true` again in the lobby after
+  the match (Rematch).
+- **The code is the host's**: its account ID (the low 32 bits of the Steam ID) in the room code's
+  letters, some seven of them. Joining by it dials the host over P2P directly — no lobby call —
+  and the host answers with its room's code and the lobby's ID, which the guest then joins as
+  well while it is joinable, for Steam's own view of who plays together. So a code still works
+  where the friends list fails, and can also bring a restarted guest back. It shows the host's
+  account, which Steam profiles show anyway.
+- **An invite, or Join in the friends list**, arrives as `+connect_lobby` (a start or a second
+  start, S2) or `GameLobbyJoinRequested` (running): the lobby joined, its owner dialled. In a
+  match it first asks "Leave this match to join Bo's game?".
+- **Invite** in the lobby opens Steam's picker in the overlay (`openInviteDialog`); where the
+  overlay draws nothing (the Linux desktop, §3.3) Steam's friends list still invites.
+- **Find a game** lists `getLobbies()` (public only), rows from the lobby data, friends' games
+  first; another protocol hidden. Joining a row is as an invite.
+- **The host leaving** ends the match, as now: the guests' links close, the rejoin is refused,
+  and the page says the host has gone.
+
+**S3.4 Names, avatars, presence, language**
+
+- **Names**: the Steam name, sent by the guest's page as now (no name field under Steam), cut to
+  the protocol's 24 characters.
+- **Avatars need what `steamworks.js` lacks**: it has no friends interface (no
+  `GetMediumFriendAvatar`, no `GetImageRGBA`, checked in 0.4.0's `client.d.ts`). Proposed, in place
+  of a fork: **a few calls of Steam's flat C API through an FFI** (`koffi`, prebuilt for Windows
+  and Linux, no Rust), on the same `steam_api` library `steamworks.js` ships and has already
+  initialised — the avatar's handle, then its pixels, re-asked until Steam has loaded them.
+  _(To prove on 480 first, a short step; if it fails, avatars wait for a fork.)_
+- **Seats carry their Steam ID** (`SeatSchema.steamId`, optional, from the server's identity, so
+  never claimed by a page): each page fetches avatars itself through its preload, by ID, and
+  caches them — nothing derivable is sent. A protocol bump, 36.
+- **Shown** on the lobby's seat cards, in Find a game's rows, and in the match: the score bar
+  beside each person's name, and the end screen's rows. Bots keep their own marks.
+- **Rich presence** (`setRichPresence`): `steam_display` with "In the lobby", "In a match,
+  round 5 of 10", "In a tournament"; `connect` set to `+connect_lobby <id>` while the lobby is
+  joinable, so Join shows only then. Its texts are a localisation file uploaded in Steamworks,
+  so they are seen only on our App ID; on 480 the keys are set and the Join tested.
+- **The language**: on the first start under Steam, `german` gives Deutsch and anything else
+  English; after that the player's choice. Hessian is never Steam's.
+
+**S3.5 The bench and the order of the work**
+
+- **The bench's adapter for the Steam build** (its hooks in place of the spike's control window),
+  and its scenarios unchanged; S3 is done when the build passes all of them on the Linux machine,
+  **outage and restart included**, where the spike failed — and **code**, a new one: joining by
+  the code, and coming back by it after a restart.
+- **The order**: S3.1 and S3.2 (the transport, identity, rejoining — the core, tested on the
+  fake); then the FFI step for avatars on 480; then S3.3 and S3.4 in the client; then a bench
+  run on the Linux machine. By hand with two people: the overlay's picker, an invite accepted in
+  a match, a guest restarted coming back.
+- **Left for our App ID** (S4): rich presence's texts, an invite starting a closed game, and the
+  lobby list holding only our lobbies.
+
+**Built so far** (2026-11-09): S3.1 and S3.2's core, in `npm run check`. The two ends and their
+framing in `server/src/steamP2P.ts` (no Node, so the client's suite runs them); a seat's Steam ID
+in the room (`Seat.steamId`, protocol 36) — readmission by it, an old link still held closed,
+Remove refusing it; the gateway and `startServer` taking it (`accept(peer, steamId)`,
+`localSteamId` for the host's own socket); in the Steam build `steamNet.ts` (the P2P calls and
+callbacks, sessions accepted from anyone, link numbers from a random start) and the page's links
+over IPC (`pageLinks.ts`, the preload's `linkOpen`…, `client/src/net/steamDial.ts`), and
+`steamReconnectTries` (120). On a fake Steam behaving as S1 measured (`fakeSteam.ts`), whole
+matches end alike on every page (`steamTransport.test.ts`): clean; a 10 s outage lived through on
+the open links; a 90 s one, the session given up, the guest back by Steam ID; and an app restarted
+mid-match back in its seat without its token. Nothing yet dials it: joining is S3.3.
 
 ## 8. Controller support (C)
 

@@ -1372,6 +1372,12 @@ export const ArtConfigSchema = z
         reconnectDelaysMs: z.array(z.number().int().nonnegative()).min(1),
         reconnectTries: z.number().int().positive(),
         /**
+         * The tries under Steam (STEAM.md §7.3): Steam makes a session again only some 20 s
+         * after the network is back, and each try waits up to 10 s for the host, so a guest
+         * keeps trying for as long as a match may last, Leave match on the notice.
+         */
+        steamReconnectTries: z.number().int().positive(),
+        /**
          * How many times a page out of sync rejoins for a fresh snapshot before it stops and
          * says so: a desync that comes back at once each time is a bug no rejoining mends.
          */

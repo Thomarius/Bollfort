@@ -21,6 +21,9 @@ function fakeStart(
       port,
       host: '0.0.0.0',
       urls: [`http://localhost:${port}`],
+      accept: () => {
+        throw new Error('no Steam in the launcher');
+      },
       stop: () => {
         stopped.push(port);
         return Promise.resolve();
