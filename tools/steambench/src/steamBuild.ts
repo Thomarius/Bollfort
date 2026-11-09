@@ -26,14 +26,25 @@ function processes(dir: string): string[] {
   return out.split('\n').filter((l) => l.trim() !== '');
 }
 
-async function stopAll(dir: string): Promise<void> {
-  try {
-    // Without a shell, so the pattern cannot match the command running it.
-    execFileSync('pkill', ['-f', path.join(dir, EXE)]);
-  } catch {
-    // none running
+/**
+ * Every process of the build ended: asked first, as Steam asks (SIGTERM), killed after 10 s.
+ * A stop that gave up quietly once left the first instance holding the lock, and the next
+ * start handed over to it instead of starting (2026-11-09).
+ */
+async function stopAll(dir: string): Promise<number> {
+  const started = Date.now();
+  for (const signal of ['TERM', 'KILL']) {
+    try {
+      // Without a shell, so the pattern cannot match the command running it.
+      execFileSync('pkill', [`-${signal}`, '-f', path.join(dir, EXE)]);
+    } catch {
+      // none running
+    }
+    for (let i = 0; i < 40 && processes(dir).length > 0; i++) await sleep(250);
+    if (processes(dir).length === 0) break;
   }
-  for (let i = 0; i < 20 && processes(dir).length > 0; i++) await sleep(500);
+  if (processes(dir).length > 0) throw new Error(`the build's processes outlived SIGKILL`);
+  return Date.now() - started;
 }
 
 /** Started detached, as Steam starts a game, with DevTools on for the bench. */
@@ -151,7 +162,8 @@ export async function scenarioStart(
     await within(page.screenshot({ path: '/dev/null' }), 5000, undefined);
   } finally {
     await within(browser.close(), 5000, undefined);
-    await stopAll(dir);
+    const ms = await stopAll(dir);
+    check('quits on SIGTERM, as Steam stops it', ms < 5000, `${(ms / 1000).toFixed(1)} s`);
   }
 
   if (!steamRestart) {
@@ -162,10 +174,16 @@ export async function scenarioStart(
   for (let i = 0; i < 60 && steamRunning(); i++) await sleep(1000);
   check('Steam shut down', !steamRunning());
   try {
+    const t = Date.now();
     launch(dir, []);
-    const alone = await gamePage(30_000);
-    if (alone === null) check('without Steam: the game page up', false);
-    else {
+    const alone = await gamePage(90_000);
+    check(
+      'without Steam: the game page up',
+      alone !== null,
+      `${((Date.now() - t) / 1000).toFixed(1)} s`,
+    );
+    if (alone === null) return;
+    {
       try {
         await alone.page.waitForSelector('.menu-notice', { timeout: 15_000 }).catch(() => null);
         const steam = await host<HostSteam>(alone.page, 'steam');

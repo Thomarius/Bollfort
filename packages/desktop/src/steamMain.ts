@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -36,14 +36,38 @@ app.setName('Bollfort');
 
 const plan = startPlan(process.platform, process.argv, STEAM_APP_ID);
 
+/**
+ * The start's steps, with the time since the process began, in `start.log` beside the
+ * settings: what a player can send when the game does not come up. Begun afresh by the start
+ * that runs the game; a start turned away, or one starting itself again, only adds a line.
+ */
+const began = Date.now();
+let logStarted = false;
+function log(line: string, fresh = false): void {
+  try {
+    const file = join(app.getPath('userData'), 'start.log');
+    if (fresh && !logStarted) {
+      mkdirSync(app.getPath('userData'), { recursive: true });
+      writeFileSync(file, '');
+      logStarted = true;
+    }
+    appendFileSync(file, `${((Date.now() - began) / 1000).toFixed(2)} s  ${line}\n`);
+  } catch {
+    // Nowhere to write: the start goes on.
+  }
+}
+
 if (!app.requestSingleInstanceLock()) {
   // One at a time, before Steam is touched: two on one Steam client read each other's
   // packets, and one crashed (STEAM.md §3.3). A second start hands its invite to the first
   // (`second-instance`) and quits, sandbox or not.
+  log(`another start is running: handed over and quit (${process.pid})`);
   app.exit(0);
 } else if (plan.relaunch) {
   // Linux without the switch on the command line: again with it, before anything else. The
   // lock goes as this one exits, and the new one takes it.
+  log(`starting again with --no-sandbox (${process.pid})`);
+  app.releaseSingleInstanceLock();
   app.relaunch({ args: [...process.argv.slice(1), '--no-sandbox'] });
   app.exit(0);
 } else {
@@ -119,8 +143,10 @@ async function startOwnServer(): Promise<RunningServer> {
 }
 
 async function run(): Promise<void> {
+  log(`started (${process.pid}): ${process.argv.slice(1).join(' ')}`, true);
   const steam = initSteam();
   if (steam === null) return;
+  log(steam.ready ? `Steam ready: ${steam.name}` : `no Steam: ${steam.error}`);
   let window: BrowserWindow | null = null;
   let server: RunningServer | null = null;
   let quitting = false;
@@ -141,7 +167,9 @@ async function run(): Promise<void> {
   });
 
   await app.whenReady();
+  log('app ready');
   server = await startOwnServer();
+  log(`server on ${server.port}`);
   // The first window made, and the only one: on Windows the overlay draws in the first
   // (STEAM.md §3.3). Fullscreen at the window, not the page's: Esc, the game's pause, would
   // otherwise leave it.
@@ -172,11 +200,23 @@ async function run(): Promise<void> {
     return { action: 'deny' };
   });
   // Closing the window ends the app, the server first, so its port is free after.
+  const quit = (): void => {
+    if (quitting) return;
+    quitting = true;
+    void (server?.stop() ?? Promise.resolve()).finally(() => app.exit(0));
+  };
   window.on('close', (event) => {
     if (quitting) return;
     event.preventDefault();
-    quitting = true;
-    void (server?.stop() ?? Promise.resolve()).finally(() => app.quit());
+    quit();
   });
+  // Steam stops a game by SIGTERM on Linux (its library's Stop): the same quick end as a
+  // closed window, where the app had gone on past 30 s (2026-11-09).
+  process.on('SIGTERM', () => {
+    log('SIGTERM: quitting');
+    quit();
+  });
+  window.webContents.once('did-finish-load', () => log('game page loaded'));
+  log('window made');
   void window.loadURL(`http://127.0.0.1:${server.port}`);
 }

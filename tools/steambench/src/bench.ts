@@ -611,6 +611,22 @@ async function main(): Promise<void> {
   const spike = SCENARIOS.some((s) => s !== 'start') || flag('reset');
   if (spike && !fs.existsSync(path.join(APP_DIR, 'bollfort-steam-spike')))
     throw new Error(`no app in ${APP_DIR}: build the spike first (spike/steam, npm run package)`);
+  fs.mkdirSync(OUT, { recursive: true });
+  if (!spike) {
+    // `start` alone: this machine only, the VM left as it is, even shut down.
+    for (const scenario of SCENARIOS) {
+      const run = new Run(scenario);
+      await scenarioStart(
+        STEAM_DIR,
+        (c, ok, d) => run.check(c, ok, d ?? ''),
+        (n, t) => run.save(n, t),
+        flag('steam-restart'),
+      );
+      run.done();
+    }
+    say(`report: ${path.join(OUT, 'report.md')}`);
+    return;
+  }
   const local: Machine = new LocalMachine(APP_DIR);
   const vm = new VmMachine();
   const shaping = Network.canShape();
@@ -620,8 +636,7 @@ async function main(): Promise<void> {
     say('shaping removed');
     return;
   }
-  fs.mkdirSync(OUT, { recursive: true });
-  if (spike && !flag('no-deploy')) {
+  if (!flag('no-deploy')) {
     say('copying the app into the VM');
     vm.deploy(APP_DIR);
   }
