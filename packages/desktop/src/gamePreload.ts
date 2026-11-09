@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 import type { PageLinkEvent } from './pageLinks.js';
 import type { SteamInfo } from './steam.js';
+import type { Avatar } from './steamAvatars.js';
 import type { SteamNetStats } from './steamNet.js';
 
 /**
@@ -29,6 +30,13 @@ const host = {
   linkClose: (id: number): void => ipcRenderer.send('steam-link-close', id),
   onLink: (listener: (event: PageLinkEvent) => void): void => {
     ipcRenderer.on('steam-link', (_event, value: PageLinkEvent) => listener(value));
+  },
+  /** A player's avatar wanted, by Steam ID: it comes through `onAvatar`, and again as it changes. */
+  avatarWant: (steamId: string): void => ipcRenderer.send('steam-avatar-want', steamId),
+  onAvatar: (listener: (said: { steamId: string; avatar: Avatar | null }) => void): void => {
+    ipcRenderer.on('steam-avatar', (_event, said: { steamId: string; avatar: Avatar | null }) =>
+      listener(said),
+    );
   },
   /** Steam's P2P traffic, for the bench (§3.4); null without Steam. */
   steamStats: (): Promise<SteamNetStats | null> => ipcRenderer.invoke('host-steam-stats'),

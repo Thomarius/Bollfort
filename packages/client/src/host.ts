@@ -27,6 +27,16 @@ export interface GameHost {
   linkSend(id: number, text: string): void;
   linkClose(id: number): void;
   onLink(listener: (event: HostLinkEvent) => void): void;
+  /** A player's avatar wanted: it comes through `onAvatar`, and again whenever it changes. */
+  avatarWant(steamId: string): void;
+  onAvatar(listener: (said: { steamId: string; avatar: HostAvatar | null }) => void): void;
+}
+
+/** A Steam avatar's pixels, RGBA row by row. */
+export interface HostAvatar {
+  width: number;
+  height: number;
+  rgba: Uint8Array;
 }
 
 /** What a link over Steam says, as the app passes it on. */

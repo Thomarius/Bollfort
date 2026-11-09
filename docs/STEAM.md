@@ -658,6 +658,17 @@ matches end alike on every page (`steamTransport.test.ts`): clean; a 10 s outage
 the open links; a 90 s one, the session given up, the guest back by Steam ID; and an app restarted
 mid-match back in its seat without its token. Nothing yet dials it: joining is S3.3.
 
+**The avatars' FFI, proven on 480** (2026-11-09, Windows): `koffi` 3.3.7 (MIT, prebuilt per
+system as optional packages, no compiling) opens `steamworks.js`'s own `steam_api64.dll` and calls
+`GetMediumFriendAvatar`, `RequestUserInformation`, `GetImageSize` and `GetImageRGBA`
+(`steamAvatars.ts`); in the packaged Steam build, both unpacked beside the app (`package.js`), the
+page asked for avatars through its preload and had them as RGBA, 64 × 64. **An avatar is watched,
+not read once**: for a player Steam does not know it returns its grey "?" picture at first — even
+after the player's first `PersonaStateChange` — and the real one at a later change, 0.5–1.1 s on
+(`AvatarWatch` publishes each change, read again at every `PersonaStateChange` of the player and
+at 1, 3, 8 and 20 s). On Linux it is still to be run, on the Linux machine. **For S4**: the
+release has no list of third-party licences, `steamworks.js` and `koffi` among them, both MIT.
+
 ## 8. Controller support (C)
 
 Native, through the browser's **Gamepad API** in the page — Electron's Chromium has it — for every

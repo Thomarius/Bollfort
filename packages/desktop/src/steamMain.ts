@@ -7,6 +7,7 @@ import { loadConfigBundle } from '@bollfort/config/node';
 import { startServer, type RunningServer } from '@bollfort/server';
 import { BrowserWindow, app, ipcMain, shell } from 'electron';
 import type * as Steamworks from 'steamworks.js';
+import type { callback } from 'steamworks.js/client.js';
 
 import {
   NO_STEAM,
@@ -17,6 +18,7 @@ import {
   type SteamInfo,
 } from './steam.js';
 import { PageLinks, type PageLinkEvent } from './pageLinks.js';
+import { AvatarWatch, steamAvatarSource } from './steamAvatars.js';
 import { startSteamNet, type SteamNet } from './steamNet.js';
 
 /**
@@ -79,11 +81,14 @@ if (!app.requestSingleInstanceLock()) {
 /** Lobbies handed on by a second start or the command line, for S3's joining. */
 const lobbiesAsked: string[] = plan.connectLobby === null ? [] : [plan.connectLobby];
 
-/** Steam's client once initialised, for its P2P (S3). */
-let steamClient: ReturnType<typeof Steamworks.init> | null = null;
+type SteamClient = ReturnType<typeof Steamworks.init>;
 
-/** Steam set up, or null when Steam is starting the app again itself (Q6). */
-function initSteam(): SteamInfo | null {
+/**
+ * Steam set up, with its client for the P2P and avatars (S3), or null when Steam is starting
+ * the app again itself (Q6). Returned, not kept in a module variable: `run` starts above the
+ * declarations, and a variable declared below was set by it, then reset by its own `= null`.
+ */
+function initSteam(): { info: SteamInfo; client: SteamClient | null } | null {
   // Loaded only here: a native module, shipped unpacked, in the Steam build alone.
   const steamworks = createRequire(import.meta.url)('steamworks.js') as typeof Steamworks;
   try {
@@ -98,17 +103,19 @@ function initSteam(): SteamInfo | null {
   steamworks.electronEnableSteamOverlay();
   try {
     const client = steamworks.init(STEAM_APP_ID);
-    steamClient = client;
     return {
-      ready: true,
-      name: client.localplayer.getName(),
-      steamId: client.localplayer.getSteamId().steamId64.toString(),
-      language: client.apps.currentGameLanguage(),
-      error: null,
+      client,
+      info: {
+        ready: true,
+        name: client.localplayer.getName(),
+        steamId: client.localplayer.getSteamId().steamId64.toString(),
+        language: client.apps.currentGameLanguage(),
+        error: null,
+      },
     };
   } catch (e) {
     // Steam not running: the game plays locally, and the menu says online play needs Steam.
-    return { ...NO_STEAM, error: String((e as Error).message ?? e) };
+    return { client: null, info: { ...NO_STEAM, error: String((e as Error).message ?? e) } };
   }
 }
 
@@ -152,8 +159,10 @@ async function startOwnServer(steamId: string | null): Promise<RunningServer> {
 
 async function run(): Promise<void> {
   log(`started (${process.pid}): ${process.argv.slice(1).join(' ')}`, true);
-  const steam = initSteam();
-  if (steam === null) return;
+  const started = initSteam();
+  if (started === null) return;
+  const steam = started.info;
+  const steamClient = started.client;
   log(steam.ready ? `Steam ready: ${steam.name}` : `no Steam: ${steam.error}`);
   let window: BrowserWindow | null = null;
   let server: RunningServer | null = null;
@@ -200,6 +209,13 @@ async function run(): Promise<void> {
   ipcMain.on('steam-link-close', (_event, id: number) => links?.close(id));
   ipcMain.handle('host-steam-stats', () => net?.stats() ?? null);
 
+  // Players' avatars (S3.4): the page asks for a Steam ID's, and is sent it as Steam has it
+  // and again whenever it changes; nothing without Steam, or if the FFI will not open.
+  let avatars: AvatarWatch | null = null;
+  ipcMain.on('steam-avatar-want', (_event, steamId: unknown) => {
+    if (typeof steamId === 'string' && /^\d{1,20}$/.test(steamId)) avatars?.want(steamId);
+  });
+
   app.on('second-instance', (_event, argv) => {
     const lobby = startPlan(process.platform, argv, STEAM_APP_ID).connectLobby;
     if (lobby !== null) lobbiesAsked.push(lobby);
@@ -218,6 +234,19 @@ async function run(): Promise<void> {
     net = p2p;
     links = new PageLinks((host, events) => p2p.guest.dial(host, events), tellPage);
     log('Steam P2P ready');
+    try {
+      const watch = new AvatarWatch(steamAvatarSource(), (steamId, avatar) => {
+        if (window === null || window.isDestroyed()) return;
+        window.webContents.send('steam-avatar', { steamId, avatar });
+      });
+      steamClient.callback.register(
+        0 as callback.SteamCallback.PersonaStateChange,
+        ({ steam_id }) => watch.personaChanged(steam_id.toString()),
+      );
+      avatars = watch;
+    } catch (e) {
+      log(`no avatars: ${(e as Error).message}`);
+    }
   }
   // The first window made, and the only one: on Windows the overlay draws in the first
   // (STEAM.md §3.3). Fullscreen at the window, not the page's: Esc, the game's pause, would

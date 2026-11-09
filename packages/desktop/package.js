@@ -10,10 +10,15 @@ import { join } from 'node:path';
  * client it carries. `BOLLFORT_VERSION` sets the release's version, as a tag does in CI.
  *
  * With `BOLLFORT_STEAM=1` (STEAM.md §3.5, S2) the Steam build instead: a plain folder, as a
- * Steam depot takes it, in `release/steam/`, with `steamworks.js` unpacked beside the app —
- * and never a `steam_appid.txt`, which only development may have. Every other build leaves
- * `steamworks.js` out.
+ * Steam depot takes it, in `release/steam/`, with `steamworks.js` and `koffi` (the avatars'
+ * FFI, STEAM.md §7.3) unpacked beside the app — and never a `steam_appid.txt`, which only
+ * development may have. Every other build leaves both out.
  */
+const STEAM_ONLY = [
+  '**/node_modules/steamworks.js/**',
+  '**/node_modules/koffi/**',
+  '**/node_modules/@koromix/**',
+];
 const steam = process.env.BOLLFORT_STEAM === '1';
 const target = { win32: '--win', linux: '--linux' }[process.platform];
 if (target === undefined) {
@@ -26,18 +31,18 @@ const output = join(here, 'release', steam ? 'steam' : '.');
 
 /**
  * The config, from package.json's `build`, written out for this build: the Steam build a
- * folder with steamworks.js unpacked beside the app; every other build without it.
+ * folder with steamworks.js and koffi unpacked beside the app; every other build without them.
  */
 const base = JSON.parse(readFileSync(join(here, 'package.json'), 'utf8')).build;
 const config = steam
   ? {
       ...base,
       directories: { output },
-      asarUnpack: ['**/node_modules/steamworks.js/**'],
+      asarUnpack: STEAM_ONLY,
       win: { ...base.win, target: ['dir'] },
       linux: { ...base.linux, target: ['dir'] },
     }
-  : { ...base, files: [...base.files, '!**/node_modules/steamworks.js/**'] };
+  : { ...base, files: [...base.files, ...STEAM_ONLY.map((glob) => `!${glob}`)] };
 mkdirSync(output, { recursive: true });
 const configFile = join(output, 'builder-config.json');
 writeFileSync(configFile, JSON.stringify(config, null, 2));

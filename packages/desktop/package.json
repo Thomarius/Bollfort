@@ -73,6 +73,7 @@
   "author": "Thomas Arnold",
   "desktopName": "bollfort.desktop",
   "dependencies": {
+    "koffi": "3.3.7",
     "steamworks.js": "0.4.0"
   }
 }
