@@ -716,5 +716,13 @@
   "steam.rejoinAsked.leave": "Loss es",
   "pause.inviteBack": "{name} zerick eilade",
   "pause.inviteBackTip": "Schiggt {name} e Steam-Eiladung zerick uff sein Platz.",
-  "pause.invited": "{name} eigelade"
+  "pause.invited": "{name} eigelade",
+  "steam.presence.lobby": "In de Lobby",
+  "steam.presence.match": "Im Schbiel, Rund {round} vun {rounds}",
+  "steam.presence.matchRound": "Im Schbiel, Rund {round}",
+  "steam.presence.matchOpening": "Im Schbiel, beim Aafang",
+  "steam.presence.tournamentLobby": "Im Turnier, zwische de Schbiele",
+  "steam.presence.tournamentMatch": "Im Turnierschbiel, Rund {round} vun {rounds}",
+  "steam.presence.tournamentRound": "Im Turnierschbiel, Rund {round}",
+  "steam.presence.tournamentOpening": "Im Turnierschbiel, beim Aafang"
 }

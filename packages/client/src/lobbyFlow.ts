@@ -38,6 +38,7 @@ import {
   guestSteamRoom,
   hostSteamRoom,
   lobbyKind,
+  roundOf,
   steamPlay,
   type SteamRoom,
 } from './steam/steamPlay.js';
@@ -956,7 +957,7 @@ function roomLobby(
       default:
         break;
     }
-    steam?.heard(message, started, match.finished);
+    steam?.heard(message, started, match.finished, roundOf(match.state));
   });
 
   // A drop in a match is got back by rejoining the seat, which the server keeps through the

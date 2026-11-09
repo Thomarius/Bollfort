@@ -15,7 +15,7 @@ import { NetworkMatch } from './net/networkMatch.js';
 import { stageLabel } from './tournamentText.js';
 import { preferredTower } from './towers.js';
 import { browserId } from './browserId.js';
-import { hostSteamRoom, lobbyKind, steamPlay, type SteamRoom } from './steam/steamPlay.js';
+import { hostSteamRoom, lobbyKind, roundOf, steamPlay, type SteamRoom } from './steam/steamPlay.js';
 
 /**
  * A tournament's room on the server (ARCHIVE 12zj), held by its host for as long as
@@ -187,6 +187,6 @@ export class TournamentRoom {
       default:
         break;
     }
-    this.steam?.heard(message, this.playing, this.match.finished);
+    this.steam?.heard(message, this.playing, this.match.finished, roundOf(this.match.state));
   }
 }

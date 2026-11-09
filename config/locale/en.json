@@ -719,5 +719,13 @@
   "steam.rejoinAsked.leave": "Leave it",
   "pause.inviteBack": "Invite {name} back",
   "pause.inviteBackTip": "Sends {name} a Steam invite back to their seat.",
-  "pause.invited": "{name} invited"
+  "pause.invited": "{name} invited",
+  "steam.presence.lobby": "In the lobby",
+  "steam.presence.match": "In a match, round {round} of {rounds}",
+  "steam.presence.matchRound": "In a match, round {round}",
+  "steam.presence.matchOpening": "In a match, the opening",
+  "steam.presence.tournamentLobby": "In a tournament, between matches",
+  "steam.presence.tournamentMatch": "In a tournament match, round {round} of {rounds}",
+  "steam.presence.tournamentRound": "In a tournament match, round {round}",
+  "steam.presence.tournamentOpening": "In a tournament match, the opening"
 }

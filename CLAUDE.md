@@ -38,6 +38,7 @@ npm start                           # build, then serve the game at http://local
 npm run check                       # format, lint, typecheck, test — must pass before committing
 npm run credits                     # CREDITS.md, from the audio manifest's credits
 npm run licences                    # THIRD_PARTY_LICENSES.md, from what the builds bundle
+npx tsx tools/steamworks/src/write.ts presence   # rich presence's files for Steamworks, from config/locale/
 npm run soak                        # the weekend soak again (ARCHIVE 12h), resumable; --list, --trial, --summary
 npm run build                       # client + server bundles, both needed by the image
 npm run dev   -w @bollfort/client   # play offline at http://localhost:5173
@@ -603,7 +604,9 @@ which a test session needs the server rebuilt and every page reloaded for):
   (`match_running`); a player who left comes back by the host's **Invite back** in the pause
   menu (`InviteUserToLobby` through `koffi`), straight to the inviter, or on restarting by a
   prompt to rejoin; a lobby's seat held 10 s (`reconnect.lobbyHoldMs`); a tournament's room has
-  its Steam lobby too. The steps meant for S3's wait
+  its Steam lobby too. Prepared for S4 without the App ID (ARCHIVE 15zv): rich presence's
+  tokens and files (`assets/steam/`, `tools/steamworks`) and the release job's Steam upload,
+  off until the repository's variables name the app (STEAM.md §9.2's steps). The steps meant for S3's wait
   were done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
   packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
   recommended), on Windows and then on the Linux machine's Ryzen 3 and integrated Renoir

@@ -91,3 +91,66 @@ jobs:
             --repo "${{ github.repository }}" \
             --title "Bollfort ${{ github.ref_name }}" \
             --notes "Portable builds of Bollfort ${{ github.ref_name }}: the .exe for Windows 11, the .AppImage for Linux (mark it executable first). Unsigned, so Windows warns of an unknown publisher on first start. An unofficial fan game inspired by Rampart (Atari Games, 1990), not affiliated with or endorsed by Warner Bros. Entertainment, which owns the Rampart trademark; see CREDITS.md for the audio's authors and licences, and THIRD_PARTY_LICENSES.md, beside the app, for the open-source packages it uses."
+
+  steam:
+    # The Steam upload (STEAM.md §9.2, S4): a tag's Steam build to the password-protected beta
+    # branch, which the user promotes to the public one by hand in Steamworks. Off until the
+    # repository's variables name the app (STEAM_APP_ID) and its depots (STEAM_DEPOT_WINDOWS,
+    # STEAM_DEPOT_LINUX); STEAM_BRANCH, beta unless set. The build account (secret
+    # STEAM_USERNAME) has only the build rights, and logs in without a password or a Steam Guard
+    # code by the config.vdf of a login made once by hand (secret STEAM_CONFIG_VDF, base64), as
+    # Valve's page on uploading has a build machine do.
+    if: github.event_name == 'push' && vars.STEAM_APP_ID != ''
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v5
+        with:
+          path: steam
+          pattern: steam-*
+      # An artifact keeps no file modes: the Linux build's programs made executable again.
+      - name: Executable again
+        run: chmod +x steam/steam-ubuntu-latest/bollfort steam/steam-ubuntu-latest/chrome_crashpad_handler steam/steam-ubuntu-latest/chrome-sandbox
+      - name: The build script
+        run: >
+          npx tsx tools/steamworks/src/write.ts app-build
+          --app "${{ vars.STEAM_APP_ID }}"
+          --depot "${{ vars.STEAM_DEPOT_WINDOWS }}:steam-windows-latest"
+          --depot "${{ vars.STEAM_DEPOT_LINUX }}:steam-ubuntu-latest"
+          --branch "${{ vars.STEAM_BRANCH || 'beta' }}"
+          --desc "Bollfort ${{ github.ref_name }} (${{ github.sha }})"
+          --root steam --out steambuild/app_build.vdf
+      - name: Steam's upload tool
+        run: |
+          mkdir -p "$HOME/steamcmd"
+          curl -sSL https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz | tar xz -C "$HOME/steamcmd"
+      # Where steamcmd on Linux keeps its login: in its own folder and under ~/Steam, by version
+      # (to confirm at the first upload); written to both.
+      - name: The build account's login
+        env:
+          STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
+        run: |
+          for dir in "$HOME/steamcmd/config" "$HOME/Steam/config"; do
+            mkdir -p "$dir"
+            printf '%s' "$STEAM_CONFIG_VDF" | base64 -d > "$dir/config.vdf"
+          done
+      - name: Upload to Steam
+        env:
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+        run: |
+          "$HOME/steamcmd/steamcmd.sh" +login "$STEAM_USERNAME" +run_app_build "$PWD/steambuild/app_build.vdf" +quit
+      # Steam's own log of the build, for a failure to be read.
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: steam-build-log
+          path: steambuild/output
+          if-no-files-found: ignore

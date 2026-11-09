@@ -65,7 +65,7 @@ function fakePlay() {
     lobbyInvite: () => asked.push('invite'),
     lobbyInviteUser: (id: string) => asked.push(`invite user ${id}`),
     presence: (values: Record<string, string | null>) =>
-      asked.push(`presence ${values.status} ${values.connect}`),
+      asked.push(`presence ${values.steam_display} ${values.connect}`),
   } as unknown as GameHost;
   const play: SteamPlay = { host, steamId: ME, name: 'Arnoldex', dial: () => ({}) as never };
   return { play, asked };
@@ -85,15 +85,17 @@ describe('the host’s Steam lobby beside the room', () => {
     expect(asked).toEqual([
       'create friends',
       `room ABCDEF`,
-      `presence lobby +connect_lobby ${LOBBY}`,
+      `presence #Lobby +connect_lobby ${LOBBY}`,
       'joinable true',
-      `presence lobby +connect_lobby ${LOBBY}`,
       'data people=1',
+      // A second person at the table: the group's size, for the friends list.
+      `presence #Lobby +connect_lobby ${LOBBY}`,
       'data people=2',
+      // Full: no Join offered.
+      'presence #Lobby null',
       'joinable false',
-      'presence lobby null',
       'data people=4',
-      'presence match null',
+      'presence #MatchOpening null',
       'data people=4', // marked running, for Find a game to leave out (S3.6)
       'invite',
       'room null',
@@ -143,10 +145,7 @@ describe('the host’s Steam lobby beside the room', () => {
     const { play, asked } = fakePlay();
     const steam = await hostSteamRoom(play, 'ABCDEF', 'invite');
     steam.heard(room(1), false, false);
-    expect(asked.filter((a) => a.startsWith('presence'))).toEqual([
-      'presence lobby null',
-      'presence lobby null',
-    ]);
+    expect(asked.filter((a) => a.startsWith('presence'))).toEqual(['presence #Lobby null']);
   });
 });
 

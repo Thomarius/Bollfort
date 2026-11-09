@@ -1,0 +1,12 @@
+{
+  "name": "@bollfort/steamworks",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bollfort/config": "*"
+  }
+}

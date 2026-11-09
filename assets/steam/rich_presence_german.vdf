@@ -1,0 +1,15 @@
+"lang"
+{
+	"Language"	"german"
+	"Tokens"
+	{
+		"#Lobby"	"In der Lobby"
+		"#Match"	"Im Spiel, Runde %round% von %rounds%"
+		"#MatchRound"	"Im Spiel, Runde %round%"
+		"#MatchOpening"	"Im Spiel, beim Auftakt"
+		"#TournamentLobby"	"Im Turnier, zwischen den Spielen"
+		"#TournamentMatch"	"Im Turnierspiel, Runde %round% von %rounds%"
+		"#TournamentRound"	"Im Turnierspiel, Runde %round%"
+		"#TournamentOpening"	"Im Turnierspiel, beim Auftakt"
+	}
+}

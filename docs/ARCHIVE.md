@@ -11840,3 +11840,28 @@ on the guest with `steam://joinlobby/480/<lobby>/<host>` and handed by Steam to 
 with the inviter (`GameLobbyJoinRequested`), back in the match 22 s after the restart, some 8 s
 after the invite; `join`, `public`, `private` and `code` again unchanged, every check passed. Left
 for our App ID: an invite starting a closed game.
+
+## 15zv. Rich presence's texts and the Steam upload, prepared (2026-11-09)
+
+Two of S4's steps that need no App ID, while Valve reviews the registration (the user's choice).
+Valve's pages read first (Enhanced Rich Presence, ISteamFriends, Uploading to Steam).
+
+**Rich presence**: the page had set a raw `status` key ("lobby", "match"), which Steam shows only
+in the game's info dialog. Now `steam_display` names a token (`PRESENCE_TOKENS`, in the config
+beside the languages): the lobby, a match at its round of its rounds, the opening, and each also
+for a tournament — eight, the round and the cap filled in from the keys `round` and `rounds` —
+and the table is a `steam_player_group` with its people's count, so friends at one table show
+together; Join only while the lobby takes newcomers, as before (`presence.ts`, sent only on a
+change, worked out at every message a room hears). The texts are the game's own, in
+`config/locale/` (Hessian too, though Steam never lists it), and `tools/steamworks` writes the
+files to upload, `assets/steam/rich_presence_english.vdf` and `_german.vdf`, `{round}` as Steam's
+`%round%`; a test fails when they are stale. The two pages show two shapes of the file; the
+Enhanced page's is written, and the first upload settles it.
+
+**The upload**: `release.yml`'s job `steam` takes the build job's two Steam folders, makes the
+Linux programs executable again (an artifact keeps no file modes), writes the app build script
+(`write.ts app-build`, tested: each folder whole to its depot, live on the beta branch — Steam
+refuses the default branch from a script, and so does the writer) and runs `steamcmd
++run_app_build`, logged in by a build account's `config.vdf` from a login made once by hand, as
+Valve's page has a build machine do. Off until the repository's variables name the app and the
+depots; the steps to switch it on are in STEAM.md §9.2. Not run: it needs the App ID.

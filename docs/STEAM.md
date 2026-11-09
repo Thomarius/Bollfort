@@ -710,8 +710,14 @@ drawn again as Steam's "?" gives way) on the lobby's seat cards, the score bar a
 (`Session.avatars`, from the room's seats); the language Steam's on the first start
 (`languageOfSteam`: German gives Deutsch, else English), the player's choice after. Seen: the host's
 avatar on its card in the packaged build. The score bar's and the end screen's need a second person
-(a table of bots plays locally, without the room): the bench's first run. Rich presence's texts wait
-for our App ID's localisation file (S4).
+(a table of bots plays locally, without the room): the bench's first run. Rich presence's texts:
+written (2026-11-09, ARCHIVE 15zv) — `steam_display` a token (`PRESENCE_TOKENS` in the config:
+the lobby, a match at its round of its rounds, the opening, each also for a tournament), `round`
+and `rounds` filled in, the table a `steam_player_group` with its people's count; the files
+`assets/steam/rich_presence_english.vdf` and `_german.vdf`, made from `config/locale/` by
+`npx tsx tools/steamworks/src/write.ts presence`, a test failing when they are stale; to upload
+in Steamworks → Community → Rich Presence once the App ID is ours, and to check on
+`steamcommunity.com/dev/testrichpresence`.
 
 **The bench passed** (2026-11-09, on the Linux machine against the VM, ARCHIVE 15zs): every
 scenario on the Steam build — start, join, public, private, code, match, lag, outage, reversed and
@@ -1066,9 +1072,26 @@ in progress are lost once, and the desktop app's old data folder stays behind.
 - **Coming Soon** for at least two weeks; submitted for review at least 7 working days before.
 - **The depots**: Windows and Linux, the unpacked app (not the AppImage) under the Steam Linux
   Runtime, the binding's native module for each, no `steam_appid.txt`.
-- **The release job**: `release.yml` gains a job that packages the Steam build and uploads it with
-  `steamcmd` to the beta branch, its credentials as repository secrets. The user promotes it by
-  hand. The GitHub release goes on as now.
+- **The release job — prepared** (2026-11-09, ARCHIVE 15zv): `release.yml`'s job `steam`, after
+  the build job, takes the two Steam folders it packaged, writes the app build script
+  (`tools/steamworks`, `write.ts app-build`: each folder whole to its depot, `SetLive` the beta
+  branch — Steam never sets the default branch live from a script) and runs `steamcmd
++run_app_build`. It stays off until the repository's variables name the app and depots. **To
+  switch it on** once the App ID is ours:
+  1. In Steamworks: the beta branch with a password; the two depots (Windows, Linux, each marked
+     for its system) in the package; a launch option for each (`bollfort.exe`, `bollfort`).
+  2. A build account of its own, with only Edit App Metadata and Publish App Changes To Steam;
+     on any Linux machine, `steamcmd +login <name>` once by hand, its password and Steam Guard
+     code typed, then `info` and `quit`; its `config.vdf` (under `~/Steam/config/` or steamcmd's
+     own `config/`) base64'd into the secret `STEAM_CONFIG_VDF`, its name into `STEAM_USERNAME`.
+  3. The repository's variables `STEAM_APP_ID`, `STEAM_DEPOT_WINDOWS`, `STEAM_DEPOT_LINUX` (and
+     `STEAM_BRANCH`, if not `beta`).
+  4. `STEAM_APP_ID` in `packages/desktop/src/steam.ts` from 480 to ours, and the lobby tag on 480
+     (`lobbyData.ts`) reconsidered.
+  5. A first upload as a preview (`write.ts app-build … --preview`, steamcmd by hand) to check
+     the script; then a tag. The user promotes a build by hand. The GitHub release goes on as now.
+     Left to confirm at the first upload: where steamcmd on Linux reads `config.vdf` (the job writes
+     both places), and that the Linux depot keeps the programs executable (the job sets them so).
 
 ### 9.3 The users' test and the launch (S5)
 
@@ -1102,4 +1125,6 @@ games already under way (§4).
 - Whether Valve's relay is free, if the newer networking is needed.
 - Steam Input passing the pad through to the Gamepad API.
 - `ShowGamepadTextInput` in the binding.
-- The rich presence localisation format.
+- The rich presence localisation file's shape: Valve's two pages show two (`"Language"` and
+  `"Tokens"` inside `"lang"`, as written; or the language as a block holding `"tokens"`). The
+  first upload settles it.

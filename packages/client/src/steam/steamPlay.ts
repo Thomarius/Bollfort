@@ -1,4 +1,5 @@
 import type { ServerMessage } from '@bollfort/protocol';
+import type { MatchState } from '@bollfort/sim';
 
 import { gameHost, type GameHost, type HostSteam, type LobbyKind } from '../host.js';
 import { steamDial } from '../net/steamDial.js';
@@ -6,6 +7,7 @@ import type { Dial } from '../net/transport.js';
 import { store, stored } from '../storage.js';
 import { forgetMatch, keepMatch, keptMatch } from './backToMatch.js';
 import { lobbyDataOf } from './lobbyData.js';
+import { Presence, type Whereabouts } from './presence.js';
 import { steamCodeOf } from './steamCode.js';
 
 /**
@@ -72,8 +74,16 @@ export function setLobbyKind(kind: LobbyKind): void {
 export interface SteamRoom {
   /** The code the lobby shows: the host's Steam code. */
   readonly code: string | null;
-  /** Each message the room's connection hears, after the lobby's own handling. */
-  heard(message: ServerMessage, started: boolean, finished: boolean): void;
+  /**
+   * Each message the room's connection hears, after the lobby's own handling, with the match's
+   * round as the page has it (null before a match), for the presence.
+   */
+  heard(
+    message: ServerMessage,
+    started: boolean,
+    finished: boolean,
+    round?: MatchRound | null,
+  ): void;
   /** The room left, whichever way: the lobby left, the presence cleared. */
   left(): void;
   /** Steam's friend picker, for the lobby's Invite button; absent for a guest. */
@@ -101,6 +111,42 @@ export function lobbyOpenness(
 
 type RoomMessage = Extract<ServerMessage, { type: 'room' }>;
 
+/** A match's round as the page has it, and its cap. */
+export interface MatchRound {
+  round: number;
+  rounds: number | null;
+}
+
+/** A match's round as the page has it, for the presence; null before one. */
+export function roundOf(state: MatchState | null): MatchRound | null {
+  return state === null ? null : { round: state.round, rounds: state.ruleset.scoring.maxRounds };
+}
+
+/**
+ * Where a room's player is, for the presence: in its lobby, or in its match at a round — a
+ * finished match's summary counts as the lobby, the next table being what comes. Null before
+ * the room has said anything.
+ */
+function whereabouts(
+  last: RoomMessage | null,
+  finished: boolean,
+  round: MatchRound | null,
+  group: string,
+  connect: string | null,
+): Whereabouts | null {
+  if (last === null) return null;
+  const inMatch = last.started && !finished;
+  return {
+    place: inMatch ? 'match' : 'lobby',
+    tournament: last.tournament !== null,
+    round: round?.round ?? 0,
+    rounds: round?.rounds ?? null,
+    group,
+    size: last.seats.filter((s) => !s.isBot).length,
+    connect: inMatch ? null : connect,
+  };
+}
+
 /**
  * The host's Steam side: the lobby made with the room, of the kind chosen under Play (a
  * public one from Find a game's Host), its data the room's listing, open to joins only while
@@ -116,33 +162,30 @@ export async function hostSteamRoom(
   host.lobbyRoom(room);
   let joinable: boolean | null = null;
   let running = false;
-  let said = '';
   let data = '';
-  const presence = (open: boolean, status: string | null): void => {
-    host.presence({
-      status,
-      // Join in the friends list, for Friends and Public only; an Invite only lobby offers none.
-      connect: open && lobby !== null && kind !== 'invite' ? `+connect_lobby ${lobby}` : null,
-    });
-  };
-  presence(true, 'lobby');
+  let last: RoomMessage | null = null;
+  let round: MatchRound | null = null;
+  const presence = new Presence((keys) => host.presence(keys));
+  // Join in the friends list, for Friends and Public only; an Invite only lobby offers none.
+  const join = lobby !== null && kind !== 'invite' ? `+connect_lobby ${lobby}` : null;
   return {
     code: steamCodeOf(p.steamId),
     invite: () => host.lobbyInvite(),
     inviteBack: (steamId) => host.lobbyInviteUser(steamId),
-    heard(message, _started, finished) {
+    heard(message, _started, finished, matchRound = null) {
+      if (message.type === 'room') last = message;
+      round = matchRound;
+      if (last !== null) {
+        const open = lobbyOpenness(last, finished).newcomers;
+        presence.set(whereabouts(last, finished, round, p.steamId, open ? join : null));
+      }
       if (message.type !== 'room') return;
-      const { joinable: canJoin, newcomers: open } = lobbyOpenness(message, finished);
+      const { joinable: canJoin } = lobbyOpenness(message, finished);
       if (canJoin !== joinable) {
         joinable = canJoin;
         host.lobbyJoinable(canJoin);
       }
       running = message.started && !finished;
-      const status = message.started && !finished ? 'match' : 'lobby';
-      if (`${open} ${status}` !== said) {
-        said = `${open} ${status}`;
-        presence(open, status);
-      }
       const next = JSON.stringify(lobbyDataOf(listingOf(message, p.name), running));
       if (next !== data) {
         data = next;
@@ -152,7 +195,7 @@ export async function hostSteamRoom(
     left() {
       host.lobbyRoom(null);
       host.lobbyLeave();
-      host.presence({ status: null, connect: null });
+      presence.set(null);
     },
   };
 }
@@ -186,18 +229,19 @@ export function guestSteamRoom(
   let kept = false;
   const self = { host: hostSteamId, linked };
   guestOf = self;
-  p.host.presence({ status: 'lobby', connect: null });
+  let last: RoomMessage | null = null;
+  const presence = new Presence((keys) => p.host.presence(keys));
   return {
     code: steamCodeOf(hostSteamId),
-    heard(_message, started, finished) {
+    heard(message, started, finished, round = null) {
+      if (message.type === 'room') last = message;
+      presence.set(whereabouts(last, finished, round, hostSteamId, null));
       if (started && !finished && !kept) {
         kept = true;
         keepMatch(hostSteamId, room);
-        p.host.presence({ status: 'match', connect: null });
       } else if (kept && (finished || !started)) {
         kept = false;
         forgetMatch();
-        p.host.presence({ status: 'lobby', connect: null });
       } else if (!kept && !started && keptMatch()?.host === hostSteamId) {
         // Back at this host's table between matches — the match left ended meanwhile, and
         // this is its lobby again: nothing to go back to.
@@ -208,7 +252,7 @@ export function guestSteamRoom(
       if (guestOf === self) guestOf = null;
       forgetMatch();
       p.host.lobbyLeave();
-      p.host.presence({ status: null, connect: null });
+      presence.set(null);
     },
   };
 }

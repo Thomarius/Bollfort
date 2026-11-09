@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export * from './languages.js';
+export * from './presence.js';
 
 /*
  * The game's texts, one file a language in `config/locale/` (PLAN 11.20): flat keys grouped
