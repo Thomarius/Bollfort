@@ -24,6 +24,7 @@ import type { ServerConnection } from './net/connection.js';
 import type { NetworkMatch } from './net/networkMatch.js';
 import { params, timeScale } from './app.js';
 import { preferredTower } from './towers.js';
+import { avatarUrl, avatarsVersion } from './steam/avatars.js';
 
 /** A match as the render loop sees it, played on this computer or against a server. */
 
@@ -53,6 +54,8 @@ export interface Session {
   takeResynced?(): boolean;
   /** The players whose person has dropped, a bot playing for them until they are back. */
   away?(): ReadonlySet<number>;
+  /** Players' Steam avatars by player, as their seats name them (S3.4); none outside Steam. */
+  avatars?(): ReadonlyMap<number, string>;
   /**
    * Leaving for the menu: online the connection closes, so the seat goes to a bot after
    * the grace a dropped player gets (§6), and no ping is left running behind the menu.
@@ -192,6 +195,11 @@ export function networkSession(
   // Kept until the seats change, since the HUD asks every frame.
   let seen: readonly Seat[] | null = null;
   let away: ReadonlySet<number> = new Set();
+  let pictured: { seats: readonly Seat[] | null; version: number; map: Map<number, string> } = {
+    seats: null,
+    version: -1,
+    map: new Map(),
+  };
   return {
     get state() {
       if (match.state === null) throw new Error('match has no state yet');
@@ -235,6 +243,18 @@ export function networkSession(
         away = new Set(now.filter((seat) => !seat.connected).map((seat) => seat.playerId));
       }
       return away;
+    },
+    avatars: () => {
+      const now = seats();
+      if (now !== pictured.seats || avatarsVersion() !== pictured.version) {
+        const map = new Map<number, string>();
+        for (const seat of now) {
+          const url = avatarUrl(seat.steamId);
+          if (url !== null) map.set(seat.playerId, url);
+        }
+        pictured = { seats: now, version: avatarsVersion(), map };
+      }
+      return pictured.map;
     },
     leave: () => connection.close(),
     // The host gone, or the room, nobody will call the next match: the summary keeps only

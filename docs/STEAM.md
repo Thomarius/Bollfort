@@ -694,6 +694,14 @@ one account in the packaged build on Windows: the menu's rows, a Friends lobby m
 code and Invite in the lobby, Find a game read from Steam, no page error. Everything with two
 accounts is the bench's, on the Linux machine.
 
+**S3.4 built** (2026-11-09): avatars on the page (`steam/avatars.ts`, asked by a seat's Steam ID,
+drawn again as Steam's "?" gives way) on the lobby's seat cards, the score bar and the end screen
+(`Session.avatars`, from the room's seats); the language Steam's on the first start
+(`languageOfSteam`: German gives Deutsch, else English), the player's choice after. Seen: the host's
+avatar on its card in the packaged build. The score bar's and the end screen's need a second person
+(a table of bots plays locally, without the room): the bench's first run. Rich presence's texts wait
+for our App ID's localisation file (S4).
+
 ## 8. Controller support (C)
 
 Native, through the browser's **Gamepad API** in the page — Electron's Chromium has it — for every

@@ -3,6 +3,7 @@ import { playerShape, shapeSvg } from './shapes.js';
 import { HUD_SKIN } from './skins.js';
 import { formatNumber, t } from './i18n.js';
 import { escape } from './html.js';
+import { avatarImg } from './steam/avatars.js';
 import { padText } from './pads.js';
 import { defaultArtConfig, type ArtStyle, type TextKey } from '@bollfort/config';
 
@@ -131,6 +132,7 @@ const SPENT_MARK_MS = 1600;
 
 /** Nobody away: a match on this computer, where nobody can drop. */
 const NOBODY: ReadonlySet<number> = new Set();
+const NO_AVATARS: ReadonlyMap<number, string> = new Map();
 
 /** How long a ranking's entries take to come in before their scores start counting. */
 const RANK_COUNT_DELAY_MS = 450;
@@ -504,6 +506,7 @@ export class Hud {
     status = '',
     placingTower = false,
     away: ReadonlySet<number> = NOBODY,
+    avatars: ReadonlyMap<number, string> = NO_AVATARS,
   ): void {
     const waiting = state.phase === 'intermission';
     const shown = waiting ? (state.pendingPhase ?? state.phase) : state.phase;
@@ -573,7 +576,7 @@ export class Hud {
       const tag = gone
         ? `<i class="away-tag" title="${t('hud.awayTitle')}">${t('hud.away')}</i>`
         : '';
-      const name = `<bdi title="${escape(p.name)}">${escape(p.name)}</bdi>${tag}`;
+      const name = `${avatarImg(avatars.get(p.id))}<bdi title="${escape(p.name)}">${escape(p.name)}</bdi>${tag}`;
       // A team's members carry only their names: the score and lives are the team's.
       return teamed
         ? `<li class="${classes}" style="--who:${colour}"><b></b>${name}</li>`
@@ -657,7 +660,7 @@ export class Hud {
     // The labels over the islands live in the layer above this one, and at the end of a
     // match they sat on top of the summary; it says who was out, so they step aside.
     this.bannerRoot.classList.toggle('game-over', state.phase === 'game_over');
-    this.endScreen.update(state, humanPlayer, teamed);
+    this.endScreen.update(state, humanPlayer, teamed, avatars);
     const seconds = t('hud.seconds', { seconds: formatNumber(secondsLeft, 1) });
     const heading = waiting ? t('hud.next', { label }) : label;
     // A long label — German's run half as long again as English's — is set smaller and

@@ -21,6 +21,7 @@ import { PREVIEW_ASPECT } from './preview.js';
 import { teamLetter } from './scores.js';
 import { shapeSvg } from './shapes.js';
 import { escape } from './html.js';
+import { avatarImg, avatarUrl } from './steam/avatars.js';
 import { cannonSvg, dieSvg, towerSvg } from './towerIcons.js';
 import { towerName, towerWhat } from './towers.js';
 
@@ -437,7 +438,7 @@ function seatRow(
       seats && view.code !== null && !isHostSeat
         ? removeButton(index, seat.name, view.removing === index)
         : '';
-    return `<li class="seat${mine}${arrived}"${who}>${seatBadge(view, index)}${tower}${occupant(view, index, seats, seat.name)}${tags}${control}${remove}${blurb}</li>`;
+    return `<li class="seat${mine}${arrived}"${who}>${seatBadge(view, index)}${tower}${avatarImg(avatarUrl(seat.steamId))}${occupant(view, index, seats, seat.name)}${tags}${control}${remove}${blurb}</li>`;
   }
 
   const control = levelControl(

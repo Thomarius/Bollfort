@@ -4,6 +4,7 @@ import { awardCandidates, drawAwards, type Award } from './awards.js';
 import { t } from './i18n.js';
 import type { TextKey } from '@bollfort/config';
 import { escape } from './html.js';
+import { avatarImg } from './steam/avatars.js';
 import { defaultArtConfig } from '@bollfort/config';
 import { AWARD_ICONS, ICONS, withIcon } from './icons.js';
 import { motionReduced } from './motion.js';
@@ -337,12 +338,22 @@ export class EndScreen {
   }
 
   /** Every frame: the summary once the match is over, nothing before. */
-  update(state: MatchState, humanPlayer: number, teamed: boolean): void {
+  update(
+    state: MatchState,
+    humanPlayer: number,
+    teamed: boolean,
+    avatars: ReadonlyMap<number, string> = new Map(),
+  ): void {
     const over = state.phase === 'game_over' && !this.disabled;
-    this.showEndScreen(over ? this.markup(state, humanPlayer, teamed) : '');
+    this.showEndScreen(over ? this.markup(state, humanPlayer, teamed, avatars) : '');
   }
 
-  private markup(state: MatchState, humanPlayer: number, teamed: boolean): string {
+  private markup(
+    state: MatchState,
+    humanPlayer: number,
+    teamed: boolean,
+    avatars: ReadonlyMap<number, string>,
+  ): string {
     const text = escape(endOfMatchText(state, humanPlayer));
     const place = yourPlace(state, humanPlayer);
     // Only a log that saw the match: one that heard no resolution — a jump straight to
@@ -393,7 +404,7 @@ export class EndScreen {
             const members = s.members
               .map(
                 (id) =>
-                  `<span class="member"><b style="background:${playerCssColour(id)}"></b>${escape(id === humanPlayer ? t('hud.you') : (state.players[id]?.name ?? ''))}</span>`,
+                  `<span class="member"><b style="background:${playerCssColour(id)}"></b>${avatarImg(avatars.get(id))}${escape(id === humanPlayer ? t('hud.you') : (state.players[id]?.name ?? ''))}</span>`,
               )
               .join('');
             return (
@@ -410,7 +421,7 @@ export class EndScreen {
             const name = s.player === humanPlayer ? t('hud.you') : s.name;
             return (
               `<tr class="${classes(won, s.eliminated, s.player === humanPlayer)}">${rank(i + 1, won)}` +
-              `<td class="who">${shapeSvg(playerShape(s.player), playerCssColour(s.player))}<span class="name">${escape(name)}</span></td>` +
+              `<td class="who">${shapeSvg(playerShape(s.player), playerCssColour(s.player))}${avatarImg(avatars.get(s.player))}<span class="name">${escape(name)}</span></td>` +
               `<td data-count="${s.score}">${s.score}</td>${stats([s.player])}` +
               `${lives(state.players[s.player]?.team ?? s.player, s.eliminated)}</tr>`
             );

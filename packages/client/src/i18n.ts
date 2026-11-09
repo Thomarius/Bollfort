@@ -57,6 +57,11 @@ function savedLanguage(): string | null {
   return stored(LANGUAGE_KEY);
 }
 
+/** Whether a language was ever chosen and saved here: the Steam build asks Steam's only if not. */
+export function languageSaved(): boolean {
+  return isLanguage(savedLanguage());
+}
+
 /**
  * The language a page opens in: `&lang=` for screenshots and tests, which is not saved;
  * otherwise the choice saved; otherwise the browser's own, if the game speaks it.

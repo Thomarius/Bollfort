@@ -1021,6 +1021,7 @@ export async function runSession(
       demo ? '' : session.status(),
       controls.placingTower,
       session.away?.(),
+      session.avatars?.(),
     );
     watching.update(session.state, session.humanPlayer);
     const reading = session.network();

@@ -8422,3 +8422,17 @@ html.store-art-logo #backdrop {
   filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 95%)) drop-shadow(0 0 1.5px rgb(0 0 0 / 95%))
     drop-shadow(0 0 3px rgb(0 0 0 / 80%)) drop-shadow(0 5px 12px rgb(0 0 0 / 60%));
 }
+
+/*
+ * A player's Steam avatar before their name (STEAM.md §7.3, S3.4): on the lobby's seat cards,
+ * the score bar and the end screen, the size of the text beside it.
+ */
+img.avatar {
+  width: 1.25em;
+  height: 1.25em;
+  border-radius: 0.25em;
+  margin-right: 0.35em;
+  vertical-align: -0.25em;
+  flex: none;
+  object-fit: cover;
+}

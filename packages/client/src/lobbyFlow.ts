@@ -31,6 +31,7 @@ import { NetworkMatch } from './net/networkMatch.js';
 import { STEAM_RETRY } from './net/steamDial.js';
 import type { LobbyKind } from './host.js';
 import { forgetMatch } from './steam/backToMatch.js';
+import { onAvatars } from './steam/avatars.js';
 import { steamIdOfCode } from './steam/steamCode.js';
 import {
   guestSteamRoom,
@@ -926,6 +927,12 @@ function roomLobby(
   connection.onLost(() => {
     // In a match the screen says so over the board (`connectionNotice.ts`).
     if (!started && !refused) showMenu(t('connection.lobbyLost'));
+  });
+
+  // A Steam avatar arriving draws the lobby again, with it on its seat's card (S3.4).
+  const stopAvatars = onAvatars(() => {
+    if (connection.state === 'closed') stopAvatars();
+    else render();
   });
 
   // The tower this person chose last, for the room to know before anything is changed.

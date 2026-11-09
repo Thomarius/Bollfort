@@ -11,7 +11,8 @@ import {
 } from '@bollfort/config';
 import { PHASES, type Phase } from '@bollfort/sim';
 
-import { t } from './i18n.js';
+import { languageSaved, saveLanguage, setLanguage, t } from './i18n.js';
+import { languageOfSteam } from './steam/steamLanguage.js';
 import { app, audio, showError, params } from './app.js';
 import { nextMenuStyle, wearMenuLook } from './menuLook.js';
 import { watchWindows } from './windowEntry.js';
@@ -199,6 +200,12 @@ function start(): void {
           return;
         }
         if ((await startSteamPlay()) === null) return;
+        // The first start under Steam speaks Steam's language; after that, the player's choice.
+        if (!languageSaved() && params.get('lang') === null) {
+          const chosen = languageOfSteam(steam.language);
+          saveLanguage(chosen);
+          setLanguage(chosen);
+        }
         showMenu();
         startSteamJoins();
       });
