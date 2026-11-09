@@ -13,7 +13,12 @@ import { t } from './i18n.js';
 import { SplitTitle } from './decor.js';
 import { app, showError, audio } from './app.js';
 import { preferredStyles, saveStyles, storedName, saveName } from './prefs.js';
-import { openLobby } from './lobbyFlow.js';
+import { joinSteam, openLobby } from './lobbyFlow.js';
+import { keptMatch } from './steam/backToMatch.js';
+import { listingOfLobby } from './steam/lobbyData.js';
+import { LOBBY_KINDS, lobbyKind, setLobbyKind, steamPlay } from './steam/steamPlay.js';
+import { enhanceChoices } from './choices.js';
+import type { RoomListing } from '@bollfort/protocol';
 import { openNewTournament, openResumeList, type TournamentExits } from './tournamentMenu.js';
 import { savedTournaments } from './tournamentSaves.js';
 import { playTournament } from './tournamentFlow.js';
@@ -64,6 +69,9 @@ function lookCard(look: ArtLook): string {
 }
 
 function readCommon(): Common {
+  // Under Steam a player is their Steam name: there is no name field (STEAM.md §7.2).
+  const steam = steamPlay();
+  if (steam !== null) return { styles: readStyles(), name: steam.name, isPublic: true };
   const typed = document.querySelector<HTMLInputElement>('#name')?.value.trim() ?? '';
   const name = typed || t('menu.defaultName');
   // The default is a text in the reader's language, not a name anyone chose: saved as one,
@@ -109,9 +117,64 @@ function findGames(notice: string | null = null): void {
       ),
     // The menu's Single match, public: always so outside Steam (STEAM.md §4).
     host: () =>
-      void openLobby(readCommon(), null).catch((e: unknown) =>
+      void openLobby(readCommon(), null, undefined, 'public').catch((e: unknown) =>
         showError(t('error.couldNotOpen'), e),
       ),
+    // Under Steam, Steam's public lobbies of ours, as rows (STEAM.md §4).
+    ...(steamPlay() === null ? {} : { list: steamGames }),
+  });
+}
+
+/** Steam's public lobbies as Find a game's rows: ours, on this protocol, not this player's. */
+async function steamGames(): Promise<RoomListing[] | null> {
+  const steam = steamPlay();
+  if (steam === null) return null;
+  const lobbies = await steam.host.lobbyList();
+  return lobbies
+    .filter((lobby) => lobby.owner !== steam.steamId)
+    .map((lobby) => listingOfLobby(lobby.owner, lobby.data))
+    .filter((row): row is RoomListing => row !== null);
+}
+
+/** Under Steam, who may join the table Play opens, and Back to the match (STEAM.md §7.3). */
+function steamRows(): string {
+  if (steamPlay() === null) return '';
+  const kind = lobbyKind();
+  const kept = keptMatch();
+  const options = LOBBY_KINDS.map(
+    (k) => `<option value="${k}"${k === kind ? ' selected' : ''}>${t(`steam.kind.${k}`)}</option>`,
+  ).join('');
+  return (
+    (kept === null
+      ? ''
+      : `<div class="split back-row"><button id="back-to-match" class="primary" data-tip="${escape(t('steam.backToMatchTip'))}">${withIcon('resume', t('steam.backToMatch'))}</button></div>`) +
+    `<div class="split lobby-kind-row" data-tip="${escape(t(`steam.kind.${kind}Tip`))}">` +
+    `<select id="lobby-kind" data-ui="seg" aria-label="${escape(t('steam.lobbyKind'))}">${options}</select></div>`
+  );
+}
+
+/** The Steam rows' controls, once the menu is drawn. */
+function wireSteamRows(): void {
+  const kindSelect = document.querySelector<HTMLSelectElement>('#lobby-kind');
+  if (kindSelect !== null) {
+    enhanceChoices(kindSelect.parentElement!);
+    kindSelect.addEventListener('change', () => {
+      audio.play('select');
+      const kind = LOBBY_KINDS.find((k) => k === kindSelect.value) ?? 'friends';
+      setLobbyKind(kind);
+      kindSelect.parentElement!.dataset.tip = t(`steam.kind.${kind}Tip`);
+    });
+  }
+  document.querySelector('#back-to-match')?.addEventListener('click', () => {
+    audio.play('select');
+    const kept = keptMatch();
+    if (kept === null) {
+      showMenu(t('steam.matchOver'));
+      return;
+    }
+    void joinSteam(readCommon(), kept.host, kept.room).catch((e: unknown) =>
+      showError(t('error.couldNotJoin'), e),
+    );
   });
 }
 
@@ -141,10 +204,11 @@ export function showMenu(notice: string | null = null, findGame = false): void {
       <section class="home-main">
       <h1 class="title"><span class="title-split" id="title"></span></h1>
       <p class="inspired">${escape(t('credits.inspiredBy'))} · <button id="credits" class="link">${t('menu.credits')}</button></p>
-      <label>${t('menu.name')} <input id="name" type="text" maxlength="16" placeholder="${escape(t('menu.defaultName'))}" /></label>
+      ${steamPlay() === null ? `<label>${t('menu.name')} <input id="name" type="text" maxlength="16" placeholder="${escape(t('menu.defaultName'))}" /></label>` : ''}
       <div class="split play-row">
         <button id="play" class="primary">${withIcon('play', t('menu.singleMatch'))}</button>
       </div>
+      ${steamRows()}
       <div class="split tournament-row">
         <button id="new-tournament">${withIcon('trophy', t('menu.newTournament'))}</button>
         <button id="resume-tournament"${savedTournaments().length === 0 ? ' disabled' : ''}>${withIcon('resume', t('menu.resumeTournament'))}</button>
@@ -171,6 +235,7 @@ export function showMenu(notice: string | null = null, findGame = false): void {
     </div>
   `;
   checkServer();
+  wireSteamRows();
   // The desktop app's own way out (2026-11-09, the user's): a Steam game, on the Deck above
   // all, has no window to close. Absent in a browser, which has its own.
   document.querySelector('#quit')?.addEventListener('click', () => {
@@ -310,4 +375,68 @@ export function showMenu(notice: string | null = null, findGame = false): void {
     if (code.length === 0) return;
     void openLobby(readCommon(), code).catch((e: unknown) => showError(t('error.couldNotJoin'), e));
   });
+}
+
+/**
+ * Invites and Join in Steam's friends list (STEAM.md §7.3): a lobby the app was started for,
+ * or asked to join while it runs. On the menu it is joined at once; anywhere else the player
+ * is asked first, and the page loaded afresh to join, which takes down whatever game was on
+ * it — a room left, a match given up — as cleanly as leaving does.
+ */
+export function startSteamJoins(): void {
+  const steam = steamPlay();
+  if (steam === null) return;
+  const asked = new URLSearchParams(location.search).get('steamLobby');
+  const joinLobby = async (lobby: string): Promise<void> => {
+    const owner = await steam.host.lobbyJoin(lobby);
+    if (owner === null) showMenu(t('steam.noGame'));
+    else await joinSteam(readCommon(), owner);
+  };
+  const take = async (): Promise<void> => {
+    const lobbies = await steam.host.lobbies();
+    const lobby = lobbies.at(-1);
+    if (lobby === undefined) return;
+    if (document.querySelector('.menu.home') !== null) {
+      void joinLobby(lobby).catch((e: unknown) => showError(t('error.couldNotJoin'), e));
+      return;
+    }
+    askToLeave(() => {
+      const url = new URL(location.href);
+      url.searchParams.set('steamLobby', lobby);
+      location.replace(url.toString());
+    });
+  };
+  if (asked !== null && /^\d{1,20}$/.test(asked)) {
+    // Once only: a reload of the page later must not join it again.
+    const url = new URL(location.href);
+    url.searchParams.delete('steamLobby');
+    history.replaceState(null, '', url.toString());
+    void joinLobby(asked).catch((e: unknown) => showError(t('error.couldNotJoin'), e));
+  } else void take();
+  steam.host.onJoinAsked(() => void take());
+}
+
+/** Asks before leaving the game on screen for another; `join` if the player says so. */
+function askToLeave(join: () => void): void {
+  document.querySelector('.steam-join-asked')?.remove();
+  const root = document.createElement('div');
+  root.className = 'how-to-play steam-join-asked';
+  root.innerHTML = `
+    <div class="panel">
+      <h2>${t('steam.joinAsked.title')}</h2>
+      <p>${t('steam.joinAsked.body')}</p>
+      <div class="split">
+        <button class="primary" data-join>${withIcon('join', t('steam.joinAsked.join'))}</button>
+        <button class="quiet" data-stay>${t('steam.joinAsked.stay')}</button>
+      </div>
+    </div>`;
+  root.querySelector('[data-join]')?.addEventListener('click', () => {
+    audio.play('select');
+    join();
+  });
+  root.querySelector('[data-stay]')?.addEventListener('click', () => {
+    audio.play('select');
+    root.remove();
+  });
+  document.body.append(root);
 }

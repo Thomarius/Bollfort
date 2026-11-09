@@ -187,3 +187,43 @@ describe('a link over P2P', () => {
     expect(said).toEqual(['open']);
   });
 });
+
+describe('asking a host where its game is', () => {
+  function pair(here: string | null, reachable = true) {
+    const at: { host: SteamHost | null } = { host: null };
+    const guest = new SteamGuest((_to, packet) => {
+      if (reachable) at.host?.receive(GUEST, packet);
+      return true;
+    }, 10_000);
+    at.host = new SteamHost(
+      (_to, packet) => {
+        guest.receive(HOST, packet);
+        return true;
+      },
+      () => {
+        throw new Error('no link is opened by asking');
+      },
+      () => here,
+    );
+    return guest;
+  }
+
+  it('is answered with what the host says', async () => {
+    await expect(pair('{"room":"ABCDEF"}').ask(HOST)).resolves.toBe('{"room":"ABCDEF"}');
+  });
+
+  it('is answered with nothing while the host hosts no game', async () => {
+    await expect(pair(null).ask(HOST)).resolves.toBeNull();
+  });
+
+  it('gives up on a host that does not answer', async () => {
+    vi.useFakeTimers();
+    try {
+      const asked = pair('x', false).ask(HOST);
+      vi.advanceTimersByTime(10_000);
+      await expect(asked).resolves.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

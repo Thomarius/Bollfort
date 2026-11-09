@@ -19,6 +19,7 @@ import {
 } from './steam.js';
 import { PageLinks, type PageLinkEvent } from './pageLinks.js';
 import { AvatarWatch, steamAvatarSource } from './steamAvatars.js';
+import { SteamLobby, type LobbyKind } from './steamLobby.js';
 import { startSteamNet, type SteamNet } from './steamNet.js';
 
 /**
@@ -173,6 +174,7 @@ async function run(): Promise<void> {
     if (quitting) return;
     quitting = true;
     net?.stop();
+    lobby?.leave();
     void (server?.stop() ?? Promise.resolve()).finally(() => app.exit(0));
   };
 
@@ -209,6 +211,46 @@ async function run(): Promise<void> {
   ipcMain.on('steam-link-close', (_event, id: number) => links?.close(id));
   ipcMain.handle('host-steam-stats', () => net?.stats() ?? null);
 
+  // The Steam lobby beside the page's room, and finding another's game (S3.3). Each answers
+  // as though nothing were there without Steam.
+  let lobby: SteamLobby | null = null;
+  ipcMain.handle('host-lobby-create', (_event, kind: LobbyKind) =>
+    ['friends', 'public', 'invite'].includes(kind) ? (lobby?.create(kind) ?? null) : null,
+  );
+  ipcMain.on('host-lobby-room', (_event, room: unknown) =>
+    lobby?.setRoom(typeof room === 'string' ? room : null),
+  );
+  ipcMain.on('host-lobby-data', (_event, data: unknown) => {
+    if (typeof data !== 'object' || data === null) return;
+    const entries = Object.entries(data).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    );
+    lobby?.setData(Object.fromEntries(entries));
+  });
+  ipcMain.on('host-lobby-joinable', (_event, joinable: unknown) =>
+    lobby?.setJoinable(joinable === true),
+  );
+  ipcMain.on('host-lobby-leave', () => lobby?.leave());
+  ipcMain.on('host-lobby-invite', () => lobby?.invite());
+  ipcMain.handle('host-lobby-join', (_event, id: unknown) =>
+    typeof id === 'string' ? (lobby?.join(id) ?? null) : null,
+  );
+  ipcMain.handle('host-lobby-list', () => lobby?.list() ?? []);
+  ipcMain.handle('host-find', async (_event, host: unknown) => {
+    if (net === null || typeof host !== 'string' || !/^\d{1,20}$/.test(host)) return null;
+    const answer = await net.guest.ask(host);
+    try {
+      return answer === null ? null : (JSON.parse(answer) as unknown);
+    } catch {
+      return null;
+    }
+  });
+  ipcMain.on('host-presence', (_event, presence: unknown) => {
+    if (steamClient === null || typeof presence !== 'object' || presence === null) return;
+    for (const [key, value] of Object.entries(presence))
+      steamClient.localplayer.setRichPresence(key, typeof value === 'string' ? value : null);
+  });
+
   // Players' avatars (S3.4): the page asks for a Steam ID's, and is sent it as Steam has it
   // and again whenever it changes; nothing without Steam, or if the FFI will not open.
   let avatars: AvatarWatch | null = null;
@@ -216,9 +258,14 @@ async function run(): Promise<void> {
     if (typeof steamId === 'string' && /^\d{1,20}$/.test(steamId)) avatars?.want(steamId);
   });
 
+  /** A lobby to join, asked by an invite or Join in Steam's friends list: the page told. */
+  const askJoin = (lobby: string): void => {
+    lobbiesAsked.push(lobby);
+    if (window !== null && !window.isDestroyed()) window.webContents.send('steam-join-asked');
+  };
   app.on('second-instance', (_event, argv) => {
     const lobby = startPlan(process.platform, argv, STEAM_APP_ID).connectLobby;
-    if (lobby !== null) lobbiesAsked.push(lobby);
+    if (lobby !== null) askJoin(lobby);
     if (window === null) return;
     if (window.isMinimized()) window.restore();
     window.focus();
@@ -230,7 +277,19 @@ async function run(): Promise<void> {
   log(`server on ${server.port}`);
   if (steamClient !== null && steam.ready) {
     const running = server;
-    const p2p = startSteamNet(steamClient, (peer, steamId) => running.accept(peer, steamId), log);
+    const steamLobby = new SteamLobby(steamClient, log);
+    lobby = steamLobby;
+    const p2p = startSteamNet(
+      steamClient,
+      (peer, steamId) => running.accept(peer, steamId),
+      log,
+      () => steamLobby.here(),
+    );
+    // An invite accepted, or Join in Steam's friends list, while the game runs.
+    steamClient.callback.register(
+      8 as callback.SteamCallback.GameLobbyJoinRequested,
+      ({ lobby_steam_id }) => askJoin(lobby_steam_id.toString()),
+    );
     net = p2p;
     links = new PageLinks((host, events) => p2p.guest.dial(host, events), tellPage);
     log('Steam P2P ready');

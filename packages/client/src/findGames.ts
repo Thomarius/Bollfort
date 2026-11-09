@@ -31,6 +31,11 @@ export interface FindGamesActions {
   host(): void;
   /** A line above the list: a game that filled or closed while it was listed. */
   notice?: string | null;
+  /**
+   * Where the rows come from: the server's rooms by default, Steam's lobbies under Steam
+   * (STEAM.md §4). Null when there is nowhere to ask.
+   */
+  list?: () => Promise<RoomListing[] | null>;
 }
 
 export function openFindGames(actions: FindGamesActions): void {
@@ -104,8 +109,11 @@ export function openFindGames(actions: FindGamesActions): void {
   const refresh = async (): Promise<void> => {
     let fetched: RoomListing[] | null;
     try {
-      const response = await fetch('/api/rooms', { cache: 'no-store' });
-      fetched = parseRoomList(await response.json());
+      if (actions.list !== undefined) fetched = await actions.list();
+      else {
+        const response = await fetch('/api/rooms', { cache: 'no-store' });
+        fetched = parseRoomList(await response.json());
+      }
     } catch {
       fetched = null;
     }

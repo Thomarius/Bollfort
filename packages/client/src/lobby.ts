@@ -69,6 +69,8 @@ export interface LobbyView {
   entering?: readonly number[];
   /** A link to this room from the internet, while the host's port is open there (PLAN 11.21). */
   invite?: string | null;
+  /** Under Steam, an Invite button opening Steam's friend picker (STEAM.md §7.3), for the host. */
+  steamInvite?: boolean;
   /**
    * The tournament's match the room is set for (ARCHIVE 12zj), or none. Its table
    * is the tournament's: the seats' bots are named, the teams too, and nothing can be
@@ -544,13 +546,19 @@ export function lobbyMarkup(view: LobbyView): string {
   const code =
     view.code === null
       ? ''
-      : (view.invite
+      : (view.steamInvite === true
+          ? `<div class="code-row invite-row">
+        <button id="steam-invite" data-tip="${escape(t('steam.inviteTip'))}">${withIcon('join', t('steam.invite'))}</button>
+      </div>`
+          : '') +
+        (view.invite
           ? `<div class="code-row invite-row">
         <span class="invite-label">${t('lobby.invite')}</span>
         <code id="invite-link" class="invite-link">${escape(view.invite)}</code>
         <button id="copy-invite" class="quiet">${t('lobby.copy')}</button>
       </div>`
-          : '') + roomNote;
+          : '') +
+        roomNote;
 
   const body = `
       <div class="lobby-body">

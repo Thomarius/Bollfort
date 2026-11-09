@@ -28,6 +28,17 @@ import { motionReduced } from './motion.js';
 import { drawPreview, tablePreview } from './preview.js';
 import { ServerConnection } from './net/connection.js';
 import { NetworkMatch } from './net/networkMatch.js';
+import { STEAM_RETRY } from './net/steamDial.js';
+import type { LobbyKind } from './host.js';
+import { forgetMatch } from './steam/backToMatch.js';
+import { steamIdOfCode } from './steam/steamCode.js';
+import {
+  guestSteamRoom,
+  hostSteamRoom,
+  lobbyKind,
+  steamPlay,
+  type SteamRoom,
+} from './steam/steamPlay.js';
 import { store, stored } from './storage.js';
 import { app, showError, audio, params } from './app.js';
 import { browserId } from './browserId.js';
@@ -80,6 +91,8 @@ export interface LobbyHandlers {
   special?(special: TowerVariant | null): void;
   /** The host removing the person in this seat (STEAM.md §5); a room's alone, never a local table. */
   remove?(seat: number): void;
+  /** Steam's friend picker, under Steam, for the host (STEAM.md §7.3). */
+  invite?(): void;
 }
 
 /** The table as last drawn, to see what a drawing changes; and the setting the host last changed. */
@@ -258,6 +271,10 @@ export function drawLobby(view: LobbyView, on: LobbyHandlers): void {
   wireCopy('#copy-code', '#room-code', view.code ?? '');
   // The link for friends outside the house, while the host's port is open (PLAN 11.21).
   if (view.invite) wireCopy('#copy-invite', '#invite-link', view.invite);
+  document.querySelector('#steam-invite')?.addEventListener('click', () => {
+    audio.play('select');
+    on.invite?.();
+  });
   document.querySelector('#begin')?.addEventListener('click', () => {
     audio.play('select');
     on.start();
@@ -393,7 +410,17 @@ export async function openLobby(
   common: Common,
   code: string | null,
   asked?: number,
+  kind?: LobbyKind,
 ): Promise<void> {
+  // Under Steam a code is a host's (STEAM.md §7.3): their game is reached over P2P, never the
+  // server on this machine, which nobody else can reach.
+  const steam = steamPlay();
+  if (steam !== null && code !== null) {
+    const host = steamIdOfCode(code);
+    if (host === null) showMenu(t('steam.noGame'));
+    else await joinSteam(common, host);
+    return;
+  }
   const seed = chosenSeed();
   // The table this person last set as host, for a table of their own — unless the address
   // asks for a count, which is how a scene for screenshots or a test sets one exactly.
@@ -454,7 +481,11 @@ export async function openLobby(
         botTowers: remembered.botTowers,
       });
     }
-    roomLobby(common, connection, code, first);
+    const steamRoom =
+      steam !== null && code === null
+        ? await hostSteamRoom(steam, first.code, kind ?? lobbyKind())
+        : null;
+    roomLobby(common, connection, code, first, steamRoom);
     return;
   }
   connection.close();
@@ -474,6 +505,64 @@ export async function openLobby(
     return;
   }
   localLobby(common, playerCount, seed, null, remembered);
+}
+
+/**
+ * How long a join over Steam waits for the host's welcome once the host has answered: the
+ * session is up by then, but a host's machine under load may be slow to seat anyone.
+ */
+const STEAM_WELCOME_WAIT_MS = 10_000;
+
+/**
+ * Joins a host's game over Steam (STEAM.md §7.3, S3.3), however it was asked for — a code,
+ * Find a game, an invite, Join in the friends list, Back to the match: the host's app asked
+ * over P2P where its game is, its lobby joined for Steam's own view of who plays together,
+ * then its room over P2P. `kept` is Back to the match's room, taken even if the host now says
+ * another: the seat is the server's to give back, by Steam ID.
+ */
+export async function joinSteam(common: Common, host: string, kept?: string): Promise<void> {
+  const steam = steamPlay();
+  if (steam === null) return;
+  app!.innerHTML = `<div class="menu interim"><h1>${t('steam.joining')}</h1><p class="note">${t('menu.lookingForServer')}</p></div>`;
+  const found = (await steam.host.find(host)) as { room?: unknown; lobby?: unknown } | null;
+  const room = kept ?? (typeof found?.room === 'string' ? found.room : null);
+  if (room === null) {
+    if (kept !== undefined) forgetMatch();
+    showMenu(t(kept === undefined ? 'steam.noGame' : 'steam.matchOver'));
+    return;
+  }
+  // Best effort: the seat does not depend on it, and a lobby closed for its match refuses.
+  if (kept === undefined && typeof found?.lobby === 'string')
+    void steam.host.lobbyJoin(found.lobby);
+
+  const connection = new ServerConnection(host, STEAM_RETRY, steam.dial);
+  connection.browserId = browserId();
+  const answered = new Promise<ServerMessage | null>((resolve) => {
+    connection.onMessage((message) => {
+      if (message.type === 'welcome' || message.type === 'error') resolve(message);
+    });
+    setTimeout(() => resolve(null), STEAM_WELCOME_WAIT_MS);
+  });
+  connection.connect().catch(() => undefined);
+  connection.joinRoom(steam.name, room);
+  const first = await answered;
+  if (first?.type === 'welcome') {
+    roomLobby(common, connection, room, first, guestSteamRoom(steam, host, room));
+    return;
+  }
+  connection.close();
+  steam.host.lobbyLeave();
+  if (kept !== undefined) {
+    forgetMatch();
+    showMenu(t('steam.matchOver'));
+    return;
+  }
+  const refused = first?.type === 'error' ? joinRefusedNotice(first.code) : null;
+  if (refused !== null) {
+    showMenu(refused, first?.type === 'error' && first.code !== 'removed');
+    return;
+  }
+  showMenu(t('steam.noGame'));
 }
 
 /** The lobby with no server: the table lives here, under the same rules as a room's. */
@@ -616,8 +705,16 @@ function roomLobby(
   connection: ServerConnection,
   code: string | null,
   welcome: Extract<ServerMessage, { type: 'welcome' }>,
+  steam: SteamRoom | null = null,
 ): void {
   const match = new NetworkMatch(connection);
+  /** The Steam lobby and presence left, once, however the room is left (STEAM.md §7.3). */
+  let steamLeft = false;
+  const leaveSteam = (): void => {
+    if (steamLeft) return;
+    steamLeft = true;
+    steam?.left();
+  };
   let view: LobbyView | null = null;
   /** The table as it stood before the start, which is what the seats were dealt from. */
   let table: LobbyView | null = null;
@@ -685,10 +782,12 @@ function roomLobby(
         }
         started = true;
         connection.close();
+        leaveSteam();
         playLocally(common, tableOf(current));
       },
       ready: (ready) => connection.send({ type: 'ready', ready }),
       remove: (seat) => connection.send({ type: 'remove', seat }),
+      ...(steam?.invite === undefined ? {} : { invite: steam.invite }),
       tab: (chosen) => (tab = chosen),
       special: (special) => connection.send({ type: 'special', special }),
     });
@@ -697,6 +796,7 @@ function roomLobby(
       audio.play('select');
       started = true;
       connection.close();
+      leaveSteam();
       showMenu();
     });
   };
@@ -718,7 +818,8 @@ function roomLobby(
         if (arrived.length > 0 && !message.started) audio.play('select');
         known = ids;
         view = {
-          code: roomCode,
+          code: steam?.code ?? roomCode,
+          steamInvite: steam?.invite !== undefined,
           playerCount: message.playerCount,
           hostId,
           humanPlayer: match.humanPlayer,
@@ -816,6 +917,7 @@ function roomLobby(
       default:
         break;
     }
+    steam?.heard(message, started, match.finished);
   });
 
   // A drop in a match is got back by rejoining the seat, which the server keeps through the
@@ -837,9 +939,13 @@ function roomLobby(
 
   // Until the connection closes — left running, every lobby opened in the page went on
   // queueing a ping every two seconds for a socket that would never send them.
+  // Under Steam the room's lobby and presence go with the connection, however it closed —
+  // the summary's way back to the menu among them.
   const pinging = setInterval(() => {
-    if (connection.state === 'closed') clearInterval(pinging);
-    else connection.ping();
+    if (connection.state === 'closed') {
+      clearInterval(pinging);
+      leaveSteam();
+    } else connection.ping();
   }, 2000);
 }
 

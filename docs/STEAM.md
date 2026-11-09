@@ -669,6 +669,20 @@ after the player's first `PersonaStateChange` — and the real one at a later ch
 at 1, 3, 8 and 20 s). On Linux it is still to be run, on the Linux machine. **For S4**: the
 release has no list of third-party licences, `steamworks.js` and `koffi` among them, both MIT.
 
+**S3.3 built** (2026-11-09): under Play the lobby's type (Friends, Public, Invite only,
+remembered); the host's Steam lobby made with the room (`steamLobby.ts`), its data the listing
+(`lobbyData.ts`, tagged `bollfort` with the protocol on 480), open to joins while the table has a
+free seat, rich presence's `connect` with it for Friends and Public; the lobby showing the host's
+Steam code (`steamCode.ts`, the account number in seven of the codes' letters) and **Invite
+friends**; joining — by code, Find a game's rows (Steam's public lobbies), an invite or Join at
+start-up or while running — through one `joinSteam`: the host's app asked over P2P where its game
+is (`FRAME.ask`/`here`), its lobby joined best effort, its room over P2P; asked while in a game,
+the player confirms and the page loads afresh to join; **Back to the match** from the kept match
+(`backToMatch.ts`, three hours at most). No name field under Steam: the Steam name. Checked with
+one account in the packaged build on Windows: the menu's rows, a Friends lobby made and left, the
+code and Invite in the lobby, Find a game read from Steam, no page error. Everything with two
+accounts is the bench's, on the Linux machine.
+
 ## 8. Controller support (C)
 
 Native, through the browser's **Gamepad API** in the page — Electron's Chromium has it — for every

@@ -47,6 +47,8 @@ export function startSteamNet(
   client: Client,
   accept: (peer: Peer, steamId: string) => Session,
   log: (line: string) => void,
+  /** The host's answer to a guest asking where its game is (`SteamLobby.here`). */
+  here: () => string | null = () => null,
 ): SteamNet {
   const counts = {
     sentPackets: 0,
@@ -74,7 +76,7 @@ export function startSteamNet(
     return ok;
   };
 
-  const host = new SteamHost(send, accept);
+  const host = new SteamHost(send, accept, here);
   // From a random number, so a restarted app's links are never taken for its last life's.
   const guest = new SteamGuest(send, OPEN_WAIT_MS, undefined, randomInt(1, 0x7fffffff));
 

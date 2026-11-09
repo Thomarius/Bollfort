@@ -31,12 +31,16 @@ export const FRAME = {
   toHost: 2,
   /** Guest to host: the guest has closed this link. */
   closedByGuest: 3,
+  /** Guest to host: where is your game? Its number in place of a link's. */
+  ask: 4,
   /** Host to guest: the link is open, the server holds it. */
   opened: 11,
   /** Host to guest: a message. */
   toGuest: 12,
   /** Host to guest: the host has closed this link, or never knew it. */
   closedByHost: 13,
+  /** Host to guest: the answer to an ask, of the same number — the host's `here`, or empty. */
+  here: 14,
 } as const;
 export type FrameKind = (typeof FRAME)[keyof typeof FRAME];
 
@@ -101,6 +105,11 @@ export class SteamHost {
   constructor(
     private readonly send: P2PSend,
     private readonly accept: (peer: Peer, steamId: string) => Session,
+    /**
+     * What the host answers a guest asking where its game is (S3.3): the room's code and the
+     * lobby's ID, as the page set them, or null while it hosts none.
+     */
+    private readonly here: () => string | null = () => null,
   ) {}
 
   /** Links open now, for the bench's counters. */
@@ -144,6 +153,9 @@ export class SteamHost {
       }
       case FRAME.closedByGuest:
         this.drop(key);
+        return;
+      case FRAME.ask:
+        sendFrame(this.send, from, FRAME.here, frame.link, this.here() ?? '');
         return;
       default:
         return;
@@ -201,6 +213,12 @@ const realTimers: Timers = {
   clearTimeout: (timer) => clearTimeout(timer as ReturnType<typeof setTimeout>),
 };
 
+interface Asking {
+  host: string;
+  answer: (text: string | null) => void;
+  timer: unknown;
+}
+
 interface GuestEntry {
   host: string;
   events: GuestLinkEvents;
@@ -218,6 +236,7 @@ interface GuestEntry {
  */
 export class SteamGuest {
   private readonly links = new Map<number, GuestEntry>();
+  private readonly asking = new Map<number, Asking>();
   private next: number;
 
   constructor(
@@ -269,10 +288,37 @@ export class SteamGuest {
     };
   }
 
+  /**
+   * Asks a host where its game is (S3.3): the host's `here`, or null if it hosts none, or does
+   * not answer within `openWaitMs` — no app of ours there, or no way through.
+   */
+  ask(host: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      const number = this.next++ >>> 0;
+      const asking: Asking = {
+        host,
+        answer: (text) => {
+          this.timers.clearTimeout(asking.timer);
+          this.asking.delete(number);
+          resolve(text);
+        },
+        timer: null,
+      };
+      asking.timer = this.timers.setTimeout(() => asking.answer(null), this.openWaitMs);
+      this.asking.set(number, asking);
+      if (!sendFrame(this.send, host, FRAME.ask, number)) asking.answer(null);
+    });
+  }
+
   /** A packet from `from`; anything not for a guest's end, or from another host, is ignored. */
   receive(from: string, packet: Uint8Array): void {
     const frame = decodeFrame(packet);
     if (frame === null) return;
+    if (frame.kind === FRAME.here) {
+      const asking = this.asking.get(frame.link);
+      if (asking !== undefined && asking.host === from) asking.answer(frame.text || null);
+      return;
+    }
     const entry = this.links.get(frame.link);
     if (entry === undefined) {
       // A link this end has given up on — its open answered after the wait ran out, held by

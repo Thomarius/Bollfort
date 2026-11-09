@@ -25,7 +25,7 @@ import {
   towerFromParams,
 } from './session.js';
 import type { Common } from './menu.js';
-import { showMenu, tournamentExits } from './menu.js';
+import { showMenu, startSteamJoins, tournamentExits } from './menu.js';
 import { openNewTournament, openResumeList } from './tournamentMenu.js';
 import { writeTournament } from './tournamentSaves.js';
 import { TOURNAMENT_LIMITS } from './tournamentSetup.js';
@@ -38,6 +38,7 @@ import { openKeyboard } from './padKeyboard.js';
 import { startPadLoop } from './padLoop.js';
 import { installStoreArt, storeArtMode } from './storeArt.js';
 import { gameHost, steamMissing } from './host.js';
+import { startSteamPlay } from './steam/steamPlay.js';
 
 /**
  * Bollfort client.
@@ -188,11 +189,18 @@ function start(): void {
     tournamentExits(params.get('private') !== '1').play(save.id);
   } else {
     showMenu();
-    // The Steam build started without Steam plays locally, and says online play needs it.
+    // The Steam build: with Steam, the menu again with Steam's rows, and invites taken
+    // (STEAM.md §7.3); started without Steam it plays locally, and says online play needs it.
     void gameHost()
       ?.steam()
-      .then((steam) => {
-        if (steamMissing(steam)) showMenu(t('steam.missing'));
+      .then(async (steam) => {
+        if (steamMissing(steam)) {
+          showMenu(t('steam.missing'));
+          return;
+        }
+        if ((await startSteamPlay()) === null) return;
+        showMenu();
+        startSteamJoins();
       });
   }
 }

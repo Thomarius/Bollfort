@@ -30,7 +30,22 @@ export interface GameHost {
   /** A player's avatar wanted: it comes through `onAvatar`, and again whenever it changes. */
   avatarWant(steamId: string): void;
   onAvatar(listener: (said: { steamId: string; avatar: HostAvatar | null }) => void): void;
+  /** The Steam lobby beside this page's room (STEAM.md §7.3, S3.3); see `gamePreload.ts`. */
+  lobbyCreate(kind: LobbyKind): Promise<string | null>;
+  lobbyRoom(room: string | null): void;
+  lobbyData(data: Record<string, string>): void;
+  lobbyJoinable(joinable: boolean): void;
+  lobbyLeave(): void;
+  lobbyInvite(): void;
+  lobbyJoin(lobby: string): Promise<string | null>;
+  lobbyList(): Promise<{ lobby: string; owner: string; data: Record<string, string> }[]>;
+  find(host: string): Promise<unknown>;
+  presence(values: Record<string, string | null>): void;
+  onJoinAsked(listener: () => void): void;
 }
+
+/** Who may join the host's Steam lobby, chosen under Play (S3.3). */
+export type LobbyKind = 'friends' | 'public' | 'invite';
 
 /** A Steam avatar's pixels, RGBA row by row. */
 export interface HostAvatar {
