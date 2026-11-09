@@ -317,6 +317,82 @@ desktop left alone.
 it is the bench's only target until then, and the reference to compare S3 against. Then the
 branch is deleted.
 
+### 3.5 S2, the Steam build — the plan (approved 2026-11-09)
+
+**The aim**: a Steam build of the desktop app that starts straight into the game under Steam.
+Lobbies, invites, names and avatars stay S3's (§7). Built and tested on App ID 480; the App ID
+becomes ours once the fee is paid (S4). Some two to three sessions, S2.2 and S2.3 the bulk.
+
+**Decided** (2026-11-09, the user's):
+
+- **Fullscreen by default** under Steam, the player's choice remembered after that: the Deck
+  wants the whole 1280 × 800 screen, and a Steam game is expected to fill it.
+- **`RestartAppIfNecessary` is called** (Q6) once the App ID is ours: started outside Steam, the
+  app quits and Steam starts it again, which is also how the overlay is injected on Linux. On 480
+  it always says no, so it waits untested for the App ID.
+- **The Deck in S5**, not S2: started as a non-Steam game the build does not run in Steam's Linux
+  runtime container, so only our App ID can test it there. The user knows a Deck owner; S5
+  prepares the build so that he can test it easily (§9.3).
+
+**S2.1 The flag and the build**
+
+- **`BOLLFORT_STEAM`**, set at build time (the desktop's `build.js` defines it), decides all of
+  it. Without it the app never loads `steamworks.js`, and the GitHub builds stay as they are.
+- **A third packaging target, `steam`**: a plain folder for Windows and one for Linux, as a
+  Steam depot takes them, in place of the portable `.exe` and the AppImage. `steamworks.js`
+  (0.4.0, no fork, §3.2) a dependency of the desktop package, its native module shipped unpacked.
+- **`steam_appid.txt` for development only**: written beside the program by the development
+  start, never packaged; the packaging fails if one is in a Steam folder (§3.1).
+- **The App ID in one place**, 480 until S4.
+
+**S2.2 Starting under Steam** (the main process, under the flag)
+
+- **Steam initialised and the overlay enabled** before the app is ready
+  (`electronEnableSteamOverlay`), the user's name, ID and language read.
+- **One instance**: a second start hands its `+connect_lobby` to the first and quits, before it
+  touches Steam (S1 crashed with two on one Steam client, §3.3). S3 does the joining; S2 only
+  passes the argument on.
+- **On Linux without Chromium's sandbox**, appended by the app itself (`no-sandbox`), since the
+  launch options are the player's: with the overlay preloaded the sandbox held the window back
+  70–80 s (§3.3).
+- **The game's window the first window made**, as the overlay draws in the first one on
+  Windows (§3.3).
+- **Steam not running**: the app starts anyway and plays locally — bots, tournaments, the demo —
+  with a notice in the menu that online play needs Steam. It never crashes; nothing tries Steam
+  again until the next start.
+
+**S2.3 No launcher under Steam** (Deck Verified refuses launchers)
+
+- **The game's window opens directly**, fullscreen (above); the control window never.
+- **The server in the background** on a free port, on 127.0.0.1 only: nothing offered to the
+  network, no firewall prompt.
+- **None of the launcher's switches**: no UPnP, no tunnel, no firewall check; their code is not
+  reached under the flag.
+- **Closing the window quits the app**, the server with it.
+- **No recordings**, as in every packaged build (package R).
+
+**S2.4 Tests**
+
+- **How to start, as a pure function**: from the flag, whether Steam initialised, the system and
+  the arguments, what the app does — window, sandbox, notice, the lobby handed on — tested in
+  `npm run check`.
+- **The bench's `start` scenario** (§3.4) for the packaged Steam build on Linux, started as a
+  non-Steam game: no control window, the game's window first, fullscreen, one instance with a
+  second start handed over, the window up within seconds without the sandbox, and Steam shut
+  down — local play and the notice. The bench gains an adapter for the Steam build (§3.4); S3's
+  lobby scenarios use it after.
+- **By hand on Windows, once**: the overlay over the game's window, Shift+Tab, in fullscreen.
+
+**S2.5 The release workflow**
+
+- **Both Steam folders built** on their systems with every release and by hand, as the run's
+  downloads, beside the `.exe` and the AppImage.
+- **The upload to Steam waits for S4**: `steamcmd` and a depot need our App ID.
+
+**Not testable on 480**, so left for our App ID, after the fee and before the testers' beta:
+a closed game started by an invite, `RestartAppIfNecessary`, the Linux runtime container, and the
+Deck.
+
 ## 4. The games browser (B)
 
 **Decided** (2026-11-03, the user's, with K): one window in every build, **Find a game**, its
@@ -737,7 +813,8 @@ in progress are lost once, and the desktop app's old data folder stays behind.
   - a tournament across matches;
   - Steam not running;
   - a controller through every window and a whole match;
-  - the Deck, if one is at hand.
+  - the Deck: a Deck owner the user knows tests it, the build and its steps prepared so that
+    he can (2026-11-09).
 - **Deck review** requested, then Coming Soon, then release.
 
 ## 10. Later, perhaps
