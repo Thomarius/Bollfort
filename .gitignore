@@ -17,3 +17,5 @@ recordings/
 soaks/
 # The trailer's clips and cut (tools/storeart/src/trailer.ts): large, made again on demand.
 trailer-build/
+# The Steam test bench's reports and logs (tools/steambench).
+steambench-results/

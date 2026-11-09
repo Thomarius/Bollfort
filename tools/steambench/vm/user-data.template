@@ -1,0 +1,51 @@
+#cloud-config
+# The second Steam account's machine for the spike's automated tests: Xfce logged in on its own,
+# Steam started with the desktop, reachable over SSH with the key beside this file only.
+hostname: bollfort-guest
+users:
+  - name: tester
+    gecos: Bollfort tester
+    shell: /bin/bash
+    groups: [sudo, audio, video, render]
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - SSH_PUBLIC_KEY
+ssh_pwauth: false
+package_update: true
+package_upgrade: false
+bootcmd:
+  - dpkg --add-architecture i386
+write_files:
+  - path: /etc/lightdm/lightdm.conf.d/50-autologin.conf
+    content: |
+      [Seat:*]
+      autologin-user=tester
+      autologin-session=xubuntu
+  - path: /var/tmp/steam.debconf
+    content: |
+      steam-installer steam/question select I AGREE
+      steam-installer steam/license note
+      steam steam/question select I AGREE
+      steam steam/license note
+  - path: /etc/xdg/autostart/zz-no-blanking.desktop
+    content: |
+      [Desktop Entry]
+      Type=Application
+      Name=No screen blanking
+      Exec=sh -c "xset s off -dpms"
+runcmd:
+  - debconf-set-selections /var/tmp/steam.debconf
+  - "sed -i 's/^Components: main restricted$/Components: main restricted universe multiverse/' /etc/apt/sources.list.d/ubuntu.sources"
+  - apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y xubuntu-core lightdm spice-vdagent qemu-guest-agent libnss3 libgbm1 libasound2t64 libxss1 mesa-utils
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y steam-installer
+  - DEBIAN_FRONTEND=noninteractive apt-get purge -y light-locker xfce4-screensaver || true
+  - mkdir -p /home/tester/.config/autostart
+  - cp /usr/share/applications/steam.desktop /home/tester/.config/autostart/ || true
+  - chown -R tester:tester /home/tester/.config
+  - systemctl set-default graphical.target
+  - touch /var/tmp/bollfort-guest-ready
+power_state:
+  mode: reboot
+  condition: test -f /var/tmp/bollfort-guest-ready

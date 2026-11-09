@@ -1872,6 +1872,19 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    [`STEAM.md`](./STEAM.md): N, R, K and B done (ARCHIVE 15zh–15zj), T and C (15zl, 15zm), and
    S4's material that needs no account — art, trailer, texts, loops, icon (15zn, 15zo,
    [`STORE_PAGE.md`](./STORE_PAGE.md)). Open: S1, the spike, next; S2, S3, the rest of S4, and S5.
+9. **Seen in the Steam bench's matches** (2026-11-09, the user watching; to look into later,
+   neither Steam's — both are a room match's, online without Steam too, and probably older):
+   - **Every bot marked AWAY ("weg")** on the score bar, the whole match. The page marks a seat
+     away when it has no connection (`session.ts`, `away`: `!seat.connected`), and a bot's seat
+     never has one (`room.ts`, `wireSeats`: `connected: seat.connection !== null`); the filter
+     wants `&& !seat.isBot`. Likely since the AWAY tag came (ARCHIVE 15zc). Check against a plain
+     room match before fixing.
+   - **"falsche Phase" in the corner all match** (`rejection.wrong_phase`). The connection's
+     notice shows the server's last refusal (`networkMatch.ts`, `lastRejection`), and nothing
+     clears it. Both seats were played by the autopilot, whose move lands only after its ghost
+     glides there, so a phase may have ended meanwhile; a person's click late in a phase would do
+     the same. To decide: clear the refusal after a while or at the next phase, and whether a
+     person needs to see a wrong phase at all.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

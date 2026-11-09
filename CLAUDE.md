@@ -56,6 +56,7 @@ TRAILER_SET=loops npm run trailer -w @bollfort/storeart -- record   # the store 
 sh tools/storeart/loops.sh          # the store description's loops, cut from those scenes into assets/store/description/
 npm run icons -w @bollfort/storeart -- /tmp/icons [castle|ring|letter|keep|bare...]   # app icon candidates in every style, at 184 and 32 px
 npx tsx tools/storeart/src/sysreq.ts NAME [--fullscreen] [--affinity 0x5] [--round 8]   # the packaged app's memory, processor and frames, eight bots (Windows, Linux)
+npx tsx tools/steambench/src/bench.ts [join public private match lag outage reversed restart]   # multiplayer over Steam against the VM (STEAM.md 3.4)
 npm start     -w @bollfort/desktop  # the desktop app, after npm run build
 npm run package -w @bollfort/desktop # its portable file for this system, into packages/desktop/release/
 ```
@@ -581,7 +582,11 @@ which a test session needs the server rebuilt and every page reloaded for):
   branch, to be run by the user on two machines with two accounts; what one account can show is
   checked by its `auto.mjs`, passed on Windows and Linux (2026-11-07, STEAM.md §3.3: the overlay
   draws in the first window made on Windows, not at all on the Linux desktop; under Steam on Linux
-  the app must start without Chromium's sandbox), the two-account part left. The steps meant for its wait
+  the app must start without Chromium's sandbox). The two-account part run 2026-11-08 and 09, by
+  hand and on **the Steam bench** (STEAM.md §3.4, `tools/steambench`: this machine against a VM,
+  `bollfort-guest`, with a second account, arnoldex83, the network shaped by `tc`): matches over
+  P2P clean, also under delay and loss; a guest cut off or restarted cannot get back in, which
+  S3 must solve (§3.3); Q4, a guest's invite, left for a third account. The steps meant for its wait
   are done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
   packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
   recommended), on Windows and then on the Linux machine's Ryzen 3 and integrated Renoir

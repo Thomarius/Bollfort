@@ -195,6 +195,119 @@ every check passed, on Windows and then on Linux, Ubuntu under X11):
   screen in 10.9 minutes (10.8 on Linux), no game error and no hash mismatch: the bundled
   server under Electron is sound, so anything the two-machine test finds is the channel's.
 
+**Answered on two machines and on the bench** (2026-11-08 and 09; the bench in §3.4):
+
+- **The first evening joined no lobby**: every guest's page said no server answers. Steam sets
+  up a P2P session between two machines in **3.8–4.1 s** (every join since), and the game's page
+  waits 2 s for the server's welcome (`SERVER_WAIT_MS`), then closes its socket. The spike's
+  guest now opens the game only once the host has answered a ping. S3's transport must allow
+  for the same: the session first, then the page's wait.
+- **3**: the old P2P carries an **eight-seat match with no hash mismatch** — both seats on the
+  autopilot, 9.4–9.8 minutes, the end screens alike, no rejoin, no send failure, 9–12 ms round
+  trip once connected, either machine hosting; and with 50 and 150 ms more round trip and 1%
+  loss each way (measured 55 and 156 ms, 24 ms under loss, as reliable sends resend).
+- **A guest cut off loses its place for good.** Its whole Steam client goes offline, and Steam
+  takes it out of the lobby within 10 s; the P2P session fails after some 20 s of silence and is
+  made again some 20 s after the network is back. A 10 s cut is lived through on the sockets
+  already open; after 30 or 90 s the game's rejoin (ARCHIVE 15zc) is refused, since the spike
+  admits lobby members only, and the refusal closes nothing, so the guest's page hangs on
+  Reconnecting while a bot plays its seat. A guest whose app is restarted in a match cannot
+  rejoin the lobby at all, closed to joins at the start (§7.2). **For S3**: a seat's own player
+  readmitted by Steam ID, lobby or not; the lobby left joinable for its match's players, or their
+  way back otherwise; a refused link closed, so the page's rejoin runs or gives up.
+- **5**: an invite **with the game running** arrives as `GameLobbyJoinRequested` and seats the
+  guest, accepted in Steam's friends list — Friends, Public and Invite only; and Join Game from
+  the friends list for Friends and Public (Invite only offers none, as it should). **With the
+  game closed** Steam starts Spacewar, 480's own game, not ours: the closed path waits for our
+  App ID; `+connect_lobby` itself works (the bench joins every lobby by it).
+- **2, Windows, in the game**: the overlay works without any problem (the user, 2026-11-09).
+- **A controller under Steam Input** works in the spike's game without any problem.
+- **One app at a time**: two spikes on one Steam client read each other's packets, and one
+  crashed on a packet the other had taken ("No packet available"); an invite to the second
+  joined the lobby while the first took the host's answers, so its game never opened. The spike
+  now keeps one instance, a second start handing over its `+connect_lobby`; the Steam build
+  must do the same.
+- **4** is still open: it needs a third account.
+
+### 3.4 The test bench (H)
+
+**Approved and built** (2026-11-09, the user's): `tools/steambench`, run the same day on the S1
+spike — every scenario's result is in §3.3. Its first runs found two of its own faults, kept as
+comments: a function passed to the page loses tsx's `__name` helper, so its scripts go as text;
+and only lines logged after a cut may answer for it.
+
+**Why** (2026-11-08): the first two-machine evening joined no lobby. Steam took 3.9 s to set up
+the P2P session between two machines, and the game page gives up after 2 s (`SERVER_WAIT_MS`);
+on one machine the session is instant, so `auto.mjs` never saw it. Fixed on the spike's branch
+(the guest opens the game only once the host has answered), and found again the same night on
+this machine against a VM: **a second Steam account in a VM reproduces the two-machine
+behaviour** (first contact 4.0 s), and a whole eight-seat match ran between them, unattended,
+with no error, mismatch or rejoin. The bench makes that a tool: every multiplayer path over Steam
+run by script, on one machine, as often as wanted — for S1 now, for S3's transport later, and
+before every Steam release.
+
+**The machines**
+
+- **Host: this machine**, Steam as Arnoldex. **Guest: the VM `bollfort-guest`**, Ubuntu 24.04
+  with Xfce under libvirt (2 cores, 4 GB, virgl 3D), logged in by itself, Steam as arnoldex83,
+  remembered. Roles swap by a switch: the VM hosts and this machine joins.
+- **The VM made by script**: cloud-init's `user-data` and `create.sh`, in the repository
+  (`tools/steambench/vm/`), with no key or password in them; its SSH key made on the machine.
+  Logging the account in is the one step by hand, once.
+- **Reached by SSH**, its address asked of the guest agent (libvirt forgets its own leases when
+  the machine restarts). The app under test is copied in with rsync, `chrome-sandbox` set to root
+  and 4755 (Electron refuses to start otherwise), and started with `--remote-debugging-port`, its
+  windows driven over an SSH tunnel by Playwright's `connectOverCDP` — the same calls as the
+  local side's.
+- **Not a measure of speed**: the VM's game draws at 10–20 fps and the host loses a few frames
+  to the VM (the trial: host 53 fps, 83% of its cores busy). Frames and load are recorded as
+  information only; speed is measured on real machines (`sysreq.ts`).
+
+**The network, shaped** with `tc netem` on the VM's own interface on this machine (`vnet0`), so
+only the guest's traffic is touched — Steam's relay or a direct path alike. Root is needed for
+`tc` alone _(the user's decision: a sudoers line for `/usr/sbin/tc`, or run by hand)_. Every run
+removes its rules as it ends, and `--reset` removes them after a crash.
+
+**The app under test**, behind an adapter with one shape — launch with arguments, host a lobby of
+a type, join by ID or by `+connect_lobby`, the control and game pages, the log, the counters,
+close. **First the spike** (its control window's `window.spike` and log file), **later S3's
+Steam build** (its own hooks), so S3 inherits the scenarios unchanged. Both seats played by the
+**autopilot** (`&autopilot=1`), so the guest's moves cross the channel, not only the host's; the
+spike passes it on to the game's address. The spike's branch takes main's client for it.
+
+**The scenarios**, each its own run, its report in `steambench-results/<time>/`:
+
+| Scenario | What                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------ |
+| join     | Friends lobby; the guest joins by `+connect_lobby`, five times: first answer, seated, time |
+| public   | Public lobby; the guest finds it with `getLobbies` or, failing that, joins by ID           |
+| private  | Invite-only lobby; the guest joins by `+connect_lobby`, as for an accepted invite          |
+| match    | eight seats, both people on autopilot, to the end screen: the clean figures (Q3)           |
+| lag      | the same under delay and jitter, then loss: 50 ± 10 ms, 150 ± 30 ms, 2% loss               |
+| outage   | in a match, the guest cut for 10 s, then 30 s, then 90 s: recovered, caught up, or lost    |
+| reversed | `match` with the VM hosting                                                                |
+| restart  | the guest's app killed in a match and started again with `+connect_lobby`: back in or not  |
+
+**What a run counts**: the time to Steam's first answer and to the seat; round trip (mean,
+highest), the host's silences, send failures, largest packet; sockets opened in a match (a
+rejoin — with no outage, data lost or reordered); `P2P session … failed`; game errors and
+warnings; hash mismatches; both end screens' scores, which must agree; and, as information,
+frames and load on both sides. A run passes on: seated, end screen on both, scores equal, no
+mismatch, no rejoin unless the network was cut, no game error.
+
+**Not automated**, by hand with two people: the overlay and its dialogs (Q2), accepting an invite
+— running and closed (Q5) — and a guest's invite to a third account (Q4), which are Steam's own
+clicks; Windows itself; a controller under Steam Input.
+
+**Where**: `tools/steambench/` on main, its own workspace package, outside `npm run check` (it
+needs Steam, the VM and the desktop). `npx tsx tools/steambench/src/bench.ts [scenario...]
+[--reverse] [--app DIR] [--reset]`. A full set takes about an hour and a half, unattended, the
+desktop left alone.
+
+**The spike** stays on its branch, frozen but kept, until S3's build passes the same scenarios:
+it is the bench's only target until then, and the reference to compare S3 against. Then the
+branch is deleted.
+
 ## 4. The games browser (B)
 
 **Decided** (2026-11-03, the user's, with K): one window in every build, **Find a game**, its

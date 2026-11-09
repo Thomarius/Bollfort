@@ -1,0 +1,14 @@
+{
+  "name": "@bollfort/steambench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The Steam test bench (STEAM.md 3.4): multiplayer over Steam between this machine and a VM, by script.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "tsx src/bench.ts"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
