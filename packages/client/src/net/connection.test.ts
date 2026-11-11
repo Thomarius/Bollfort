@@ -148,6 +148,25 @@ describe('a connection that drops', () => {
     expect(again.heard).toHaveLength(heard);
   });
 
+  it('gives up at once, in a match too, when the host has left: nothing to rejoin', () => {
+    const { connection, sockets, heard } = connected();
+    connection.rejoinWhile(() => true);
+    const lost = vi.fn();
+    connection.onLost(lost);
+    const before = heard.length;
+    sockets[0]?.say({ type: 'error', code: 'host_left', message: 'the host has left' });
+    // The room's own 'closed' on the way out is no refusal to show over the match.
+    sockets[0]?.say({ type: 'error', code: 'closed', message: 'the host has left' });
+    sockets[0]?.drop();
+    vi.advanceTimersByTime(10_000);
+    expect(connection.hostLeft).toBe(true);
+    expect(connection.lost).toBe(true);
+    expect(connection.state).toBe('closed');
+    expect(lost).toHaveBeenCalledOnce();
+    expect(sockets).toHaveLength(1);
+    expect(heard).toHaveLength(before);
+  });
+
   it('rejoins at once when asked, as a page out of sync does', () => {
     const { connection, sockets } = connected();
     connection.rejoin();

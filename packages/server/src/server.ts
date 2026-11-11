@@ -91,6 +91,11 @@ export interface RunningServer {
    * is no such room: for the host's answer to a guest asking after their game (S3.6).
    */
   standing(room: string, steamId: string): RoomStanding | null;
+  /**
+   * Ends every room, its guests told the host has left — under the Steam build only, as the
+   * host's app closes, before Steam's links go with it (STEAM.md §7.3).
+   */
+  endRooms(): void;
 }
 
 /** A start that could not bind: told as such, so a caller can say so rather than crash. */
@@ -176,6 +181,8 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
     undefined,
     store === null ? undefined : () => store.writer(),
     () => invite ?? (internet.state === 'open' ? internet.url : null),
+    // Under the Steam build the server is the host's own app, and its rooms end with them.
+    options.localSteamId !== undefined,
   );
 
   /**
@@ -370,6 +377,7 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
       },
       accept: (peer, steamId) => gateway.accept(peer, steamId),
       standing: (room, steamId) => rooms.get(room)?.standing(steamId) ?? null,
+      endRooms: () => rooms.endAll(),
       port: actualPort,
       host,
       // The addresses to open, not the one bound: a browser refuses http://0.0.0.0:8080.

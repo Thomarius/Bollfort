@@ -22,6 +22,7 @@ import { PageLinks, type PageLinkEvent } from './pageLinks.js';
 import { AvatarWatch, steamAvatarSource } from './steamAvatars.js';
 import { SteamLobby, hereAnswer, type AskedLobby, type LobbyKind } from './steamLobby.js';
 import { steamInviteUser, type InviteUser } from './steamInvite.js';
+import { steamLobbyFinder, type LobbyFinder } from './steamLobbyFinder.js';
 import { startSteamNet, type SteamNet } from './steamNet.js';
 
 /**
@@ -90,6 +91,9 @@ const lobbiesAsked: AskedLobby[] =
   plan.connectLobby === null ? [] : [{ lobby: plan.connectLobby, from: null }];
 
 type SteamClient = ReturnType<typeof Steamworks.init>;
+
+/** How long a quitting host waits for Steam to send its guests the news. */
+const QUIT_FLUSH_MS = 300;
 
 /**
  * Steam set up, with its client for the P2P and avatars (S3), or null when Steam is starting
@@ -180,9 +184,14 @@ async function run(): Promise<void> {
   const quit = (): void => {
     if (quitting) return;
     quitting = true;
+    // The guests told the host has left before Steam's links close (STEAM.md §7.3): told
+    // nothing, they took it for a dropped network and tried to get back for ten minutes.
+    server?.endRooms();
     net?.stop();
     lobby?.leave();
-    void (server?.stop() ?? Promise.resolve()).finally(() => app.exit(0));
+    // A moment for Steam to send those last words, which it may drop once the process is gone.
+    const flushed = new Promise<void>((resolve) => setTimeout(resolve, QUIT_FLUSH_MS));
+    void flushed.then(() => server?.stop()).finally(() => app.exit(0));
   };
 
   ipcMain.handle('host-steam', () => steam);
@@ -247,7 +256,15 @@ async function run(): Promise<void> {
   ipcMain.handle('host-lobby-join', (_event, id: unknown) =>
     typeof id === 'string' ? (lobby?.join(id) ?? null) : null,
   );
-  ipcMain.handle('host-lobby-list', () => lobby?.list() ?? []);
+  ipcMain.handle('host-lobby-list', (_event, filter: unknown) => {
+    // A few short key-values from the page (`lobbyFilter`), anything else ignored.
+    const equal: Record<string, string> = {};
+    if (typeof filter === 'object' && filter !== null)
+      for (const [key, value] of Object.entries(filter).slice(0, 8))
+        if (typeof value === 'string' && /^\w{1,32}$/.test(key) && value.length <= 64)
+          equal[key] = value;
+    return lobby?.list(equal) ?? [];
+  });
   ipcMain.handle('host-find', async (_event, host: unknown) => {
     if (net === null || typeof host !== 'string' || !/^\d{1,20}$/.test(host)) return null;
     const asked = Date.now();
@@ -303,7 +320,13 @@ async function run(): Promise<void> {
     } catch (e) {
       log(`no direct invites: ${(e as Error).message}`);
     }
-    const steamLobby = new SteamLobby(steamClient, log, inviteUser);
+    let finder: LobbyFinder | null = null;
+    try {
+      finder = steamLobbyFinder();
+    } catch (e) {
+      log(`Find a game unfiltered: ${(e as Error).message}`);
+    }
+    const steamLobby = new SteamLobby(steamClient, log, inviteUser, finder, STEAM_APP_ID);
     lobby = steamLobby;
     const p2p = startSteamNet(
       steamClient,

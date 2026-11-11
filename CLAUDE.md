@@ -598,8 +598,11 @@ which a test session needs the server rebuilt and every page reloaded for):
   bench's `start`. **S3, Steam lobbies (§7.3), is built and passes the whole bench** (ARCHIVE
   15zs, 2026-11-09; protocol 36): P2P transport, rejoining by Steam ID, lobbies, codes, invites,
   Back to the match, avatars (`koffi`) and Steam's language — outage and restart, where the spike
-  failed, included. **Next: S3's checks by hand with two people** (the overlay's friend picker, an
-  invite accepted while in a match of one's own, a guest restarted coming back), then S4. **S3.6
+  failed, included. **S3's checks by hand** run on two Windows machines (ARCHIVE 15zw,
+  2026-11-11): nine of twelve passed, and three fixed — no leave prompt over the demo, Find a game
+  filtered by Steam through `koffi` with friends' lobbies first, and a Steam host's room ending
+  with the host (`endsWithHost`, `host_left`). **Next**: those three again on Windows and the
+  bench's `public`, `join` and `private`, then S4. **S3.6
   is built and passes the bench** (ARCHIVE 15zu, 2026-11-09): nobody new joins a running match
   (`match_running`); a player who left comes back by the host's **Invite back** in the pause
   menu (`InviteUserToLobby` through `koffi`), straight to the inviter, or on restarting by a

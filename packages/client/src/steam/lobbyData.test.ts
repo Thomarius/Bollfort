@@ -1,7 +1,7 @@
 import { PROTOCOL_VERSION } from '@bollfort/protocol';
 import { describe, expect, it } from 'vitest';
 
-import { LOBBY_TAG, listingOfLobby, lobbyDataOf } from './lobbyData.js';
+import { LOBBY_TAG, listingOfLobby, lobbyDataOf, lobbyFilter } from './lobbyData.js';
 import { steamCodeOf } from './steamCode.js';
 
 const HOST = '76561198005395758';
@@ -46,5 +46,14 @@ describe('a Steam lobby’s data', () => {
       true,
     );
     expect(listingOfLobby(HOST, running)).toBeNull();
+  });
+
+  it('is matched by Steam’s search filter while open, and not once its match runs', () => {
+    const listing = { host: 'Bo', people: 1, playerCount: 4, teamSize: 1, towers: false };
+    const matches = (data: Record<string, string>): boolean =>
+      Object.entries(lobbyFilter()).every(([key, value]) => data[key] === value);
+    expect(matches(lobbyDataOf({ ...listing, tournament: null }))).toBe(true);
+    expect(matches(lobbyDataOf({ ...listing, tournament: null }, true))).toBe(false);
+    expect(lobbyFilter()[LOBBY_TAG]).toBe(String(PROTOCOL_VERSION));
   });
 });

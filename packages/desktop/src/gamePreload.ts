@@ -58,7 +58,9 @@ const host = {
   /** Joins a lobby: its owner's Steam ID, or null. */
   lobbyJoin: (lobby: string): Promise<string | null> =>
     ipcRenderer.invoke('host-lobby-join', lobby),
-  lobbyList: (): Promise<ListedLobby[]> => ipcRenderer.invoke('host-lobby-list'),
+  /** Our lobbies for Find a game, friends' first, their data equal to these key-values. */
+  lobbyList: (filter?: Record<string, string>): Promise<ListedLobby[]> =>
+    ipcRenderer.invoke('host-lobby-list', filter ?? {}),
   /** Asks a host over P2P where its game is: its room and lobby, or null. */
   find: (host: string): Promise<unknown> => ipcRenderer.invoke('host-find', host),
   /** Steam's rich presence: each key set, or cleared with null. */

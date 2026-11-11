@@ -23,13 +23,15 @@ passed), so only the tests by hand are left:
 - [ ] **The old P2P carries a match**: eight seats, people and bots, a whole match with no hash
       mismatch at the 30-tick hash rate, each machine hosting once; note the latency and anything
       that stalls, and how a 10 s and a 30 s outage on the guest recover.
-- [ ] **An invite with the game running** arrives as `GameLobbyJoinRequested` and seats the guest;
-      **Join Game** from the friends list does the same.
-- [ ] **An invite with the game closed**: what Steam does on 480 (it starts Spacewar, not ours —
-      the real test needs our App ID).
-- [ ] **A Public lobby seen from the other account** in `getLobbies()`, and joined.
-- [ ] **An Invite-only lobby** joined by invite.
-- [ ] **A guest can invite**, not only the lobby's owner (needs a third account).
+- [x] **An invite with the game running** arrives as `GameLobbyJoinRequested` and seats the guest;
+      **Join Game** from the friends list does the same (2026-11-09, STEAM.md §3.3 Q5).
+- [x] **An invite with the game closed**: what Steam does on 480 (it starts Spacewar, not ours —
+      the real test needs our App ID): Spacewar, as expected (2026-11-09, STEAM.md §3.3 Q5).
+- [x] **A Public lobby seen from the other account** in `getLobbies()`, and joined (the bench's
+      `public`, STEAM.md §3.4).
+- [x] **An Invite-only lobby** joined by invite (2026-11-09, STEAM.md §3.3 Q5).
+- [x] **A guest can invite**, not only the lobby's owner (needs a third account): yes, the
+      third account seated (2026-11-09, STEAM.md §3.3 Q4).
 - [ ] **A controller under Steam Input**: the pad's name in the page, and the game played with it;
       **Steam's gamepad keyboard** in Big Picture.
 

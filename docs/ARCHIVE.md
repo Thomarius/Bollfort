@@ -11865,3 +11865,50 @@ refuses the default branch from a script, and so does the writer) and runs `stea
 +run_app_build`, logged in by a build account's `config.vdf` from a login made once by hand, as
 Valve's page has a build machine do. Off until the repository's variables name the app and the
 depots; the steps to switch it on are in STEAM.md §9.2. Not run: it needs the App ID.
+
+## 15zw. S3's checks by hand, and three fixes (2026-11-11)
+
+The two-person session STEAM.md S3.5 named, on two Windows machines with two Steam accounts and
+the v0.10.1 Steam build on 480 — the first time S3 ran on Windows; the bench had covered the rest
+on Linux. Twelve checks, the ones only people can make: the overlay's friend picker, an invite
+while in a match of one's own, Invite back after a restart, Join Game in the friends list, Find
+a game by lobby type, names and avatars, the overlay over a match, the host's Remove and the
+refused rejoin, the host quitting, a lobby seat held 10 s, a tournament with a teammate over
+Steam, and Steam closed. Nine passed. A guest's invite to a third account had passed on
+2026-11-09 (Q4), and five of the checklist's spike lines, answered then, were ticked.
+
+**The leave prompt over the demo**: an invite asked "Join another game?" whenever the menu was
+not on screen, and the demo hides it. Now the demo ends and the invite is taken without asking
+(`endDemo`, which waits for the menu even if a quit is already under way).
+
+**Find a game listed nothing**, for any lobby type. `steamworks.js` asks Steam with no filter,
+and Steam answers 50 lobbies of the App ID, nearest first; on 480 thousands of other developers'
+lobbies share that list. The spike had seen ours found "by luck of distance", and the bench's
+`public` only noted a miss before joining by ID. And Steam's search never returns Friends lobbies:
+the design's friends' games at the top were never built. Now Steam's filters are set through
+`koffi` right before the search (`steamLobbyFinder.ts`: our tag and protocol, not running,
+worldwide), as Invite back's call is — the fork §3.2 had kept them for is not needed — and
+friends' lobbies come from which lobby Steam says each friend playing is in, their data asked for
+and waited on up to 2 s (`gatherLobbies`). The host writes its Steam ID and the lobby's type
+into the lobby data, since Steam tells a lobby's owner only to its members and a search's finder,
+and an Invite only lobby is never listed. The bench now fails `public` when the list misses the
+lobby, checks the Friends lobby in `join` and the Invite only one's absence in `private`.
+
+**The host leaving**: the host's Leave match ended nothing — under the Steam build the server
+is the host's app, and the room went on with a bot in the host's seat, so the guest resumed and
+played on. Closing the app then closed every link without a word, and the guest took it for a
+dropped network: Connection lost, retrying for ten minutes, no way out. Now a room ends with its
+host (`endsWithHost`, set by the server when it is the Steam build's): every guest is sent
+`host_left` and closed, the room gone for joins; the host's app ends its rooms before Steam's
+links go, and waits 300 ms for Steam to send it. A guest's page gives up at once on `host_left`
+and shows "The host has left — the match ran on the host's game, so it is over", Back to menu (in
+the lobby, the menu says so); and the notice while reconnecting offers Back to menu too, for a host
+whose game crashed. A server of its own keeps the room, as before. Handing the host to a guest was
+weighed — feasible, since every page replays the whole match, but two to three sessions — and left
+for after the first test rounds (the user's, STEAM.md §10).
+
+Tested: the room ending (four cases, `room.test.ts`), a whole table over the fake Steam whose
+guests all give up at once as the host leaves (`steamTransport.test.ts`), the connection and the
+notice, the lobbies gathered and filtered (`steamLobby.test.ts`), the filter against the lobby
+data; every FFI signature bound against the shipped `steam_api`. Not yet run against real Steam:
+the bench's `public`, `join` and `private`, and the three by hand on Windows again.

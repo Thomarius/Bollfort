@@ -22,6 +22,8 @@ export class RoomManager {
     private readonly recorder?: () => (line: RecordingLine) => void,
     /** The server's public address while its port is open to the internet, or null. */
     private readonly publicUrl: () => string | null = () => null,
+    /** Every room ends as its host leaves it: the Steam build's, the host's own app (`Room`). */
+    private readonly endsWithHost = false,
   ) {
     this.rng = new Rng(seed);
   }
@@ -30,13 +32,22 @@ export class RoomManager {
     return this.rooms.size;
   }
 
+  /** A live room; one ended with its host is gone for anyone asking. */
   get(code: string): Room | undefined {
-    return this.rooms.get(code.toUpperCase());
+    const room = this.rooms.get(code.toUpperCase());
+    return room?.ended === true ? undefined : room;
+  }
+
+  /** Ends every room that ends with its host, for the host's app closing: its guests told. */
+  endAll(): void {
+    if (!this.endsWithHost) return;
+    for (const room of this.rooms.values()) room.end();
+    this.rooms.clear();
   }
 
   /** Open rooms anyone may join from the games browser, oldest first. */
   listOpen(): RoomListing[] {
-    return [...this.rooms.values()].flatMap((room) => room.listing() ?? []);
+    return [...this.rooms.values()].flatMap((room) => (room.ended ? [] : (room.listing() ?? [])));
   }
 
   create(playerCount: number, isPublic = true): Room | null {
@@ -51,6 +62,7 @@ export class RoomManager {
       ai: this.config.ai,
       seed: this.rng.nextU32(),
       publicUrl: this.publicUrl,
+      endsWithHost: this.endsWithHost,
       ...(this.recorder === undefined ? {} : { record: this.recorder() }),
     });
     this.rooms.set(room.code, room);
@@ -65,6 +77,10 @@ export class RoomManager {
   /** Advances every room and retires the ones nobody is left in. */
   update(elapsedMs: number): void {
     for (const [code, room] of this.rooms) {
+      if (room.ended) {
+        this.rooms.delete(code);
+        continue;
+      }
       room.update(elapsedMs);
       const ttl = room.started
         ? this.config.server.rooms.abandonedMatchTtlMs

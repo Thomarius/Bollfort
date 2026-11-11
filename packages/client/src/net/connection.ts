@@ -53,6 +53,11 @@ export class ServerConnection {
   state: ConnectionState = 'connecting';
   /** Given up for lost: the connection dropped, and every try to get it back failed. */
   lost = false;
+  /**
+   * Ended because the host left a room on their own app, the Steam build's (STEAM.md §7.3):
+   * lost too, at once, with nothing to rejoin.
+   */
+  hostLeft = false;
   latencyMs = 0;
   private pingedAt = 0;
   /** The name joined under, and the room and seat the server last welcomed us to. */
@@ -127,8 +132,16 @@ export class ServerConnection {
   }
 
   private heard(text: string): void {
+    // Given up or closed: what still arrives on the way out is not news — the room's own
+    // 'closed' after its host left would show as a refusal over the match.
+    if (this.state === 'closed') return;
     const message = decodeServerMessage(text);
     if (message === null) return;
+    if (message.type === 'error' && message.code === 'host_left') {
+      this.hostLeft = true;
+      this.giveUp();
+      return;
+    }
     if (message.type === 'pong') {
       // Round trip measured against our own clock, so no clock agreement is
       // needed — the simulation is paced by the server's commits, not by time.

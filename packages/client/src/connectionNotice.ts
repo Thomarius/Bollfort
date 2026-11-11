@@ -1,8 +1,11 @@
 import { onLanguageChange, t } from './i18n.js';
 import type { NetworkReading } from './network.js';
 
-/** What the notice shows: nothing, a drop being mended, or the connection lost for good. */
-export type NoticeState = 'none' | 'retrying' | 'gone';
+/**
+ * What the notice shows: nothing, a drop being mended, the connection lost for good, or the
+ * match ended by its host leaving (STEAM.md §7.3).
+ */
+export type NoticeState = 'none' | 'retrying' | 'gone' | 'hostLeft';
 
 /**
  * Whether to cover the board, and with what. Only while the match is on: a drop over the
@@ -10,13 +13,16 @@ export type NoticeState = 'none' | 'retrying' | 'gone';
  */
 export function noticeFor(link: NetworkReading['link'], finished: boolean): NoticeState {
   if (finished || link === 'open') return 'none';
+  if (link === 'hostLeft') return 'hostLeft';
   return link === 'lost' ? 'gone' : 'retrying';
 }
 
 /**
  * Over the board while an online match's connection is down (ARCHIVE 15zc): the board
  * stands still with no commits coming, and with only the badge to say why it read as the
- * game having frozen. Retrying it says a bot holds the seat; given up, it offers the menu.
+ * game having frozen. Retrying it says a bot holds the seat; given up, or the host gone, it
+ * offers the menu. The menu is offered while retrying too, quietly: a host whose game crashed
+ * is never coming back, and the tries outlast any patience (the two-person test, 2026-11-11).
  */
 export class ConnectionNotice {
   private readonly overlay = document.createElement('div');
@@ -32,15 +38,23 @@ export class ConnectionNotice {
 
   private fill(): void {
     if (this.shown === 'none') return;
-    const gone = this.shown === 'gone';
+    const state = this.shown;
+    const title = state === 'hostLeft' ? 'connection.hostLeftTitle' : 'connection.title';
+    const text =
+      state === 'hostLeft'
+        ? 'connection.hostLeft'
+        : state === 'gone'
+          ? 'connection.gone'
+          : 'connection.retrying';
     this.overlay.innerHTML =
-      `<div class="panel"><strong>${t('connection.title')}</strong>` +
-      `<p>${t(gone ? 'connection.gone' : 'connection.retrying')}</p>` +
-      (gone
-        ? `<button class="resume">${t('connection.back')}</button>`
-        : `<span class="blocks"><i></i><i></i><i></i></span>`) +
+      `<div class="panel"><strong>${t(title)}</strong>` +
+      `<p>${t(text)}</p>` +
+      (state === 'retrying'
+        ? `<span class="blocks"><i></i><i></i><i></i></span>` +
+          `<button class="quiet back">${t('connection.back')}</button>`
+        : `<button class="resume back">${t('connection.back')}</button>`) +
       `</div>`;
-    this.overlay.querySelector('.resume')?.addEventListener('click', () => this.back());
+    this.overlay.querySelector('.back')?.addEventListener('click', () => this.back());
   }
 
   /** Called every frame; touches the page only when what it shows changes. */

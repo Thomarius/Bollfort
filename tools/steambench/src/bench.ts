@@ -305,6 +305,15 @@ function logIssues(lines: string[]): { errors: string[]; p2pFailed: string[]; wa
 
 async function scenarioJoin(run: Run, host: AppUnderTest, guest: AppUnderTest): Promise<void> {
   const { lobby } = await hostTable(host, 'friends');
+  // A Friends lobby is in Find a game for the host's friends, as the two accounts are.
+  await guest.start(PARAMS);
+  const listed = (await guest.call('list')) as { id: string }[];
+  run.check(
+    'the Friends lobby in a friend’s Find a game',
+    listed.some((l) => l.id === lobby),
+  );
+  await guest.stop();
+  await sleep(5000);
   const tries = [];
   for (let i = 1; i <= 5; i++) {
     const t = await joinGuest(guest, lobby);
@@ -329,6 +338,8 @@ async function scenarioJoin(run: Run, host: AppUnderTest, guest: AppUnderTest): 
 async function scenarioPrivate(run: Run, host: AppUnderTest, guest: AppUnderTest): Promise<void> {
   const { lobby } = await hostTable(host, 'private');
   const t = await joinGuest(guest, lobby);
+  const listed = (await guest.call('list')) as { id: string }[];
+  run.check('the Invite-only lobby in no Find a game', !listed.some((l) => l.id === lobby));
   const joined = guest.lines().find((l) => /joined lobby|join failed|never named a room/.test(l));
   run.check(
     'joined the Invite-only lobby',
@@ -378,9 +389,9 @@ async function scenarioPublic(run: Run, host: AppUnderTest, guest: AppUnderTest)
   const started = Date.now();
   await guest.start(PARAMS);
   const listed = (await guest.call('list')) as { id: string }[];
-  const line = guest.lines().find((l) => l.includes('getLobbies:')) ?? '';
   const found = listed.some((l) => l.id === lobby);
-  run.check('our lobby in getLobbies', found ? true : null, line.replace(/^\S+\s+/, ''));
+  // A failure, no longer a note: it hid Find a game listing nothing on 480 (2026-11-11).
+  run.check('our lobby in Find a game', found, `${listed.length} listed`);
   await guest.call('join', lobby);
   const t = await seatGuest(guest, started);
   run.check(

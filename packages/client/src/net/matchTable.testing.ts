@@ -86,6 +86,8 @@ export interface TableOptions {
    * the table, the host's first.
    */
   carrier(accept: (peer: Peer, steamId?: string) => Session): Dial[];
+  /** Rooms end as their host leaves, as the Steam build's server does (STEAM.md §7.3). */
+  endsWithHost?: boolean;
 }
 
 function page(name: string, dial: Dial, retry: RetryPolicy): Page {
@@ -122,7 +124,13 @@ export function table(options: TableOptions): Table {
   const { people, players, seed = 3 } = options;
   const retry = options.retry ?? defaultRetry;
   const recorded: RecordingLine[] = [];
-  const rooms = new RoomManager(bundle, seed, () => (line) => recorded.push(line));
+  const rooms = new RoomManager(
+    bundle,
+    seed,
+    () => (line) => recorded.push(line),
+    undefined,
+    options.endsWithHost === true,
+  );
   const gateway = new Gateway(bundle, rooms);
   const dials = options.carrier((peer, steamId) => gateway.accept(peer, steamId));
 

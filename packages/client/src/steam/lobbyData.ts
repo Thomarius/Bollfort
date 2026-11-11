@@ -30,6 +30,15 @@ export function lobbyDataOf(
   };
 }
 
+/**
+ * The lobby data Steam's search must match for Find a game: ours, on this protocol, not under
+ * way. Steam filters by it before its cap of 50 a search — on 480, shared by every developer's
+ * tests, ours were otherwise almost never among them (2026-11-11).
+ */
+export function lobbyFilter(): Record<string, string> {
+  return { [LOBBY_TAG]: String(PROTOCOL_VERSION), running: '0' };
+}
+
 const count = (text: string | undefined, min: number, max: number): number | null => {
   if (text === undefined || !/^\d{1,2}$/.test(text)) return null;
   const n = Number(text);

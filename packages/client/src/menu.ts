@@ -16,9 +16,10 @@ import { preferredStyles, saveStyles, storedName, saveName } from './prefs.js';
 import { joinSteam, openLobby } from './lobbyFlow.js';
 import { forgetMatch, keptMatch } from './steam/backToMatch.js';
 import { joinRoute, readHostAnswer, stillPlaying } from './steam/rejoin.js';
-import { listingOfLobby } from './steam/lobbyData.js';
+import { listingOfLobby, lobbyFilter } from './steam/lobbyData.js';
 import { LOBBY_KINDS, guestAt, lobbyKind, setLobbyKind, steamPlay } from './steam/steamPlay.js';
 import { enhanceChoices } from './choices.js';
+import { demoRunning, endDemo } from './demo.js';
 import type { RoomListing } from '@bollfort/protocol';
 import { openNewTournament, openResumeList, type TournamentExits } from './tournamentMenu.js';
 import { savedTournaments } from './tournamentSaves.js';
@@ -130,7 +131,7 @@ function findGames(notice: string | null = null): void {
 async function steamGames(): Promise<RoomListing[] | null> {
   const steam = steamPlay();
   if (steam === null) return null;
-  const lobbies = await steam.host.lobbyList();
+  const lobbies = await steam.host.lobbyList(lobbyFilter());
   return lobbies
     .filter((lobby) => lobby.owner !== steam.steamId)
     .map((lobby) => listingOfLobby(lobby.owner, lobby.data))
@@ -421,6 +422,7 @@ export function startSteamJoins(): void {
     const guest = guestAt();
     const route = joinRoute(asked, keptMatch(), guest?.linked === true ? guest.host : null);
     if (route.kind === 'here') return;
+    if (demoRunning()) await endDemo();
     if (document.querySelector('.menu.home') !== null) {
       void go(asked).catch((e: unknown) => showError(t('error.couldNotJoin'), e));
       return;

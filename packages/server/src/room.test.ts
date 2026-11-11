@@ -487,6 +487,72 @@ describe('disconnect and reconnect', () => {
   });
 });
 
+describe('the host leaving a room on their own app (the Steam build)', () => {
+  const hosted = (): { manager: RoomManager; r: Room; a: TestClient; b: TestClient } => {
+    const manager = new RoomManager(defaultConfigBundle, 7, undefined, undefined, true);
+    const r = manager.create(3)!;
+    const a = new TestClient('a');
+    const b = new TestClient('b');
+    r.join(a, 'Ada');
+    r.join(b, 'Bo');
+    return { manager, r, a, b };
+  };
+  const told = (client: TestClient): string[] =>
+    client.received.flatMap((m) => (m.type === 'error' ? [m.code] : []));
+
+  it('ends the match for everyone: guests told, their links closed, the room gone', () => {
+    const { manager, r, a, b } = hosted();
+    r.start();
+    run(r, 30);
+    r.leave(a);
+    expect(told(b)).toEqual(['host_left']);
+    expect(b.closedWith).toHaveLength(1);
+    expect(r.ended).toBe(true);
+    expect(manager.get(r.code)).toBeUndefined();
+    manager.update(50);
+    expect(manager.size).toBe(0);
+    // The guest's link closing after does nothing more.
+    r.leave(b);
+    expect(told(b)).toEqual(['host_left']);
+  });
+
+  it('ends a lobby too, and a guest leaving ends nothing', () => {
+    const { manager, r, a, b } = hosted();
+    const c = new TestClient('c');
+    r.join(c, 'Cy');
+    r.leave(c);
+    expect(r.ended).toBe(false);
+    r.leave(a);
+    expect(told(b)).toEqual(['host_left']);
+    expect(manager.listOpen()).toEqual([]);
+  });
+
+  it('ends every room as the host’s app closes', () => {
+    const { manager, r, b } = hosted();
+    r.start();
+    manager.endAll();
+    expect(told(b)).toEqual(['host_left']);
+    expect(manager.size).toBe(0);
+  });
+
+  it('is not so on a server of its own: the host’s seat goes to a bot', () => {
+    const manager = new RoomManager(defaultConfigBundle, 7);
+    const r = manager.create(2)!;
+    const a = new TestClient('a');
+    const b = new TestClient('b');
+    r.join(a, 'Ada');
+    r.join(b, 'Bo');
+    r.start();
+    run(r, 30);
+    r.leave(a);
+    manager.endAll();
+    run(r, 300);
+    expect(r.ended).toBe(false);
+    expect(told(b)).toEqual([]);
+    expect(b.state!.tick).toBeGreaterThan(300);
+  });
+});
+
 describe('pause', () => {
   /** Two people in a running match, a few ticks in. */
   function running(): { r: Room; a: TestClient; b: TestClient } {

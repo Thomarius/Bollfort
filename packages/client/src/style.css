@@ -2483,6 +2483,11 @@ body.hud-bricks #hud .roster .line .shape path {
   z-index: 6;
 }
 
+/* The way out while the seat is being got back: quiet, under the blocks. */
+.connection-overlay .blocks + button.quiet {
+  margin-top: 1.1rem;
+}
+
 /* Over the whole board, so a click cannot reach it while nothing moves. */
 .pause-overlay {
   position: fixed;

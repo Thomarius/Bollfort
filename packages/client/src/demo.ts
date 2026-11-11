@@ -89,6 +89,20 @@ export function startDemo(): void {
   void running.start();
 }
 
+/** Whether the demo is on screen, the menu hidden behind it. */
+export function demoRunning(): boolean {
+  return running !== null;
+}
+
+/**
+ * Out of the demo and back to the menu, as a click does; resolves once the menu is there. For
+ * a Steam invite arriving while it plays: the demo has nothing to lose, so nobody is asked
+ * whether to leave it (the two-person test, 2026-11-11).
+ */
+export async function endDemo(): Promise<void> {
+  await running?.quit();
+}
+
 /** Resolves once what is on the page has been painted. */
 function painted(): Promise<void> {
   return new Promise((resolve) =>
@@ -199,9 +213,16 @@ class Demo {
     if (!this.quitting) await this.next();
   }
 
-  /** Back to the menu, through a short black. */
-  private async quit(): Promise<void> {
-    if (this.quitting) return;
+  /** The way back under way, for a second asking to wait on rather than return at once. */
+  private leaving: Promise<void> | null = null;
+
+  /** Back to the menu, through a short black; resolves once the menu is there. */
+  quit(): Promise<void> {
+    this.leaving ??= this.leave();
+    return this.leaving;
+  }
+
+  private async leave(): Promise<void> {
     this.quitting = true;
     clearTimeout(this.hold);
     globalThis.removeEventListener('pointerdown', this.pointer, { capture: true });

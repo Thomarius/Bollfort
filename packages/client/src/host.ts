@@ -40,7 +40,10 @@ export interface GameHost {
   lobbyInvite(): void;
   lobbyInviteUser(steamId: string): void;
   lobbyJoin(lobby: string): Promise<string | null>;
-  lobbyList(): Promise<{ lobby: string; owner: string; data: Record<string, string> }[]>;
+  /** Our lobbies for Find a game, friends' first, their data equal to these key-values. */
+  lobbyList(
+    filter?: Record<string, string>,
+  ): Promise<{ lobby: string; owner: string; data: Record<string, string> }[]>;
   find(host: string): Promise<unknown>;
   presence(values: Record<string, string | null>): void;
   onJoinAsked(listener: () => void): void;

@@ -237,11 +237,13 @@ export function networkSession(
       latencyMs: connection.latencyMs,
       behind: match.behind,
       desynced: match.desynced,
-      link: connection.lost
-        ? 'lost'
-        : connection.state === 'reconnecting'
-          ? 'reconnecting'
-          : 'open',
+      link: connection.hostLeft
+        ? 'hostLeft'
+        : connection.lost
+          ? 'lost'
+          : connection.state === 'reconnecting'
+            ? 'reconnecting'
+            : 'open',
     }),
     takeResynced: () => match.takeResynced(),
     away: () => {

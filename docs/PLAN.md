@@ -1872,8 +1872,9 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    [`STEAM.md`](./STEAM.md): N, R, K and B done (ARCHIVE 15zh–15zj), T and C (15zl, 15zm), and
    S4's material that needs no account — art, trailer, texts, loops, icon (15zn, 15zo,
    [`STORE_PAGE.md`](./STORE_PAGE.md)). S1, the spike, done with the Steam bench (ARCHIVE 15zq); no fork; S2, the Steam build
-   (ARCHIVE 15zr). S3, Steam lobbies, built and passing the bench (ARCHIVE 15zs). Open: S3's
-   checks by hand with two people (STEAM.md §7.3, S3.5); the rest of S4, and S5.
+   (ARCHIVE 15zr). S3, Steam lobbies, built and passing the bench (ARCHIVE 15zs). S3's checks by hand
+   run (ARCHIVE 15zw), three findings fixed. Open: those fixes tried again on Windows and on the
+   bench; the rest of S4, and S5.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

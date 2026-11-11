@@ -1,6 +1,7 @@
 // S3's Steam build as the app under test (STEAM.md §7.3, S3.5), in the shape the scenarios were
 // written for with the S1 spike (`AppUnderTest`). It has no control window: it is driven through
 // its game page — `window.bollfortHost` and the page's own buttons — and read from its `start.log`.
+import { PROTOCOL_VERSION } from '@bollfort/protocol';
 import { chromium, type Browser, type Page } from 'playwright';
 
 import { within, type AppState, type AppUnderTest } from './app.js';
@@ -128,7 +129,9 @@ export class SteamApp implements AppUnderTest {
     const page = this.page;
     if (page === null) throw new Error(`${this.label}: no game page`);
     if (name === 'list') {
-      const lobbies = (await page.evaluate('window.bollfortHost.lobbyList()')) as {
+      // Filtered as Find a game asks (`lobbyFilter`): ours, on this protocol, not under way.
+      const filter = JSON.stringify({ bollfort: String(PROTOCOL_VERSION), running: '0' });
+      const lobbies = (await page.evaluate(`window.bollfortHost.lobbyList(${filter})`)) as {
         lobby: string;
       }[];
       return lobbies.map((l) => ({ id: l.lobby }));

@@ -9,6 +9,7 @@
     "start": "tsx src/bench.ts"
   },
   "devDependencies": {
+    "@bollfort/protocol": "*",
     "playwright": "1.63.0"
   }
 }

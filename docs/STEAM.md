@@ -93,9 +93,10 @@ ARCHIVE 15zn, 15zo, `STORE_PAGE.md`); S1, the spike, every question answered, an
 bench (2026-11-07 to 2026-11-09, ARCHIVE 15zq, §3.3, §3.4); no fork (§3.2); S2, the Steam build
 (2026-11-09, ARCHIVE 15zr, §3.5); S3, Steam lobbies, built and passing every scenario of the
 bench on the Linux machine, outage and restart included (2026-11-09, ARCHIVE 15zs, §7.3).
-**Next**: S3's checks by hand with two people (S3.5): Steam's friend picker in the overlay, an
-invite accepted while the invited player is in a match of their own, a guest restarted coming
-back; then S4. **S3.6** (§7.3), a player who dropped coming back by an invite or the restart's
+S3's checks by hand with two people (S3.5) run on two Windows machines (2026-11-11, ARCHIVE
+15zw): nine of twelve passed; the leave prompt over the demo, Find a game listing nothing and the
+host leaving fixed the same day. **Next**: those three tried again on Windows and the bench's
+`public`, `join` and `private` run, then S4. **S3.6** (§7.3), a player who dropped coming back by an invite or the restart's
 prompt, built and passing the bench (2026-11-09, ARCHIVE 15zu).
 
 ## 3. The Steam build (S1, S2)
@@ -468,7 +469,10 @@ whichever the source, so the window, its filters and its tests do not know the s
   `playerCount − people`, as now. Under Steam the same fields travel as lobby data: protocol,
   players, team size, towers, tournament and people. One protocol bump with K.
 - **Filtering** is on the client, a pure function over the rows (`browser.ts`, tested as now).
-  Steam's own filters are used only once the fork has them and lobbies are many.
+  Under Steam the search itself is filtered to ours by Steam (`steamLobbyFinder.ts`, through
+  `koffi`, 2026-11-11, ARCHIVE 15zw): unfiltered, 480's other lobbies filled Steam's 50 and ours
+  were never listed. Friends' lobbies come through the friends, Steam's search returning only
+  Public ones.
 
 ## 5. The kick (K)
 
@@ -546,7 +550,8 @@ in the client package, whose types have no Node, so it cannot start the real ser
   The avatar is on the seat card, in the browser and in the match (§7.3).
 - **At the start** the lobby closes to joins (`setJoinable(false)`). A match is never joined in
   progress.
-- **The host leaving** ends the match, as now. Handing the server to a guest is for later.
+- **The host leaving** ends the match (built 2026-11-11, ARCHIVE 15zw: it had not, the room
+  running on in the host's app). Handing the server to a guest is for later (§10).
 - **Trust**: a modified host could cheat. This is accepted for a free game without rankings.
 - **Versions**: the protocol version is in the lobby data. A lobby on another version is hidden.
 - **The language** from Steam's (`getCurrentGameLanguage`) on first start, then the player's own
@@ -632,8 +637,9 @@ in the client package, whose types have no Node, so it cannot start the real ser
   overlay draws nothing (the Linux desktop, §3.3) Steam's friends list still invites.
 - **Find a game** lists `getLobbies()` (public only), rows from the lobby data, friends' games
   first; another protocol hidden. Joining a row is as an invite.
-- **The host leaving** ends the match, as now: the guests' links close, the rejoin is refused,
-  and the page says the host has gone.
+- **The host leaving** ends the match: the guests' links close, the rejoin is refused, and the
+  page says the host has gone — built only on 2026-11-11 (`endsWithHost`, ARCHIVE 15zw), when
+  the test by hand found the room running on in the host's app.
 
 **S3.4 Names, avatars, presence, language**
 
@@ -1118,7 +1124,8 @@ in progress are lost once, and the desktop app's old data folder stays behind.
 
 A small paid DLC of new things, if the game is received well (§6); not planned. Achievements.
 Steam Cloud for tournament saves. Quick match (still PLAN §12). The host handed to a guest when
-the host leaves. Joining a running match by taking over a bot's seat, so the browser could list
+the host leaves (weighed 2026-11-11, ARCHIVE 15zw: feasible, every page replaying the match, some
+two to three sessions; decided after the first test rounds, by how often hosts leave). Joining a running match by taking over a bot's seat, so the browser could list
 games already under way (§4).
 
 ## 11. Still to confirm on the live pages

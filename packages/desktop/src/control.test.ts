@@ -25,6 +25,7 @@ function fakeStart(
         throw new Error('no Steam in the launcher');
       },
       standing: () => null,
+      endRooms: () => undefined,
       stop: () => {
         stopped.push(port);
         return Promise.resolve();

@@ -28,6 +28,7 @@ function steamTable(people: number, players: number, seed = 3): Table & { steam:
     players,
     seed,
     retry: steamRetry,
+    endsWithHost: true,
     carrier: (accept) => {
       steam.machine(HOST, accept);
       const local = new FakeNetwork((peer) => accept(peer, HOST), { latencyMs: 0, jitterMs: 0 });
@@ -110,6 +111,19 @@ describe('a match over Steam’s P2P', () => {
     },
     MATCH_TIMEOUT_MS,
   );
+
+  it('ends for every guest at once as the host leaves it, nothing left to rejoin', () => {
+    const t = steamTable(3, 4, 13);
+    t.pass(15_000);
+    t.pages[0]!.connection.close();
+    t.pass(2_000);
+    for (const guest of t.pages.slice(1)) {
+      expect(guest.connection.hostLeft).toBe(true);
+      expect(guest.connection.state).toBe('closed');
+    }
+    // No refusal shown over the match on the way out.
+    expect(t.pages[1]!.heard.filter((m) => m.type === 'error')).toEqual([]);
+  });
 
   it(
     'refuses anyone not seated in a match under way, saying so, the match unharmed (S3.6)',

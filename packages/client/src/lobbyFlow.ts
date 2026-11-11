@@ -975,7 +975,8 @@ function roomLobby(
   });
   connection.onLost(() => {
     // In a match the screen says so over the board (`connectionNotice.ts`).
-    if (!started && !refused) showMenu(t('connection.lobbyLost'));
+    if (!started && !refused)
+      showMenu(t(connection.hostLeft ? 'connection.hostLeftLobby' : 'connection.lobbyLost'));
   });
 
   // A Steam avatar arriving draws the lobby again, with it on its seat's card (S3.4).

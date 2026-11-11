@@ -98,6 +98,13 @@ export interface RoomOptions {
   record?: (line: RecordingLine) => void;
   /** The server's public address while its port is open to the internet (PLAN 11.21). */
   publicUrl?: () => string | null;
+  /**
+   * The room ends as its host leaves it (STEAM.md §7.3): under the Steam build the server is the
+   * host's own app, and a match there outliving its host lasts only until they close the app,
+   * then leaves its guests reconnecting to nobody (the two-person test, 2026-11-11). A server
+   * of its own keeps the room, the host's seat handed on as anyone's.
+   */
+  endsWithHost?: boolean;
 }
 
 /**
@@ -172,6 +179,28 @@ export class Room {
 
   get started(): boolean {
     return this.match !== null;
+  }
+
+  /** Ended with its host gone (`endsWithHost`): nobody joins it, and it is retired. */
+  get ended(): boolean {
+    return this.over;
+  }
+  private over = false;
+
+  /**
+   * Ends the room: everyone still here told the host has left, their links closed. Under the
+   * Steam build as the host leaves, or as the host's app closes.
+   */
+  end(): void {
+    if (this.over) return;
+    this.over = true;
+    for (const seat of this.seats) {
+      const connection = seat.connection;
+      if (connection === null) continue;
+      seat.connection = null;
+      connection.send({ type: 'error', code: 'host_left', message: 'the host has left' });
+      connection.close('the host has left');
+    }
   }
 
   get finished(): boolean {
@@ -313,6 +342,10 @@ export class Room {
     const seat = this.seats.find((s) => s.connection?.id === connection.id);
     if (!seat) return;
     seat.connection = null;
+    if (this.options.endsWithHost === true && seat.playerId === this.hostId) {
+      this.end();
+      return;
+    }
     if (this.match === null) {
       // Nothing has started: the seat held a while for a blip to come back to (S3.6), then
       // free for anyone.
