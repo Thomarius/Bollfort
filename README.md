@@ -10,6 +10,8 @@ score among those still standing wins.
 > trademark. It uses no code, graphics or sound from the original; the audio is from
 > OpenGameArt.org and Pixabay under the licences listed in [`CREDITS.md`](CREDITS.md).
 
+Developed with the help of AI coding tools.
+
 - 2–8 players, free-for-all or in equal teams; bots of ten skill levels fill any empty seat
 - Tournaments: your team against a field of named bot teams, through a league and a single-
   or double-elimination knockout, with friends joining your team; saved between matches

@@ -1851,7 +1851,7 @@ Kept as planned, for the record; how it turned out is §7 and ARCHIVE 11b.
 
 ---
 
-**The image failed CI after recording landed** (`45bcd92`): the server created
+**The image failed CI after recording landed** (`a38d814`): the server created
 `recordings/` at start-up, the image runs it as the unprivileged `node` user in an `/app`
 owned by root, and `mkdir` failed with EACCES — the server died before it listened, and
 the job's 30-second wait for an answer ran out. Reproduced without Docker by starting the
@@ -3106,7 +3106,7 @@ feedback, and built the same day; X6, a shape per player, is left for the next s
 off the board only. Display only throughout, like 11.8–11.11: no sim behaviour, protocol
 or ruleset change. Each package was committed on its own.
 
-- **X1, mouse only and a roster of points and lives** (`c937203`). R and E no longer turn
+- **X1, mouse only and a roster of points and lives** (`b608c63`). R and E no longer turn
   the piece; the right button and the wheel do, and Esc for pause is the one key left. The
   roster lost castles and guns — the board shows both — and each player became a card:
   their colour down its edge, the name small over a large score and large pips, the last
@@ -3115,24 +3115,24 @@ or ruleset change. Each package was committed on its own.
   style when rewritten, which the colour rides on. In Toy bricks the blue player's bar
   vanished into the blue plate; there the bar is drawn inside the card with a light rim,
   since a rim drawn outside was clipped for the first card.
-- **X2, information on the board** (`c03aedb`). The crown is the owner's colour while the
+- **X2, information on the board** (`59122ab`). The crown is the owner's colour while the
   main castle is sealed and stone grey with a crack once breached — the owner's dark shade
   vanished into a castle of the same colour — by each look's own sealed castles, so the
   combat look holds it through the barrage. Hovering a castle while choosing shows its ring,
   from `startingRingTiles`, which the sim now exports and builds the ring with; a test
   checks them tile for tile. Over the countdown's last five seconds an unsealed player's
   castles flash red on every tick (`countdownBeat`). The points banner says the guns earned.
-- **X3, ground lost drained** (`c3c50b2`). The seal's flood in reverse: as the "Rebuild"
+- **X3, ground lost drained** (`1923df0`). The seal's flood in reverse: as the "Rebuild"
   banner reveals the board, ground held at the start of combat and lost since is washed
   dark red and runs out through the breach (`drainsFrom`). Started together as the banner
   appeared, the upper islands drained before the lower were revealed, so each island's
   waits until the banner's line reaches it (`releaseDrains`). Seen slowed to a tile a
   second; 6 a second in play.
-- **X4, moments and atmosphere** (`6166bd7`). Winners' banners hoisted over their castles
+- **X4, moments and atmosphere** (`203babd`). Winners' banners hoisted over their castles
   with the fireworks (`WinnerBanners`); distant thunder in Medieval's rain, a faint double
   flash over the whole board (checked firing at 0.8; 0.13 in play, for a person to judge);
   embers up the screen's edges through the final round, in HTML beside its dusk.
-- **X5, Medieval light** (`165a8db`). Snow as a seeded weather — flakes, and white on the
+- **X5, Medieval light** (`9d97a89`). Snow as a seeded weather — flakes, and white on the
   tops of walls and castles, kept under reduced motion. Adding it moved which seed gives
   which weather: 1 rain, 2 snow, 3 fog, 5 clear, 21 overcast. Shadows follow the day
   (`shadowCast`): long and leaning west in the morning, the old fixed shadow at noon,
@@ -3142,7 +3142,7 @@ or ruleset change. Each package was committed on its own.
   crossing, recorded once before in 11g, is headless Chrome capturing a stale strip where
   the banner had just been — the page holds nothing there. And the second test game's
   feedback before the pass: the Holding / Next piece box and the hint line removed, the
-  crown centred on its castle, the summary opaque with lifted grey (`d4ef940`).
+  crown centred on its castle, the summary opaque with lifted grey (`7cb909f`).
 
 ## 11zg. The online delay on every click
 
@@ -4339,12 +4339,12 @@ locale files directly: importing the configuration whole took its script from 2.
 ## 12h. The weekend soak, and carelessness that fades (2026-10-05)
 
 The soak planned in `docs/SOAKS.md` (below, as it stood), packages A, B and D, ran on this
-machine from the evening of 2026-10-02 to the next morning: 22,656 matches at `568feb6` in
+machine from the evening of 2026-10-02 to the next morning: 22,656 matches at `f82decb` in
 1,417 chunks of 16, ten processes at a time, about eleven hours, nothing failed. Its folder is `soaks/2026-10-02/`
 (git-ignored), its reading `summary.txt`. The weekend's commits — languages, styles,
-rendering, and bots planning a third faster (`fac3d8b`) — were pulled first, and 57 soak
+rendering, and bots planning a third faster (`a287cdd`) — were pulled first, and 57 soak
 matches from 19 tables (2–8 players, Levels 1–10, teams, no cap) replayed on the new code
-to identical hashes, so the figures describe the code as of `1ec623e`.
+to identical hashes, so the figures describe the code as of `9bdd3ea`.
 
 **PLAN 11.2, points decide, elimination threatens — met.** At Level 5, dealt personalities:
 
@@ -7714,7 +7714,7 @@ Each ends with `npm run check` passing and the user's go-ahead to commit.
 ### 9. Measured (2026-10-14)
 
 Work package 3: one soak, the same seeds under five variants, every bot's personality dealt as
-in a match — the old rule (commit `10e7507`), the new as built, `gunPoints` 10, and
+in a match — the old rule (commit `6d1fbfd`), the new as built, `gunPoints` 10, and
 `weights.gun` 15 and 30. Each variant: the ladder (each of Levels 2–10 against three of the
 level below, four players, 32 matches in every seat, 288 in all), three Level 5s (48 matches) and
 Levels 3/5/7/9 at one table (32). The files and the script are in `soaks/scoring-2026-10-14/`

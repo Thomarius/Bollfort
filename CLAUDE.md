@@ -191,7 +191,7 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-11-09; the latest release **v0.9.33**, 2026-11-09, protocol 36, recording format 4,
+**Done** (2026-11-09; the latest release **v0.10.0**, 2026-11-11, the only one kept since the history was rewritten without AI attribution lines (the old hashes in `recordings/commit-map.txt`), protocol 36, recording format 4,
 which a test session needs the server rebuilt and every page reloaded for):
 
 - **The store page's material, the app's icon** (ARCHIVE 15zo, 2026-11-06, STEAM.md S4, made on the
@@ -906,7 +906,9 @@ shapes several times over, and the sea life it put at 0.1 ms a frame gave 0.08 a
 ## Conventions
 
 Comments explain _why_, not _what_, and record measurements where a number was chosen by
-experiment. Commit messages are prose explaining the reasoning and what was measured.
+experiment. Commit messages are prose explaining the reasoning and what was measured. They carry
+no Co-Authored-By or other AI attribution line (the user's, 2026-11-11): the README says
+once that the game was developed with the help of AI coding tools.
 Tests state expectations as ASCII pictures where the subject is geometric
 (`stateFromAscii` in `sim/testing.ts`). Findings that are deferred go into `docs/PLAN.md`
 rather than being left in chat; completed work is summarised into `docs/ARCHIVE.md`.
