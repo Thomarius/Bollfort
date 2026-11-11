@@ -505,6 +505,66 @@ dropped, and with them `availableStyles`, the seasons and the supporter's badge.
 If the game is received well and the feedback is good, a small paid DLC may come later — of new
 things, never of what the free game has now. It is not planned, and nothing is built towards it.
 
+### 6.1 The supporter pack (SP), designed for later
+
+**Designed** (2026-11-11, the user's decisions on a proposal; not scheduled, nothing built): if a
+paid DLC comes, it is a **supporter pack of some five new styles** — looks only, never anything
+that plays: no rule, tower or mode behind it. Not before the release, and only once the questions
+under _First_ below are answered. Not the D1 and D2 dropped above, which hid or locked what the
+free game already has; this adds styles that never were in it.
+
+**What the players see** (the user's three rules):
+
+- **The browser game and the GitHub builds**: the supporter styles do not exist there — not
+  hidden, absent, since those builds are made without them. Only the developer's dev server, with
+  the private package checked out, shows them, behind `?supporter=1` (the admin mode).
+- **The Steam build without the DLC**: the five in the look gallery only, as cards with a lock,
+  a "Supporter pack" label and a button opening the DLC's store page in Steam's overlay
+  (`overlay.activateToStore`). Nowhere else — no button in the menu, nothing in a match: the
+  gallery is where looks are chosen, and the pack stays unobtrusive (the user's).
+- **The Steam build with the DLC**: the five as any other style — chosen, hearted as favourites,
+  in Random, the menus' rotation and the demo.
+
+**Why the code cannot simply be hidden, and what is done instead.** The repository is public and
+MIT, so anything in it can be built with the styles switched on. So the styles are **not in it**:
+
+- **A private repository**, `bollfort-supporter`, holds the five styles' code, art and music,
+  under the user's own licence (all rights reserved; the author may license their own work
+  twice). It is checked out as an optional package, `packages/supporter`, only on the developer's
+  machine and in the release job's Steam build (a deploy key as a secret).
+- **One seam in the public code**: each style is already a module fetched when needed
+  (`STYLE_MODULES` in `render/scene.ts`, ARCHIVE 15zf). With the package present the build adds
+  its five entries to that registry, and its style names to the art config's schema; without it,
+  a stub of nothing, and the registry is the 24 as now. The public code knows only that a supporter
+  registry may exist, never what is in it.
+- **A depot of its own** (the user's choice over a flag on files everyone gets): Steam downloads
+  the five's modules and music only to players who own the DLC. Everyone else's base depot carries
+  only each style's name and a still preview picture made in advance — the gallery draws its
+  cards live from a style's own code today (`stylePreview.ts`), which a player without the DLC
+  will not have. Ownership is asked once at the start in the main process
+  (`apps.isDlcInstalled`) and the page told yes or no; the page also needs the depot's files to
+  be there, so a lapsed or refunded DLC simply shows the locks again.
+- **Copying is not prevented**, as in any game: whoever owns the pack has its files. For a pack of
+  looks that is an honour system, and no effort goes into DRM.
+
+**Why it touches nothing else**: a style is the player's own — the match, the snapshot and the
+server never carry one — so the pack changes no rule, no netcode and nobody else's screen. A
+supporter sees their styles; the others at the table see theirs. What must learn the locks is
+everything that picks a style by itself: Random, the menu windows' `LookRotation`, the demo, the
+style music (each new style's track in the DLC depot, credited in the audio manifest's way, and
+`CREDITS.md` written with it only in the Steam build), and How to play's pictures if it shows looks.
+
+**First, before any work** (the user's): the questions that decide whether a paid pack is wise
+at all — **the trademark** (charging for anything turns a free fan game inspired by Rampart into
+a commercial product; to be checked properly), **the revenue share and the German tax side**
+(§11: a Gewerbe, the Kleinunternehmer rule), and **every asset's licence for sale** (Pixabay's
+licence allows commercial use, but each track and anything else is checked again).
+
+**The packages**, when it comes: SP1 the seam and the private package with one style, the admin
+mode; SP2 the locks in the gallery, the previews, the ownership check and the store button; SP3 the
+depot and the release job's private checkout; SP4 the five styles, each as any style is made
+(the style pass's readability, `IslandParts`, the performance check at eight players).
+
 ## 7. Steam lobbies (T, S3)
 
 ### 7.1 The transport (T)
@@ -1123,7 +1183,8 @@ in progress are lost once, and the desktop app's old data folder stays behind.
 
 ## 10. Later, perhaps
 
-A small paid DLC of new things, if the game is received well (§6); not planned. Achievements.
+A small paid DLC of new things, if the game is received well: the supporter pack of five styles,
+designed (§6.1), not planned. Achievements.
 Steam Cloud for tournament saves. Quick match (still PLAN §12). The host handed to a guest when
 the host leaves (weighed 2026-11-11, ARCHIVE 15zw: feasible, every page replaying the match, some
 two to three sessions; decided after the first test rounds, by how often hosts leave). Joining a running match by taking over a bot's seat, so the browser could list
@@ -1132,7 +1193,9 @@ games already under way (§4).
 ## 11. Still to confirm on the live pages
 
 - The revenue share in the Steam Distribution Agreement, and the German side of any income (a
-  Gewerbe, the Kleinunternehmer rule) — only before a paid DLC, if one ever comes.
+  Gewerbe, the Kleinunternehmer rule) — only before a paid DLC, if one ever comes (§6.1).
+- The trademark, before anything is sold: whether a paid pack for a game inspired by Rampart is
+  safe (§6.1).
 - Whether Valve's relay is free, if the newer networking is needed.
 - Steam Input passing the pad through to the Gamepad API.
 - `ShowGamepadTextInput` in the binding.
