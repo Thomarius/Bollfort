@@ -53,6 +53,14 @@ so and offers the next one. Closing the window stops the server.
 Everyone else at the table needs only a browser; see [Play with others](#play-with-others)
 for the firewall and the addresses.
 
+**Testing the Steam version**: until Bollfort has its own place on Steam, each release also
+carries a Steam build, `Bollfort-<version>-steam-windows.zip` and `-steam-linux.tar.gz`. Unpack
+it anywhere and start `Bollfort.exe` (Windows) or `bollfort` (Linux) while Steam runs and you
+are logged in; on Linux, add it to Steam as a non-Steam game and start it from there. It runs on
+Spacewar's App ID 480, which Valve lets every developer test with, so Steam shows you playing
+Spacewar. Each player needs their own Steam account; invite each other through the game's
+lobby or Steam's friends list.
+
 ---
 
 ## Play it from the source

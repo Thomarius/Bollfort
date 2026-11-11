@@ -54,8 +54,9 @@ jobs:
           name: bollfort-${{ matrix.os }}
           path: ${{ matrix.file }}
           if-no-files-found: error
-      # The Steam build (STEAM.md 3.5, S2): a plain folder, as a Steam depot takes it. Kept as
-      # the run's download only, never published here; the upload to Steam waits for S4.
+      # The Steam build (STEAM.md 3.5, S2): a plain folder, as a Steam depot takes it. A tag's
+      # release carries it too, packed, for the test rounds on Spacewar's App ID 480 until ours
+      # is bought (the user's, 2026-11-11); the upload to Steam waits for S4.
       - name: Package for Steam
         shell: bash
         env:
@@ -80,9 +81,23 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           path: files
-          # The portable files only: the Steam folders are not for the GitHub release.
           pattern: bollfort-*
           merge-multiple: true
+      - uses: actions/download-artifact@v5
+        with:
+          path: steam
+          pattern: steam-*
+      # Each Steam folder packed whole under one top folder: a zip for Windows, and for Linux a
+      # tar, which keeps the programs executable (an artifact keeps no file modes).
+      - name: Pack the Steam builds
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mv steam/steam-windows-latest "steam/Bollfort-$version-steam-windows"
+          mv steam/steam-ubuntu-latest "steam/Bollfort-$version-steam-linux"
+          linux="Bollfort-$version-steam-linux"
+          chmod +x "steam/$linux/bollfort" "steam/$linux/chrome_crashpad_handler" "steam/$linux/chrome-sandbox"
+          (cd steam && zip -qr "../files/Bollfort-$version-steam-windows.zip" "Bollfort-$version-steam-windows")
+          tar -czf "files/$linux.tar.gz" -C steam "$linux"
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -90,7 +105,7 @@ jobs:
           gh release create "${{ github.ref_name }}" files/* \
             --repo "${{ github.repository }}" \
             --title "Bollfort ${{ github.ref_name }}" \
-            --notes "Portable builds of Bollfort ${{ github.ref_name }}: the .exe for Windows 11, the .AppImage for Linux (mark it executable first). Unsigned, so Windows warns of an unknown publisher on first start. An unofficial fan game inspired by Rampart (Atari Games, 1990), not affiliated with or endorsed by Warner Bros. Entertainment, which owns the Rampart trademark; see CREDITS.md for the audio's authors and licences, and THIRD_PARTY_LICENSES.md, beside the app, for the open-source packages it uses."
+            --notes "Portable builds of Bollfort ${{ github.ref_name }}: the .exe for Windows 11, the .AppImage for Linux (mark it executable first). For testing on Steam: the -steam- archives, unpacked anywhere and started while Steam runs, logged in (Bollfort.exe on Windows, bollfort on Linux, best added to Steam as a non-Steam game there); they run on Spacewar's App ID 480 until Bollfort has its own, so Steam shows Spacewar as the game played. Unsigned, so Windows warns of an unknown publisher on first start. An unofficial fan game inspired by Rampart (Atari Games, 1990), not affiliated with or endorsed by Warner Bros. Entertainment, which owns the Rampart trademark; see CREDITS.md for the audio's authors and licences, and THIRD_PARTY_LICENSES.md, beside the app, for the open-source packages it uses."
 
   steam:
     # The Steam upload (STEAM.md §9.2, S4): a tag's Steam build to the password-protected beta

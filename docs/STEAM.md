@@ -409,6 +409,9 @@ becomes ours once the fee is paid (S4). Some two to three sessions, S2.2 and S2.
 
 - **Both Steam folders built** on their systems with every release and by hand, as the run's
   downloads, beside the `.exe` and the AppImage.
+- **A tag's GitHub release carries them too** (the user's, 2026-11-11): packed, a zip for
+  Windows and a tar for Linux, so testers on 480 download the Steam build beside the portable
+  files until S4.
 - **The upload to Steam waits for S4**: `steamcmd` and a depot need our App ID.
 
 **Not testable on 480**, so left for our App ID, after the fee and before the testers' beta:
