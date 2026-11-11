@@ -15,8 +15,8 @@ import { store, stored } from './storage.js';
 
 /**
  * Find a game (STEAM.md §4): the games browser as a window of its own over the menu, as How to
- * play and Options are — the filters above, the open rooms below, refreshed every few seconds
- * while it is open, and with none, the button that hosts a public single match.
+ * play and Options are — the filters above, the open rooms below, asked again a few seconds
+ * after each answer while it is open, and with none, the button that hosts a public single match.
  */
 
 /** Where the filters are remembered between visits. */
@@ -48,9 +48,20 @@ export function openFindGames(actions: FindGamesActions): void {
   const close = (): void => {
     root.remove();
   };
+  // The next ask's clock beside the heading (the user's, 2026-11-11): a ring filling over the
+  // wait, turning while the answer is awaited, and a click asks at once.
   root.innerHTML = `
     <div class="panel">
-      <h2>${t('browser.title')}</h2>
+      <div class="find-games-head">
+        <h2>${t('browser.title')}</h2>
+        <button class="refresh-games quiet" data-tip="${escape(t('browser.refreshTip'))}"
+          aria-label="${escape(t('browser.refreshTip'))}" style="--refresh-ms: ${REFRESH_MS}ms">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle class="track" cx="12" cy="12" r="8" />
+            <circle class="fill" cx="12" cy="12" r="8" pathLength="100" />
+          </svg>
+        </button>
+      </div>
       ${actions.notice ? `<p class="notice">${escape(actions.notice)}</p>` : ''}
       ${filtersMarkup(filters)}
       <div id="open-games"><p class="note">${t('menu.lookingForServer')}</p></div>
@@ -122,9 +133,29 @@ export function openFindGames(actions: FindGamesActions): void {
     draw();
   };
   document.body.append(root);
-  void refresh();
-  const timer = setInterval(() => {
-    if (root.isConnected) void refresh();
-    else clearInterval(timer);
-  }, REFRESH_MS);
+  // The next ask only once this one has its answer, and none once the window has closed.
+  const button = root.querySelector<HTMLButtonElement>('.refresh-games')!;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let asking = false;
+  const again = (): void => {
+    timer = null;
+    asking = true;
+    button.dataset.state = 'asking';
+    void refresh().then(() => {
+      asking = false;
+      if (!root.isConnected) return;
+      // The fill's animation begun afresh for each wait.
+      delete button.dataset.state;
+      void button.offsetWidth;
+      button.dataset.state = 'waiting';
+      timer = setTimeout(again, REFRESH_MS);
+    });
+  };
+  button.addEventListener('click', () => {
+    if (asking) return;
+    actions.click();
+    if (timer !== null) clearTimeout(timer);
+    again();
+  });
+  again();
 }

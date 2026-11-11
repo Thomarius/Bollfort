@@ -191,8 +191,19 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-11-09; the latest release **v0.10.0**, 2026-11-11, the only one kept since the history was rewritten without AI attribution lines (the old hashes in `recordings/commit-map.txt`), protocol 36, recording format 4,
-which a test session needs the server rebuilt and every page reloaded for):
+**Done** (2026-11-11; the latest release **v0.10.2**, 2026-11-11, with the Steam build for the test
+rounds on 480 beside the portable files — the releases from v0.10.0 on are the only ones kept since
+the history was rewritten without AI attribution lines (the old hashes in
+`recordings/commit-map.txt`); protocol 36, recording format 4, which a test session needs the
+server rebuilt and every page reloaded for):
+
+- **S3, Steam lobbies, done** (ARCHIVE 15zs, 15zu, 15zw, 2026-11-09 to 2026-11-11): the bench, then
+  twelve checks by two people on two Windows machines; three faults found and fixed in v0.10.2 —
+  no leave prompt over the demo, Find a game filtered by Steam through `koffi` with friends'
+  lobbies first (`steamLobbyFinder.ts`), and a Steam host's room ending with the host
+  (`endsWithHost`, `host_left`, Back to menu on the Connection lost panel too) — approved on
+  Windows and on the bench. Find a game asks again 5 s after each answer, its refresh button a
+  ring filling over the wait (the user's, after v0.10.2).
 
 - **The store page's material, the app's icon** (ARCHIVE 15zo, 2026-11-06, STEAM.md S4, made on the
   user's gaming PC): the texts in English and German, tags, features and system requirements ready to
@@ -601,8 +612,8 @@ which a test session needs the server rebuilt and every page reloaded for):
   failed, included. **S3's checks by hand** run on two Windows machines (ARCHIVE 15zw,
   2026-11-11): nine of twelve passed, and three fixed — no leave prompt over the demo, Find a game
   filtered by Steam through `koffi` with friends' lobbies first, and a Steam host's room ending
-  with the host (`endsWithHost`, `host_left`). **Next**: those three again on Windows and the
-  bench's `public`, `join` and `private`, then S4. **S3.6
+  with the host (`endsWithHost`, `host_left`). Approved on Windows with v0.10.2, and the bench's
+  `join`, `public` and `private` passed: **S3 is done.** **S3.6
   is built and passes the bench** (ARCHIVE 15zu, 2026-11-09): nobody new joins a running match
   (`match_running`); a player who left comes back by the host's **Invite back** in the pause
   menu (`InviteUserToLobby` through `koffi`), straight to the inviter, or on restarting by a
@@ -614,7 +625,9 @@ which a test session needs the server rebuilt and every page reloaded for):
   packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
   recommended), on Windows and then on the Linux machine's Ryzen 3 and integrated Renoir
   graphics, `sysreq.ts` running on both: 56–59 fps at full screen, two slow cores enough, the
-  lines unchanged.
+  lines unchanged. **Next: S4**, waiting on Valve's answer to the Steamworks registration
+  (2026-11-11): then the fee, the App ID, the release job switched on (STEAM.md §9.2) and the
+  store page typed in.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

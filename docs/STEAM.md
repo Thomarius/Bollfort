@@ -95,8 +95,9 @@ bench (2026-11-07 to 2026-11-09, ARCHIVE 15zq, §3.3, §3.4); no fork (§3.2); S
 bench on the Linux machine, outage and restart included (2026-11-09, ARCHIVE 15zs, §7.3).
 S3's checks by hand with two people (S3.5) run on two Windows machines (2026-11-11, ARCHIVE
 15zw): nine of twelve passed; the leave prompt over the demo, Find a game listing nothing and the
-host leaving fixed the same day. **Next**: those three tried again on Windows and the bench's
-`public`, `join` and `private` run, then S4. **S3.6** (§7.3), a player who dropped coming back by an invite or the restart's
+host leaving fixed the same day, approved on Windows with v0.10.2, and the bench's `join`,
+`public` and `private` passed against real Steam. **S3 is done. Next**: S4, once Valve has
+answered the Steamworks registration (still waiting, 2026-11-11). **S3.6** (§7.3), a player who dropped coming back by an invite or the restart's
 prompt, built and passing the bench (2026-11-09, ARCHIVE 15zu).
 
 ## 3. The Steam build (S1, S2)

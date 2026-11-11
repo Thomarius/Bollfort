@@ -675,6 +675,7 @@
   "menu.findGame": "Spiel finden",
   "menu.quit": "Beenden",
   "browser.title": "Spiel finden",
+  "browser.refreshTip": "Jetzt aktualisieren — die Liste aktualisiert sich alle paar Sekunden von selbst",
   "browser.filterMode": "Modus",
   "browser.filterTowers": "Spezialtürme",
   "browser.either": "Egal",

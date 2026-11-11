@@ -678,6 +678,7 @@
   "menu.findGame": "Find a game",
   "menu.quit": "Quit",
   "browser.title": "Find a game",
+  "browser.refreshTip": "Refresh now — it refreshes by itself every few seconds",
   "browser.filterMode": "Mode",
   "browser.filterTowers": "Special towers",
   "browser.either": "Either",

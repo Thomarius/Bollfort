@@ -11912,3 +11912,14 @@ guests all give up at once as the host leaves (`steamTransport.test.ts`), the co
 notice, the lobbies gathered and filtered (`steamLobby.test.ts`), the filter against the lobby
 data; every FFI signature bound against the shipped `steam_api`. Not yet run against real Steam:
 the bench's `public`, `join` and `private`, and the three by hand on Windows again.
+
+**Tried again on Windows** with v0.10.2 (2026-11-11): all three approved. Asked how often Find a
+game refreshes — every 3 s on an interval, which a slow Steam answer could overlap — the user
+chose to ask again 5 s after each answer (`REFRESH_MS`), and a refresh button beside the heading
+as its clock: a ring filling clockwise over the wait, a quarter of it turning while the answer is
+awaited, a click asking at once, still under Reduced motion.
+
+**The bench** (2026-11-11, the Steam build of v0.10.2, `join public private`, 3 min): every check
+passed — the Friends lobby in the friend's Find a game, five joins seated in 12.7–14.6 s; the
+Public lobby the only one Steam's filtered search returned, joined from the list; the Invite only
+lobby listed nowhere and joined by its invite. S3's checks are done.

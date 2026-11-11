@@ -1685,8 +1685,9 @@ every resolution against an independent search, not only on unit pictures.
 
 ## 11. Open work
 
-**Where to start (2026-11-03).** The latest release is **v0.9.32** (2026-11-03, protocol 35,
-recording format 4). Item 3, the performance plan, is finished, its leftovers measured and the worthwhile ones built
+**Where to start (2026-11-11).** The latest release is **v0.10.2** (2026-11-11, protocol 36,
+recording format 4), with the Steam build for the test rounds on 480. Item 8's S3 is done (ARCHIVE
+15zw); S4 waits on Valve's answer to the Steamworks registration. Item 3, the performance plan, is finished, its leftovers measured and the worthwhile ones built
 (ARCHIVE 14zc–14zi, 14zo). Item 4, the UI polish, is done (ARCHIVE 14zr–14zt), and item 5, the menus reviewed (ARCHIVE 15j) and the end screen after them (15k), both in v0.9.23; item 6, the demo, in v0.9.24, its score bar taken out in v0.9.25. Item 2, the special towers, is done: the Subwoofer built, every tower evened out and play-tested (ARCHIVE 15p, 15q, 15t), the team soaks dropped (15u). Next: the online session for item 5's online-only states. The styles' own music's chance is the player's choice in Options (ARCHIVE 14zn). Every feature up to v0.9.16 has been tested and approved by the users (2026-10-27).
 Up to **v0.8.3**: the game and online play, bots as skill levels and personalities, the styles
 with their corner pieces, random looks every round, English and German, the desktop app, UPnP,
@@ -1873,8 +1874,8 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    S4's material that needs no account — art, trailer, texts, loops, icon (15zn, 15zo,
    [`STORE_PAGE.md`](./STORE_PAGE.md)). S1, the spike, done with the Steam bench (ARCHIVE 15zq); no fork; S2, the Steam build
    (ARCHIVE 15zr). S3, Steam lobbies, built and passing the bench (ARCHIVE 15zs). S3's checks by hand
-   run (ARCHIVE 15zw), three findings fixed. Open: those fixes tried again on Windows and on the
-   bench; the rest of S4, and S5.
+   run (ARCHIVE 15zw), three findings fixed. The fixes approved on Windows and on the bench: S3
+   done. Open: the rest of S4, and S5.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

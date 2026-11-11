@@ -731,6 +731,81 @@ button svg.icon {
   margin: 0;
 }
 
+/* The heading with the next ask's clock beside it (findGames.ts): a ring that fills clockwise
+   over the wait, a quarter of it turning while Steam or the server is asked. */
+.find-games .find-games-head {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.find-games .find-games-head h2 {
+  margin: 0;
+}
+
+.find-games button.refresh-games {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  min-height: 0;
+  height: 2rem;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.find-games .refresh-games svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke-width: 2.5;
+  transform: rotate(-90deg);
+}
+
+.find-games .refresh-games .track {
+  stroke: var(--line);
+}
+
+.find-games .refresh-games .fill {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+}
+
+.find-games .refresh-games[data-state='waiting'] .fill {
+  animation: refresh-fill var(--refresh-ms) linear forwards;
+}
+
+.find-games .refresh-games[data-state='asking'] .fill {
+  stroke-dasharray: 25 75;
+  stroke-dashoffset: 0;
+  transform-origin: 12px 12px;
+  animation: refresh-turn 0.8s linear infinite;
+}
+
+@keyframes refresh-fill {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes refresh-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Still under Reduced motion: the quarter shown while asking, nothing while waiting. */
+body.reduced-motion .find-games .refresh-games .fill {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .find-games .refresh-games .fill {
+    animation: none;
+  }
+}
+
 .find-games .browser-filters {
   display: flex;
   flex-direction: column;

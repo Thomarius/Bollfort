@@ -14,8 +14,12 @@ import { withIcon } from './icons.js';
  * here knows the source.
  */
 
-/** How often the window asks again. */
-export const REFRESH_MS = 3000;
+/**
+ * How long after an answer the window asks again: counted from the answer, not on a clock, so a
+ * slow one — Steam's search and friends' lobbies' data, up to some 3 s — never overlaps the next
+ * (the user's, 2026-11-11, from 3 s on an interval).
+ */
+export const REFRESH_MS = 5000;
 
 /** The browser's two filters (STEAM.md §4), kept simple for a small player base. */
 export interface BrowserFilters {
