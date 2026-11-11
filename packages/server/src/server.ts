@@ -23,6 +23,9 @@ import { PortOpener, type InternetStatus } from './upnp.js';
  * itself.
  */
 
+/** How long a stopping server gives its last words to reach the pages before cutting them off. */
+const CLOSE_GRACE_MS = 300;
+
 export interface ServerOptions {
   /** Where `config/` is: the repository, or a packaged app's resources. */
   root: string;
@@ -377,7 +380,7 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
       },
       accept: (peer, steamId) => gateway.accept(peer, steamId),
       standing: (room, steamId) => rooms.get(room)?.standing(steamId) ?? null,
-      endRooms: () => rooms.endAll(),
+      endRooms: () => rooms.endAll('host_left'),
       port: actualPort,
       host,
       // The addresses to open, not the one bound: a browser refuses http://0.0.0.0:8080.
@@ -389,14 +392,28 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
           opener.close(),
           new Promise<void>((resolve) => setTimeout(resolve, 2000).unref()),
         ]);
-        stopping ??= new Promise<void>((resolve) => {
-          clearInterval(ticking);
-          clearInterval(heartbeat);
-          for (const client of wss.clients) client.terminate();
-          wss.close();
-          http.closeAllConnections();
-          http.close(() => resolve());
-        })
+        // Everyone told the server has closed, and a moment for it to leave before the sockets
+        // are cut: told nothing, a page took it for a dropped network and kept trying.
+        const told = (): Promise<void> => {
+          const anyone = wss.clients.size > 0;
+          rooms.endAll('server_closed');
+          return new Promise<void>((resolve) => {
+            if (anyone) setTimeout(resolve, CLOSE_GRACE_MS).unref();
+            else resolve();
+          });
+        };
+        stopping ??= told()
+          .then(
+            () =>
+              new Promise<void>((resolve) => {
+                clearInterval(ticking);
+                clearInterval(heartbeat);
+                for (const client of wss.clients) client.terminate();
+                wss.close();
+                http.closeAllConnections();
+                http.close(() => resolve());
+              }),
+          )
           // A recording's last lines, appended without blocking, are on disk before stop returns.
           .then(() => store?.flushed())
           .then(() => unmapped);

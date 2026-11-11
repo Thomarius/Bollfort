@@ -159,12 +159,23 @@ describe('a connection that drops', () => {
     sockets[0]?.say({ type: 'error', code: 'closed', message: 'the host has left' });
     sockets[0]?.drop();
     vi.advanceTimersByTime(10_000);
-    expect(connection.hostLeft).toBe(true);
+    expect(connection.ended).toBe('host_left');
     expect(connection.lost).toBe(true);
     expect(connection.state).toBe('closed');
     expect(lost).toHaveBeenCalledOnce();
     expect(sockets).toHaveLength(1);
     expect(heard).toHaveLength(before);
+  });
+
+  it('gives up at once when the server says it has closed', () => {
+    const { connection, sockets } = connected();
+    connection.rejoinWhile(() => true);
+    sockets[0]?.say({ type: 'error', code: 'server_closed', message: 'the server has closed' });
+    sockets[0]?.drop();
+    vi.advanceTimersByTime(10_000);
+    expect(connection.ended).toBe('server_closed');
+    expect(connection.state).toBe('closed');
+    expect(sockets).toHaveLength(1);
   });
 
   it('rejoins at once when asked, as a page out of sync does', () => {

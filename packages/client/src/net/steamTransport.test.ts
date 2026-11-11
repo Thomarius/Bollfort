@@ -118,7 +118,7 @@ describe('a match over Steam’s P2P', () => {
     t.pages[0]!.connection.close();
     t.pass(2_000);
     for (const guest of t.pages.slice(1)) {
-      expect(guest.connection.hostLeft).toBe(true);
+      expect(guest.connection.ended).toBe('host_left');
       expect(guest.connection.state).toBe('closed');
     }
     // No refusal shown over the match on the way out.

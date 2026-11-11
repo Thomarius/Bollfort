@@ -1,3 +1,4 @@
+import type { TextKey } from '@bollfort/config';
 import { onLanguageChange, t } from './i18n.js';
 import type { NetworkReading } from './network.js';
 
@@ -5,7 +6,7 @@ import type { NetworkReading } from './network.js';
  * What the notice shows: nothing, a drop being mended, the connection lost for good, or the
  * match ended by its host leaving (STEAM.md §7.3).
  */
-export type NoticeState = 'none' | 'retrying' | 'gone' | 'hostLeft';
+export type NoticeState = 'none' | 'retrying' | 'gone' | 'hostLeft' | 'serverClosed';
 
 /**
  * Whether to cover the board, and with what. Only while the match is on: a drop over the
@@ -13,7 +14,7 @@ export type NoticeState = 'none' | 'retrying' | 'gone' | 'hostLeft';
  */
 export function noticeFor(link: NetworkReading['link'], finished: boolean): NoticeState {
   if (finished || link === 'open') return 'none';
-  if (link === 'hostLeft') return 'hostLeft';
+  if (link === 'hostLeft' || link === 'serverClosed') return link;
   return link === 'lost' ? 'gone' : 'retrying';
 }
 
@@ -39,13 +40,12 @@ export class ConnectionNotice {
   private fill(): void {
     if (this.shown === 'none') return;
     const state = this.shown;
-    const title = state === 'hostLeft' ? 'connection.hostLeftTitle' : 'connection.title';
-    const text =
+    const [title, text]: [TextKey, TextKey] =
       state === 'hostLeft'
-        ? 'connection.hostLeft'
-        : state === 'gone'
-          ? 'connection.gone'
-          : 'connection.retrying';
+        ? ['connection.hostLeftTitle', 'connection.hostLeft']
+        : state === 'serverClosed'
+          ? ['connection.serverClosedTitle', 'connection.serverClosed']
+          : ['connection.title', state === 'gone' ? 'connection.gone' : 'connection.retrying'];
     this.overlay.innerHTML =
       `<div class="panel"><strong>${t(title)}</strong>` +
       `<p>${t(text)}</p>` +

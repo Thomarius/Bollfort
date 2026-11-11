@@ -3,7 +3,7 @@ import { Rng } from '@bollfort/sim';
 
 import type { RecordingLine, RoomListing } from '@bollfort/protocol';
 
-import { Room } from './room.js';
+import { Room, type RoomEnd } from './room.js';
 
 /**
  * Owns the live rooms and hands out their codes.
@@ -38,10 +38,9 @@ export class RoomManager {
     return room?.ended === true ? undefined : room;
   }
 
-  /** Ends every room that ends with its host, for the host's app closing: its guests told. */
-  endAll(): void {
-    if (!this.endsWithHost) return;
-    for (const room of this.rooms.values()) room.end();
+  /** Ends every room, everyone in them told why: the host's app or the server closing. */
+  endAll(why: RoomEnd): void {
+    for (const room of this.rooms.values()) room.end(why);
     this.rooms.clear();
   }
 

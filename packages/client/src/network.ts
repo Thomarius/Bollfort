@@ -13,8 +13,8 @@ export interface NetworkReading {
   /** Ticks the page trails what the server has confirmed. */
   behind: number;
   desynced: boolean;
-  /** The socket: up, being got back after a drop, lost for good, or ended by the host leaving. */
-  link: 'open' | 'reconnecting' | 'lost' | 'hostLeft';
+  /** The socket: up, being got back after a drop, lost for good, or ended by the host or the server. */
+  link: 'open' | 'reconnecting' | 'lost' | 'hostLeft' | 'serverClosed';
 }
 
 export type NetworkLevel = 'good' | 'slow' | 'bad';
@@ -27,6 +27,7 @@ export function netHealth(
 ): { level: NetworkLevel; text: string } {
   if (reading.link === 'lost') return { level: 'bad', text: t('network.lost') };
   if (reading.link === 'hostLeft') return { level: 'bad', text: t('network.hostLeft') };
+  if (reading.link === 'serverClosed') return { level: 'bad', text: t('network.serverClosed') };
   if (reading.link === 'reconnecting') return { level: 'bad', text: t('network.reconnecting') };
   if (reading.desynced) return { level: 'bad', text: t('network.desynced') };
   const seconds = formatNumber(reading.behind / tickRateHz, 1);

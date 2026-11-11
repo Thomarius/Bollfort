@@ -70,6 +70,9 @@ export interface Seat {
   steamId: string | null;
 }
 
+/** Why a room ended under its players: its host gone (the Steam build), or its server stopping. */
+export type RoomEnd = 'host_left' | 'server_closed';
+
 /** Where a person stands in a room, as `Room.standing` tells it. */
 export interface RoomStanding {
   seated: boolean;
@@ -188,18 +191,20 @@ export class Room {
   private over = false;
 
   /**
-   * Ends the room: everyone still here told the host has left, their links closed. Under the
-   * Steam build as the host leaves, or as the host's app closes.
+   * Ends the room: everyone still here told why, their links closed — the host gone under the
+   * Steam build (`host_left`), or the server stopping (`server_closed`), where a page told
+   * nothing took it for a dropped network and kept trying (the two-person test, 2026-11-11).
    */
-  end(): void {
+  end(why: RoomEnd = 'host_left'): void {
     if (this.over) return;
     this.over = true;
+    const message = why === 'host_left' ? 'the host has left' : 'the server has closed';
     for (const seat of this.seats) {
       const connection = seat.connection;
       if (connection === null) continue;
       seat.connection = null;
-      connection.send({ type: 'error', code: 'host_left', message: 'the host has left' });
-      connection.close('the host has left');
+      connection.send({ type: 'error', code: why, message });
+      connection.close(message);
     }
   }
 

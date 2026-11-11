@@ -104,6 +104,32 @@ describe('recording', () => {
 });
 
 describe('a connection', () => {
+  it('tells everyone in a room it has closed as it stops, before the socket goes', async () => {
+    const server = await started();
+    const replies: { type: string; code?: string }[] = [];
+    const socket = new WebSocket(`ws://127.0.0.1:${server.port}`);
+    const closed = new Promise<void>((resolve) => socket.on('close', () => resolve()));
+    await new Promise<void>((resolve, reject) => {
+      socket.on('error', reject);
+      socket.on('open', () =>
+        socket.send(
+          JSON.stringify({ type: 'create', protocol: PROTOCOL_VERSION, name: 'Ada', players: 2 }),
+        ),
+      );
+      socket.on('message', (data) => {
+        const reply = JSON.parse(String(data)) as { type: string; code?: string };
+        replies.push(reply);
+        if (reply.type === 'welcome') resolve();
+      });
+    });
+    await server.stop();
+    await closed;
+    expect(replies.filter((r) => r.type === 'error')).toEqual([
+      expect.objectContaining({ code: 'server_closed' }),
+      expect.objectContaining({ code: 'closed' }),
+    ]);
+  });
+
   it('sits in one room: a second create or join on it is refused', async () => {
     const server = await started();
     const replies: { type: string; code?: string }[] = [];

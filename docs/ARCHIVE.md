@@ -11668,8 +11668,9 @@ An Invite-only invite failing in the VM, and a crash there ("No packet available
 spikes started at once on one Steam client, reading each other's packets: the spike keeps one
 instance since, a second start handing over its `+connect_lobby`.
 
-Two things seen in the bench's matches are a room match's, not Steam's, and wait in PLAN item 9:
-every bot marked AWAY, and the last wrong-phase refusal shown all match.
+Two things seen in the bench's matches are a room match's, not Steam's: every bot marked AWAY,
+and the last wrong-phase refusal shown all match. (Both fixed with S3, ARCHIVE 15zs; the "PLAN
+item 9" once named here was never written, as found 2026-11-11.)
 
 ## 15zr. S2, the Steam build (2026-11-09)
 
@@ -11941,3 +11942,20 @@ the README's other mention rephrased. The opening lines of CLAUDE.md and PLAN.md
 happened (the user's choice). The three published releases, v0.10.0 to v0.10.2, which carried
 the name in their notes and the menu, were deleted with their tags (no outside users yet), and
 one compliant release, v0.10.3, replaces them.
+
+## 15zy. A server closing tells everyone (2026-11-11)
+
+The Steam build's fix for a host leaving (15zw) asked the same of the GitHub desktop app, where the
+host's app is the server too. It is not the same there: that server is open to anyone — a guest
+on the network or through the Cloudflare link may make a room — and its owner may play in its
+window, in a browser or not at all, so a room's host is not always the app's owner; and a host's
+Leave match leaves a match the still-running server can finish, a bot in their seat. Ending a
+room on its host's Leave there would also need a "leaving" message, since a browser's reload
+closes the socket as a Leave does. The user's choice: only the server's closing.
+
+So a server stopping — the desktop app's window closed or Stop, `npm start` ended — now ends every
+room with `server_closed` and gives the message 300 ms to leave before cutting the sockets
+(`RoomManager.endAll`, `Room.end(why)`; the Steam build's quit still says `host_left` first). A
+page told so gives up at once, as on `host_left` (`ServerConnection.ended`), and says "The
+server has closed — the match ran on that server, so it is over", Back to menu; in the lobby, the
+menu says so. Tested against the real WebSocket server (`server.test.ts`) and in the room.

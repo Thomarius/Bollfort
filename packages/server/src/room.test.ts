@@ -530,8 +530,23 @@ describe('the host leaving a room on their own app (the Steam build)', () => {
   it('ends every room as the host’s app closes', () => {
     const { manager, r, b } = hosted();
     r.start();
-    manager.endAll();
+    manager.endAll('host_left');
     expect(told(b)).toEqual(['host_left']);
+    expect(manager.size).toBe(0);
+  });
+
+  it('tells everyone the server has closed as it stops, a server of its own too', () => {
+    const manager = new RoomManager(defaultConfigBundle, 7);
+    const r = manager.create(2)!;
+    const a = new TestClient('a');
+    const b = new TestClient('b');
+    r.join(a, 'Ada');
+    r.join(b, 'Bo');
+    r.start();
+    manager.endAll('server_closed');
+    expect(told(a)).toEqual(['server_closed']);
+    expect(told(b)).toEqual(['server_closed']);
+    expect(b.closedWith).toHaveLength(1);
     expect(manager.size).toBe(0);
   });
 
@@ -545,7 +560,6 @@ describe('the host leaving a room on their own app (the Steam build)', () => {
     r.start();
     run(r, 30);
     r.leave(a);
-    manager.endAll();
     run(r, 300);
     expect(r.ended).toBe(false);
     expect(told(b)).toEqual([]);

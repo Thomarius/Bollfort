@@ -54,10 +54,10 @@ export class ServerConnection {
   /** Given up for lost: the connection dropped, and every try to get it back failed. */
   lost = false;
   /**
-   * Ended because the host left a room on their own app, the Steam build's (STEAM.md §7.3):
-   * lost too, at once, with nothing to rejoin.
+   * Ended under the page, with nothing to rejoin, so lost too, at once: the host left a room on
+   * their own app, the Steam build's (STEAM.md §7.3), or the server closed.
    */
-  hostLeft = false;
+  ended: 'host_left' | 'server_closed' | null = null;
   latencyMs = 0;
   private pingedAt = 0;
   /** The name joined under, and the room and seat the server last welcomed us to. */
@@ -137,8 +137,11 @@ export class ServerConnection {
     if (this.state === 'closed') return;
     const message = decodeServerMessage(text);
     if (message === null) return;
-    if (message.type === 'error' && message.code === 'host_left') {
-      this.hostLeft = true;
+    if (
+      message.type === 'error' &&
+      (message.code === 'host_left' || message.code === 'server_closed')
+    ) {
+      this.ended = message.code;
       this.giveUp();
       return;
     }
