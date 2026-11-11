@@ -105,7 +105,7 @@ jobs:
           gh release create "${{ github.ref_name }}" files/* \
             --repo "${{ github.repository }}" \
             --title "Bollfort ${{ github.ref_name }}" \
-            --notes "Portable builds of Bollfort ${{ github.ref_name }}: the .exe for Windows 11, the .AppImage for Linux (mark it executable first). For testing on Steam: the -steam- archives, unpacked anywhere and started while Steam runs, logged in (Bollfort.exe on Windows, bollfort on Linux, best added to Steam as a non-Steam game there); they run on Spacewar's App ID 480 until Bollfort has its own, so Steam shows Spacewar as the game played. Unsigned, so Windows warns of an unknown publisher on first start. An unofficial fan game inspired by Rampart (Atari Games, 1990), not affiliated with or endorsed by Warner Bros. Entertainment, which owns the Rampart trademark; see CREDITS.md for the audio's authors and licences, and THIRD_PARTY_LICENSES.md, beside the app, for the open-source packages it uses."
+            --notes "Portable builds of Bollfort ${{ github.ref_name }}: the .exe for Windows 11, the .AppImage for Linux (mark it executable first). For testing on Steam: the -steam- archives, unpacked anywhere and started while Steam runs, logged in (Bollfort.exe on Windows, bollfort on Linux, best added to Steam as a non-Steam game there); they run on Spacewar's App ID 480 until Bollfort has its own, so Steam shows Spacewar as the game played. Unsigned, so Windows warns of an unknown publisher on first start. See CREDITS.md for the audio's authors and licences, and THIRD_PARTY_LICENSES.md, beside the app, for the open-source packages it uses."
 
   steam:
     # The Steam upload (STEAM.md §9.2, S4): a tag's Steam build to the password-protected beta

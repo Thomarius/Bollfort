@@ -12,7 +12,7 @@ import { escape } from './html.js';
 import { lookName } from './looks.js';
 
 /**
- * The menu's Credits: what the game owes Rampart, who made each sound and each typeface, on
+ * The menu's Credits: what the game owes the original, who made each sound and each typeface, on
  * what licence — made from the audio manifest, as `CREDITS.md` is, so the two always agree.
  */
 

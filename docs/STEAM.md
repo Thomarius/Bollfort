@@ -21,9 +21,10 @@ anything is built on them. Our own reasoning or memory is marked _(unchecked)_.
 - **When**: after the online session (PLAN §11 item 5), as the game's 1.0 on Steam.
 - **The Steam Direct fee** (US$100, one-off) is accepted: a one-off cost, not a running one.
 - **The rights**: a private project; no employer has a claim.
-- **The trademark**: Rampart is named nowhere on Steam — not in the store page, its tags or its
-  art. The "inspired by" line stays in the game's Credits, the README and the release notes, and
-  is left off the Steam page. Similar paid games stand closer to the original; Bollfort's changes
+- **The trademark**: the original is named nowhere on Steam — not in the store page, its tags or
+  its art. On a lawyer's advice (2026-11-11, ARCHIVE 15zx) it is named only in the in-game
+  Credits' disclaimer and the README; the menu's "inspired by" line, the desktop window's note,
+  the release notes' sentence and `CREDITS.md`'s disclaimer are gone. Similar paid games stand closer to the original; Bollfort's changes
   and additions are substantial.
 - **No DLC** (2026-11-03, the user's): the full game is free, all 24 styles with Halloween and
   Christmas among them, as in every other build. A small paid DLC of new things may follow if the
@@ -555,8 +556,9 @@ style music (each new style's track in the DLC depot, credited in the audio mani
 `CREDITS.md` written with it only in the Steam build), and How to play's pictures if it shows looks.
 
 **First, before any work** (the user's): the questions that decide whether a paid pack is wise
-at all — **the trademark** (charging for anything turns a free fan game inspired by Rampart into
-a commercial product; to be checked properly), **the revenue share and the German tax side**
+at all — **the trademark** (checked by a lawyer, 2026-11-11, ARCHIVE 15zx: fine once the original
+is named only in the Credits and the README; registering Bollfort only if the game has
+substantial success), **the revenue share and the German tax side**
 (§11: a Gewerbe, the Kleinunternehmer rule), and **every asset's licence for sale** (Pixabay's
 licence allows commercial use, but each track and anything else is checked again).
 
@@ -1194,8 +1196,8 @@ games already under way (§4).
 
 - The revenue share in the Steam Distribution Agreement, and the German side of any income (a
   Gewerbe, the Kleinunternehmer rule) — only before a paid DLC, if one ever comes (§6.1).
-- The trademark, before anything is sold: whether a paid pack for a game inspired by Rampart is
-  safe (§6.1).
+- ~~The trademark~~: checked by a lawyer (2026-11-11, ARCHIVE 15zx) — the original named only in
+  the in-game Credits and the README; Bollfort registered only on substantial success (§6.1).
 - Whether Valve's relay is free, if the newer networking is needed.
 - Steam Input passing the pad through to the Gamepad API.
 - `ShowGamepadTextInput` in the binding.

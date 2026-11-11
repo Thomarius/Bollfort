@@ -1,17 +1,4 @@
-import en from '../../../config/locale/en.json' with { type: 'json' };
-
 import { AUDIO_LICENCES, audioCredits, type AudioManifest, type CreditedFile } from './audio.js';
-
-/**
- * The game's attribution, said once and shown in the menu, the Credits, the desktop app
- * and `CREDITS.md`. Bollfort takes its rules from Rampart and nothing else — no code,
- * graphics or sound — and must never read as the original or as endorsed by its owner.
- * The English texts, from the English locale: the game shows them in the player's language
- * (`credits.inspiredBy`, `credits.disclaimer`), `CREDITS.md` always in English.
- */
-export const INSPIRED_BY = en['credits.inspiredBy'];
-
-export const DISCLAIMER = en['credits.disclaimer'];
 
 /** Credits are free text: whatever Markdown would read as formatting is shown as itself. */
 function plain(text: string): string {
@@ -30,15 +17,18 @@ function line({ path, credit }: CreditedFile): string {
 }
 
 /**
- * `CREDITS.md`, made from the manifest by `npm run credits` and checked against it by a
+ * `CREDITS.md`, the audio's authors and licences. The game's disclaimer is not in it: on a
+ * lawyer's advice (2026-11-11) the original is named only in the in-game Credits
+ * (`credits.disclaimer`) and the README — not in the menu, the desktop app's window, the release
+ * notes nor this file.
+ *
+ * Made from the manifest by `npm run credits` and checked against it by a
  * test, so the file in the repository cannot fall behind the sounds the game plays.
  */
 export function creditsMarkdown(audio: AudioManifest): string {
   const { music, sfx } = audioCredits(audio);
   return [
     '# Credits',
-    '',
-    DISCLAIMER.replace(/Bollfort/, '_Bollfort_').replace(/Rampart/g, '_Rampart_'),
     '',
     'The code is under the MIT licence.',
     '',

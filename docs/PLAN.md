@@ -1,12 +1,13 @@
 # Bollfort — design and open work
 
-A multiplayer-only recreation of the 1990 Atari arcade game _Rampart_, condensed to a
-single game mode, with online play, AI opponents, and fully procedural visual assets.
+A multiplayer-only castle siege game after a 1990 arcade game ("the original" in this file),
+condensed to a single game mode, with online play, AI opponents, and fully procedural visual
+assets.
 
-It is called **Bollfort** (renamed from Rampart to Bollwerk 2026-10-02, ARCHIVE 11zw, and to
-Bollfort 2026-11-03, ARCHIVE 15zh): Rampart is a trademark of
-Warner Bros. Entertainment, and the game names it only to say what it is inspired by. In
-this file "the original" means Rampart.
+It is called **Bollfort** (renamed Bollwerk 2026-10-02, ARCHIVE 11zw, and Bollfort 2026-11-03,
+ARCHIVE 15zh). The original's name is a trademark of another company: on a lawyer's advice
+(2026-11-11, ARCHIVE 15zx) the game names it only in the in-game Credits' disclaimer and the
+README.
 
 This file describes **the game as it is now, and what is left to do**. How each decision
 was arrived at — with the measurements, and the attempts that were reverted — is in
@@ -1685,8 +1686,7 @@ every resolution against an independent search, not only on unit pictures.
 
 ## 11. Open work
 
-**Where to start (2026-11-11).** The latest release is **v0.10.2** (2026-11-11, protocol 36,
-recording format 4), with the Steam build for the test rounds on 480. Item 8's S3 is done (ARCHIVE
+**Where to start (2026-11-11).** The latest release is **v0.10.3** (2026-11-11, protocol 36, recording format 4), the only one published (ARCHIVE 15zx), with the Steam build for the test rounds on 480. Item 8's S3 is done (ARCHIVE
 15zw); S4 waits on Valve's answer to the Steamworks registration. Item 3, the performance plan, is finished, its leftovers measured and the worthwhile ones built
 (ARCHIVE 14zc–14zi, 14zo). Item 4, the UI polish, is done (ARCHIVE 14zr–14zt), and item 5, the menus reviewed (ARCHIVE 15j) and the end screen after them (15k), both in v0.9.23; item 6, the demo, in v0.9.24, its score bar taken out in v0.9.25. Item 2, the special towers, is done: the Subwoofer built, every tower evened out and play-tested (ARCHIVE 15p, 15q, 15t), the team soaks dropped (15u). Next: the online session for item 5's online-only states. The styles' own music's chance is the player's choice in Options (ARCHIVE 14zn). Every feature up to v0.9.16 has been tested and approved by the users (2026-10-27).
 Up to **v0.8.3**: the game and online play, bots as skill levels and personalities, the styles

@@ -1,17 +1,18 @@
 # Bollfort
 
-Multiplayer-only recreation of the 1990 Atari arcade game _Rampart_, in TypeScript.
-Shoot down opponents' castle walls, then race to rebuild your own before the next
-barrage. Fail to seal a castle and you spend a life; run out of lives and you are out.
+A multiplayer-only castle siege game, in TypeScript, after a 1990 arcade game ("the
+original" in these docs). Shoot down opponents' castle walls, then race to rebuild your own
+before the next barrage. Fail to seal a castle and you spend a life; run out of lives and
+you are out.
 
-**The name is Bollfort, never Rampart nor Bollwerk** (Rampart renamed Bollwerk 2026-10-02,
-ARCHIVE 11zw; Bollwerk renamed Bollfort 2026-11-03, ARCHIVE 15zh, since another game of that
-name is coming and the word is a live mark in games' classes; the repository is
-`Thomarius/Bollfort`, the local folder still `RampartRemake`). Rampart is a trademark
-of Warner Bros. Entertainment: the game names it only to say what it is inspired by
-(`INSPIRED_BY` and `DISCLAIMER` in `packages/config/src/credits.ts`, shown in the menu,
-the Credits, the desktop window, the README and the release notes). In the docs "the
-original" means Rampart. Nothing of the original is used — no code, graphics or sound.
+**The name is Bollfort, never Bollwerk nor the original's** (renamed Bollwerk 2026-10-02,
+ARCHIVE 11zw; Bollfort 2026-11-03, ARCHIVE 15zh, since another game of that name is coming and
+the word is a live mark in games' classes; the repository is `Thomarius/Bollfort`, the local
+folder still `RampartRemake`). **The original's name is a trademark of another company and is
+named in two places only** (a lawyer's advice, 2026-11-11, ARCHIVE 15zx): the in-game Credits'
+disclaimer (`credits.disclaimer` in `config/locale/`) and the README's. Not in the menu, the
+desktop window, the release notes, `CREDITS.md`, anything on Steam nor new docs — write "the
+original". Nothing of the original is used — no code, graphics or sound.
 
 **Every audio file must be credited** in `config/audio.manifest.json` (`credits`, by path:
 title where known, author, licence, source, changes), or by its folder's credit — a key
@@ -191,11 +192,15 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-11-11; the latest release **v0.10.2**, 2026-11-11, with the Steam build for the test
-rounds on 480 beside the portable files — the releases from v0.10.0 on are the only ones kept since
-the history was rewritten without AI attribution lines (the old hashes in
+**Done** (2026-11-11; the latest release **v0.10.3**, 2026-11-11, the only one published — the
+earlier ones were deleted with their tags, since their notes and menu named the original (ARCHIVE
+15zx) — with the Steam build for the test rounds on 480 beside the portable files; the history
+was rewritten without AI attribution lines before v0.10.0 (the old hashes in
 `recordings/commit-map.txt`); protocol 36, recording format 4, which a test session needs the
 server rebuilt and every page reloaded for):
+
+- **The original named only in the Credits and the README** (ARCHIVE 15zx, 2026-11-11, a
+  lawyer's advice): gone from the menu, the desktop window, the release notes and `CREDITS.md`.
 
 - **S3, Steam lobbies, done** (ARCHIVE 15zs, 15zu, 15zw, 2026-11-09 to 2026-11-11): the bench, then
   twelve checks by two people on two Windows machines; three faults found and fixed in v0.10.2 —

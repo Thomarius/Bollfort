@@ -548,7 +548,8 @@ button svg.icon {
   font-size: 11px;
 }
 
-/* What the game owes Rampart, under the title, with the way to the Credits. */
+/* The way to the Credits, under the title: the one place in the game that names the original
+   (a lawyer's advice, 2026-11-11). */
 .menu p.inspired {
   margin: -0.6rem 0 1rem;
   font-size: 11px;

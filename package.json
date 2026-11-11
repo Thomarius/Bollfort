@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Multiplayer castle siege game, an unofficial fan game inspired by Rampart (Atari Games, 1990)",
+  "description": "Multiplayer castle siege game: shoot down your rivals' walls, then rebuild your own",
   "license": "MIT",
   "engines": {
     "node": ">=22.12.0"

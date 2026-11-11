@@ -205,7 +205,7 @@ export function showMenu(notice: string | null = null, findGame = false): void {
     <div class="menu home">
       <section class="home-main">
       <h1 class="title"><span class="title-split" id="title"></span></h1>
-      <p class="inspired">${escape(t('credits.inspiredBy'))} · <button id="credits" class="link">${t('menu.credits')}</button></p>
+      <p class="inspired"><button id="credits" class="link">${t('menu.credits')}</button></p>
       ${steamPlay() === null ? `<label>${t('menu.name')} <input id="name" type="text" maxlength="16" placeholder="${escape(t('menu.defaultName'))}" /></label>` : ''}
       <div class="split play-row">
         <button id="play" class="primary">${withIcon('play', t('menu.singleMatch'))}</button>

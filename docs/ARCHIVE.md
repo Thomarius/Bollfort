@@ -11923,3 +11923,21 @@ awaited, a click asking at once, still under Reduced motion.
 passed — the Friends lobby in the friend's Find a game, five joins seated in 12.7–14.6 s; the
 Public lobby the only one Steam's filtered search returned, joined from the list; the Invite only
 lobby listed nowhere and joined by its invite. S3's checks are done.
+
+## 15zx. The original's name, on a lawyer's advice (2026-11-11)
+
+The user asked a lawyer about the trademark before anything could be sold (STEAM.md §6.1). The
+answer: name the original only in the **in-game Credits** and the **README**, and nowhere else;
+otherwise everything is fine, and registering Bollfort as a mark is worth it only if the game
+has substantial success, which is not expected.
+
+So the original's name went from the menu (the "inspired by" line under the title, now the
+Credits link alone; `credits.inspiredBy` and `INSPIRED_BY` removed), the desktop app's start
+window (`desktop.fanNote`), the release notes written by `release.yml`, `CREDITS.md` (now the
+audio's authors and licences only) and the root `package.json`'s description. Steam's store
+material never named it. The Credits' disclaimer (`credits.disclaimer`) and the README's stay,
+the README's other mention rephrased. The opening lines of CLAUDE.md and PLAN.md now say "a
+1990 arcade game"; the docs' history, this file included, keeps the name where it records what
+happened (the user's choice). The three published releases, v0.10.0 to v0.10.2, which carried
+the name in their notes and the menu, were deleted with their tags (no outside users yet), and
+one compliant release, v0.10.3, replaces them.
