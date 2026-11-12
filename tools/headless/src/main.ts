@@ -34,7 +34,7 @@ import {
 import { MatchRecorder } from '@bollfort/protocol';
 
 import { repoRoot, usageError, wholeNumber } from './cli.js';
-import { replayAll } from './replay.js';
+import { replayAchievements, replayAll } from './replay.js';
 import { runTournaments } from './tournament.js';
 import { summariseStats } from './summary.js';
 import {
@@ -78,6 +78,8 @@ interface Args {
   maxRounds: number | null | undefined;
   /** Recordings to replay, files or directories of them, instead of running bots. */
   replay: string[];
+  /** With `--replay`: what each seat would have earned of the Steam achievements. */
+  achievements: boolean;
   /** Per seat, repeating: whether its bot plays each build phase out in advance. */
   plans: boolean[];
   /** Every planned phase's strategies and their scores, a JSON line each. */
@@ -173,7 +175,7 @@ const USAGE =
   'usage: npm start -w @bollfort/headless -- [--matches N] [--players N] [--seed N] ' +
   '[--max-ticks N] [--max-rounds N|none] [--teams N] [--level 1-10[,...]] ' +
   '[--personality offensive|dealt|...[,...]] [--specials on|off] [--special bertha2|bertha3|architect2|architect3|rapid2|rapid3|lightning2|lightning3|biggest2|biggest3|laser2|laser3|frost2|frost3|lullaby2|lullaby3|subwoofer2|subwoofer3|none|random[,...]] [--plans 1,0[,...]] [--set path=json ...] [--stats FILE] [--outcomes FILE] [--record DIR] [--map]\n' +
-  '       npm start -w @bollfort/headless -- --replay recordings/ [more files or dirs] [--stats FILE]\n' +
+  '       npm start -w @bollfort/headless -- --replay recordings/ [more files or dirs] [--stats FILE] [--achievements]\n' +
   '       npm start -w @bollfort/headless -- --tournament [--help for its flags]';
 
 /**
@@ -195,6 +197,9 @@ function parseArgs(argv: string[]): Args {
   }
   if (positionals.length > 0 && values.replay !== true) {
     usageError(`unexpected ${positionals.join(' ')}: only --replay takes files\n${USAGE}`);
+  }
+  if (values.achievements === true && values.replay !== true) {
+    usageError('--achievements reads recordings: use it with --replay');
   }
   if (values.replay === true && positionals.length === 0) {
     usageError('--replay wants recordings: files, or directories of them');
@@ -237,6 +242,7 @@ function parseArgs(argv: string[]): Args {
           : number('max-rounds', 0, 1),
     teams: number('teams', 1, 1),
     replay: values.replay === true ? positionals : [],
+    achievements: values.achievements === true,
     planLog: values['plan-log'] ?? null,
     record: values.record ?? null,
     planSet: values['plan-set']?.split(',') ?? null,
@@ -271,6 +277,7 @@ const FLAGS = {
   outcomes: { type: 'string' },
   map: { type: 'boolean' },
   replay: { type: 'boolean' },
+  achievements: { type: 'boolean' },
   help: { type: 'boolean' },
 } as const;
 
@@ -396,6 +403,11 @@ const problems = validateConfigBundle(bundle);
 if (problems.length > 0) {
   console.error(`configuration is invalid:\n  - ${problems.join('\n  - ')}`);
   process.exit(1);
+}
+
+if (args.replay.length > 0 && args.achievements) {
+  replayAchievements(args.replay);
+  process.exit(0);
 }
 
 if (args.replay.length > 0) {

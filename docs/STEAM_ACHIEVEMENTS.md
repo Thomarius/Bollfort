@@ -72,30 +72,32 @@ Difficulty: **E** most players within their first few matches; **M** a skilled p
 share of matches, a casual one now and then; **H** a skilled player's goal; **stat** across
 matches, with a progress bar. 14 E, 13 M, 5 H, 3 stats.
 
-"Recordings" is what the 34 recordings of 2026-09-28 to 2026-10-23 show (ARCHIVE 15zz): the share
-of matches in which Thomas (36 seat-matches, about a Level 5–6 player) and Mausica (14, about
-Level 2–3) met the condition, or what the towers' rules say where they were not recorded.
+"Recordings" is what the recordings of 2026-09-28 to 2026-10-23 show: from the detector itself
+(AC2, `--replay recordings/ --achievements`) over the 20 that replay exactly — Thomas 19
+seat-matches (his "You" and "Du" counted as his), about a Level 5–6 player, and Mausica 9, about
+Level 2–3: the share of matches in which each met the condition — or else from ARCHIVE 15zz's
+first measurement over all 34, or what the towers' rules say where they were not recorded.
 
 | #   | English              | German                     | API                | Condition                                                                                        | Diff | Recordings                                                                        |
 | --- | -------------------- | -------------------------- | ------------------ | ------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------------------------------------------- |
 | 1   | Breaking ground      | Erster Spatenstich         | `FIRST_MATCH`      | Finish a match                                                                                   | E    | —                                                                                 |
 | 2   | King of the castle   | Burgherr                   | `FIRST_WIN`        | Win a match                                                                                      | E    | Thomas won 74%, Mausica 67%                                                       |
 | 3   | Pocket money         | Taschengeld                | `POCKET`           | Hold a pocket — sealed ground with no castle — at a resolution                                   | E    | Thomas 86%, Mausica 79%                                                           |
-| 4   | Just in time         | Auf den letzten Drücker    | `JUST_IN_TIME`     | With no castle sealed, seal one with a piece laid in the overtime                                | E    | Thomas 73%, Mausica 100%                                                          |
+| 4   | Just in time         | Auf den letzten Drücker    | `JUST_IN_TIME`     | With no castle sealed, seal one with a piece laid in the overtime                                | E    | Thomas 53%, Mausica 56%                                                           |
 | 5   | Knock knock          | Klopf, klopf               | `FIRST_BREACH`     | A shot of yours opens a rival's sealed castle: sealed before it, open after                      | E    | Thomas 79%, Mausica 100%                                                          |
 | 6   | Read the manual      | Wer lesen kann …           | `READ_THE_MANUAL`  | Open every page of How to play                                                                   | E    | —                                                                                 |
-| 7   | Four of a kind       | Alle viere                 | `FULL_ESTATE`      | Hold all four castles of your island sealed at a resolution                                      | M    | Thomas 42%, Mausica 21%                                                           |
-| 8   | Land grab            | Landnahme                  | `LAND_GRAB`        | Hold **150** tiles of territory at a resolution                                                  | M    | Thomas 53%, Mausica 14%                                                           |
-| 9   | Kingdom come         | Königreich                 | `EMPIRE`           | Hold **220** tiles at a resolution                                                               | H    | Thomas 6% (best 232), Mausica best 192                                            |
-| 10  | Seal of approval     | Gütesiegel                 | `SEAL_OF_APPROVAL` | Castles sealed at resolutions, **250** in all                                                    | stat | a match: Thomas 23, Mausica 14 — about 11 and 18 matches                          |
-| 11  | Bring the house down | Kein Stein auf dem anderen | `BIG_BARRAGE`      | Destroy **40** walls in one combat phase                                                         | M    | Thomas 45%, Mausica best 27                                                       |
+| 7   | Four of a kind       | Alle viere                 | `FULL_ESTATE`      | Hold all four castles of your island sealed at a resolution                                      | M    | Thomas 47%, Mausica 22%                                                           |
+| 8   | Land grab            | Landnahme                  | `LAND_GRAB`        | Hold **150** tiles of territory at a resolution                                                  | M    | Thomas 58%, Mausica 11%                                                           |
+| 9   | Kingdom come         | Königreich                 | `EMPIRE`           | Hold **220** tiles at a resolution                                                               | H    | Thomas 11% (2 of 19), Mausica none                                                |
+| 10  | Seal of approval     | Gütesiegel                 | `SEAL_OF_APPROVAL` | Castles sealed at resolutions, **200** in all                                                    | stat | a match: Thomas 20, Mausica 12 — about 10 and 17 matches                          |
+| 11  | Bring the house down | Kein Stein auf dem anderen | `BIG_BARRAGE`      | Destroy **40** walls in one combat phase                                                         | M    | Thomas 68%, Mausica none (best 27)                                                |
 | 12  | Lights out           | Licht aus                  | `LIGHTS_OUT`       | A rival spends a life after a combat phase in which you destroyed more of their wall than anyone | E    | Thomas 73%, Mausica 64%                                                           |
-| 13  | Demolition crew      | Fachbetrieb für Rückbau    | `DEMOLITION_CREW`  | Walls destroyed, **2,500** in all                                                                | stat | a match: Thomas 246, Mausica 147 — about 10 and 17 matches                        |
+| 13  | Demolition crew      | Fachbetrieb für Rückbau    | `DEMOLITION_CREW`  | Walls destroyed, **2,500** in all                                                                | stat | a match: Thomas 234, Mausica 135 — about 11 and 19 matches                        |
 | 14  | Seasoned             | Gut gewürzt                | `SEASONED`         | Win a match (Level 5 floor)                                                                      | M    | Thomas won all 5 of his free-for-alls against Level 5                             |
 | 15  | Warlord              | Feldherr                   | `WARLORD`          | Win a match (Level 8 floor)                                                                      | H    | not recorded                                                                      |
 | 16  | Untouchable          | Unantastbar                | `UNTOUCHABLE`      | Finish a whole match never spending a life                                                       | H    | no person in 29 full matches; Level 3–4 bots 27%, Level 5 6%                      |
 | 17  | Sole survivor        | Allein auf weiter Flur     | `SOLE_SURVIVOR`    | Win by knocking everyone out, before the round cap                                               | H    | 2 of 20 matches ended so, both won by bots                                        |
-| 18  | Good neighbour       | Gute Nachbarschaft         | `GOOD_NEIGHBOUR`   | A teammate's castle is sealed at a resolution with your blocks in its wall                       | E    | a piece on a teammate's island: Thomas 53% of team matches, Mausica 27%           |
+| 18  | Good neighbour       | Gute Nachbarschaft         | `GOOD_NEIGHBOUR`   | A teammate's castle is sealed at a resolution with your blocks in its wall                       | E    | Thomas 5 of his 19 matches, Mausica 1 of 9                                        |
 | 19  | In good company      | In guter Gesellschaft      | `IN_GOOD_COMPANY`  | Win a team match                                                                                 | E    | Thomas's teams won 9 of 13                                                        |
 | 20  | Season ticket        | Dauerkarte                 | `SEASON_TICKET`    | Play a tournament to its end                                                                     | E    | not recorded; some 5–8 matches                                                    |
 | 21  | Champion             | Pokalheld                  | `CHAMPION`         | Win a tournament                                                                                 | M    | not recorded                                                                      |
@@ -136,19 +138,22 @@ so a match played with Steam not running counts for nothing.
 | Package | What                                                                                   | Needs our App ID          |
 | ------- | -------------------------------------------------------------------------------------- | ------------------------- |
 | **AC1** | The draft, judged against the recordings, reviewed: the 35 (done, 2026-11-12, 15zz)    | no                        |
-| **AC2** | The definitions and their detection, pure and tested                                   | no                        |
+| **AC2** | The definitions and their detection, pure and tested (done, 2026-11-12, 16a)           | no                        |
 | **AC3** | The client and the desktop app's bridge to Steam                                       | no (480 for the plumbing) |
 | **AC4** | The texts in English, German and Hessian; the icons                                    | no                        |
 | **AC5** | Steamworks: the achievements, stats, icons and texts entered; tried on the beta branch | yes                       |
 
-- **AC2 — Definitions and detection.** `config/achievements.json` behind a schema (the API names,
-  kinds, floors, thresholds and stats, cross-checked). A pure detector, in a package of its own or
-  `packages/analysis` beside the statistics: fed one seat's view of a match — the events, the
-  state at each resolution, the table (levels, teams, online, towers) — it answers the
-  achievements unlocked and the stats' increments. Tests on ASCII boards (`stateFromAscii`) for
-  the geometric ones, on replayed recordings for the rest. And the harness reports what each seat
-  would have unlocked over recordings (`--replay … --achievements`), which repeats ARCHIVE 15zz's
-  figures from the real detector and checks them whenever a rule changes.
+- **AC2 — Definitions and detection — done** (ARCHIVE 16a). `config/achievements.json`, every
+  achievement by its API name with its thresholds, behind a schema that names each key
+  (`AchievementsConfigSchema`, `ACHIEVEMENT_IDS` in `packages/config`), and `achievementProblems`,
+  which refuses what the ruleset makes impossible. The detector is `AchievementWatcher` in
+  `packages/analysis/src/achievements.ts`, for one seat (`{ seat, levels }`, a person's level
+  null) and what it already holds: fed `observe(state, events, present)` after every step, it
+  gives what was earned (`drain()`) and the match's stats (`stats`). Beside it
+  `statAchievements` over Steam's totals, `towersBoughtCount` for the towers' progress, and
+  `tournamentAchievements` over a tournament's result. Read the manual is AC3's. Tested on ASCII
+  boards and made-up events (`achievements.test.ts`); `--replay recordings/ --achievements` in
+  the harness reports what each seat of the recordings would have earned.
 - **AC3 — The client and the bridge.** The client feeds the detector as the match plays (§3's
   gates in one pure function) and handles what it alone sees — How to play's pages, a tournament's
   end. The desktop app's preload offers the page `achieve(id)`, `addStat(name, by)` and

@@ -1,8 +1,18 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-import { statsOfRecording, type StatRow } from '@bollfort/analysis';
-import { personalityWords, type ConfigBundle } from '@bollfort/config';
+import {
+  achievementsOfRecording,
+  statsOfRecording,
+  type SeatAchievements,
+  type StatRow,
+} from '@bollfort/analysis';
+import {
+  ACHIEVEMENT_IDS,
+  defaultAchievements,
+  personalityWords,
+  type ConfigBundle,
+} from '@bollfort/config';
 import { parseRecording, setupOfRecorded } from '@bollfort/protocol';
 import type { MatchState } from '@bollfort/sim';
 
@@ -79,4 +89,66 @@ export function replayAll(bundle: ConfigBundle, paths: readonly string[]): StatR
     );
   }
   return rows;
+}
+
+/**
+ * What each seat of the recordings would have earned (docs/STEAM_ACHIEVEMENTS.md, AC2), as
+ * shares of seat-matches: people by name, bots by level. Only recordings that replay exactly
+ * count — after a mismatch the board is another match's — and the stats as a match's average.
+ * The check that the thresholds still say what ARCHIVE 15zz measured, whenever a rule changes.
+ */
+export function replayAchievements(paths: readonly string[]): void {
+  const files = recordingFiles(paths);
+  const seats: SeatAchievements[] = [];
+  let exact = 0;
+  for (const file of files) {
+    let lines;
+    try {
+      lines = parseRecording(readFileSync(file, 'utf8'));
+    } catch {
+      continue;
+    }
+    if (lines[0]?.kind !== 'header') continue;
+    const { seats: found, replay } = achievementsOfRecording(defaultAchievements, lines);
+    if (replay.mismatches.length > 0 || replay.refused > 0) continue;
+    exact++;
+    seats.push(...found);
+  }
+  console.log(`${exact} of ${files.length} recording(s) replayed exactly\n`);
+
+  const groupOf = (seat: SeatAchievements): string =>
+    seat.level === null
+      ? seat.name
+      : seat.level <= 4
+        ? 'L1-4'
+        : seat.level === 5
+          ? 'L5'
+          : seat.level <= 7
+            ? 'L6-7'
+            : 'L8+';
+  const groups = [...new Set(seats.map(groupOf))].sort((a, b) =>
+    a.startsWith('L') === b.startsWith('L') ? a.localeCompare(b) : a.startsWith('L') ? 1 : -1,
+  );
+  const of = (group: string): SeatAchievements[] => seats.filter((s) => groupOf(s) === group);
+  const width = 22;
+  console.log(
+    'achievement'.padEnd(width) + groups.map((g) => `${g} (${of(g).length})`.padStart(14)).join(''),
+  );
+  for (const id of ACHIEVEMENT_IDS) {
+    const cells = groups.map((g) => {
+      const members = of(g);
+      const n = members.filter((s) => s.unlocked.includes(id)).length;
+      return `${Math.round((100 * n) / Math.max(1, members.length))}%`.padStart(14);
+    });
+    console.log(id.padEnd(width) + cells.join(''));
+  }
+  console.log('\na match on average');
+  for (const stat of ['castles_sealed', 'walls_destroyed'] as const) {
+    const cells = groups.map((g) => {
+      const members = of(g);
+      const sum = members.reduce((total, s) => total + s.stats[stat], 0);
+      return String(Math.round(sum / Math.max(1, members.length))).padStart(14);
+    });
+    console.log(stat.padEnd(width) + cells.join(''));
+  }
 }

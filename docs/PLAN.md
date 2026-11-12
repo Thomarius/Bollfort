@@ -1879,7 +1879,8 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    designed (STEAM.md §6.1), not planned: the trademark and tax questions come first. **Steam
    achievements** (2026-11-12, the user's, while Valve answers): 35, named and their thresholds
    from the recordings (ARCHIVE 15zz), and packages AC1–AC5 in
-   [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md); AC1 done, next AC2.
+   [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md); AC1 and AC2 done (ARCHIVE 16a), next AC4
+   or AC3.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

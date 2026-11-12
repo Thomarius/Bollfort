@@ -47,6 +47,7 @@ npm start     -w @bollfort/server   # serves the built client at http://localhos
 npm start     -w @bollfort/headless -- --matches 8 --players 3 --level 5 --stats out.csv
 npm start     -w @bollfort/headless -- --map --players 3 --seed 2   # print a map as ASCII
 npm start     -w @bollfort/headless -- --replay recordings/ --stats human.csv   # recorded human play
+npm start     -w @bollfort/headless -- --replay recordings/ --achievements   # the Steam achievements each seat would have earned
 npm start     -w @bollfort/headless -- --matches 4 --level 6 --record /tmp/rec   # bot matches as recordings
 npx tsx tools/headless/src/placements.ts [/tmp/rec]   # where each piece's cells ended, people or bots
 npm start     -w @bollfort/headless -- --tournament --count 400 --league --double  # tournaments by rolls
@@ -635,8 +636,9 @@ server rebuilt and every page reloaded for):
   store page typed in. **Meanwhile: Steam achievements** (2026-11-12), designed in
   `docs/STEAM_ACHIEVEMENTS.md` — the user's rules (bot matches count, floors of Level 5 and 8 at
   most, grind of 10–20 matches at most, no hidden ones, none about the looks): **35**, named in
-  English and German, their thresholds from the recordings (ARCHIVE 15zz, AC1 done); next AC2,
-  the definitions and their detection.
+  English and German, their thresholds from the recordings (ARCHIVE 15zz, AC1 done), and their
+  config and detector (`config/achievements.json`, `AchievementWatcher`; ARCHIVE 16a, AC2 done);
+  next AC4, the texts and icons, or AC3, the client and the bridge to Steam.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

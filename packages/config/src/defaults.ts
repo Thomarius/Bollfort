@@ -5,6 +5,7 @@ import audioJson from '../../../config/audio.manifest.json' with { type: 'json' 
 import serverJson from '../../../config/server.default.json' with { type: 'json' };
 import aiJson from '../../../config/ai.default.json' with { type: 'json' };
 import tournamentJson from '../../../config/tournament.default.json' with { type: 'json' };
+import achievementsJson from '../../../config/achievements.json' with { type: 'json' };
 import enJson from '../../../config/locale/en.json' with { type: 'json' };
 import deJson from '../../../config/locale/de.json' with { type: 'json' };
 import hesJson from '../../../config/locale/hes.json' with { type: 'json' };
@@ -17,6 +18,7 @@ import { ServerConfigSchema, type ServerConfig } from './server.js';
 import { AiConfigSchema, type AiConfig } from './ai.js';
 import { TournamentConfigSchema, type TournamentConfig } from './tournament.js';
 import { LocaleSchema, type Language, type Locale } from './locale.js';
+import { AchievementsConfigSchema, type AchievementsConfig } from './achievements.js';
 
 /**
  * Parsed at module load, so a malformed config file fails immediately at startup
@@ -30,6 +32,10 @@ export const defaultServerConfig: ServerConfig = ServerConfigSchema.parse(server
 export const defaultAiConfig: AiConfig = AiConfigSchema.parse(aiJson);
 export const defaultTournamentConfig: TournamentConfig =
   TournamentConfigSchema.parse(tournamentJson);
+
+/** The Steam achievements' thresholds (docs/STEAM_ACHIEVEMENTS.md), apart from the bundle: no rule reads them. */
+export const defaultAchievements: AchievementsConfig =
+  AchievementsConfigSchema.parse(achievementsJson);
 
 export const defaultConfigBundle = {
   ruleset: defaultRuleset,

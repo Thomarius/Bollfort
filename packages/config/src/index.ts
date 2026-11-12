@@ -8,5 +8,6 @@ export * from './server.js';
 export * from './settings.js';
 export * from './ai.js';
 export * from './tournament.js';
+export * from './achievements.js';
 export * from './bundle.js';
 export * from './defaults.js';

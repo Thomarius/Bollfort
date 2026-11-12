@@ -12006,3 +12006,47 @@ a narrow win and a last-life win (luck), the eight-player free-for-all, the long
 with large tables), Arsenal, three crowns, a perfect phase of shots (people lose shots to walls
 others took), the long way round, and a win online. The 35: 14 easy, 13 medium, 5 hard, 3 stats;
 every tower its own.
+
+## 16a. Steam achievements, AC2: their definitions and detection (2026-11-12)
+
+The 35 of 15zz as code (STEAM_ACHIEVEMENTS.md §6). **The config**, `config/achievements.json`:
+every achievement under its API name, with its numbers, in the list's order, which is Steam's.
+Its schema names every key (`AchievementsConfigSchema`), so an achievement cannot be missing from
+the file or unknown to the code, and `ACHIEVEMENT_IDS` is read from it; `achievementProblems`
+refuses what the ruleset makes impossible — more towers than the island holds, a beam, wave,
+chain or lullaby asked for more than its dearer variant can do, Warlord's floor not above
+Seasoned's. It stands apart from the config bundle, which no rule of it reads.
+
+**The detector**, `AchievementWatcher` (`packages/analysis`), for one seat, fed after every
+step as `RoundStats` is. It reads only the match's events and its state, so nothing is sent and
+nothing taken on another page's word. Where it had to choose:
+
+- A breach (Knock knock) is seen by counting the sealed castles afresh after walls fall, once a
+  step, since `enclosedCastles` is not refreshed by shots — and only until the achievement is
+  held, its one dear check.
+- The overtime is a piece laid at or after the build clock's end, from the build phase's own
+  `phase_changed`; "with no castle sealed" is the seat's `enclosedCastles` before the step, which
+  placements and the phase's opening keep true.
+- A barrage runs from the combat phase to the build phase, so shots landing in the intermission
+  count; Lights out reads the barrage before the resolution, and Cold shoulder a freeze from it.
+- Good neighbour: a block the seat laid on a teammate's island, still a wall, bordering ground
+  that teammate holds sealed at a resolution.
+- A win is the seat's team's alone; a floor reads only opponent bots; Untouchable needs no life
+  spent, not out, and never a bot in the seat.
+- `present` false while a bot plays for an absent person: nothing is credited, and a result
+  needs the person seated at the end. Achievements already held are skipped.
+
+The stats' three are `statAchievements` over Steam's totals, a tournament's three
+`tournamentAchievements`, Read the manual the client's (AC3).
+
+**Over the recordings** (`npm start -w @bollfort/headless -- --replay recordings/ --achievements`,
+the 20 that replay exactly), the detector agreed with 15zz's measurement but for two: an overtime
+save is rarer than the throwaway script had counted (Thomas 53%, Mausica 56% of matches, where it
+had 73 and 100%: it had compared against a seal count gone stale during the build phase), and
+castles sealed came to 20 a match for Thomas and 12 for Mausica, so Seal of approval went from 250
+to 200 to keep within the user's 10–20 matches (Thomas about 10, Mausica 17). Walls destroyed
+234 and 135 a match, 2,500 kept. Ground: Land grab Thomas 58%, Mausica 11%; Kingdom come Thomas
+11%. Nobody's match without a life spent, as before.
+
+The check also found `steamworks.js` and `koffi` missing from this machine's `node_modules` —
+the desktop app's typecheck and the licences' test failed on it — which `npm install` restored.

@@ -101,7 +101,7 @@ host leaving fixed the same day, approved on Windows with v0.10.2, and the bench
 answered the Steamworks registration (still waiting, 2026-11-11). **S3.6** (§7.3), a player who dropped coming back by an invite or the restart's
 prompt, built and passing the bench (2026-11-09, ARCHIVE 15zu). **While Valve answers**: Steam
 achievements, designed in [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md) (2026-11-12), its
-list of 35 chosen (AC1), next AC2.
+list of 35 chosen (AC1) and detected (AC2), next AC4 or AC3.
 
 ## 3. The Steam build (S1, S2)
 
