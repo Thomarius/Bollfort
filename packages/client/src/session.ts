@@ -77,6 +77,16 @@ export interface Session {
   requestRematch(): void;
   /** The match screen is gone: whatever still works for the match stops (a local one's bots). */
   dispose?(): void;
+  /**
+   * Every step from now on, with its events, and a board replaced by the server's (a rejoin,
+   * steps missed): the achievements' detector (AC3).
+   */
+  watchSteps?(
+    step: (state: MatchState, events: readonly MatchEvent[]) => void,
+    replaced: (state: MatchState) => void,
+  ): void;
+  /** Each player's bot level by player id, null for a person, where the page knows it better than the setup's seats do. */
+  readonly botLevels?: readonly (number | null)[];
 }
 
 export interface Setup {
@@ -188,6 +198,11 @@ export function localSession(match: LocalMatch, rematch: (() => void) | null = n
     rematch: rematch === null ? null : 'mine',
     requestRematch: () => rematch?.(),
     dispose: () => match.dispose(),
+    watchSteps: (step) => {
+      match.onStep = step;
+    },
+    // Seats are dealt onto players, so the setup's seats are not in player order here.
+    botLevels: match.state.players.map((p) => match.setups.get(p.id)?.level ?? null),
   };
 }
 
@@ -294,6 +309,10 @@ export function networkSession(
       return hostHere() && connection.state !== 'closed' ? 'host' : null;
     },
     requestRematch: () => connection.send({ type: 'rematch' }),
+    watchSteps: (step, replaced) => {
+      match.onStep = step;
+      match.onReplaced = replaced;
+    },
   };
 }
 

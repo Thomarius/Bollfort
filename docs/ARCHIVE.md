@@ -12074,3 +12074,42 @@ contrast(0.85)`); `npm run achievements -w @bollfort/storeart` writes the 70 PNG
 contact sheet at 256, 64 and 32 px and an overview of the set (`overview.png`). The first six
 were judged by the user before the rest were drawn ("great"); the 70 are kept in
 `assets/steam/achievements/` (3.5 MB) for AC5's upload.
+
+## 16c. Steam achievements, AC3: the client and the bridge to Steam (2026-11-12)
+
+**Which matches count** is one pure function, `matchCounts` (`client/src/steam/achievements.ts`):
+a person seated, not the demo, and none of `snapshot`, `speed`, `autopilot`, `round`, `watch` or
+`demo` in the address — the bench's `--game-params autopilot=1` among them, so the bench earns
+nothing. Only in the Steam build with Steam up and achievements on, which the app decides
+(`SteamInfo.achievements`).
+
+**The detector is fed every step**, not every frame: `LocalMatch` and `NetworkMatch` tell an
+`onStep` listener after each step with that step's events, so a frame spanning a resolution
+reads each state as the detector expects. `runSession` asks Steam for the achievements already
+held before it builds the board — so no step comes first — and wires a `MatchAchievements` to
+the session (`watchSteps`). Each achievement goes to Steam as it is earned. A board replaced by
+the server's (a rejoin, `onReplaced`), or first seen after its start, was played in part by a bot:
+the detector is told the seat was away, so nothing whole is credited (Untouchable), while a win
+with the person seated at the end still is. The bots' levels by player come from the match locally
+(seats are dealt onto players) and from the lobby's table online.
+
+**At the match's end** `settleStats` adds the match's counts to Steam's totals, ORs the towers'
+mask and counts it, unlocks the stats' achievements the totals meet, and asks for Steam's progress
+popup where a stat crossed a quarter of its way without arriving. A match left before its end adds
+no stats. A tournament's end (`showEnding`) gives its achievements from `tournamentResultOf` (the
+host's team's matches, and those it placed first in); How to play keeps the pages shown in the
+page's storage, and the last one unlocks Read the manual.
+
+**The app's side**, `SteamAchievements` (`desktop/src/steamAchievements.ts`), behind IPC calls
+checked for shape: `steamworks.js`'s `activate`, `isActivated`, `getInt`, `setInt` and `store`,
+with `IndicateAchievementProgress` and `RequestCurrentStats` through `koffi`. Its library is from
+before Steam loaded a player's stats by itself (`ISteamUserStats` v012), so they are asked for as
+Steam starts, and an achievement asked for before they arrive waits and is tried again every 2 s,
+given up after 15 tries — a name Steamworks does not know fails for ever. Stats are only ever
+raised, and stored once a match. Under App ID 480 achievements are off unless
+`BOLLFORT_ACHIEVEMENTS=spacewar`, which puts ours onto Spacewar's: the first match and win onto
+its first two achievements, the rest onto its third, three stats onto its integers — its names as
+its example has them, to be confirmed by the trial.
+
+Open for the trial on 480: whether `steamworks.js`'s `activate` stores at once (then Steam's popup
+shows mid-match, as earned) or waits for the match's `store`, and whether Spacewar's names hold.

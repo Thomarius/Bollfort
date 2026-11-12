@@ -22,6 +22,7 @@ const PAD_CAPTIONS: Partial<Record<TextKey, TextKey>> = {
 import { motionReduced } from './motion.js';
 import { store, stored } from './storage.js';
 import { EMBLEMS } from './towerIcons.js';
+import { howToPageShown } from './steam/achievements.js';
 
 /**
  * How to play (PLAN 11.16 H1): a few pages opened from the menu and the pause menu, each a
@@ -1455,7 +1456,11 @@ export function openHowToPlay(
   const show = (to: number): void => {
     at = Math.max(0, Math.min(pages.length - 1, to));
     since = performance.now();
-    const { chapter } = pages[at]!;
+    const { chapter, page } = pages[at]!;
+    howToPageShown(
+      page.caption,
+      pages.map((p) => p.page.caption),
+    );
     writeCaption();
     for (const tab of tabs) tab.classList.toggle('on', tab.dataset.section === chapter.id);
     // The dots of the section shown only, its page's lit.

@@ -65,6 +65,7 @@ import { endingMarkup, tournamentTab } from './tournamentView.js';
 import { openTowerMenu } from './towerMenu.js';
 import { preferredSpecials, preferredTower, saveSpecials, saveTower } from './towers.js';
 import { saveTable, storedTable, type RememberedTable } from './tableMemory.js';
+import { tournamentEnded } from './steam/achievements.js';
 
 /** The lobby, one screen whether a server holds the table or the browser does. */
 
@@ -319,6 +320,7 @@ export function wireBracket(save: Save, progress: Progress): void {
 
 /** A tournament's end, won or out, as the host's page and their teammates' show it. */
 export function showEnding(save: Save, progress: Progress, back: () => void): void {
+  tournamentEnded(save, progress);
   app!.innerHTML = endingMarkup(save, progress);
   audio.music(progress.status.kind === 'won' ? 'music_victory' : 'music_defeat');
   wireBracket(save, progress);

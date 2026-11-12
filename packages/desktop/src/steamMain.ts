@@ -22,6 +22,13 @@ import { PageLinks, type PageLinkEvent } from './pageLinks.js';
 import { AvatarWatch, steamAvatarSource } from './steamAvatars.js';
 import { SteamLobby, hereAnswer, type AskedLobby, type LobbyKind } from './steamLobby.js';
 import { steamInviteUser, type InviteUser } from './steamInvite.js';
+import {
+  STAT_NAMES,
+  SteamAchievements,
+  namingFor,
+  steamProgress,
+  type Stats,
+} from './steamAchievements.js';
 import { steamLobbyFinder, type LobbyFinder } from './steamLobbyFinder.js';
 import { startSteamNet, type SteamNet } from './steamNet.js';
 
@@ -43,6 +50,8 @@ const clientDir = app.isPackaged
 app.setName('Bollfort');
 
 const plan = startPlan(process.platform, process.argv, STEAM_APP_ID);
+/** How achievements reach Steam: ours, Spacewar's on 480 behind the switch, or none (AC3). */
+const naming = namingFor(STEAM_APP_ID, process.env['BOLLFORT_ACHIEVEMENTS']);
 
 /**
  * The start's steps, with the time since the process began, in `start.log` beside the
@@ -123,6 +132,7 @@ function initSteam(): { info: SteamInfo; client: SteamClient | null } | null {
         steamId: client.localplayer.getSteamId().steamId64.toString(),
         language: client.apps.currentGameLanguage(),
         error: null,
+        achievements: naming !== 'off',
       },
     };
   } catch (e) {
@@ -280,6 +290,39 @@ async function run(): Promise<void> {
       return null;
     }
   });
+  // Achievements and stats (docs/STEAM_ACHIEVEMENTS.md AC3): the page says what was earned;
+  // nothing without Steam, or under 480 without the switch.
+  let achievements: SteamAchievements | null = null;
+  const ACHIEVEMENT_ID = /^[A-Z][A-Z_]{1,40}$/;
+  ipcMain.handle('host-achievements-held', (_event, ids: unknown) =>
+    Array.isArray(ids)
+      ? (achievements?.held(
+          ids.filter((id): id is string => typeof id === 'string' && ACHIEVEMENT_ID.test(id)),
+        ) ?? [])
+      : [],
+  );
+  ipcMain.on('host-achieve', (_event, id: unknown) => {
+    if (typeof id === 'string' && ACHIEVEMENT_ID.test(id)) achievements?.achieve(id);
+  });
+  ipcMain.handle('host-stats', () => achievements?.stats() ?? null);
+  ipcMain.handle('host-set-stats', (_event, stats: unknown) => {
+    if (achievements === null || typeof stats !== 'object' || stats === null) return false;
+    const given = stats as Record<string, unknown>;
+    const values = {} as Stats;
+    for (const name of STAT_NAMES) {
+      const value = given[name];
+      if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) return false;
+      values[name] = value;
+    }
+    return achievements.setStats(values);
+  });
+  ipcMain.on('host-achievement-progress', (_event, id: unknown, current: unknown, max: unknown) => {
+    if (typeof id !== 'string' || !ACHIEVEMENT_ID.test(id)) return;
+    if (typeof current !== 'number' || typeof max !== 'number') return;
+    if (!Number.isSafeInteger(current) || !Number.isSafeInteger(max) || max <= 0) return;
+    achievements?.progress(id, current, max);
+  });
+
   ipcMain.on('host-presence', (_event, presence: unknown) => {
     if (steamClient === null || typeof presence !== 'object' || presence === null) return;
     for (const [key, value] of Object.entries(presence))
@@ -342,6 +385,28 @@ async function run(): Promise<void> {
         askJoin(lobby_steam_id.toString(), friend_steam_id.toString()),
     );
     net = p2p;
+    if (naming !== 'off') {
+      let indicate: (name: string, current: number, max: number) => boolean = () => false;
+      try {
+        indicate = steamProgress();
+      } catch (e) {
+        log(`no achievement progress, stats not asked for: ${(e as Error).message}`);
+      }
+      const client = steamClient;
+      achievements = new SteamAchievements(
+        {
+          activate: (name) => client.achievement.activate(name),
+          isActivated: (name) => client.achievement.isActivated(name),
+          getInt: (name) => client.stats.getInt(name),
+          setInt: (name, value) => client.stats.setInt(name, value),
+          store: () => client.stats.store(),
+          indicateProgress: indicate,
+        },
+        naming,
+        log,
+      );
+      log(`achievements on (${naming})`);
+    }
     links = new PageLinks((host, events) => p2p.guest.dial(host, events), tellPage);
     log('Steam P2P ready');
     try {

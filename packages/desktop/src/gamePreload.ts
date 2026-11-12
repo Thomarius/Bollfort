@@ -63,6 +63,20 @@ const host = {
     ipcRenderer.invoke('host-lobby-list', filter ?? {}),
   /** Asks a host over P2P where its game is: its room and lobby, or null. */
   find: (host: string): Promise<unknown> => ipcRenderer.invoke('host-find', host),
+  // Achievements and stats (docs/STEAM_ACHIEVEMENTS.md AC3), by API name; see `steamAchievements.ts`.
+  /** Of these achievements, those the player holds; none while Steam has not loaded them. */
+  achievementsHeld: (ids: readonly string[]): Promise<string[]> =>
+    ipcRenderer.invoke('host-achievements-held', ids),
+  /** Unlocks an achievement, now or as soon as Steam can. */
+  achieve: (id: string): void => ipcRenderer.send('host-achieve', id),
+  /** Steam's stats, or null while not loaded. */
+  stats: (): Promise<Record<string, number> | null> => ipcRenderer.invoke('host-stats'),
+  /** New totals for Steam's stats, each only raised, and everything stored. */
+  setStats: (stats: Record<string, number>): Promise<boolean> =>
+    ipcRenderer.invoke('host-set-stats', stats),
+  /** Steam's popup of an achievement's progress. */
+  achievementProgress: (id: string, current: number, max: number): void =>
+    ipcRenderer.send('host-achievement-progress', id, current, max),
   /** Steam's rich presence: each key set, or cleared with null. */
   presence: (values: Record<string, string | null>): void =>
     ipcRenderer.send('host-presence', values),

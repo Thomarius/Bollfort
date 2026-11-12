@@ -103,6 +103,8 @@ export class LocalMatch {
   readonly setups: ReadonlyMap<number, BotSetup>;
   /** Paused: no new tick is taken, though a turn already out is still applied. */
   halted = false;
+  /** Told after every step with that step's events: the achievements' detector (AC3). */
+  onStep: ((state: MatchState, events: readonly MatchEvent[]) => void) | null = null;
   private driver: BotDriver;
   private readonly seed: number;
   private readonly tickMs: number;
@@ -388,7 +390,9 @@ export class LocalMatch {
   private stepOnce(hashWanted = false): string | undefined {
     const tick = this.state.tick;
     step(this.state);
-    this.events.push(...drainEvents(this.state));
+    const fresh = drainEvents(this.state);
+    this.events.push(...fresh);
+    this.onStep?.(this.state, fresh);
     const recorded = this.recorder?.stepped(tick, this.applied, this.state);
     const hash = recorded ?? (hashWanted ? hashMatchState(this.state) : undefined);
     this.applied = [];

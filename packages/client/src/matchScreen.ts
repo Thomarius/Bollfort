@@ -58,6 +58,7 @@ import type { Session, Setup } from './session.js';
 import { showMenu } from './menu.js';
 import { BoardEffects } from './boardEffects.js';
 import { leakCells } from './leak.js';
+import { achievementsOn, matchAchievements, matchCounts } from './steam/achievements.js';
 import type { Cell } from './render/theme.js';
 
 /** A match on screen: the board, the HUD, the sound and the controls, frame by frame. */
@@ -108,6 +109,20 @@ export async function runSession(
   setup: Setup,
   exits: MatchExits = {},
 ): Promise<() => void> {
+  // Steam achievements (docs/STEAM_ACHIEVEMENTS.md AC3): the person's own play, the detector fed
+  // every step from here. Asked before the board is built, so no step can come first; a board
+  // joined after its start was played in part by a bot, which the detector is told.
+  if (achievementsOn() && matchCounts(params, session.humanPlayer, exits.demo === true)) {
+    const joinedLate = session.state.tick > 0;
+    const watch = await matchAchievements(session.humanPlayer, session.botLevels ?? setup.seats);
+    if (watch !== null) {
+      if (joinedLate) watch.rejoined(session.state);
+      session.watchSteps?.(
+        (state, events) => watch.step(state, events),
+        (state) => watch.rejoined(state),
+      );
+    }
+  }
   // Over the board until its first frame (PLAN 11.18 Y1): building both looks' sprites
   // takes about a second as a match opens, and more with every look added, which read as
   // the page freezing. Painted before that work starts, so it is on screen through it.

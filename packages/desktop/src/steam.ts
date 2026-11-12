@@ -60,6 +60,11 @@ export interface SteamInfo {
   language: string | null;
   /** Why Steam did not initialise, for the log. */
   error: string | null;
+  /**
+   * Whether achievements count (docs/STEAM_ACHIEVEMENTS.md §3.1): with Steam, under our App ID,
+   * or under 480 behind `BOLLFORT_ACHIEVEMENTS=spacewar` (`steamAchievements.ts`).
+   */
+  achievements: boolean;
 }
 
 export const NO_STEAM: SteamInfo = {
@@ -68,6 +73,7 @@ export const NO_STEAM: SteamInfo = {
   steamId: null,
   language: null,
   error: null,
+  achievements: false,
 };
 
 /** The window's remembered choice: fullscreen unless the player left it (STEAM.md §3.5). */

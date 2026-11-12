@@ -9,6 +9,7 @@ import { forgetMatch, keepMatch, keptMatch } from './backToMatch.js';
 import { lobbyDataOf } from './lobbyData.js';
 import { Presence, type Whereabouts } from './presence.js';
 import { steamCodeOf } from './steamCode.js';
+import { startAchievements } from './achievements.js';
 
 /**
  * The page's side of Steam play (STEAM.md §7.3, S3.3): whether this is the Steam build with
@@ -33,6 +34,7 @@ export async function startSteamPlay(): Promise<SteamPlay | null> {
   if (host === null) return null;
   const steam: HostSteam = await host.steam();
   if (!steam.ready || steam.steamId === null) return null;
+  if (steam.achievements) startAchievements(host);
   play = {
     host,
     steamId: steam.steamId,

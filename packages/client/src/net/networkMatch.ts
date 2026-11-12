@@ -56,6 +56,10 @@ export class NetworkMatch {
   private replaced = false;
   /** Who paused the match, as the server last said; null while it runs. */
   pausedBy: number | null = null;
+  /** Told after every step with that step's events: the achievements' detector (AC3). */
+  onStep: ((state: MatchState, events: readonly MatchEvent[]) => void) | null = null;
+  /** Told as a snapshot replaces a board already being played: steps were missed. */
+  onReplaced: ((state: MatchState) => void) | null = null;
 
   constructor(
     private readonly connection: ServerConnection,
@@ -114,6 +118,7 @@ export class NetworkMatch {
         applySnapshot(base, message.snapshot);
         this.replaced = this.state !== null;
         this.state = base;
+        if (this.replaced) this.onReplaced?.(base);
         this.resyncing = false;
         this.pendingHash = null;
         this.events = [];
@@ -188,7 +193,9 @@ export class NetworkMatch {
       }
       const tick = state.tick;
       step(state);
-      this.events.push(...drainEvents(state));
+      const fresh = drainEvents(state);
+      this.events.push(...fresh);
+      this.onStep?.(state, fresh);
       this.accumulatorMs = Math.max(0, this.accumulatorMs - this.tickMs);
       budget--;
 

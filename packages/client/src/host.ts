@@ -11,6 +11,8 @@ export interface HostSteam {
   steamId: string | null;
   language: string | null;
   error: string | null;
+  /** Whether achievements count here (docs/STEAM_ACHIEVEMENTS.md §3.1, the app decides). */
+  achievements: boolean;
 }
 
 /** The Steam build's bridge, as `gamePreload.ts` exposes it. */
@@ -46,6 +48,22 @@ export interface GameHost {
   ): Promise<{ lobby: string; owner: string; data: Record<string, string> }[]>;
   find(host: string): Promise<unknown>;
   presence(values: Record<string, string | null>): void;
+  /** Achievements and stats by API name (AC3); see `steam/achievements.ts`. */
+  achievementsHeld(ids: readonly string[]): Promise<string[]>;
+  achieve(id: string): void;
+  stats(): Promise<{
+    castles_sealed: number;
+    walls_destroyed: number;
+    towers_bought: number;
+    towers_bought_count: number;
+  } | null>;
+  setStats(stats: {
+    castles_sealed: number;
+    walls_destroyed: number;
+    towers_bought: number;
+    towers_bought_count: number;
+  }): Promise<boolean>;
+  achievementProgress(id: string, current: number, max: number): void;
   onJoinAsked(listener: () => void): void;
 }
 
