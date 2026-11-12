@@ -99,7 +99,9 @@ S3's checks by hand with two people (S3.5) run on two Windows machines (2026-11-
 host leaving fixed the same day, approved on Windows with v0.10.2, and the bench's `join`,
 `public` and `private` passed against real Steam. **S3 is done. Next**: S4, once Valve has
 answered the Steamworks registration (still waiting, 2026-11-11). **S3.6** (§7.3), a player who dropped coming back by an invite or the restart's
-prompt, built and passing the bench (2026-11-09, ARCHIVE 15zu).
+prompt, built and passing the bench (2026-11-09, ARCHIVE 15zu). **While Valve answers**: Steam
+achievements, designed in [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md) (2026-11-12), its
+list of 35 chosen (AC1), next AC2.
 
 ## 3. The Steam build (S1, S2)
 
@@ -1186,7 +1188,9 @@ in progress are lost once, and the desktop app's old data folder stays behind.
 ## 10. Later, perhaps
 
 A small paid DLC of new things, if the game is received well: the supporter pack of five styles,
-designed (§6.1), not planned. Achievements.
+designed (§6.1), not planned. Achievements: 35, designed with packages AC1–AC5, all but the
+last buildable before the App ID ([`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md), 2026-11-12,
+ARCHIVE 15zz).
 Steam Cloud for tournament saves. Quick match (still PLAN §12). The host handed to a guest when
 the host leaves (weighed 2026-11-11, ARCHIVE 15zw: feasible, every page replaying the match, some
 two to three sessions; decided after the first test rounds, by how often hosts leave). Joining a running match by taking over a bot's seat, so the browser could list

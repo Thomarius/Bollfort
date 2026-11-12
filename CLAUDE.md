@@ -632,7 +632,11 @@ server rebuilt and every page reloaded for):
   graphics, `sysreq.ts` running on both: 56–59 fps at full screen, two slow cores enough, the
   lines unchanged. **Next: S4**, waiting on Valve's answer to the Steamworks registration
   (2026-11-11): then the fee, the App ID, the release job switched on (STEAM.md §9.2) and the
-  store page typed in.
+  store page typed in. **Meanwhile: Steam achievements** (2026-11-12), designed in
+  `docs/STEAM_ACHIEVEMENTS.md` — the user's rules (bot matches count, floors of Level 5 and 8 at
+  most, grind of 10–20 matches at most, no hidden ones, none about the looks): **35**, named in
+  English and German, their thresholds from the recordings (ARCHIVE 15zz, AC1 done); next AC2,
+  the definitions and their detection.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

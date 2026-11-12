@@ -11959,3 +11959,50 @@ room with `server_closed` and gives the message 300 ms to leave before cutting t
 page told so gives up at once, as on `host_left` (`ServerConnection.ended`), and says "The
 server has closed — the match ran on that server, so it is over", Back to menu; in the lobby, the
 menu says so. Tested against the real WebSocket server (`server.test.ts`) and in the room.
+
+## 15zz. Steam achievements: the list of 35 (2026-11-12)
+
+While S4 waits on Valve, the user asked for Steam achievements (STEAM.md §10), designed in
+`docs/STEAM_ACHIEVEMENTS.md`, its package AC1 the list. The user's rules: bot matches count, a
+level floor only where named and then Level 5 or 8 (10 too hard); a stat no more than 10–20
+matches of ordinary play; special towers a core feature; no hidden achievements and few online;
+puns where they suit.
+
+**A first draft of 62**, in seven groups, judged one by one against the recordings rather than
+by soaks (the user's: they hold enough). A throwaway script, removed after, read all 34
+recordings (2026-09-28 to 2026-10-23): round figures from each match's own `.stats.csv`, written
+by the code that played it; event figures by replaying with today's code, 20 exactly and the
+rest up to their first hash mismatch, results from the exact 20 only. Seats: Thomas 36
+seat-matches (the local "You" and "Du" counted as his), Mausica 14, bots 115 (Level 3–6). Caveats:
+33 of 34 from before scoring by ground and guns, the people mostly a team against Level 4–5, one
+match with towers, no tournament ends, looks or awards recorded, never a person against a person.
+
+What the recordings changed:
+
+- **Easier than guessed**: an overtime piece saving the round (Thomas 73%, Mausica 100% of
+  matches), a single shot opening a castle (6 a match), four castles at once (42 / 21%).
+- **Harder than guessed**: nobody played a whole match without spending a life (0 of 29 full
+  matches; failed seals a median 1 a match for every group, Level 5 bots 6% clean) — so "Iron
+  wall" and the team pool kept whole were dropped, and Untouchable became "finish a match never
+  spending a life", no floor, no win.
+- **Thresholds raised to the measured spread**: walls a combat phase 30 → 40 (Thomas 45%, Mausica's
+  best 27), pieces a build phase 14 → 20, longest hit 40 → 50 tiles, guns active 12 → 15; stats
+  at about 10 matches for Thomas and 17–19 for Mausica (250 castles sealed, 10,000 tiles, 2,500
+  walls); 10 wins → 5.
+- **Unmeasurable or unreachable**: the tightest seal's cost as a phase opens (`repairAtBuild`)
+  never exceeds 12, so "back from the brink" said nothing; "win online against a person" never
+  happened in 17 rooms, the friends always one team.
+
+**The user's review**: Read the manual kept, for a different kind of achievement; the end screen's
+awards dropped as a collection (never listed, hard to grasp); the Architect's (walls rebuilt in
+one repair) redesigned as **Zoning laws**, three Architects whose reaches do not overlap — the old
+one depended on where the enemies shot; nothing about the looks (styles subjective and hard to
+track), so Grand tour went; Gude! (a match in Hessian) dropped; and no name the same as an end
+screen award's in either language, which renamed seven. Then the 45 best, each named in English
+and German, with ten marked to drop first; the user chose **35**. Left out on the way, among
+others: two castles (94% of matches), real estate beside seals, checkmate, wire to wire (the
+Front-runner award), late surge, the league's top, the archnemesis (mostly the final), veteran,
+a narrow win and a last-life win (luck), the eight-player free-for-all, the long shot (it comes
+with large tables), Arsenal, three crowns, a perfect phase of shots (people lose shots to walls
+others took), the long way round, and a win online. The 35: 14 easy, 13 medium, 5 hard, 3 stats;
+every tower its own.
