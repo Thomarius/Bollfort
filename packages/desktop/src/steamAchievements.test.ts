@@ -8,7 +8,12 @@ class FakeSteam implements StatsApi {
   loaded = false;
   readonly unlocked = new Set<string>();
   readonly ints = new Map<string, number>();
-  readonly known = new Set<string>(['FIRST_WIN', 'POCKET', 'ACH_WIN_ONE_GAME', 'ACH_HEAVY_FIRE']);
+  readonly known = new Set<string>([
+    'FIRST_WIN',
+    'POCKET',
+    'ACH_WIN_ONE_GAME',
+    'ACH_TRAVEL_FAR_SINGLE',
+  ]);
   stores = 0;
   progressShown: [string, number, number][] = [];
 
@@ -122,7 +127,7 @@ describe('Steam achievements, the app’s side', () => {
     const spacewar = new SteamAchievements(steam, 'spacewar');
     spacewar.achieve('FIRST_MATCH');
     spacewar.achieve('POCKET');
-    expect([...steam.unlocked].sort()).toEqual(['ACH_HEAVY_FIRE', 'ACH_WIN_ONE_GAME']);
+    expect([...steam.unlocked].sort()).toEqual(['ACH_TRAVEL_FAR_SINGLE', 'ACH_WIN_ONE_GAME']);
     spacewar.setStats({
       castles_sealed: 7,
       walls_destroyed: 9,

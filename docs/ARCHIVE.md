@@ -12111,5 +12111,16 @@ raised, and stored once a match. Under App ID 480 achievements are off unless
 its first two achievements, the rest onto its third, three stats onto its integers — its names as
 its example has them, to be confirmed by the trial.
 
-Open for the trial on 480: whether `steamworks.js`'s `activate` stores at once (then Steam's popup
-shows mid-match, as earned) or waits for the match's `store`, and whether Spacewar's names hold.
+**The trial on 480** (2026-11-12, this machine, the user's account, Steam running): the Steam
+build with `BOLLFORT_ACHIEVEMENTS=spacewar`, driven from its menu over Chromium's debugging port —
+an address's `autostart=1` takes a branch that never starts Steam play, so such a match counts for
+nothing, as it should. A two-player match with the person's seat idle ran to its end in 4 min 20 s:
+`FIRST_MATCH` taken by Steam at once (no retry), the stats stored, Steam then reporting the
+achievement held and the stats read back through the page's own bridge. Two findings: 480's schema
+has no `ACH_HEAVY_FIRE`, which Valve's example names — its achievements are `ACH_WIN_ONE_GAME`,
+`ACH_WIN_100_GAMES`, `ACH_TRAVEL_FAR_ACCUM` and `ACH_TRAVEL_FAR_SINGLE`, its integers `NumGames`,
+`NumWins`, `NumLosses` — so everything else now goes to `ACH_TRAVEL_FAR_SINGLE`, after which
+`IndicateAchievementProgress` answered true; and `steamworks.js`'s `activate` stores by itself —
+Steam's stats file was written at the unlock, with no `store` — so Steam's popup shows the moment
+an achievement is earned, mid-match. The trial left Spacewar's first two achievements unlocked on
+the account.

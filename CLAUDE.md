@@ -640,7 +640,8 @@ server rebuilt and every page reloaded for):
   config and detector (`config/achievements.json`, `AchievementWatcher`; ARCHIVE 16a, AC2 done);
   and their texts and icons (ARCHIVE 16b, AC4 done, `assets/steam/achievements/`); the client and
   the bridge to Steam built (ARCHIVE 16c, AC3: `steam/achievements.ts`, `steamAchievements.ts`),
-  its trial on 480 still to run with `BOLLFORT_ACHIEVEMENTS=spacewar`; then AC5 with the App ID.
+  tried on 480 with `BOLLFORT_ACHIEVEMENTS=spacewar` (an `autostart=1` match never counts: drive the
+  menu); next AC5, with the App ID.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

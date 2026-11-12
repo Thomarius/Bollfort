@@ -143,7 +143,7 @@ the PNGs at 256 px by API name and a contact sheet at 256, 64 and 32 px.
 | ------- | -------------------------------------------------------------------------------------- | ------------------------- |
 | **AC1** | The draft, judged against the recordings, reviewed: the 35 (done, 2026-11-12, 15zz)    | no                        |
 | **AC2** | The definitions and their detection, pure and tested (done, 2026-11-12, 16a)           | no                        |
-| **AC3** | The client and the desktop app's bridge to Steam (built, 16c; the 480 trial to run)    | no (480 for the plumbing) |
+| **AC3** | The client and the desktop app's bridge to Steam (done, 2026-11-12, 16c)               | no (480 for the plumbing) |
 | **AC4** | The texts in English, German and Hessian; the icons (done, 2026-11-12, 16b)            | no                        |
 | **AC5** | Steamworks: the achievements, stats, icons and texts entered; tried on the beta branch | yes                       |
 
@@ -158,8 +158,9 @@ the PNGs at 256 px by API name and a contact sheet at 256, 64 and 32 px.
   `tournamentAchievements` over a tournament's result. Read the manual is AC3's. Tested on ASCII
   boards and made-up events (`achievements.test.ts`); `--replay recordings/ --achievements` in
   the harness reports what each seat of the recordings would have earned.
-- **AC3 — The client and the bridge — built** (ARCHIVE 16c, 2026-11-12); _its trial on 480 with
-  `BOLLFORT_ACHIEVEMENTS=spacewar` is still to run, by the user with Steam._ As designed: The client feeds the detector as the match plays (§3's
+- **AC3 — The client and the bridge — done** (ARCHIVE 16c, 2026-11-12), tried on 480 with
+  `BOLLFORT_ACHIEVEMENTS=spacewar`: unlocks and stats reach Steam; `activate` stores by itself, so
+  Steam's popup shows as an achievement is earned. As designed: The client feeds the detector as the match plays (§3's
   gates in one pure function) and handles what it alone sees — How to play's pages, a tournament's
   end. The desktop app's preload offers the page `achieve(id)`, `addStat(name, by)` and
   `markStat(mask, bit)`; `steamMain.ts` carries them out with `steamworks.js` and `koffi` for

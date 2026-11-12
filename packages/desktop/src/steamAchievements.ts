@@ -42,13 +42,13 @@ export type Stats = Record<StatName, number>;
  * Under App ID 480, behind `BOLLFORT_ACHIEVEMENTS=spacewar`, our names put onto Spacewar's own
  * achievements and stats, to try the plumbing before our App ID (AC3): the first match and win as
  * its two first achievements, everything else as its third, and three of our stats on its three
- * integers. Spacewar's names as its Steamworks example has them — _to confirm_ on 480.
+ * integers. Names as 480's own schema has them (2026-11-12): its example's ACH_HEAVY_FIRE is not there.
  */
 const SPACEWAR_ACHIEVEMENTS: Record<string, string> = {
   FIRST_MATCH: 'ACH_WIN_ONE_GAME',
   FIRST_WIN: 'ACH_WIN_100_GAMES',
 };
-const SPACEWAR_OTHER = 'ACH_HEAVY_FIRE';
+const SPACEWAR_OTHER = 'ACH_TRAVEL_FAR_SINGLE';
 const SPACEWAR_STATS: Partial<Record<StatName, string>> = {
   castles_sealed: 'NumGames',
   walls_destroyed: 'NumWins',
@@ -159,7 +159,11 @@ export class SteamAchievements {
       if (now !== null && value <= now) continue;
       ok = this.api.setInt(steam, value) && ok;
     }
-    return this.api.store() && ok;
+    const stored = this.api.store() && ok;
+    this.log(
+      `stats ${stored ? 'stored' : 'not stored'}: ${STAT_NAMES.map((n) => `${n} ${stats[n]}`).join(', ')}`,
+    );
+    return stored;
   }
 
   /** Steam's popup of a stat's achievement on its way, at its quarters (the page decides). */
