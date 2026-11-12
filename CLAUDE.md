@@ -638,7 +638,8 @@ server rebuilt and every page reloaded for):
   most, grind of 10–20 matches at most, no hidden ones, none about the looks): **35**, named in
   English and German, their thresholds from the recordings (ARCHIVE 15zz, AC1 done), and their
   config and detector (`config/achievements.json`, `AchievementWatcher`; ARCHIVE 16a, AC2 done);
-  next AC4, the texts and icons, or AC3, the client and the bridge to Steam.
+  and their texts and icons (ARCHIVE 16b, AC4 done, `assets/steam/achievements/`); next AC3, the
+  client and the bridge to Steam.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

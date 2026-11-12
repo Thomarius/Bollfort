@@ -127,11 +127,15 @@ Integers kept by Steam: `castles_sealed` (10), `walls_destroyed` (13), and `towe
 the mask makes each tower count once). Steam is the store of truth: nothing is kept beside it,
 so a match played with Steam not running counts for nothing.
 
-## 5. Still to decide
+## 5. The icons (decided 2026-11-12, the user's)
 
-- **The icons**: one picture per achievement, or one frame for all with an emblem — the game's
-  icons from `icons.ts`; the grey version made from the coloured one either way. Not drawn in the
-  looks (§2). With AC4.
+A picture of its own for every achievement, in one frame for all: the rim tells the difficulty —
+bronze E, silver M, gold H, steel segmented like a progress bar for a stat — and the picture is
+built from the game's own marks where one fits (the towers' emblems, the menus' trophy, the
+awards' icons) or drawn new, filled and heavy so it reads at 64 px. Not drawn in the looks (§2).
+SVG in `packages/client/src/achievementIcons.ts`, rendered by `?icons=achievements`, which makes
+each locked grey icon from its coloured one; `npm run achievements -w @bollfort/storeart` writes
+the PNGs at 256 px by API name and a contact sheet at 256, 64 and 32 px.
 
 ## 6. The packages
 
@@ -140,7 +144,7 @@ so a match played with Steam not running counts for nothing.
 | **AC1** | The draft, judged against the recordings, reviewed: the 35 (done, 2026-11-12, 15zz)    | no                        |
 | **AC2** | The definitions and their detection, pure and tested (done, 2026-11-12, 16a)           | no                        |
 | **AC3** | The client and the desktop app's bridge to Steam                                       | no (480 for the plumbing) |
-| **AC4** | The texts in English, German and Hessian; the icons                                    | no                        |
+| **AC4** | The texts in English, German and Hessian; the icons (done, 2026-11-12, 16b)            | no                        |
 | **AC5** | Steamworks: the achievements, stats, icons and texts entered; tried on the beta branch | yes                       |
 
 - **AC2 — Definitions and detection — done** (ARCHIVE 16a). `config/achievements.json`, every
@@ -161,13 +165,13 @@ so a match played with Steam not running counts for nothing.
   `IndicateAchievementProgress` at a stat's quarters, `store` once at a match's end (Steam
   rate-limits it). The plumbing tried on 480 against Spacewar's own achievements behind a dev
   switch — _to confirm_ which 480 still has.
-- **AC4 — Texts and icons.** `achievement.<id>.name` and `.desc` in `config/locale/` for all three
-  languages (the locale test demands it); a writer in `tools/steamworks` turning English and German
-  into the file Steamworks imports for its localisation, as it writes rich presence's (_to
-  confirm_ the format); Hessian stays in the game. The icons rendered by `tools/storeart` at
-  256 px, the grey ones derived, checked on a contact sheet.
+- **AC4 — Texts and icons — done** (ARCHIVE 16b). `achievement.<id>.name` and `.desc` in
+  `config/locale/` for all three languages, a description's numbers as placeholders named by its
+  thresholds' keys (`achievements.test.ts`); the 35 icons and their locked twins (§5) in
+  `assets/steam/achievements/`. The localisation writer moved to AC5.
 - **AC5 — Steamworks.** With the App ID: stats and achievements entered (by CSV if it serves),
-  icons and texts uploaded, published; tried on the beta branch, a line for them in
+  icons and texts uploaded — the texts by a writer in `tools/steamworks` turning English and German
+  into the file Steamworks imports, keyed by the tokens it assigned, the thresholds filled in, published; tried on the beta branch, a line for them in
   [`STEAM_CHECKLIST.md`](./STEAM_CHECKLIST.md). Whether a stat-linked achievement unlocks by itself
   at its maximum is confirmed here (the client calls `activate` as well either way).
 

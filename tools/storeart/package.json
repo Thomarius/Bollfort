@@ -9,7 +9,8 @@
     "start": "tsx src/storeArt.ts",
     "shots": "tsx src/screenshots.ts",
     "trailer": "tsx src/trailer.ts",
-    "icons": "tsx src/icons.ts"
+    "icons": "tsx src/icons.ts",
+    "achievements": "tsx src/achievements.ts"
   },
   "devDependencies": {
     "playwright": "1.63.0"

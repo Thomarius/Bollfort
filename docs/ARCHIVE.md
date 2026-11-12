@@ -12050,3 +12050,27 @@ to 200 to keep within the user's 10–20 matches (Thomas about 10, Mausica 17). 
 
 The check also found `steamworks.js` and `koffi` missing from this machine's `node_modules` —
 the desktop app's typecheck and the licences' test failed on it — which `npm install` restored.
+
+## 16b. Steam achievements, AC4: their texts and icons (2026-11-12)
+
+**The texts**: `achievement.<id>.name` and `.desc` for the 35 in English, German and Hessian, the
+names as the list of §4 gives them, the Hessian ones new. A description's numbers are placeholders
+named by its thresholds' keys (`{tiles}`, `{walls}`, `{levelFloor}`…), so they cannot drift from
+`config/achievements.json` and German can write 2.500; `achievements.test.ts` holds each
+description to exactly its achievement's keys. **The localisation writer moved to AC5**:
+Steamworks' file keys each text by a token Steam assigns as an achievement is entered, unknown
+before the App ID.
+
+**The icons** (the user's choice, 2026-11-12: a picture of its own for each, in one frame):
+`packages/client/src/achievementIcons.ts`, SVG on the menus' 24-unit grid inside a 256 px frame —
+a dark field, the rim bronze for E, silver for M, gold for H, steel segmented like a progress bar
+for a stat, the picture lifted by a shadow. Built from the game's marks where one fits — the nine
+towers' emblems (`EMBLEMS`), the menus' trophy, the awards' heart — and the rest drawn from a few
+parts: keeps, brick courses, bursts, crowns, stars, people. Filled shapes and heavy lines, since
+Steam shows them at 64 px. `PICTURES` is typed over every `AchievementId`, so a new achievement
+without an icon fails the typecheck. `?icons=achievements` renders them and makes each locked
+icon from its coloured one (greyed, dimmed, flattened: `grayscale(1) brightness(0.62)
+contrast(0.85)`); `npm run achievements -w @bollfort/storeart` writes the 70 PNGs by API name, a
+contact sheet at 256, 64 and 32 px and an overview of the set (`overview.png`). The first six
+were judged by the user before the rest were drawn ("great"); the 70 are kept in
+`assets/steam/achievements/` (3.5 MB) for AC5's upload.
