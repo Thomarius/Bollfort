@@ -101,7 +101,8 @@ host leaving fixed the same day, approved on Windows with v0.10.2, and the bench
 answered the Steamworks registration (still waiting, 2026-11-11). **S3.6** (§7.3), a player who dropped coming back by an invite or the restart's
 prompt, built and passing the bench (2026-11-09, ARCHIVE 15zu). **While Valve answers**: Steam
 achievements, designed in [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md) (2026-11-12), its
-list of 35 chosen (AC1) and detected (AC2), next AC4 or AC3.
+list of 35 chosen (AC1), detected (AC2), with texts and icons (AC4) and sent to Steam, tried on 480
+(AC3; ARCHIVE 15zz, 16a–16c); AC5, entering them in Steamworks, waits for the App ID.
 
 ## 3. The Steam build (S1, S2)
 
@@ -863,8 +864,8 @@ picker, an invite accepted while the invited player is in a match of their own, 
 
 Native, through the browser's **Gamepad API** in the page — Electron's Chromium has it — for every
 build, not only Steam. Under Steam the default Steam Input configuration presents the Deck and any
-controller as an Xbox pad, which the Gamepad API reads _(to confirm in S1 or the beta: whether
-Steam Input must be set to pass the pad through)_. The mouse stays first: every action a
+controller as an Xbox pad, which the Gamepad API reads — confirmed by the user on the Steam build
+under Steam, a controller playing the game without any setting changed (2026-11-12). The mouse stays first: every action a
 controller does is an action the mouse already has, and a controller is noticed the moment it is
 touched, the mouse the moment it moves.
 
@@ -1203,7 +1204,8 @@ games already under way (§4).
 - ~~The trademark~~: checked by a lawyer (2026-11-11, ARCHIVE 15zx) — the original named only in
   the in-game Credits and the README; Bollfort registered only on substantial success (§6.1).
 - Whether Valve's relay is free, if the newer networking is needed.
-- Steam Input passing the pad through to the Gamepad API.
+- ~~Steam Input passing the pad through to the Gamepad API~~: it does, with Steam's default
+  configuration (the user, the Steam build, 2026-11-12; §8).
 - `ShowGamepadTextInput` in the binding.
 - The rich presence localisation file's shape: Valve's two pages show two (`"Language"` and
   `"Tokens"` inside `"lang"`, as written; or the language as a block holding `"tokens"`). The

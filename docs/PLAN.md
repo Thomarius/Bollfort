@@ -1686,7 +1686,7 @@ every resolution against an independent search, not only on unit pictures.
 
 ## 11. Open work
 
-**Where to start (2026-11-11).** The latest release is **v0.10.3** (2026-11-11, protocol 36, recording format 4), the only one published (ARCHIVE 15zx), with the Steam build for the test rounds on 480. Item 8's S3 is done (ARCHIVE
+**Where to start (2026-11-12).** The latest release is **v0.11.0** (2026-11-12, protocol 36, recording format 4: Steam achievements, ARCHIVE 15zz–16c), after v0.10.3 (2026-11-11, the first published, ARCHIVE 15zx), each with the Steam build for the test rounds on 480. Item 8's S3 is done (ARCHIVE
 15zw); S4 waits on Valve's answer to the Steamworks registration. Item 3, the performance plan, is finished, its leftovers measured and the worthwhile ones built
 (ARCHIVE 14zc–14zi, 14zo). Item 4, the UI polish, is done (ARCHIVE 14zr–14zt), and item 5, the menus reviewed (ARCHIVE 15j) and the end screen after them (15k), both in v0.9.23; item 6, the demo, in v0.9.24, its score bar taken out in v0.9.25. Item 2, the special towers, is done: the Subwoofer built, every tower evened out and play-tested (ARCHIVE 15p, 15q, 15t), the team soaks dropped (15u). Next: the online session for item 5's online-only states. The styles' own music's chance is the player's choice in Options (ARCHIVE 14zn). Every feature up to v0.9.16 has been tested and approved by the users (2026-10-27).
 Up to **v0.8.3**: the game and online play, bots as skill levels and personalities, the styles
@@ -1879,8 +1879,8 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    designed (STEAM.md §6.1), not planned: the trademark and tax questions come first. **Steam
    achievements** (2026-11-12, the user's, while Valve answers): 35, named and their thresholds
    from the recordings (ARCHIVE 15zz), and packages AC1–AC5 in
-   [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md); AC1 and AC2 done (ARCHIVE 16a), next AC4
-   or AC3.
+   [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md); AC1, AC2, AC4 and AC3 done (ARCHIVE 16a–16c, AC3
+   tried on 480), AC5 waiting for the App ID.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

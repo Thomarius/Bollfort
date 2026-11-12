@@ -32,8 +32,9 @@ passed), so only the tests by hand are left:
 - [x] **An Invite-only lobby** joined by invite (2026-11-09, STEAM.md §3.3 Q5).
 - [x] **A guest can invite**, not only the lobby's owner (needs a third account): yes, the
       third account seated (2026-11-09, STEAM.md §3.3 Q4).
-- [ ] **A controller under Steam Input**: the pad's name in the page, and the game played with it;
-      **Steam's gamepad keyboard** in Big Picture.
+- [x] **A controller under Steam Input**: the pad's name in the page, and the game played with it
+      — works great on the Steam build under Steam, nothing set (the user, 2026-11-12).
+- [ ] **Steam's gamepad keyboard** in Big Picture (`ShowGamepadTextInput`, STEAM.md §11).
 
 ## 1. Hosting and joining
 

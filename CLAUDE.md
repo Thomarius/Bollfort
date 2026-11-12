@@ -193,10 +193,10 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-11-11; the latest release **v0.10.3**, 2026-11-11, the only one published — the
-earlier ones were deleted with their tags, since their notes and menu named the original (ARCHIVE
-15zx) — with the Steam build for the test rounds on 480 beside the portable files; the history
-was rewritten without AI attribution lines before v0.10.0 (the old hashes in
+**Done** (2026-11-12; the latest release **v0.11.0**, 2026-11-12, with Steam achievements built
+and tried on 480; before it v0.10.3, 2026-11-11 — the releases before that were deleted with their
+tags, since their notes and menu named the original (ARCHIVE 15zx) — each with the Steam build
+for the test rounds on 480 beside the portable files; the history was rewritten without AI attribution lines before v0.10.0 (the old hashes in
 `recordings/commit-map.txt`); protocol 36, recording format 4, which a test session needs the
 server rebuilt and every page reloaded for):
 
