@@ -95,6 +95,26 @@ The trailer is `trailer-build\half\BollfortTrailer.mp4`: 55 seconds, 1920 × 108
 H.264 and AAC — Valve's format, its music at the game's loudness (−14 LUFS). Watch it with sound
 before anything else.
 
+Its last line is _Free on Steam_. The version for before the release ends on _Coming soon · Free on
+Steam_ (2026-11-12, the user's): the same clips with other captions, so nothing is filmed again —
+
+```powershell
+$env:TRAILER_END = "soon"
+npm run trailer -w @bollfort/storeart -- captions
+npm run trailer -w @bollfort/storeart -- assemble
+```
+
+— into `captions-soon\` and `BollfortTrailer-soon.mp4`, beside the other (`ENDINGS` in the script).
+
+**For YouTube**, upload a copy scaled to 1440p: YouTube streams uploads of 1440p and more at a
+higher bitrate and in VP9 or AV1, which shows at 1080p too. Steam takes the 1080p file as it is.
+
+```powershell
+ffmpeg -i BollfortTrailer-soon.mp4 -vf scale=2560:1440:flags=lanczos -c:v libx264 -preset slow `
+  -crf 14 -profile:v high -pix_fmt yuv420p -r 60 -c:a copy -movflags +faststart `
+  BollfortTrailer-soon-1440p.mp4
+```
+
 ## 4. If something goes wrong
 
 - **The page is not found** (calibrate fails): the window is covered, on another monitor, or the

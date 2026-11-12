@@ -51,6 +51,22 @@ const OUT = resolve(
       ? join(ROOT, 'trailer-build', 'loops', LANG)
       : join(ROOT, 'trailer-build', ...SHAKE_FOLDER)),
 );
+/**
+ * The last line, over the title in the silence (`TRAILER_END`): `steam`, the default, for the store
+ * once the game is out; `soon` for the version shown while Steamworks is still being set up
+ * (2026-11-12, the user's). The cut is the same, so a version is only its captions and its file,
+ * `captions-<end>` and `BollfortTrailer-<end>.mp4`, beside the default's.
+ */
+const ENDINGS = { steam: 'Free on Steam', soon: 'Coming soon · Free on Steam' } as const;
+const END = ((): keyof typeof ENDINGS => {
+  const raw = process.env['TRAILER_END'];
+  if (raw === undefined || raw === '') return 'steam';
+  if (!(raw in ENDINGS))
+    throw new Error(`TRAILER_END must be one of ${Object.keys(ENDINGS).join(', ')}, not "${raw}"`);
+  return raw as keyof typeof ENDINGS;
+})();
+const END_SUFFIX = END === 'steam' ? '' : `-${END}`;
+const CAPTIONS_DIR = `captions${END_SUFFIX}`;
 const MUSIC = join(ROOT, 'assets', 'trailer', 'BollfortTrailer.mp3');
 const DISPLAY = process.env['DISPLAY'] ?? ':0';
 /**
@@ -627,7 +643,7 @@ const CAPTIONS: Caption[] = [
   { text: 'Online multiplayer and bots', start: 31.7, end: 34.0, look: 'lower' },
   { text: 'Special towers', start: 34.2, end: 40.5, look: 'lower' },
   { text: 'Tournaments', start: 40.8, end: 42.9, look: 'lower' },
-  { text: 'Free on Steam', start: 51.0, end: 55.0, look: 'end' },
+  { text: ENDINGS[END], start: 51.0, end: 55.0, look: 'end' },
 ];
 
 const LENGTH = CUT.reduce((sum, s) => sum + s.length, 0);
@@ -1032,7 +1048,7 @@ async function record(names: string[], calibrate: boolean): Promise<void> {
 
 /** Each caption drawn once as a transparent picture the size of the frame, in the game's fonts. */
 async function captions(): Promise<void> {
-  mkdirSync(join(OUT, 'captions'), { recursive: true });
+  mkdirSync(join(OUT, CAPTIONS_DIR), { recursive: true });
   // Embedded: a page set from a string may not load a font from a file.
   const rubik = readFileSync(
     join(
@@ -1065,10 +1081,10 @@ ${band}
 text-shadow:0 0 3px #000,0 0 3px #000,0 0 8px rgb(0 0 0/80%),0 6px 18px rgb(0 0 0/70%)}
 </style><div class="band"></div><div class="text">${c.text}</div>`);
     await page.evaluate(() => document.fonts.ready);
-    await page.screenshot({ path: join(OUT, 'captions', `${i}.png`), omitBackground: true });
+    await page.screenshot({ path: join(OUT, CAPTIONS_DIR, `${i}.png`), omitBackground: true });
   }
   await browser.close();
-  console.log(`${CAPTIONS.length} captions in ${join(OUT, 'captions')}`);
+  console.log(`${CAPTIONS.length} captions in ${join(OUT, CAPTIONS_DIR)}`);
 }
 
 // --- Assembly ------------------------------------------------------------------------------
@@ -1134,7 +1150,7 @@ function assemble(): void {
   let last = 'cut';
   CAPTIONS.forEach((c, i) => {
     const n = CUT.length + i;
-    inputs.push('-loop', '1', '-t', String(LENGTH), '-i', join(OUT, 'captions', `${i}.png`));
+    inputs.push('-loop', '1', '-t', String(LENGTH), '-i', join(OUT, CAPTIONS_DIR, `${i}.png`));
     const fade = 0.25;
     filters.push(
       `[${n}:v]format=rgba,fade=t=in:st=${c.start}:d=${fade}:alpha=1,fade=t=out:st=${(c.end - fade).toFixed(2)}:d=${fade}:alpha=1[c${i}]`,
@@ -1149,7 +1165,7 @@ function assemble(): void {
   const music = CUT.length + CAPTIONS.length;
   inputs.push('-i', MUSIC);
   filters.push(`[${music}:a]${musicChain()},${loudnormFilter()},aresample=48000[audio]`);
-  const file = join(OUT, 'BollfortTrailer.mp4');
+  const file = join(OUT, `BollfortTrailer${END_SUFFIX}.mp4`);
   const result = spawnSync(
     'ffmpeg',
     [
