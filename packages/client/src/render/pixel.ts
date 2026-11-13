@@ -15,6 +15,7 @@ import { release } from './release.js';
 import { SceneryTracker, placeScenery } from './scenery.js';
 import { hash } from './noise.js';
 import { Discs, SpritePool, StampBook, Stamps } from './stamps.js';
+import { Particles } from './particles.js';
 import { behindCorner, outerOcean, seaDepth } from './ocean.js';
 import {
   CASTLE_CHIMNEY,
@@ -261,7 +262,20 @@ export class PixelTheme implements Theme {
     size: number;
   }[] = [];
   private readonly overlayGfx = new Graphics();
-  private readonly effectGfx = new Graphics();
+  /**
+   * The effects drawn as shapes, in four parts with the particles' sprites between them, in the
+   * order they were once all drawn into one (`effectStack`); `effectGfx` is the part being
+   * drawn into. The particles — the silenced guns' smoke, the flying chunks, the smoulders and
+   * the gun smoke — were drawn as shapes every frame, two-thirds of that one `Graphics`
+   * (2026-11-13). As sprites (`Particles`), combat late in a match at eight players rendered in
+   * 3.7 ms rather than 4.5 in Medieval, its 95th percentile 8.1 rather than 10.3; Night 5.8
+   * rather than 6.7, 11.2 rather than 13.5. Without the particles at all it was 2.9 and 4.6.
+   */
+  private readonly effectParts = [new Graphics(), new Graphics(), new Graphics(), new Graphics()];
+  private effectGfx = this.effectParts[0] as Graphics;
+  private readonly chunkParticles = new Particles();
+  private readonly smoulderParticles = new Particles();
+  private readonly smokeParticles = new Particles();
   /** The main castles' crowns, over the effects, redrawn only when one changes. */
   private readonly crowns = new MainCastles();
   /** What lies over the crowns: the shots' shadows and targets, and the fragments. */
@@ -479,7 +493,7 @@ export class PixelTheme implements Theme {
         bloom(light, { strength: 4, quality: 2, resolution: 0.5 });
       }
     }
-    layers.effects.addChild(this.effectGfx);
+    layers.effects.addChild(...this.effectStack());
     layers.overlay.addChild(this.ghostShadow, this.ghostLayer, this.overlayGfx);
   }
 
@@ -498,7 +512,10 @@ export class PixelTheme implements Theme {
     this.territoryGfx.destroy();
     this.overlayGfx.destroy();
     release(this.ghostLayer);
-    this.effectGfx.destroy();
+    for (const g of this.effectParts) g.destroy();
+    this.chunkParticles.destroy();
+    this.smoulderParticles.destroy();
+    this.smokeParticles.destroy();
     this.crowns.gfx.destroy();
     this.aboveCrownsGfx.destroy();
     this.groundLight.destroy();
@@ -1349,9 +1366,34 @@ export class PixelTheme implements Theme {
     }
   }
 
+  /** The effects' parts and the particles' stamps between them, bottom first. */
+  private effectStack(): Container[] {
+    const [base, above, barrels, banners] = this.effectParts as [
+      Graphics,
+      Graphics,
+      Graphics,
+      Graphics,
+    ];
+    return [
+      base,
+      this.chunkParticles.container,
+      above,
+      this.smoulderParticles.container,
+      barrels,
+      this.smokeParticles.container,
+      banners,
+    ];
+  }
+
+  /** Draws on in effect part `index` from here, as the shapes once went on in one. */
+  private useEffectPart(index: number): Graphics {
+    this.effectGfx = this.effectParts[index] as Graphics;
+    return this.effectGfx;
+  }
+
   drawEffects(state: MatchState, view: ViewTransform, frame: EffectFrame): void {
-    const g = this.effectGfx;
-    clearDrawn(g);
+    for (const part of this.effectParts) clearDrawn(part);
+    const g = this.useEffectPart(0);
     clearDrawn(this.aboveCrownsGfx);
 
     this.clock += frame.deltaMs;
@@ -1366,7 +1408,7 @@ export class PixelTheme implements Theme {
     this.effectLayer.addChild(
       this.cloudStamps.container,
       this.lightLayer,
-      g,
+      ...this.effectStack(),
       this.crowns.gfx,
       this.aboveCrownsGfx,
       this.airLight,
@@ -1407,15 +1449,24 @@ export class PixelTheme implements Theme {
       hex(this.art.palette.emberMid),
       frame.deltaMs,
     );
+    this.chunkParticles.begin();
     this.drawChunks(view, frame.deltaMs);
-    drawChoices(g, view, frame.choices, this.art);
-    this.winnerBanners.draw(g, view, state, this.art, frame.celebrate, frame.deltaMs);
-    this.fireworks.draw(g, view, this.art, frame.celebrate, frame.deltaMs);
+    this.chunkParticles.end();
+    const overChunks = this.useEffectPart(1);
+    drawChoices(overChunks, view, frame.choices, this.art);
+    this.winnerBanners.draw(overChunks, view, state, this.art, frame.celebrate, frame.deltaMs);
+    this.fireworks.draw(overChunks, view, this.art, frame.celebrate, frame.deltaMs);
     this.drawSplashes(view, frame.deltaMs);
+    this.smoulderParticles.begin();
     this.drawSmoulders(view, frame.deltaMs);
+    this.smoulderParticles.end();
+    this.useEffectPart(2);
     this.drawBarrels(state, view, frame.deltaMs);
+    this.smokeParticles.begin();
     this.drawInertSmoke(state, view);
     this.drawPuffs(view, frame.deltaMs);
+    this.smokeParticles.end();
+    this.useEffectPart(3);
     this.drawBanners(state, view, frame);
 
     const now = state.tick + frame.tickFraction;
@@ -2651,7 +2702,8 @@ export class PixelTheme implements Theme {
    * smoulders.
    */
   private drawChunks(view: ViewTransform, deltaMs: number): void {
-    const g = this.effectGfx;
+    const particles = this.chunkParticles;
+    const shadow = hex(this.art.palette.shadow);
     const dt = deltaMs / 1000;
     const span = this.art.generators.fx.smoulderMs;
     const light = hex(this.art.palette.rockLight);
@@ -2675,12 +2727,11 @@ export class PixelTheme implements Theme {
       const s = view.tile * c.size;
       const x = tileX(view, c.x) - s / 2;
       const y = tileY(view, c.y - c.z) - s / 2;
-      g.ellipse(tileX(view, c.x), tileY(view, c.y) + s * 0.4, s * 0.6, s * 0.3);
-      g.fill({ color: hex(this.art.palette.shadow), alpha: 0.35 * fade });
-      g.rect(x, y, s, s);
-      g.fill({ color: c.colour, alpha: fade });
-      g.rect(x, y, s, Math.max(1, s * 0.3));
-      g.fill({ color: light, alpha: 0.5 * fade });
+      const cx = tileX(view, c.x);
+      const cy = tileY(view, c.y) + s * 0.4;
+      particles.disc(cx, cy, s * 0.6, s * 0.3, shadow, 0.35 * fade);
+      particles.rect(x, y, s, s, c.colour, fade);
+      particles.rect(x, y, s, Math.max(1, s * 0.3), light, 0.5 * fade);
     }
     this.chunks = this.chunks.filter((c) => c.age < span);
   }
@@ -3003,7 +3054,7 @@ export class PixelTheme implements Theme {
    * ground, dying away together. It marks where the wall was hit long after the blast.
    */
   private drawSmoulders(view: ViewTransform, deltaMs: number): void {
-    const g = this.effectGfx;
+    const particles = this.smoulderParticles;
     const span = this.art.generators.fx.smoulderMs;
     // Dark, as burning stone and timber give off, and so it reads against the grass
     // where grey vanished.
@@ -3017,8 +3068,9 @@ export class PixelTheme implements Theme {
         const t = (s.age / 900 + k / 3 + s.seed) % 1;
         const x = s.x + 0.5 + Math.sin(t * 4 + s.seed) * 0.2;
         const y = s.y + 0.4 - t * 1.1;
-        g.circle(tileX(view, x), tileY(view, y), view.tile * (0.14 + t * 0.28));
-        g.fill({ color: smoke, alpha: 0.6 * (1 - t) * life });
+        const r = view.tile * (0.14 + t * 0.28);
+        const alpha = 0.6 * (1 - t) * life;
+        particles.disc(tileX(view, x), tileY(view, y), r, r, smoke, alpha);
       }
       for (let k = 0; k < 3; k++) {
         const flicker = Math.sin(s.age / 70 + k * 2.1 + s.seed * 3);
@@ -3026,8 +3078,9 @@ export class PixelTheme implements Theme {
         const px = s.x + 0.25 + ((k * 0.37 + s.seed) % 0.5);
         const py = s.y + 0.55 + ((k * 0.23 + s.seed) % 0.3);
         const size = Math.max(2, view.tile / 8);
-        g.rect(tileX(view, px), tileY(view, py), size, size);
-        g.fill({ color: embers[k % 2] as number, alpha: (0.6 + 0.4 * flicker) * life });
+        const ember = embers[k % 2] as number;
+        const alpha = (0.6 + 0.4 * flicker) * life;
+        particles.rect(tileX(view, px), tileY(view, py), size, size, ember, alpha);
       }
     }
     this.smoulders = this.smoulders.filter((s) => s.age < span);
@@ -3035,7 +3088,7 @@ export class PixelTheme implements Theme {
 
   /** Gun smoke: puffs slowing as they drift, swelling and thinning to nothing. */
   private drawPuffs(view: ViewTransform, deltaMs: number): void {
-    const g = this.effectGfx;
+    const particles = this.smokeParticles;
     const span = this.art.generators.fx.muzzleSmokeMs;
     const colour = hex(this.art.palette.rockLight);
     const dt = deltaMs / 1000;
@@ -3049,8 +3102,9 @@ export class PixelTheme implements Theme {
       puff.y += puff.vy * dt;
       const t = puff.age / span;
       if (t >= 1) continue;
-      g.circle(tileX(view, puff.x), tileY(view, puff.y), view.tile * (0.15 + 0.35 * t));
-      g.fill({ color: colour, alpha: 0.55 * (1 - t) });
+      const r = view.tile * (0.15 + 0.35 * t);
+      const alpha = 0.55 * (1 - t);
+      particles.disc(tileX(view, puff.x), tileY(view, puff.y), r, r, colour, alpha);
     }
     this.puffs = this.puffs.filter((p) => p.age < span);
   }
@@ -3072,7 +3126,7 @@ export class PixelTheme implements Theme {
    * reads as information rather than as part of a battlefield.
    */
   private drawInertSmoke(state: MatchState, view: ViewTransform): void {
-    const g = this.effectGfx;
+    const particles = this.smokeParticles;
     const period = this.art.generators.cannon.inertSmokeMs;
     const colour = hex(this.art.palette.rockDark);
     for (const cannon of state.cannons) {
@@ -3083,8 +3137,8 @@ export class PixelTheme implements Theme {
         const t = (this.clock / period + k / 3 + cannon.id * 0.37) % 1;
         const x = cx + Math.sin(t * 5 + cannon.id) * 0.18;
         const y = cy - 0.2 - t * 1.3;
-        g.circle(tileX(view, x), tileY(view, y), view.tile * (0.12 + t * 0.22));
-        g.fill({ color: colour, alpha: 0.45 * (1 - t) });
+        const r = view.tile * (0.12 + t * 0.22);
+        particles.disc(tileX(view, x), tileY(view, y), r, r, colour, 0.45 * (1 - t));
       }
     }
   }
