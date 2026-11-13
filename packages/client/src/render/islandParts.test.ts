@@ -63,6 +63,20 @@ describe('walls apart from castles and guns', () => {
     expect(redrawn(walls, hit)).toBe(1);
     expect(redrawn(pieces, hit)).toBe(0);
   });
+
+  it('draws nothing again as a gun fires, sleeps or wakes, but as it goes inert', () => {
+    for (const of of ['structures', 'pieces'] as const) {
+      const parts = new IslandParts(1, of);
+      const gun = { id: 1, x: 5, y: 1, w: 1, h: 1, owner: 1, active: true, shotIds: [] };
+      const armed = { ...board(), cannons: [gun] } as unknown as MatchState;
+      redrawn(parts, armed);
+      const with_ = (changes: object): MatchState =>
+        ({ ...armed, cannons: [{ ...gun, ...changes }] }) as unknown as MatchState;
+      expect(redrawn(parts, with_({ shotIds: [7] }))).toBe(0);
+      expect(redrawn(parts, with_({ shotIds: [7], asleepUntil: 90, lulled: 1 }))).toBe(0);
+      expect(redrawn(parts, with_({ active: false }))).toBe(1);
+    }
+  });
 });
 
 describe('islands drawn under a budget', () => {

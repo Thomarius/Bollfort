@@ -64,6 +64,19 @@ export function outOfBudget(drawn: number): boolean {
   return true;
 }
 
+/**
+ * A gun's state in firing, which no part's drawing reads — only the styles' effects, drawn
+ * every frame (Anime's charge, Mythos' arm, the parrots, the sportsmen, the mortars) — left
+ * out of a part's key. `shotIds` changes as a gun fires and as its shot lands, so with it in
+ * the key nearly every hit at eight players drew most islands again, not the one hit: 3.9
+ * islands a hit against 1.4, the render's 99th percentile 27 → 13 ms in Oktoberfest, a
+ * frame no longer dropped there and in Sakura (2026-11-13). Every other field stays in, so
+ * a gun's new field is drawn again by default; one only firing reads belongs here.
+ */
+function unseen(key: string, value: unknown): unknown {
+  return key === 'shotIds' || key === 'asleepUntil' || key === 'lulled' ? undefined : value;
+}
+
 /** What a part holds, and so what draws it again (`IslandParts`). */
 export type IslandPartsOf = 'structures' | 'walls' | 'pieces' | 'territory';
 
@@ -116,7 +129,7 @@ export class IslandParts {
       const key =
         this.of === 'walls'
           ? `${hash >>> 0}`
-          : `${hash >>> 0}|${JSON.stringify(castles)}|${JSON.stringify(cannons)}`;
+          : `${hash >>> 0}|${JSON.stringify(castles)}|${JSON.stringify(cannons, unseen)}`;
       const entry = this.parts[part] as { layers: Graphics[]; key: string };
       if (!viewChanged && key === entry.key) continue;
       if (outOfBudget(drawn)) {

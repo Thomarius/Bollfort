@@ -155,6 +155,14 @@ export class SealGraph {
   }
 
   /**
+   * Out-nodes of tiles no wall can cut off from the sea, found once for the graph: ground
+   * that cannot be built on runs unbroken from the coast to them. Nearly three cuts
+   * in four ran Dinic to its cap of 400 only to learn that (2026-11-13); a sink joined to
+   * one of these is that answer at once, and exactly.
+   */
+  private open: Uint8Array | null = null;
+
+  /**
    * The smallest wall around these castles, as `planSeal` describes — and round every tile
    * of `ground` too, when given: the ground a player held, say, which no band round the
    * castles describes.
@@ -174,9 +182,13 @@ export class SealGraph {
     const outNode = (n: number): number => n * 2 + 1;
     const source = count * 2;
     const sink = count * 2 + 1;
+    const open = (this.open ??= flow.uncuttable(source));
+    let uncuttable = false;
     const sinkTile = (i: number): void => {
       const n = node[i] as number;
-      if (n >= 0) flow.addEdge(outNode(n), sink, INFINITE_CAPACITY);
+      if (n < 0) return;
+      if (open[outNode(n)] === 1) uncuttable = true;
+      flow.addEdge(outNode(n), sink, INFINITE_CAPACITY);
     };
 
     for (const castle of castles) {
@@ -202,6 +214,7 @@ export class SealGraph {
       }
     }
 
+    if (uncuttable) return null;
     const cost = flow.maxFlow(source, sink, 400);
     if (cost >= 400) return null;
 

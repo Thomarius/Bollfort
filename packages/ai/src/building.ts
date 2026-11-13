@@ -1012,7 +1012,14 @@ export class Builder {
     if (this.inside?.key === key) return this.inside.territory;
     let territory = state.territory;
     const planned = this.plan.filter((i) => state.structure[i] === Structure.Empty);
-    const repairing = (look.enclosure().enclosedCastlesByPlayer[this.playerId] ?? 0) === 0;
+    // In a build phase the state's own count is fresh — every placement re-solves it, and so
+    // does the phase opening (ARCHIVE 13zf) — and a whole flood of the map to learn it again
+    // was some 8% of a bot's time once the flow was quicker (2026-11-13).
+    const enclosed =
+      state.phase === 'build'
+        ? (state.players[this.playerId]?.enclosedCastles ?? 0)
+        : (look.enclosure().enclosedCastlesByPlayer[this.playerId] ?? 0);
+    const repairing = enclosed === 0;
     if (repairing && planned.length > 0) {
       const structure = state.structure.slice();
       for (const i of planned) structure[i] = Structure.Wall;

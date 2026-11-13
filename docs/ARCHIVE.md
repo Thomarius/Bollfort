@@ -12124,3 +12124,46 @@ has no `ACH_HEAVY_FIRE`, which Valve's example names — its achievements are `A
 Steam's stats file was written at the unlock, with no `store` — so Steam's popup shows the moment
 an achievement is earned, mid-match. The trial left Spacewar's first two achievements unlocked on
 the account.
+
+## 16d. Bots twice as fast, and a hit drawing only the island it hit (2026-11-13)
+
+A scan for performance while S4 and the testers were awaited (three reviews: the frame, the
+look's change, the bots), and the two findings that were large built; the rest is in PLAN §11.
+
+**The bots, every match unchanged.** A CPU profile of headless matches at Level 6 put half the
+bots' time in `MaxFlow.maxFlow` and 16% in `computeEnclosure`. Three exact changes:
+
+- Dinic's levels are taken **from the sink** (`buildLevels` in `flow.ts`), backwards over the
+  twins of edges with room, stopped as the source is reached. From the source the search fanned
+  out over every coastal tile and labelled nearly the whole island, and the augmenting walk then
+  wandered into ground that never reaches the castle. Every maximum flow leaves the same nodes
+  reachable from the source, so the cut and every plan are the same however the flow is found.
+- **No wall possible, known at once** (`SealGraph.plan`, `MaxFlow.uncuttable`): 73% of the cuts
+  ran to the cap of 400 because a sink tile is joined to the coast by ground that cannot be built
+  on. The nodes reachable from the source over infinite edges alone are found once a graph, and a
+  sink joined to one of them returns null without the flow — exactly what the cap returned.
+- `insideOf` reads the player's `enclosedCastles` in a build phase rather than flooding the map
+  again (every placement and the phase's opening re-solve it; 9,509 checks, no difference).
+
+Eight matches before and after — Levels 5, 6, 8 and 9, two to eight players, towers on — every
+hash the same. Two matches of four players: Level 6 28.0 s → 15.5–16.7 s, Level 9 50.6 s →
+28.0–28.4 s, the process's start included. Measured and left: an island's own enclosure for the
+bots' what-if questions (some 15–20% more, but it wants a test against the whole solver), one seal
+graph shared by `follow` and `spareWork`, and `weakestWall` cut short, which would change targets.
+
+**A gun's firing out of `IslandParts`' key.** A part's key held `JSON.stringify` of its guns, and
+`shotIds` changes as a gun fires and as its shot lands: at eight players nearly every hit drew
+most islands' walls and guns again, not the island hit — part of what `IslandParts` was made to
+end (ARCHIVE 12n). `shotIds`, `asleepUntil` and `lulled` are left out (`unseen`); only the styles'
+effects, drawn every frame, read them. Measured in a watched eight-player match at Level 8 in
+combat, seed 3, Chromium with its GPU, each key twice alternating:
+
+| Style       | islands drawn a hit | render p99  | frame interval p99 |
+| ----------- | ------------------- | ----------- | ------------------ |
+| Oktoberfest | 3.9 → 1.4           | 27 → 13 ms  | 33 → 17 ms         |
+| Cyberpunk   | 3.9 → 1.4           | 16 → 11 ms  | 17 → 17 ms         |
+| Sakura      | 4.3 → 1.4           | 21 → 17 ms  | 33 → 17 ms         |
+| Pirates     | 3.9 → 1.4           | 14 → 6.5 ms | 17 → 17 ms         |
+
+Oktoberfest and Sakura no longer drop a frame at the worst hits; Sakura's keeps and guns are no
+longer drawn in combat at all.

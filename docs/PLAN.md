@@ -1882,6 +1882,28 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md); AC1, AC2, AC4 and AC3 done (ARCHIVE 16a–16c, AC3
    tried on 480), AC5 waiting for the App ID.
 
+9. **Performance, the scan of 2026-11-13** (while S4 and the testers are awaited): its two large
+   findings built — the bots about twice as fast with every match unchanged, and a hit drawing
+   only the island it hit (ARCHIVE 16d). What it found besides, from reading the code and not
+   measured, to be measured before anything is built:
+   - **The look's change.** The old look thrown away whole in the first frame of combat
+     (`Scene.drop` from `promote`: its theme, its tree and `BigPool` at once), to be released over
+     frames; a new random look's effects first drawn in the pause before the banner rather than
+     as it is made; `prime` warming every island of a layer again after any change, not only the
+     ones drawn again; two renders while the wipe's line is still off the screen, one under an
+     empty scissor; the next styles' modules fetched only at `round_resolved`, not a round
+     ahead; the background making of a look (8 ms a frame) not yielding to a wipe or to `prime`;
+     the bloomed styles' blur over both sides of the line; the banner's height read each frame.
+   - **The frame.** While a seal floods, the board copied and board-sized arrays allocated each
+     frame (`drawFloodedTerritory`, `IslandParts.partOf`), and guns in the territory part's key;
+     the cannon phase's icon row built as a string of data URLs each frame to be compared; the
+     HUD's roster markup rebuilt each frame; the team tags' layout read each frame; the Frost
+     Cannon's ice drawn whole each frame. Each likely a tenth of a millisecond or less.
+   - **The bots.** An island's own enclosure for their what-if questions (`widen`, `reseal`,
+     `prospect`; some 15–20% more, wanting a test against the whole solver); one `SealGraph`
+     shared by `follow` and `spareWork`; `reachable`'s array kept between calls. `weakestWall`
+     cut short would change targets, so only with an A/B soak.
+
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
 UI polish, all in ARCHIVE 11h; 11.11 the second visual pass and 11.12 the first

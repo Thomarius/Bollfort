@@ -200,6 +200,11 @@ for the test rounds on 480 beside the portable files; the history was rewritten 
 `recordings/commit-map.txt`); protocol 36, recording format 4, which a test session needs the
 server rebuilt and every page reloaded for):
 
+- **Bots twice as fast, a hit drawing only its island** (ARCHIVE 16d, 2026-11-13): Dinic's
+  levels from the sink, "no wall possible" known before the flow, every match's hash unchanged
+  (Level 6 28 → 16 s); a gun's firing out of `IslandParts`' key, 3.9 islands drawn a hit → 1.4,
+  Oktoberfest's render p99 27 → 13 ms. The scan's other findings, unmeasured, in PLAN §11 item 9.
+
 - **The original named only in the Credits and the README** (ARCHIVE 15zx, 2026-11-11, a
   lawyer's advice): gone from the menu, the desktop window, the release notes and `CREDITS.md`.
 

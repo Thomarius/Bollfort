@@ -105,25 +105,39 @@ export class MaxFlow {
     return total;
   }
 
+  /**
+   * Each node's distance to the sink in the residual graph, walked backwards from the sink
+   * over the twins of edges with room left, and stopped as the source is reached. Levelled
+   * from the source, the search fanned out over every coastal tile and labelled nearly the
+   * whole island, and the augmenting walk then wandered into ground that never reaches the
+   * castle: from the sink, only what can still reach it is labelled. Every maximum flow
+   * leaves the same nodes reachable from the source, so the cut — and every plan — is the
+   * same whichever way the flow is found. Measured on headless matches at Level 6 and 9,
+   * every hash unchanged: the flow's time 12.3 s → 3.3 s and 26.2 s → 3.9 s (2026-11-13).
+   */
   private buildLevels(source: number, sink: number): boolean {
     const { level, queue, to, capacity, next } = this;
     level.fill(-1);
     let head = 0;
     let tail = 0;
-    queue[tail++] = source;
-    level[source] = 0;
+    queue[tail++] = sink;
+    level[sink] = 0;
 
     while (head < tail) {
-      const u = queue[head++] as number;
-      const depth = (level[u] as number) + 1;
-      for (let e = this.head[u] as number; e !== -1; e = next[e] as number) {
-        const v = to[e] as number;
-        if ((capacity[e] as number) <= 0 || level[v] !== -1) continue;
-        level[v] = depth;
-        queue[tail++] = v;
+      const v = queue[head++] as number;
+      const depth = (level[v] as number) + 1;
+      for (let e = this.head[v] as number; e !== -1; e = next[e] as number) {
+        // Edge e runs v → u; its twin e ^ 1 is u → v, the edge a flow towards v would use.
+        const u = to[e] as number;
+        if ((capacity[e ^ 1] as number) <= 0 || level[u] !== -1) continue;
+        level[u] = depth;
+        // Every node nearer the sink than the source is labelled by now, which is all an
+        // augmenting walk down the levels can visit.
+        if (u === source) return true;
+        queue[tail++] = u;
       }
     }
-    return level[sink] !== -1;
+    return false;
   }
 
   /** Iterative depth-first augmentation; recursion would blow the stack on a full grid. */
@@ -148,7 +162,9 @@ export class MaxFlow {
       }
 
       let advanced = false;
-      const wanted = (level[node] as number) + 1;
+      // One step nearer the sink. Only the sink has level 0, and it ends the walk above, so
+      // the level wanted is never -1, the mark of a node unlabelled or retired.
+      const wanted = (level[node] as number) - 1;
       for (let e = cursor[node] as number; e !== -1; e = next[e] as number) {
         cursor[node] = e;
         const v = to[e] as number;
@@ -173,6 +189,30 @@ export class MaxFlow {
       const last = this.path[--depth] as number;
       node = to[last ^ 1] as number;
     }
+  }
+
+  /**
+   * Nodes reachable from the source over edges of infinite capacity alone, before any flow:
+   * what no wall can ever cut off. A sink joined to one of them takes an infinite flow.
+   */
+  uncuttable(source: number): Uint8Array {
+    const { queue, to, capacity, next } = this;
+    const seen = new Uint8Array(this.nodes);
+    let head = 0;
+    let tail = 0;
+    queue[tail++] = source;
+    seen[source] = 1;
+
+    while (head < tail) {
+      const u = queue[head++] as number;
+      for (let e = this.head[u] as number; e !== -1; e = next[e] as number) {
+        const v = to[e] as number;
+        if ((capacity[e] as number) < INFINITE_CAPACITY || seen[v] === 1) continue;
+        seen[v] = 1;
+        queue[tail++] = v;
+      }
+    }
+    return seen;
   }
 
   /** Nodes still reachable from the source once the flow is maximal: the cut's near side. */
