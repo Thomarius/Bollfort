@@ -118,6 +118,15 @@ describe('what a click means', () => {
       loaded.shotIds = [999];
       expect(readyCannons(state, other)).toBe(expected - 1);
     }
+    // A gun asleep is not counted until it wakes.
+    const awake = mine.find((c) => c.active && c.shotIds.length === 0);
+    if (awake) {
+      const before = readyCannons(state, other);
+      awake.asleepUntil = state.tick + 10;
+      expect(readyCannons(state, other)).toBe(before - 1);
+      awake.asleepUntil = state.tick;
+      expect(readyCannons(state, other)).toBe(before);
+    }
   });
 
   it('never lets the cursor aim at a teammate’s island, or your own', () => {

@@ -74,13 +74,15 @@ export function mayTarget(state: MatchState, playerId: number, x: number, y: num
 }
 
 /**
- * Shots this player could fire right now: a barrel free on each active gun — one a gun, a
- * Rapid Cannon's several.
+ * Shots this player could fire right now: a barrel free on each active gun awake — one a gun,
+ * a Rapid Cannon's several.
  */
 export function readyCannons(state: MatchState, playerId: number): number {
   let ready = 0;
   for (const cannon of state.cannons) {
-    if (cannon.owner === playerId && cannon.active) {
+    // A gun asleep (a Lullaby Tower's doing) fires nothing, so a click would do nothing on it
+    // alone (the test session, 2026-11-14): the sim skips it as findReadyCannon does.
+    if (cannon.owner === playerId && cannon.active && isAwake(state, cannon)) {
       ready += barrelsOf(cannon) - cannon.shotIds.length;
     }
   }

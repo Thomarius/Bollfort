@@ -308,24 +308,11 @@ export function openLookGallery(options: GalleryOptions): void {
     hovered = null;
     live.hide();
   });
-  const render = (): void => {
-    live.hide();
-    hovered = null;
-    root.innerHTML = galleryMarkup(choices, active, favourites);
-    // The cards' last row faded while there are more below, so a cut-off row says the grid
-    // scrolls (2026-10-28); not once the end is reached.
-    const cards = root.querySelector<HTMLElement>('.cards');
-    if (cards !== null) {
-      const more = (): void => {
-        cards.classList.toggle(
-          'more',
-          cards.scrollTop + cards.clientHeight < cards.scrollHeight - 4,
-        );
-      };
-      cards.addEventListener('scroll', more, { passive: true });
-      requestAnimationFrame(more);
-    }
-    for (const image of root.querySelectorAll<HTMLImageElement>('img[data-preview]')) {
+  // The panel is made once and then brought up to date in place: made anew at every heart or
+  // choice, every picture faded in again, the panel's entry played again and the grid scrolled
+  // back to the top (the test session, 2026-11-14).
+  const loadPictures = (within: ParentNode): void => {
+    for (const image of within.querySelectorAll<HTMLImageElement>('img[data-preview]')) {
       const choice = image.dataset.preview as LookChoice;
       void lookPicture(choice).then(
         (url) => {
@@ -335,6 +322,59 @@ export function openLookGallery(options: GalleryOptions): void {
         () => undefined,
       );
     }
+  };
+  const render = (): void => {
+    const fresh = document.createElement('template');
+    fresh.innerHTML = galleryMarkup(choices, active, favourites);
+    const cards = root.querySelector<HTMLElement>('.cards');
+    const tabs = root.querySelector<HTMLElement>('.tabs');
+    if (cards === null || tabs === null) {
+      root.replaceChildren(fresh.content);
+      const made = root.querySelector<HTMLElement>('.cards');
+      if (made !== null) {
+        // The cards' last row faded while there are more below, so a cut-off row says the grid
+        // scrolls (2026-10-28); not once the end is reached.
+        const more = (): void => {
+          made.classList.toggle('more', made.scrollTop + made.clientHeight < made.scrollHeight - 4);
+        };
+        made.addEventListener('scroll', more, { passive: true });
+        requestAnimationFrame(more);
+      }
+      loadPictures(root);
+      return;
+    }
+    tabs.innerHTML = fresh.content.querySelector('.tabs')?.innerHTML ?? '';
+    const now = [...cards.querySelectorAll<HTMLElement>(':scope > .card')];
+    const next = [...fresh.content.querySelectorAll<HTMLElement>('.cards > .card')];
+    const same =
+      now.length === next.length &&
+      now.every((card, i) => card.dataset.choice === next[i]?.dataset.choice);
+    if (!same) {
+      // The other look's cards: a different set, so made anew, from the top.
+      live.hide();
+      hovered = null;
+      cards.replaceChildren(...next);
+      cards.scrollTop = 0;
+      loadPictures(cards);
+      cards.dispatchEvent(new Event('scroll'));
+      return;
+    }
+    // The same cards: only their marks change, the pictures and the playing one left be.
+    now.forEach((card, i) => {
+      const to = next[i]!;
+      card.className = to.className;
+      card.toggleAttribute('data-main', to.hasAttribute('data-main'));
+      for (const badge of card.querySelectorAll('.badge')) badge.remove();
+      const name = card.querySelector('.name');
+      name?.after(...to.querySelectorAll('.badge'));
+      const heart = card.querySelector<HTMLElement>('.heart');
+      const toHeart = to.querySelector<HTMLElement>('.heart');
+      if (heart !== null && toHeart !== null) {
+        heart.className = toHeart.className;
+        heart.setAttribute('aria-checked', toHeart.getAttribute('aria-checked') ?? 'false');
+        heart.innerHTML = toHeart.innerHTML;
+      }
+    });
   };
   const close = (): void => {
     live.destroy();

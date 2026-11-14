@@ -911,6 +911,24 @@ describe('the open games browser', () => {
     manager.create(2); // nobody in it yet
     expect(manager.listOpen()).toEqual([]);
   });
+
+  it('leaves out a room the moment its host has left, though their seat is still held', () => {
+    const manager = new RoomManager(defaultConfigBundle, 3);
+    const alone = manager.create(3)!;
+    const ada = new TestClient('a');
+    alone.join(ada, 'Ada');
+    const left = manager.create(3)!;
+    const bo = new TestClient('b');
+    left.join(bo, 'Bo');
+    left.join(new TestClient('c'), 'Cy');
+    expect(manager.listOpen()).toHaveLength(2);
+    alone.leave(ada);
+    left.leave(bo);
+    expect(manager.listOpen()).toEqual([]);
+    // Back within the hold, they are listed again.
+    alone.join(new TestClient('a2'), 'Ada', ada.token);
+    expect(manager.listOpen().map((l) => l.code)).toEqual([alone.code]);
+  });
 });
 
 describe('the map, chosen while the table is set', () => {

@@ -225,6 +225,10 @@ export class Room {
     if (this.options.public === false || this.match !== null) return null;
     if (this.seats.length === 0 || this.freeSeat() >= this.playerCount) return null;
     const host = this.seats.find((s) => s.playerId === this.hostId) ?? this.seats[0]!;
+    // A host gone is a room nobody should be sent to: their seat is held a while for a blip
+    // (S3.6), and a leave is a closed socket like any drop, so a lobby left — alone, or for a
+    // new one — had stayed in the games browser for the hold (the test session, 2026-11-14).
+    if (host.connection === null) return null;
     return {
       code: this.code,
       host: host.name,

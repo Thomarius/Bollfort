@@ -113,10 +113,47 @@ installSoundButton();
  * pointer or the focus reaches it, wherever it is on whatever screen.
  */
 const TIP_ROOM_PX = 96;
+/** Half the hover text at its widest (`max-width: 17rem` in style.css), and its margin. */
+const tipHalfPx = (): number =>
+  (17 * parseFloat(getComputedStyle(document.documentElement).fontSize)) / 2 + 8;
+/**
+ * What a hover text must fit inside: the nearest box that clips it, or the window. Inside a
+ * scrolling one it had been cut off, and one overflowing it to the right or below gave it a
+ * scrollbar the pointer could never use, the text gone as it moved — the looks' Random card,
+ * last in its grid (the test session, 2026-11-14).
+ */
+function tipBounds(target: Element): { left: number; top: number; right: number; bottom: number } {
+  const bounds = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+  for (let box = target.parentElement; box !== null; box = box.parentElement) {
+    const style = getComputedStyle(box);
+    if (style.overflowX === 'visible' && style.overflowY === 'visible') continue;
+    const rect = box.getBoundingClientRect();
+    bounds.left = Math.max(bounds.left, rect.left);
+    bounds.top = Math.max(bounds.top, rect.top);
+    bounds.right = Math.min(bounds.right, rect.right);
+    bounds.bottom = Math.min(bounds.bottom, rect.bottom);
+    break;
+  }
+  return bounds;
+}
 const placeTip = (event: Event): void => {
   const target = event.target instanceof Element ? event.target.closest('[data-tip]') : null;
   if (target === null) return;
-  target.toggleAttribute('data-tip-below', target.getBoundingClientRect().top < TIP_ROOM_PX);
+  const rect = target.getBoundingClientRect();
+  const bounds = tipBounds(target);
+  const roomAbove = rect.top - bounds.top;
+  target.toggleAttribute(
+    'data-tip-below',
+    roomAbove < TIP_ROOM_PX && bounds.bottom - rect.bottom > roomAbove,
+  );
+  // A side set in the markup is kept; otherwise the text opens away from an edge it would cross.
+  if (target.hasAttribute('data-tip-side') && !target.hasAttribute('data-tip-auto')) return;
+  const centre = rect.left + rect.width / 2;
+  const half = tipHalfPx();
+  const side = centre - half < bounds.left ? 'right' : centre + half > bounds.right ? 'left' : null;
+  target.toggleAttribute('data-tip-auto', side !== null);
+  if (side === null) target.removeAttribute('data-tip-side');
+  else target.setAttribute('data-tip-side', side);
 };
 document.addEventListener('mouseover', placeTip);
 document.addEventListener('focusin', placeTip);
