@@ -12167,3 +12167,71 @@ combat, seed 3, Chromium with its GPU, each key twice alternating:
 
 Oktoberfest and Sakura no longer drop a frame at the worst hits; Sakura's keeps and guns are no
 longer drawn in combat at all.
+
+## 16e. Medieval's and Night's particles as sprites (2026-11-13)
+
+A frame-by-frame log of watched eight-player matches put the steady late frames in combat and
+the intermission in Medieval's and Night's effects (`pixel.ts`): the silenced guns' smoke, the
+flying chunks, the smoulders and the gun smoke, drawn as shapes into one `Graphics` every frame,
+two thirds of what it held. Stamped as shared shapes (`Stamps`) the triangulation went, but the
+render did not get faster: Pixi still copies every vertex of every stamp into its batch each
+frame, some thirty a disc, and placing them cost more script time than drawing them had. As
+sprites of a hard-edged white disc or square (`Particles`, `render/particles.ts`), four vertices
+each, the effects `Graphics` split in four so the order of everything drawn is as before.
+
+Eight players, combat in round 5, the perf meter's 30 s window, three alternating runs each:
+Medieval's render 4.5 → 3.7 ms mean, 10.3 → 8.1 ms at the 95th percentile; Night's 6.7 → 5.8
+and 13.5 → 11.2. Without the particles at all, 2.9 / 6.3 and 4.6 / 8.8. Screenshots of the same
+moment match.
+
+## 16f. The scan's other findings measured, and dropped (2026-11-14)
+
+What the scan of 16d found besides its two large findings (PLAN §11 item 9), measured before
+building anything, and judged by the user not significant enough: **every item dropped**, item 9
+closed. The measurements, so they are not taken again:
+
+**How.** A watched eight-player match at Level 5, seed 3, Random looks every round, `speed=2`,
+in a visible Chromium with its GPU (`--enable-gpu --use-angle=gl --ignore-gpu-blocklist`, this
+machine's Ryzen 3 with Renoir graphics, 1600×900), `Math.random` seeded so both runs saw the
+same looks; two runs of 150 s, agreeing closely. A Playwright script (beside `tools/wipes/
+measure.mjs`, not kept) wrapped the scene's `drop`, `promote`, `prime`, `showLooks`, `render`,
+`renderOffscreen`, `refresh`, `warmChain` and `drawEffects` per frame, took a CDP CPU profile of
+the run, and read the perf meter's report through `import('/src/perf.ts')` on the dev server.
+The bots: `node --cpu-prof` over two four-player matches at Level 6.
+
+**Where the frames went.** About 450–480 frames dropped per run (3 a second):
+
+| Cause                                                         | dropped / 150 s                 |
+| ------------------------------------------------------------- | ------------------------------- |
+| render outside wipes — a hit's island redrawn in heavy styles | ~200                            |
+| render during wipes                                           | 47–72                           |
+| a look made in the background (`prepare`)                     | ~55                             |
+| other frame work: the HUD's forced layouts, board redraws     | ~60                             |
+| effects                                                       | 25–30                           |
+| `prime`                                                       | 17–23                           |
+| the old look dropped                                          | 8–10, and 1–2 after each change |
+
+**Item by item.**
+
+- The look made in the background: its pacer checks `SHARE_MS` only between steps, and one step
+  (a chain warmed and rendered offscreen) is 11 ms typically, 40 at the 95th percentile, up to
+  121 ms. Only with Random looks.
+- The HUD's layout read each frame: `placeAnnouncement` at a banner 34–38 ms in one block, the
+  roster's `placeEntries` up to 72 ms, the team tags' `barBottom` 29 ms (forced layouts,
+  `getBoundingClientRect`); 0.8 ms a frame otherwise, not the tenth guessed.
+- The old look dropped in combat's first frame: 7–53 ms, a frame or two lost a change.
+- `prime` overrunning its 6 ms: single chains up to 77 ms.
+- Two looks rendered with the wipe's line off the screen: 10% of a wipe's frames, +1 ms render
+  on average, no frame lost.
+- The bloomed styles' blur over both sides of the line: High and Medium the same, wipes included
+  (Night and Electric).
+- The next styles fetched a round ahead: the modules are 25–52 KB, fetched once and cached.
+- The flood's board copies (`drawFloodedTerritory`) 0.1 ms a frame; `IslandParts.partOf` nothing.
+- The bots, as ceilings: an island's own enclosure for `widen`, `reseal` and `prospect` 7.5% of
+  their time; one `SealGraph` for `follow` and `spareWork` 3.8%; `reachable`'s array under 1%.
+  `computeEnclosure` 23% self, `maxFlow` 15% after 16d. Local bots are in the worker anyway.
+
+The largest cause by far was outside the list: in Cyberpunk a hit rebuilds an island's walls at
+about 40,000 vertices (`structures/0/N` in the meter), a render up to 60 ms; Oktoberfest, Office,
+Sakura, Stadium and Halloween alike — the kind of cost 16d took out of Sakura. A survey of every
+style's cost at a hit was offered and not taken up.

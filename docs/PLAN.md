@@ -1686,9 +1686,9 @@ every resolution against an independent search, not only on unit pictures.
 
 ## 11. Open work
 
-**Where to start (2026-11-12).** The latest release is **v0.11.0** (2026-11-12, protocol 36, recording format 4: Steam achievements, ARCHIVE 15zz–16c), after v0.10.3 (2026-11-11, the first published, ARCHIVE 15zx), each with the Steam build for the test rounds on 480. Item 8's S3 is done (ARCHIVE
+**Where to start (2026-11-14).** The latest release is **v0.11.0** (2026-11-12, protocol 36, recording format 4: Steam achievements, ARCHIVE 15zz–16c), after v0.10.3 (2026-11-11, the first published, ARCHIVE 15zx), each with the Steam build for the test rounds on 480. Item 8's S3 is done (ARCHIVE
 15zw); S4 waits on Valve's answer to the Steamworks registration. Item 3, the performance plan, is finished, its leftovers measured and the worthwhile ones built
-(ARCHIVE 14zc–14zi, 14zo). Item 4, the UI polish, is done (ARCHIVE 14zr–14zt), and item 5, the menus reviewed (ARCHIVE 15j) and the end screen after them (15k), both in v0.9.23; item 6, the demo, in v0.9.24, its score bar taken out in v0.9.25. Item 2, the special towers, is done: the Subwoofer built, every tower evened out and play-tested (ARCHIVE 15p, 15q, 15t), the team soaks dropped (15u). Next: the online session for item 5's online-only states. The styles' own music's chance is the player's choice in Options (ARCHIVE 14zn). Every feature up to v0.9.16 has been tested and approved by the users (2026-10-27).
+(ARCHIVE 14zc–14zi, 14zo). Item 4, the UI polish, is done (ARCHIVE 14zr–14zt), and item 5, the menus reviewed (ARCHIVE 15j) and the end screen after them (15k), both in v0.9.23; item 6, the demo, in v0.9.24, its score bar taken out in v0.9.25. Item 2, the special towers, is done: the Subwoofer built, every tower evened out and play-tested (ARCHIVE 15p, 15q, 15t), the team soaks dropped (15u). Item 9, the performance scan of 2026-11-13, is closed: its two large findings built (ARCHIVE 16d), Medieval's and Night's particles as sprites (16e), the rest measured and dropped (16f). Next: the online session for item 5's online-only states. The styles' own music's chance is the player's choice in Options (ARCHIVE 14zn). Every feature up to v0.9.16 has been tested and approved by the users (2026-10-27).
 Up to **v0.8.3**: the game and online play, bots as skill levels and personalities, the styles
 with their corner pieces, random looks every round, English and German, the desktop app, UPnP,
 the balance soak and the rendering work (ARCHIVE 12h–12v), the refactoring (12w) and stronger
@@ -1882,28 +1882,6 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md); AC1, AC2, AC4 and AC3 done (ARCHIVE 16a–16c, AC3
    tried on 480), AC5 waiting for the App ID.
 
-9. **Performance, the scan of 2026-11-13** (while S4 and the testers are awaited): its two large
-   findings built — the bots about twice as fast with every match unchanged, and a hit drawing
-   only the island it hit (ARCHIVE 16d). What it found besides, from reading the code and not
-   measured, to be measured before anything is built:
-   - **The look's change.** The old look thrown away whole in the first frame of combat
-     (`Scene.drop` from `promote`: its theme, its tree and `BigPool` at once), to be released over
-     frames; a new random look's effects first drawn in the pause before the banner rather than
-     as it is made; `prime` warming every island of a layer again after any change, not only the
-     ones drawn again; two renders while the wipe's line is still off the screen, one under an
-     empty scissor; the next styles' modules fetched only at `round_resolved`, not a round
-     ahead; the background making of a look (8 ms a frame) not yielding to a wipe or to `prime`;
-     the bloomed styles' blur over both sides of the line; the banner's height read each frame.
-   - **The frame.** While a seal floods, the board copied and board-sized arrays allocated each
-     frame (`drawFloodedTerritory`, `IslandParts.partOf`), and guns in the territory part's key;
-     the cannon phase's icon row built as a string of data URLs each frame to be compared; the
-     HUD's roster markup rebuilt each frame; the team tags' layout read each frame; the Frost
-     Cannon's ice drawn whole each frame. Each likely a tenth of a millisecond or less.
-   - **The bots.** An island's own enclosure for their what-if questions (`widen`, `reseal`,
-     `prospect`; some 15–20% more, wanting a test against the whole solver); one `SealGraph`
-     shared by `follow` and `spareWork`; `reachable`'s array kept between calls. `weakestWall`
-     cut short would change targets, so only with an A/B soak.
-
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
 UI polish, all in ARCHIVE 11h; 11.11 the second visual pass and 11.12 the first
@@ -1912,7 +1890,7 @@ test-session feedback, in ARCHIVE 11w; 11.5 the small items and 11.6 the bots, i
 11.16 help for new players, the menu and the sea, and 11.17 the desktop app, in ARCHIVE
 11zt; 11.18 the fourth visual pass, in ARCHIVE 11zv; 11.19 every style to the edges, in
 ARCHIVE 11zz; 11.20 more languages, in ARCHIVE 12g; 11.21 UPnP, in ARCHIVE 12j; 11.2 points decide, 11.3 two players,
-11.4 measurements never taken and 11.13 the bots' loose ends, closed by the weekend soak, in ARCHIVE 12h; 11.22 rendering performance, in ARCHIVE 12n, its bots planning on the same ticks in ARCHIVE 12p; 11.23 random looks every round, in ARCHIVE 12q; Cyberpunk under Glowing, in ARCHIVE 12r; the slow plan late in a build phase, in ARCHIVE 12s; 11 item 3, the bots in a worker with the smaller rendering leads, in ARCHIVE 13k; the next item 3, wipes between heavy looks, in ARCHIVE 13o; 11.24 a piece in the corner for every style, in ARCHIVE 12t; Under the sea and Electric, in ARCHIVE 12u and 12v; Cartoon and Christmas, in ARCHIVE 12zb and 12zc; the refactoring of 2026-10-07, in ARCHIVE 12w; the bot learning work (the old item 3), closed in ARCHIVE 13zg; bots that hold ground as people do (the old item 1), in ARCHIVE 13zj; scoring by ground and guns (the next item 3), approved by the test sessions, in ARCHIVE 13zd and 13ze; special towers' finished packages ST1–ST6, in ARCHIVE 13zo, ST4 closed in 13zw; each style's own cannon icon (the old item 3, CI1–CI4), in ARCHIVE 13zv; the Sports style (the old item 5), its design retired, in ARCHIVE 14d; the Berthas' bigger shots (the old item 5 after it), in ARCHIVE 14e; a climax for every style but Minimal (the old item 5 after that), in ARCHIVE 14i, its play-test in 14j; the testers' choice of cannon icon (the old item 3), the style's own, in ARCHIVE 14j; music for the styles (the old item 3 after it), its plan retired, in ARCHIVE 14b and 14za; the performance analysis of 2026-10-26 (the last item 3, P1–P6), in ARCHIVE 14zc–14zi and 14zo — so the open sections keep theirs.
+11.4 measurements never taken and 11.13 the bots' loose ends, closed by the weekend soak, in ARCHIVE 12h; 11.22 rendering performance, in ARCHIVE 12n, its bots planning on the same ticks in ARCHIVE 12p; 11.23 random looks every round, in ARCHIVE 12q; Cyberpunk under Glowing, in ARCHIVE 12r; the slow plan late in a build phase, in ARCHIVE 12s; 11 item 3, the bots in a worker with the smaller rendering leads, in ARCHIVE 13k; the next item 3, wipes between heavy looks, in ARCHIVE 13o; 11.24 a piece in the corner for every style, in ARCHIVE 12t; Under the sea and Electric, in ARCHIVE 12u and 12v; Cartoon and Christmas, in ARCHIVE 12zb and 12zc; the refactoring of 2026-10-07, in ARCHIVE 12w; the bot learning work (the old item 3), closed in ARCHIVE 13zg; bots that hold ground as people do (the old item 1), in ARCHIVE 13zj; scoring by ground and guns (the next item 3), approved by the test sessions, in ARCHIVE 13zd and 13ze; special towers' finished packages ST1–ST6, in ARCHIVE 13zo, ST4 closed in 13zw; each style's own cannon icon (the old item 3, CI1–CI4), in ARCHIVE 13zv; the Sports style (the old item 5), its design retired, in ARCHIVE 14d; the Berthas' bigger shots (the old item 5 after it), in ARCHIVE 14e; a climax for every style but Minimal (the old item 5 after that), in ARCHIVE 14i, its play-test in 14j; the testers' choice of cannon icon (the old item 3), the style's own, in ARCHIVE 14j; music for the styles (the old item 3 after it), its plan retired, in ARCHIVE 14b and 14za; the performance analysis of 2026-10-26 (the last item 3, P1–P6), in ARCHIVE 14zc–14zi and 14zo; the performance scan of 2026-11-13 (the old item 9), its two large findings built in ARCHIVE 16d and the rest measured and dropped in 16f — so the open sections keep theirs.
 
 ## 12. Deferred (explicitly out of scope for v1)
 

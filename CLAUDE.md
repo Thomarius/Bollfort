@@ -203,7 +203,9 @@ server rebuilt and every page reloaded for):
 - **Bots twice as fast, a hit drawing only its island** (ARCHIVE 16d, 2026-11-13): Dinic's
   levels from the sink, "no wall possible" known before the flow, every match's hash unchanged
   (Level 6 28 → 16 s); a gun's firing out of `IslandParts`' key, 3.9 islands drawn a hit → 1.4,
-  Oktoberfest's render p99 27 → 13 ms. The scan's other findings, unmeasured, in PLAN §11 item 9.
+  Oktoberfest's render p99 27 → 13 ms. Then Medieval's and Night's particles as sprites
+  (`Particles`, ARCHIVE 16e: render 4.5 → 3.7 and 6.7 → 5.8 ms); the scan's other findings measured
+  and all dropped as not significant enough (ARCHIVE 16f, 2026-11-14, the user's), item 9 closed.
 
 - **The original named only in the Credits and the README** (ARCHIVE 15zx, 2026-11-11, a
   lawyer's advice): gone from the menu, the desktop window, the release notes and `CREDITS.md`.
@@ -905,6 +907,9 @@ card does not help with that (ARCHIVE 12n). So a style **never redraws what has 
   next pass, so the order is as when whole; a hidden look draws and first renders it a strip
   at a time (ARCHIVE 13n). A new style's terrain is a plan (what is worked out across the
   board) and its passes.
+- **Many small shapes each frame** (smoke, chunks, embers): `Particles` (`render/particles.ts`),
+  sprites of a white disc or square, four vertices each; stamped, Pixi still copies every
+  vertex of every stamp into its batch each frame (ARCHIVE 16e).
 - **Sprites in a layer emptied every frame**: from a `SpritePool` (`render/stamps.ts`), not
   `new Sprite`; Medieval made two hundred a frame and left them to the collector (ARCHIVE 12w).
 - **Many alike, moving**: `Stamps` and `StampBook` (`render/stamps.ts`) — a shape drawn once
