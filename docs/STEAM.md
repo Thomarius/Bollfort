@@ -507,7 +507,8 @@ entitlement, the two shown only in their seasons) and D2 (a supporter DLC with a
 dropped, and with them `availableStyles`, the seasons and the supporter's badge.
 
 If the game is received well and the feedback is good, a small paid DLC may come later — of new
-things, never of what the free game has now. It is not planned, and nothing is built towards it.
+things, never of what the free game has now. It is not planned; the seam for it is built (§6.1,
+SP1), so new styles can be prepared and kept out of the public builds meanwhile.
 
 ### 6.1 The supporter pack (SP), designed for later
 
@@ -532,15 +533,23 @@ free game already has; this adds styles that never were in it.
 **Why the code cannot simply be hidden, and what is done instead.** The repository is public and
 MIT, so anything in it can be built with the styles switched on. So the styles are **not in it**:
 
-- **A private repository**, `bollfort-supporter`, holds the five styles' code, art and music,
-  under the user's own licence (all rights reserved; the author may license their own work
-  twice). It is checked out as an optional package, `packages/supporter`, only on the developer's
-  machine and in the release job's Steam build (a deploy key as a secret).
-- **One seam in the public code**: each style is already a module fetched when needed
-  (`STYLE_MODULES` in `render/scene.ts`, ARCHIVE 15zf). With the package present the build adds
-  its five entries to that registry, and its style names to the art config's schema; without it,
-  a stub of nothing, and the registry is the 24 as now. The public code knows only that a supporter
-  registry may exist, never what is in it.
+- **A private repository**, `Thomarius/bollfort-supporter` (made 2026-11-14), holds the five
+  styles' code, art and music, under the user's own licence (all rights reserved; the author may
+  license their own work twice). It is checked out as `supporter/` in the public repository's
+  root, in its `.gitignore`, only on the developer's machine and in the release job's Steam build
+  (a deploy key as a secret) — not as `packages/supporter`, as first planned: every folder under
+  `packages/` is a workspace, and the package would be written into the public
+  `package-lock.json` (ARCHIVE 16g).
+- **One seam in the public code** (built, ARCHIVE 16g): every style is in one registry
+  (`client/src/styles/registry.ts`), and a style may bring all of its parts itself from a folder
+  of its own, as the Wild West does (`styles/wildwest/`). The public code knows only an empty
+  stub, `styles/supporter.ts`, exporting `SUPPORTER_DATA` and `SUPPORTER_STYLES`; the package's
+  entry exports the same, and `client/supporterPlugin.ts` answers the stub with it — on the dev
+  server and in the tests whenever the package is there, in a production build only with
+  `BOLLFORT_SUPPORTER=1`, failing the build if asked without the package or if anything else
+  reaches into its folder. Even linked, the styles are added only in the admin mode,
+  `?supporter=1` (Node: `BOLLFORT_SUPPORTER=1`), not saved. `npm run check` takes the package in
+  where it is (`supporter:check`).
 - **A depot of its own** (the user's choice over a flag on files everyone gets): Steam downloads
   the five's modules and music only to players who own the DLC. Everyone else's base depot carries
   only each style's name and a still preview picture made in advance — the gallery draws its
@@ -558,7 +567,12 @@ everything that picks a style by itself: Random, the menu windows' `LookRotation
 style music (each new style's track in the DLC depot, credited in the audio manifest's way, and
 `CREDITS.md` written with it only in the Steam build), and How to play's pictures if it shows looks.
 
-**First, before any work** (the user's): the questions that decide whether a paid pack is wise
+**Meanwhile** (the user's, 2026-11-14, waiting for Valve): new styles may be prepared in the
+private package and kept out of every public build; whether they then join the free game (moved
+into the public repository, a folder each) or a paid pack is decided later, with the questions
+below. Only SP1 is built for it; SP2 and SP3 only matter for a paid pack.
+
+**First, before any paid pack** (the user's): the questions that decide whether a paid pack is wise
 at all — **the trademark** (checked by a lawyer, 2026-11-11, ARCHIVE 15zx: fine once the original
 is named only in the Credits and the README; registering Bollfort only if the game has
 substantial success), **the revenue share and the German tax side**
@@ -566,7 +580,10 @@ substantial success), **the revenue share and the German tax side**
 licence allows commercial use, but each track and anything else is checked again).
 
 **The packages**, when it comes: SP1 the seam and the private package with one style, the admin
-mode; SP2 the locks in the gallery, the previews, the ownership check and the store button; SP3 the
+mode — **done** (2026-11-14, ARCHIVE 16g), as SP1a, every style in a registry and the Wild West
+in a folder of its own, and SP1b, the private package with a throwaway `sample` style; SP2 the locks in the gallery, the previews, the ownership check and the store button;
+before SP4, the package's own audio and pictures served (SP1 brought no file: the sample has
+no music, and `publicDir` is the public `assets/` alone); SP3 the
 depot and the release job's private checkout; SP4 the five styles, each as any style is made
 (the style pass's readability, `IslandParts`, the performance check at eight players).
 

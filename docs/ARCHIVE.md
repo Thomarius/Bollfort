@@ -12235,3 +12235,52 @@ The largest cause by far was outside the list: in Cyberpunk a hit rebuilds an is
 about 40,000 vertices (`structures/0/N` in the meter), a render up to 60 ms; Oktoberfest, Office,
 Sakura, Stadium and Halloween alike — the kind of cost 16d took out of Sakura. A survey of every
 style's cost at a hit was offered and not taken up.
+
+## 16g. Styles as self-contained units, and the supporter styles' seam (2026-11-14)
+
+The user's, while Valve answers: prepare new styles now, keep them out of every public build, and
+decide later whether they join the free game or a paid pack (STEAM.md §6.1). The repository is
+public and MIT, so hidden is not enough: such styles must never be in it. That needed a seam.
+
+**SP1a, every style in one registry.** A style was named in some fourteen shared files: the
+config's enum and `STYLE_LOOKS`, its schema and defaults in `art.default.json`, `stylePalettes`,
+the audio manifest's track and credit, three locale files, eight tables in the client
+(`STYLE_MODULES`, `BANNER_CLASS`, `BANNER_FLAVOUR`, `HUD_SKIN`, `TITLES`, `STYLE_NAMES`…), its sea
+life in the shared `seaLife.ts` and its skin in `style.css`. Now `client/src/styles/registry.ts`
+answers for every style (`StyleDefinition`: looks, name, banner, skin, flavour, stylesheet,
+title, theme), and the tables are gone. The 23 base styles are rows in `styles/base.ts`, their
+parts still in the shared files; the user's decision: they stay so, converted only if one is
+reworked anyway — a move earns players nothing, and Night shares Pixel's renderer, many styles
+`seaLife.ts`. The Wild West moved into `styles/wildwest/` whole: theme, drawings, sea life,
+title, stylesheet, its tunables, colours, track and credit (`style.json`) and texts in every
+language (`texts.json`), its data apart from its drawing (`StyleData`) so Node reads it — the
+credits writer and the audio-files test moved to the client for that. The config no longer knows
+which styles exist (`ArtStyle` is a name); the registry checks every name as the page loads.
+Its tunables are now outside `config/`, behind their own strict schema: a private package could
+not write there.
+
+Checked against the code before: every style's preview boards, all 1152 cannon icons and the
+title pixel for pixel; some 170,000 computed CSS values of the HUD and banners in the skin, with
+fixtures for every rule, in dev and in the production build. **The CSS order**: imported as
+plain CSS, the stylesheet went into the chunk the registry fell into (`scene`), linked before
+`style.css` in production only, and two ties turned — a titled banner's letter-spacing (12 px for
+4.8) and the news line's. Found by a pass over every rule pairing the Wild West's with the
+shared ones of equal specificity, then confirmed by putting the plain import back. A style's
+stylesheet now comes as text (`?inline`) and the registry appends it after `style.css` in every
+build. A watched eight-player Wild West match, two alternating runs each: 59.4–59.8 fps either
+way, render 2.4–2.8 ms, the same `Graphics` rebuilt; 2 kB more before the menu (0.15%).
+
+**SP1b, the private package.** `Thomarius/bollfort-supporter`, private, checked out as
+`supporter/` in the root and in `.gitignore` — not `packages/supporter`, as planned, since every
+folder there is a workspace written into the public `package-lock.json`. The public code knows an
+empty stub (`styles/supporter.ts`, `SUPPORTER_DATA` and `SUPPORTER_STYLES`); `supporterPlugin.ts`
+answers it with the package's entry on the dev server and in tests when the package is there, in
+a production build only with `BOLLFORT_SUPPORTER=1` (the user's: nothing built here for a
+release or a test session can carry it by accident), fails the build if asked without the
+package, and fails it if anything else loads from the folder. Even linked, the styles join only
+in the admin mode, `?supporter=1` (`admin.ts`), not saved. The package imports the public code by
+relative paths, so it must sit exactly there. One throwaway style, `sample` (Minimal's drawing
+under its own name in sepia, its own skin, banner, title and texts in three languages), proves
+the seam but music. A default build with the package present carries nothing of it; the flagged
+one does; `npm run check` passes with it (1366 tests and `supporter:check`) and without (1360).
+Not built: serving the package's own audio and pictures, needed before real styles (SP4).

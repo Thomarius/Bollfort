@@ -39,6 +39,7 @@ npm start                           # build, then serve the game at http://local
 npm run check                       # format, lint, typecheck, test — must pass before committing
 npm run credits                     # CREDITS.md, from the audio manifest's credits
 npm run licences                    # THIRD_PARTY_LICENSES.md, from what the builds bundle
+npm run supporter:check             # the private supporter package, where checked out (npm run check runs it)
 npx tsx tools/steamworks/src/write.ts presence   # rich presence's files for Steamworks, from config/locale/
 npm run soak                        # the weekend soak again (ARCHIVE 12h), resumable; --list, --trial, --summary
 npm run build                       # client + server bundles, both needed by the image
@@ -84,7 +85,8 @@ leave your seat undriven on the way, so you are soon knocked out), `&speed=10`,
 `&teams=2` for teams of two in seat order, `&storeArt=scene` the board alone with the title over it (`&title=`, `&titleWidth=`, `&shade=1|band`, `&split=0.5` a change of look held still; `?storeArt=logo` the title alone, transparent), `&autopilot=1` a bot plays the person's seat, shown as a person plays it (the ghost, the reticle), `&clean=1` without the corner's buttons, `&labels=0` no words on the screen but a phase banner's (`&timer=0` without the big countdown too), `&reticle=0` no aiming cursor nor towers' emblems, `&shake=0.5` the screen's shake at a strength (`0` none), `&cameraZoom=1.9&cameraOn=you|duel` the camera held close in play, `?icons=sheet` every style's cannon icon side by side, `?icons=app&kind=castle|ring|letter|keep|bare` the app's icon candidates
 (`?icons=boards` each style's board, for checking a refactor pixel for pixel), `?gaps=preview`
 the corner gaps' ping in every style, `&lang=de` (or `hes`) for a
-language (not saved). `?tournament=new` and `?tournament=resume` open the tournament screens,
+language (not saved), `?supporter=1` the supporter styles where the private package is checked out
+(not saved). `?tournament=new` and `?tournament=resume` open the tournament screens,
 `?tournament=demo&seed=N` a tournament of teams of two between matches (saved as `t-demo`), and
 `&snapshot=game_over` plays a tournament's match out at once, its result counted. `?host=8` opens
 the lobby at eight seats — a room if a server answers, a local table if not —
@@ -199,6 +201,16 @@ tags, since their notes and menu named the original (ARCHIVE 15zx) — each with
 for the test rounds on 480 beside the portable files; the history was rewritten without AI attribution lines before v0.10.0 (the old hashes in
 `recordings/commit-map.txt`); protocol 36, recording format 4, which a test session needs the
 server rebuilt and every page reloaded for):
+
+- **Styles as self-contained units, and the supporter styles' seam** (ARCHIVE 16g, 2026-11-14,
+  STEAM.md §6.1 SP1): every style in one registry (`client/src/styles/registry.ts`), the 23 base
+  styles rows in `styles/base.ts` with their parts in the shared files (they stay so, the user's),
+  the Wild West whole in `styles/wildwest/` — pixel for pixel and CSS value for value as before.
+  The private repository `Thomarius/bollfort-supporter` is checked out as `supporter/` in the root
+  (in `.gitignore`; not under `packages/`, every folder of which is a workspace), answering the
+  public stub `styles/supporter.ts` through `client/supporterPlugin.ts`: on the dev server and in
+  tests when present, in a production build only with `BOLLFORT_SUPPORTER=1`, and shown only with
+  `?supporter=1`. Its one style, `sample`, is a throwaway.
 
 - **Bots twice as fast, a hit drawing only its island** (ARCHIVE 16d, 2026-11-13): Dinic's
   levels from the sink, "no wall possible" known before the flow, every match's hash unchanged
@@ -648,7 +660,10 @@ server rebuilt and every page reloaded for):
   and their texts and icons (ARCHIVE 16b, AC4 done, `assets/steam/achievements/`); the client and
   the bridge to Steam built (ARCHIVE 16c, AC3: `steam/achievements.ts`, `steamAchievements.ts`),
   tried on 480 with `BOLLFORT_ACHIEVEMENTS=spacewar` (an `autostart=1` match never counts: drive the
-  menu); next AC5, with the App ID.
+  menu); next AC5, with the App ID. **And the supporter styles' seam** (2026-11-14, ARCHIVE 16g,
+  STEAM.md §6.1 SP1): new styles prepared in the private package `supporter/`, kept out of every
+  public build, free game or paid pack decided later; next, the package's own audio and pictures
+  served, then the styles (SP4).
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.
@@ -837,6 +852,12 @@ its header but the simulation does not — so the server stamps each header with
   in that frame — a layer of a look readied out of sight, not yet drawn at the new size — would
   show a destroyed context, which Pixi throws on (ARCHIVE 15a). `retire` empties and hides such
   stamps first; a book's shape is only ever shown through `Stamps.place`, which is what lets it.
+- **A style is in the registry** (`client/src/styles/registry.ts`, ARCHIVE 16g): a new one is a
+  folder of its own beside `wildwest/`, its data (`StyleData`: colours, track and credit, texts)
+  apart from its drawing, and one line in `STYLES`. Its stylesheet comes as text (`?inline`), which
+  the registry appends after `style.css`: imported as plain CSS it went into whichever chunk the
+  registry fell into, linked before `style.css` in production only, and ties with the shared rules
+  turned. Its tunables have a strict schema of their own in its folder, not in `config/`.
 - **Each style is a module fetched when first asked for** (`STYLE_MODULES` in `scene.ts`,
   ARCHIVE 15zf), so `createTheme` is async. Pixi registers the pipes of `Text`, `BitmapText`,
   `HTMLText`, `TilingSprite` and `NineSliceSprite` as the class is first imported, and a renderer

@@ -1876,7 +1876,10 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    (ARCHIVE 15zr). S3, Steam lobbies, built and passing the bench (ARCHIVE 15zs). S3's checks by hand
    run (ARCHIVE 15zw), three findings fixed. The fixes approved on Windows and on the bench: S3
    done. Open: the rest of S4, and S5. A supporter pack of five styles, a paid DLC for later, is
-   designed (STEAM.md §6.1), not planned: the trademark and tax questions come first. **Steam
+   designed (STEAM.md §6.1), not planned: the trademark and tax questions come first. Its seam is
+   built (SP1, ARCHIVE 16g, 2026-11-14): new styles can be prepared in the private package
+   `supporter/` and kept out of every public build, free game or pack decided later; next for it,
+   the package's own audio and pictures served, then the styles themselves (SP4). **Steam
    achievements** (2026-11-12, the user's, while Valve answers): 35, named and their thresholds
    from the recordings (ARCHIVE 15zz), and packages AC1–AC5 in
    [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md); AC1, AC2, AC4 and AC3 done (ARCHIVE 16a–16c, AC3
