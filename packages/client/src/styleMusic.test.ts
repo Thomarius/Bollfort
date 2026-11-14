@@ -1,5 +1,7 @@
-import { ArtStyleSchema, type ArtStyle } from '@bollfort/config';
+import type { ArtStyle } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
+
+import { STYLE_IDS } from './styles/registry.js';
 
 import { chooseStyleTrack, type StylePauses, type StyleTrackRules } from './styleMusic.js';
 
@@ -62,7 +64,7 @@ describe('a style’s own track', () => {
   });
 
   it('over thirty rounds of random looks, never plays a style inside its pause', () => {
-    const styles = ArtStyleSchema.options;
+    const styles = STYLE_IDS;
     let pauses: StylePauses = new Map();
     const heard: { style: ArtStyle; round: number }[] = [];
     // A fixed sequence stands in for Math.random, so the test is the same every run.

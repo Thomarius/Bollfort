@@ -1,11 +1,7 @@
 import { heroCard } from './animeBanner.js';
-import {
-  artForStyle,
-  defaultConfigBundle,
-  type ArtStyle,
-  type Ruleset,
-  type TextKey,
-} from '@bollfort/config';
+import { defaultConfigBundle, type ArtStyle, type Ruleset, type TextKey } from '@bollfort/config';
+import { audioManifest } from './styles/data.js';
+import { styleArt } from './styles/registry.js';
 import {
   craterTilesOf,
   strikesOnFiring,
@@ -148,7 +144,7 @@ export async function runSession(
   let lookChoices = setup.styles;
   let rotation = new LookRotation(lookChoices);
   const lookFor = async (style: ArtStyle): Promise<SceneLook> => {
-    const own = artForStyle(art, style);
+    const own = styleArt(art, style);
     return {
       theme: await createTheme(style, setup.seed),
       art: { ...own, players: matchPalette(own, session.state) },
@@ -200,7 +196,7 @@ export async function runSession(
   hud.endScreen.useLog(matchLog);
   // The styles' own tracks, by the look each style draws as it comes on screen: a random
   // look is in place before the intermission that brings it, whose start chooses its music.
-  const { audio: sounds } = defaultConfigBundle;
+  const sounds = audioManifest;
   const demo = exits.demo === true;
   const matchAudio = demo
     ? null

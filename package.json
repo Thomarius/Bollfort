@@ -23,9 +23,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "soak": "tsx tools/headless/src/soak.ts",
-    "credits": "tsx packages/config/src/writeCredits.ts",
+    "credits": "tsx packages/client/src/writeCredits.ts",
     "licences": "tsx tools/licences/src/write.ts",
-    "check": "tsx tools/check.ts"
+    "check": "tsx tools/check.ts",
+    "supporter:check": "tsc -p supporter --noEmit && prettier --check --ignore-path .prettierignore supporter"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

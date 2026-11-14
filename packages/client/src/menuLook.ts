@@ -1,7 +1,7 @@
 import type { ArtLook, ArtStyle } from '@bollfort/config';
 
 import { LookRotation, type LookChoices } from './looks.js';
-import { HUD_SKIN } from './skins.js';
+import { styleDefinition } from './styles/registry.js';
 
 /**
  * The menus in the game's looks (PLAN §11 item 4, MS4, the user's design): every new window —
@@ -67,7 +67,7 @@ export function nextMenuStyle(choices: LookChoices): ArtStyle {
 /** Reads a skin's values by wearing its class for an instant, nothing drawn between. */
 function readDress(style: ArtStyle): LookDress {
   const body = document.body;
-  const skin = HUD_SKIN[style];
+  const skin = styleDefinition(style).skin;
   const had = body.classList.contains(skin);
   body.classList.add(skin);
   const computed = getComputedStyle(body);

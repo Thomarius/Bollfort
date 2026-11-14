@@ -1,4 +1,5 @@
 import { defaultConfigBundle, validateConfigBundle } from '@bollfort/config';
+import { audioManifest } from './styles/data.js';
 
 import { Audio } from './audio.js';
 import { onLanguageChange, setLanguage, startingLanguage, t } from './i18n.js';
@@ -13,7 +14,8 @@ import { perf } from './perf.js';
  * the query parameters, and the error box. Set up once, as the page loads.
  */
 
-const problems = validateConfigBundle(defaultConfigBundle);
+// With the tracks the styles bring themselves, so their credits are checked as the manifest's.
+const problems = validateConfigBundle({ ...defaultConfigBundle, audio: audioManifest });
 
 if (problems.length > 0) {
   throw new Error(`Invalid configuration:\n  - ${problems.join('\n  - ')}`);
@@ -60,7 +62,7 @@ globalThis.addEventListener('unhandledrejection', (event) =>
  * the music as the page opens; one that does not leaves the context waiting, and the
  * first gesture resumes it (the users' wish, 2026-10-09).
  */
-export const audio = new Audio(defaultConfigBundle.audio);
+export const audio = new Audio(audioManifest);
 
 const unlock = (): void => audio.unlock();
 

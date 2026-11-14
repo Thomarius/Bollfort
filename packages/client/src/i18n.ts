@@ -7,9 +7,10 @@ import {
   locales,
   type Language,
   type LocaleText,
-  type TextKey,
 } from '@bollfort/config';
 import { store, stored } from './storage.js';
+import { allTexts } from './styles/data.js';
+import type { AnyTextKey } from './styles/definition.js';
 
 /*
  * The language the page speaks, and its texts (PLAN 11.20). Everything a player reads goes
@@ -95,8 +96,9 @@ export type TextParams = Record<string, string | number>;
  * plural takes the form its `n` asks for, by the language's own rules. A text a language
  * lacks is shown in English, never as its key.
  */
-export function t(key: TextKey, params: TextParams = {}): string {
-  const text: LocaleText | undefined = locales[current][key] ?? locales.en[key];
+export function t(key: AnyTextKey, params: TextParams = {}): string {
+  // The shared locale's texts and the styles' own (`styles/data.ts`), merged once.
+  const text: LocaleText | undefined = allTexts[current][key] ?? allTexts.en[key];
   if (text === undefined) return key;
   let form: string;
   if (typeof text === 'string') {

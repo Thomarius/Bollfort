@@ -1,4 +1,4 @@
-import { ArtStyleSchema, artForStyle, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { defaultArtConfig, type ArtStyle } from '@bollfort/config';
 import {
   applyEnclosure,
   computeEnclosure,
@@ -8,7 +8,7 @@ import {
 } from '@bollfort/sim';
 
 import { createTheme, Scene } from './render/scene.js';
-import { titleFor } from './titles.js';
+import { STYLE_IDS, styleArt, styleTitle } from './styles/registry.js';
 
 /**
  * The app's icon candidates, one per style (`?icons=app&kind=castle|ring|letter|keep|bare`,
@@ -82,7 +82,7 @@ function boardState(art: string, crown: boolean): MatchState {
 async function drawBoard(style: ArtStyle, board: Board, size: number): Promise<string> {
   const canvas = document.createElement('canvas');
   const scene = new Scene();
-  const look = { theme: await createTheme(style, SEED), art: artForStyle(defaultArtConfig, style) };
+  const look = { theme: await createTheme(style, SEED), art: styleArt(defaultArtConfig, style) };
   try {
     await scene.init(canvas, { build: look, combat: look }, defaultArtConfig);
     const state = boardState(board.art, board.crown);
@@ -137,7 +137,7 @@ async function drawBoard(style: ArtStyle, board: Board, size: number): Promise<s
  * brought in half the O — by its seven cells and the padding and shadow above and below.
  */
 async function drawLetter(style: ArtStyle, size: number): Promise<string> {
-  const title = titleFor(style, defaultArtConfig);
+  const title = styleTitle(style, defaultArtConfig);
   const img = new Image();
   img.src = title.src;
   await img.decode();
@@ -175,7 +175,7 @@ export async function showAppIcons(): Promise<void> {
   const kind = params.get('kind') ?? 'castle';
   const size = Number(params.get('size') ?? 512);
   const only = params.get('style');
-  const styles = ArtStyleSchema.options.filter((s) => only === null || s === only);
+  const styles = STYLE_IDS.filter((s) => only === null || s === only);
   document.body.innerHTML = '';
   document.body.style.cssText = 'margin:0;background:#000';
   const page = document.createElement('div');

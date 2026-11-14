@@ -1,4 +1,5 @@
-import { artForStyle, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { styleArt } from './styles/registry.js';
 import { computeEnclosure, Structure, type MatchState, type Shot } from '@bollfort/sim';
 
 import { motionReduced } from './motion.js';
@@ -113,7 +114,7 @@ export class LivePreview {
   private async looks(style: ArtStyle): Promise<Record<'build' | 'combat', SceneLook>> {
     const look = {
       theme: await createTheme(style, this.state.seed),
-      art: artForStyle(defaultArtConfig, style),
+      art: styleArt(defaultArtConfig, style),
     };
     return { build: look, combat: look };
   }

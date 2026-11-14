@@ -2,7 +2,7 @@ import { defaultArtConfig, type ArtConfig, type ArtStyle } from '@bollfort/confi
 import { strikesOnFiring, type MatchState, type Shot } from '@bollfort/sim';
 import { Application, BigPool, Container, Graphics, Rectangle, RenderTexture } from 'pixi.js';
 // The text pipe, registered before any renderer starts: Pixi registers it as `Text` is first
-// imported, which is now as a style using it is fetched (`STYLE_MODULES`), after the renderer
+// imported, which is now as a style using it is fetched (`StyleDefinition.theme`), after the renderer
 // was made — and that renderer, without the pipe, threw at the first text it drew (ARCHIVE 15zf).
 import 'pixi.js/text';
 
@@ -14,6 +14,8 @@ import { withDrawBudget } from './islandParts.js';
 import { StripContainer } from './terrainStrips.js';
 import { bloomWanted, renderResolution } from '../graphics.js';
 
+import { styleDefinition } from '../styles/registry.js';
+import type { ThemeMaker } from '../styles/definition.js';
 import { release } from './release.js';
 import { TowerMarks } from './towerMarks.js';
 import {
@@ -32,49 +34,13 @@ import {
 
 export type { Ghost, Theme, ViewTransform } from './theme.js';
 
-/** A style's theme, made for a match's seed. */
-type ThemeMaker = (seed: number) => Theme;
-
-/**
- * Every style the client can render in, each its own module fetched the first time it is asked
- * for (ARCHIVE 15zf): imported whole, the 24 styles were most of a 1.58 MB file every page parsed
- * at its start, for the two or three a menu shows. Night is the pixel style under its own palette:
- * the same sprites, generated from different colours.
- */
-const STYLE_MODULES: Record<ArtStyle, () => Promise<ThemeMaker>> = {
-  flat: () => import('./flat.js').then((m) => () => new m.FlatTheme()),
-  pixel: () => import('./pixel.js').then((m) => (seed) => new m.PixelTheme(seed, 'pixel')),
-  night: () => import('./pixel.js').then((m) => (seed) => new m.PixelTheme(seed, 'night')),
-  cyberpunk: () => import('./cyberpunk.js').then((m) => (seed) => new m.CyberpunkTheme(seed)),
-  blueprint: () => import('./blueprint.js').then((m) => () => new m.BlueprintTheme()),
-  parchment: () => import('./parchment.js').then((m) => (seed) => new m.ParchmentTheme(seed)),
-  bricks: () => import('./bricks.js').then((m) => () => new m.BricksTheme()),
-  glass: () => import('./glass.js').then((m) => () => new m.GlassTheme()),
-  chocolate: () => import('./chocolate.js').then((m) => (seed) => new m.ChocolateTheme(seed)),
-  halloween: () => import('./halloween.js').then((m) => (seed) => new m.HalloweenTheme(seed)),
-  sakura: () => import('./sakura.js').then((m) => (seed) => new m.SakuraTheme(seed)),
-  oktoberfest: () => import('./oktoberfest.js').then((m) => (seed) => new m.OktoberfestTheme(seed)),
-  opera: () => import('./opera.js').then((m) => (seed) => new m.OperaTheme(seed)),
-  office: () => import('./office.js').then((m) => (seed) => new m.OfficeTheme(seed)),
-  undersea: () => import('./undersea.js').then((m) => (seed) => new m.UnderseaTheme(seed)),
-  electric: () => import('./electric.js').then((m) => (seed) => new m.ElectricTheme(seed)),
-  cartoon: () => import('./cartoon.js').then((m) => (seed) => new m.CartoonTheme(seed)),
-  christmas: () => import('./christmas.js').then((m) => (seed) => new m.ChristmasTheme(seed)),
-  noir: () => import('./noir.js').then((m) => (seed) => new m.NoirTheme(seed)),
-  sports: () => import('./sports.js').then((m) => (seed) => new m.SportsTheme(seed)),
-  pirates: () => import('./pirates.js').then((m) => (seed) => new m.PiratesTheme(seed)),
-  anime: () => import('./anime.js').then((m) => (seed) => new m.AnimeTheme(seed)),
-  mythology: () => import('./mythology.js').then((m) => (seed) => new m.MythologyTheme(seed)),
-  wildwest: () => import('./wildwest.js').then((m) => (seed) => new m.WildWestTheme(seed)),
-};
-
 const loaded = new Map<ArtStyle, Promise<ThemeMaker>>();
 
 /** A style's module, fetched once; asked again, the same. A failed fetch may be asked again. */
 export function loadStyle(style: ArtStyle): Promise<ThemeMaker> {
   let maker = loaded.get(style);
   if (maker === undefined) {
-    maker = STYLE_MODULES[style]();
+    maker = styleDefinition(style).theme();
     loaded.set(style, maker);
     maker.catch(() => loaded.delete(style));
   }

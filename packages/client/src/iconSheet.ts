@@ -1,4 +1,5 @@
-import { ArtStyleSchema, artForStyle, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { STYLE_IDS, styleArt } from './styles/registry.js';
 import { computeEnclosure } from '@bollfort/sim';
 
 import { createTheme, Scene } from './render/scene.js';
@@ -17,7 +18,7 @@ export async function showIconSheet(): Promise<void> {
   const sizes = (params.get('sizes') ?? '21,28,42').split(',').map(Number);
   const players = Number(params.get('players') ?? 8);
   const only = params.get('style');
-  const styles = ArtStyleSchema.options.filter((s) => only === null || s === only);
+  const styles = STYLE_IDS.filter((s) => only === null || s === only);
 
   document.body.innerHTML = '';
   const page = document.createElement('div');
@@ -75,7 +76,7 @@ export async function showIconSheet(): Promise<void> {
 export async function showBoardSheet(): Promise<void> {
   const params = new URLSearchParams(location.search);
   const only = params.get('style');
-  const styles = ArtStyleSchema.options.filter((s) => only === null || s === only);
+  const styles = STYLE_IDS.filter((s) => only === null || s === only);
   document.body.innerHTML = '';
   document.body.style.cssText = 'margin:0;background:#000';
   const page = document.createElement('div');
@@ -101,7 +102,7 @@ async function renderBoard(
 ): Promise<string> {
   const canvas = document.createElement('canvas');
   const scene = new Scene();
-  const art = artForStyle(defaultArtConfig, style);
+  const art = styleArt(defaultArtConfig, style);
   const look = { theme: await createTheme(style, 5), art };
   try {
     await scene.init(canvas, { build: look, combat: look }, defaultArtConfig);
@@ -133,7 +134,7 @@ async function render(
 ): Promise<{ board: string; icons: string[][] }> {
   const canvas = document.createElement('canvas');
   const scene = new Scene();
-  const art = artForStyle(defaultArtConfig, style);
+  const art = styleArt(defaultArtConfig, style);
   const look = { theme: await createTheme(style, 5), art };
   try {
     await scene.init(canvas, { build: look, combat: look }, defaultArtConfig);

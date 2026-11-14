@@ -2,9 +2,13 @@ import { resolve } from 'node:path';
 
 import { defineConfig } from 'vite';
 
+import { supporterPlugin, supporterWanted } from './supporterPlugin.js';
+
 const repoRoot = resolve(import.meta.dirname, '..', '..');
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // The private supporter styles, where this build is to carry them (`supporterPlugin.ts`).
+  plugins: [supporterPlugin(supporterWanted(command))],
   /**
    * Audio lives in the repository's `assets/` directory, outside this package.
    *
@@ -28,4 +32,4 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
-});
+}));

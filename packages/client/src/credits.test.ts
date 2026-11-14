@@ -1,11 +1,12 @@
-import { defaultAudioManifest, type AudioManifest } from '@bollfort/config';
+import type { AudioManifest } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { creditsHtml, trackStyle } from './credits.js';
+import { audioManifest } from './styles/data.js';
 
 describe('the Credits', () => {
   it('names the original and its owner, and credits every sound', () => {
-    const html = creditsHtml(defaultAudioManifest);
+    const html = creditsHtml(audioManifest);
     expect(html).toContain('inspired by Rampart (Atari Games, 1990)');
     expect(html).toContain('Warner Bros. Entertainment');
     expect(html).not.toContain('not yet credited');
@@ -14,7 +15,7 @@ describe('the Credits', () => {
   });
 
   it('folds the credits into groups, each style’s track named for its style', () => {
-    const html = creditsHtml(defaultAudioManifest);
+    const html = creditsHtml(audioManifest);
     expect(html.match(/<details class="credit-group">/g)).toHaveLength(4);
     expect(html).toContain('<b class="style">Cyberpunk:</b> ');
     expect(html).toContain('<b class="style">Wild West:</b> ');
@@ -26,7 +27,7 @@ describe('the Credits', () => {
 
   it('leaves out a title that is not known', () => {
     const audio: AudioManifest = {
-      ...defaultAudioManifest,
+      ...audioManifest,
       credits: {
         'sfx/select.wav': {
           author: 'Someone',
@@ -43,7 +44,7 @@ describe('the Credits', () => {
 
   it('shows a credit with its licence and source linked, and escapes what it was given', () => {
     const audio: AudioManifest = {
-      ...defaultAudioManifest,
+      ...audioManifest,
       credits: {
         'sfx/select.wav': {
           title: 'Click <1>',

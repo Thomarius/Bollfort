@@ -1,5 +1,6 @@
-import { ArtStyleSchema, stylesFor } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
+
+import { STYLE_IDS, stylesFor } from './styles/registry.js';
 
 import {
   chooseLook,
@@ -68,7 +69,7 @@ describe('random looks, round by round', () => {
   });
 
   it('with both random, shares one cycle, and every banner changes the style', () => {
-    const all = ArtStyleSchema.options;
+    const all = STYLE_IDS;
     for (const v of [0, 0.42, 0.99]) {
       const rotation = new LookRotation({ build: 'random', combat: 'random' }, sequence(v, 0.2));
       const shown = onScreen(rotation, 4 * all.length);

@@ -205,10 +205,6 @@
     "mythology": {
       "file": "music/styles/mythology.mp3",
       "volume": 0.5
-    },
-    "wildwest": {
-      "file": "music/styles/wildwest.mp3",
-      "volume": 0.5
     }
   },
   "styleTrackPauseRounds": 3,
@@ -394,12 +390,6 @@
       "author": "Chris",
       "licence": "Pixabay Content License",
       "source": "https://pixabay.com/users/chrisdjyogi-52620970/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=421454",
-      "changes": "re-encoded as MP3 at 96 kbps, 44.1 kHz, loudness normalised"
-    },
-    "music/styles/wildwest.mp3": {
-      "author": "Vlad Krotov",
-      "licence": "Pixabay Content License",
-      "source": "https://pixabay.com/users/moodmode-33139253/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=138300",
       "changes": "re-encoded as MP3 at 96 kbps, 44.1 kHz, loudness normalised"
     },
     "sfx/": {

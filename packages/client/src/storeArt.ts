@@ -1,6 +1,7 @@
-import { ArtStyleSchema, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { defaultArtConfig, type ArtStyle } from '@bollfort/config';
 
-import { GAME_TITLE, titleFor } from './titles.js';
+import { isStyle, styleTitle } from './styles/registry.js';
+import { GAME_TITLE } from './titles.js';
 
 /**
  * Steam's store art made from the game itself (STEAM.md §9.2): the page as a camera for
@@ -39,8 +40,8 @@ export function storeArtMode(params: URLSearchParams): 'scene' | 'logo' | null {
 
 function titleStyle(params: URLSearchParams): ArtStyle {
   for (const key of ['titleStyle', 'buildStyle', 'style']) {
-    const parsed = ArtStyleSchema.safeParse(params.get(key));
-    if (parsed.success) return parsed.data;
+    const asked = params.get(key);
+    if (isStyle(asked)) return asked;
   }
   return 'pixel';
 }
@@ -50,7 +51,7 @@ function titleStyle(params: URLSearchParams): ArtStyle {
  * overhang, as the menu sizes it (`titleLayout`).
  */
 function titleImage(style: ArtStyle, width: number): HTMLImageElement {
-  const title = titleFor(style, defaultArtConfig);
+  const title = styleTitle(style, defaultArtConfig);
   const scale = width / (LETTER_CELLS * title.cellPx);
   const img = document.createElement('img');
   img.className = 'store-title';

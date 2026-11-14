@@ -1,0 +1,118 @@
+/* The Wild West's skin (ARCHIVE 14y), brought by the style itself (SP1a). The registry puts
+   it after style.css, whose rules for every skin these build on, and two ties with them go to
+   these by coming later: a titled banner's letter-spacing, and the news line's. */
+
+body.hud-wildwest {
+  --hud-panel: var(--hud-box);
+}
+
+/* Wild West's brick red, 2.9:1 on the dark panels; 6.3:1 as this. */
+body.hud-wildwest {
+  --panel-accent: #e8775c;
+  --panel-on-accent: #0a0a12;
+}
+
+/* The Wild West (ARCHIVE 14y): the banner a wanted poster pinned to boards — cream
+   paper, wood-type slab capitals in dark brown with a red shadow off register, nail heads at its
+   corners, one corner torn. */
+.phase-call.banner-wildwest {
+  border-top: 3px solid #6a4426;
+  border-bottom: 3px solid #6a4426;
+  box-shadow: 0 6px 18px #0008;
+  background:
+    radial-gradient(circle at 1.5% 22%, #3a2416 0 3px, transparent 4px),
+    radial-gradient(circle at 98.5% 22%, #3a2416 0 3px, transparent 4px),
+    radial-gradient(circle at 1.5% 78%, #3a2416 0 3px, transparent 4px),
+    linear-gradient(#f2e6c8, #e6d4ac);
+  color: #3a2416;
+  font-family: Rockwell, 'Courier New', Georgia, serif;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-shadow: 3px 2px 0 #b4302a88;
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 97.5% 100%, 0 100%);
+}
+
+.phase-call.banner-wildwest small {
+  color: #5a3a22;
+  font-family: Rockwell, 'Courier New', Georgia, serif;
+  letter-spacing: 0.08em;
+  text-shadow: none;
+}
+
+.phase-call.banner-wildwest small.flavour {
+  color: #b4302a;
+}
+
+.phase-call.banner-wildwest small.news {
+  color: #3a2416;
+}
+
+body.hud-wildwest {
+  --hud-bar: #ecdcb8;
+  --hud-rule: 3px solid #6a4426;
+  --hud-pad-top: 0.35rem;
+  --hud-ink: #3a2416;
+  --hud-muted: #7a5a3a;
+  --hud-accent: #b4302a;
+  --hud-box: #f2e6c8;
+  --hud-box-edge: 2px solid #6a4426;
+  --hud-box-shadow: 0 3px 0 #3a241666;
+  --hud-track: #3a241622;
+  --hud-font: Rockwell, 'Courier New', Georgia, serif;
+}
+
+/* The bar a weathered poster: the paper's foxing in faint blotches. */
+body.hud-wildwest #hud .bar {
+  background:
+    radial-gradient(circle at 12% 40%, #c8a8701f 0 30px, transparent 60px),
+    radial-gradient(circle at 70% 70%, #c8a8701a 0 40px, transparent 80px), #ecdcb8;
+}
+
+body.hud-wildwest #hud .phase .timer,
+body.hud-wildwest #hud .roster .score {
+  color: #b4302a;
+}
+
+/* The big timer a pocket watch's figures: dark on the dust, red in the last seconds. */
+body.hud-wildwest .big-timer {
+  color: rgb(58 36 22 / 85%);
+  font-family: Rockwell, 'Courier New', Georgia, serif;
+  font-weight: 900;
+  text-shadow: 2px 2px 0 rgb(242 230 200 / 70%);
+}
+
+body.hud-wildwest .big-timer.urgent {
+  color: rgb(180 48 42 / 95%);
+}
+
+body.hud-wildwest .island-banner:not(.out),
+body.hud-wildwest .team-tag,
+body.hud-wildwest .you-are-here {
+  border: 2px solid #3a2416;
+  border-radius: 2px;
+  background: #f2e6c8;
+  box-shadow: 0 3px 6px #0006;
+  color: #3a2416;
+  font-family: Rockwell, 'Courier New', Georgia, serif;
+  font-weight: 900;
+}
+
+body.hud-wildwest .island-banner.out,
+body.hud-wildwest .final-stamp {
+  border: 3px solid #3a2416 !important;
+  border-radius: 2px;
+  background: #f2e6c8;
+  color: #b4302a;
+  font-family: Rockwell, 'Courier New', Georgia, serif;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+body.hud-wildwest #banner.final-round::before {
+  box-shadow: inset 0 0 22vmin rgb(255 200 120 / 25%);
+}
+
+body.hud-wildwest .embers i {
+  background: #f2e6c8;
+  box-shadow: 0 0 3px 1px rgb(200 168 112 / 60%);
+}

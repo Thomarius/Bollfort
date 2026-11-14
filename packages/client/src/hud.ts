@@ -1,6 +1,6 @@
 import { playerCssColour } from './colours.js';
 import { playerShape, shapeSvg } from './shapes.js';
-import { HUD_SKIN } from './skins.js';
+import { styleDefinition } from './styles/registry.js';
 import { formatNumber, t } from './i18n.js';
 import { escape } from './html.js';
 import { avatarImg } from './steam/avatars.js';
@@ -26,82 +26,6 @@ import { owesCastleChoice, teamScore, type MatchState, type Phase } from '@bollf
 import { BoardLabels } from './boardLabels.js';
 import { EndScreen } from './endScreen.js';
 import { towerLine } from './towers.js';
-
-/**
- * The phase banner each style draws, as a class of `.phase-call`: a record over every
- * style, so a new one must bring its own, as it must a menu title. The banner is where
- * the look changes, so it takes the look it brings — the arriving one. Medieval and
- * Night keep the dark band with gold that every style once shared.
- */
-const BANNER_CLASS: Record<ArtStyle, string> = {
-  flat: 'banner-flat',
-  pixel: 'banner-classic',
-  night: 'banner-classic',
-  cyberpunk: 'banner-neon',
-  blueprint: 'banner-plan',
-  parchment: 'banner-ribbon',
-  bricks: 'banner-bricks',
-  glass: 'banner-glass',
-  chocolate: 'banner-chocolate',
-  halloween: 'banner-halloween',
-  sakura: 'banner-sakura',
-  oktoberfest: 'banner-wiesn',
-  opera: 'banner-opera',
-  office: 'banner-office',
-  undersea: 'banner-undersea',
-  electric: 'banner-electric',
-  cartoon: 'banner-cartoon',
-  christmas: 'banner-christmas',
-  noir: 'banner-noir',
-  sports: 'banner-sports',
-  pirates: 'banner-pirates',
-  anime: 'banner-anime',
-  mythology: 'banner-mythology',
-  wildwest: 'banner-wildwest',
-};
-
-/**
- * A style's own words under the phase's call, where it has them: the stadium's "Kick-off!"
- * under "Fire!", "Half-time!" under "Rebuild" (ARCHIVE 14d); the pirates' "Fire at will!"
- * (ARCHIVE 14q). `final` rides under the final round's banner.
- */
-const BANNER_FLAVOUR: Partial<Record<ArtStyle, Partial<Record<Phase | 'final', TextKey>>>> = {
-  sports: {
-    castle_select: 'sports.call.castleSelect',
-    combat: 'sports.call.combat',
-    build: 'sports.call.build',
-    cannon_place: 'sports.call.cannonPlace',
-    final: 'sports.call.final',
-  },
-  pirates: {
-    castle_select: 'pirates.call.castleSelect',
-    combat: 'pirates.call.combat',
-    build: 'pirates.call.build',
-    cannon_place: 'pirates.call.cannonPlace',
-    final: 'pirates.call.final',
-  },
-  anime: {
-    castle_select: 'anime.call.castleSelect',
-    combat: 'anime.call.combat',
-    build: 'anime.call.build',
-    cannon_place: 'anime.call.cannonPlace',
-    final: 'anime.call.final',
-  },
-  mythology: {
-    castle_select: 'mythology.call.castleSelect',
-    combat: 'mythology.call.combat',
-    build: 'mythology.call.build',
-    cannon_place: 'mythology.call.cannonPlace',
-    final: 'mythology.call.final',
-  },
-  wildwest: {
-    castle_select: 'wildwest.call.castleSelect',
-    combat: 'wildwest.call.combat',
-    build: 'wildwest.call.build',
-    cannon_place: 'wildwest.call.cannonPlace',
-    final: 'wildwest.call.final',
-  },
-};
 
 const PHASE_LABEL: Record<Phase, TextKey> = {
   lobby: 'phase.lobby',
@@ -173,7 +97,7 @@ export class Hud {
    * off, as the match is left.
    */
   useSkin(style: ArtStyle | null): void {
-    const skin = style === null ? null : HUD_SKIN[style];
+    const skin = style === null ? null : styleDefinition(style).skin;
     if (skin === this.skin) return;
     const page = this.root.ownerDocument.body;
     if (this.skin !== null) page.classList.remove(this.skin);
@@ -262,13 +186,17 @@ export class Hud {
     const text = title ?? (call === null ? '' : t(call));
     if (text === '') return;
     const banner = document.createElement('div');
-    banner.className = `phase-call ${BANNER_CLASS[style]}${title === null ? '' : ' titled'}`;
+    // The phase banner each style draws, a class of `.phase-call`; the banner is where the
+    // look changes, so it takes the look it brings — the arriving one.
+    const look = styleDefinition(style);
+    banner.className = `phase-call ${look.banner}${title === null ? '' : ' titled'}`;
     banner.textContent = text;
     if (card !== '') {
       banner.classList.add('carded');
       banner.insertAdjacentHTML('afterbegin', card);
     }
-    const flavour = BANNER_FLAVOUR[style]?.[title === null ? phase : 'final'];
+    // A style's own words under the phase's call, where it has them (ARCHIVE 14d, 14q).
+    const flavour = look.flavour?.[title === null ? phase : 'final'];
     if (flavour !== undefined) {
       const small = document.createElement('small');
       small.className = 'flavour';

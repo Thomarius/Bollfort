@@ -3,7 +3,8 @@ import type { ArtConfig, ArtLook, ArtStyle } from '@bollfort/config';
 import { Pixels } from './render/pixel/canvas.js';
 import { water } from './render/pixel/generators.js';
 import { motionReduced } from './motion.js';
-import { GAME_TITLE, TITLE_LETTERS_PX, titleFor, titleLayout, titleWidth } from './titles.js';
+import { styleTitle } from './styles/registry.js';
+import { GAME_TITLE, TITLE_LETTERS_PX, titleLayout, titleWidth } from './titles.js';
 
 /**
  * The menu and lobby's dressing: the title in both chosen looks at once, split by a
@@ -145,7 +146,7 @@ export class SplitTitle {
   /** Draws one half in a style. */
   private dress(look: ArtLook, style: ArtStyle): void {
     if (style === this.shown[look]) return;
-    const title = titleFor(style, this.art);
+    const title = styleTitle(style, this.art);
     const { height, margin } = titleLayout(title);
     const img = this.layers[look].querySelector('img')!;
     img.src = title.src;

@@ -34,7 +34,7 @@ round, so each time it starts it picks one of its tracks. A single unnumbered fi
 sufficient.
 
 **Every file here must be named by the manifest**, and a cue that has files must claim
-exactly as many variants as it has: `config/src/audioFiles.test.ts` checks both, since an
+exactly as many variants as it has: `client/src/audioFiles.test.ts` checks both, since an
 unregistered file is simply never played and nothing else would say so. A cue with no
 files at all is allowed — it is silent until one arrives.
 

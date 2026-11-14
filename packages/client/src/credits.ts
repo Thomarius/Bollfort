@@ -1,11 +1,11 @@
 import {
-  ArtStyleSchema,
   AUDIO_LICENCES,
   audioCredits,
   type ArtStyle,
   type AudioManifest,
   type CreditedFile,
 } from '@bollfort/config';
+import { isStyle } from './styles/registry.js';
 
 import { t } from './i18n.js';
 import { escape } from './html.js';
@@ -19,8 +19,7 @@ import { lookName } from './looks.js';
 /** The style a track is the own music of, from its path (`music/styles/<style>.mp3`), or null. */
 export function trackStyle(path: string): ArtStyle | null {
   const named = /^music\/styles\/([^/.]+)\.[^/]+$/.exec(path)?.[1];
-  const style = ArtStyleSchema.safeParse(named);
-  return style.success ? style.data : null;
+  return isStyle(named) ? named : null;
 }
 
 function item({ path, credit }: CreditedFile): string {

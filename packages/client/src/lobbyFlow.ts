@@ -1,5 +1,4 @@
 import {
-  artForStyle,
   defaultArtConfig,
   defaultConfigBundle,
   defaultTeams,
@@ -9,6 +8,7 @@ import {
   type TowerVariant,
   type Table,
 } from '@bollfort/config';
+import { styleArt } from './styles/registry.js';
 import { botTowerOf, drawnSpecial } from '@bollfort/ai';
 import { type ServerMessage } from '@bollfort/protocol';
 import { Progress, parseSave, type Save } from '@bollfort/tournament';
@@ -148,7 +148,7 @@ export function drawLobby(view: LobbyView, on: LobbyHandlers): void {
   // will open — the default's, when it is drawn at random as the match starts;
   // the seat cards keep the shared colours, which read on the lobby's panel.
   const chosen = preferredStyles().build;
-  const look = artForStyle(art, chosen === 'random' ? defaultArtConfig.styles.build : chosen);
+  const look = styleArt(art, chosen === 'random' ? defaultArtConfig.styles.build : chosen);
   const map = tablePreview(view.seed, view.playerCount, view.teams, look, terrain);
   const canvas = document.querySelector<HTMLCanvasElement>('#map-preview');
   if (canvas !== null) {

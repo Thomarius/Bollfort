@@ -1,4 +1,5 @@
 import { defaultConfigBundle, type ArtLook } from '@bollfort/config';
+import { audioManifest } from './styles/data.js';
 
 import { howToPlaySeen, openHowToPlay } from './howToPlay.js';
 import { withIcon } from './icons.js';
@@ -369,7 +370,7 @@ export function showMenu(notice: string | null = null, findGame = false): void {
   });
   document.querySelector('#credits')?.addEventListener('click', () => {
     audio.play('select');
-    openCredits(defaultConfigBundle.audio, () => audio.play('select'));
+    openCredits(audioManifest, () => audio.play('select'));
   });
   document.querySelector('#join')?.addEventListener('click', () => {
     audio.play('select');

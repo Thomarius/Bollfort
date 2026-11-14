@@ -1,0 +1,52 @@
+{
+  "config": {
+    "hopMs": 360,
+    "rockMs": 520,
+    "pumpTurnMs": 2400,
+    "tumbleweedsPerIsland": 2,
+    "tumbleweedTilesPerSecond": 1.8,
+    "floorTumbleweedEveryMs": 7000,
+    "stagecoachEveryMs": 26000,
+    "stagecoachTilesPerSecond": 1.4,
+    "vultures": 3,
+    "glintsPerSecond": 2,
+    "wordChance": 0.3,
+    "wordMs": 1100,
+    "barShare": 0.07,
+    "shimmerAlpha": 0.12,
+    "puffMs": 900,
+    "hurriedPuffMs": 320
+  },
+  "palette": {
+    "palette": {
+      "waterDeep": "#9c8a74",
+      "waterMid": "#cdbfa6",
+      "waterShallow": "#dcd2bf",
+      "waterFoam": "#f4ecdc",
+      "sand": "#f2c88a",
+      "grassDark": "#b4502c",
+      "grassMid": "#e8b46c",
+      "grassLight": "#f2c88a",
+      "rockDark": "#6a4a32",
+      "rockMid": "#9a7a58",
+      "rockLight": "#d8c0a0",
+      "shadow": "#3a2416",
+      "craterDark": "#5a3a22",
+      "craterMid": "#8a6038",
+      "uiInk": "#3a2416",
+      "uiAccent": "#b4502c",
+      "uiValid": "#5aa04a",
+      "uiInvalid": "#d83a2a"
+    }
+  },
+  "music": {
+    "file": "music/styles/wildwest.mp3",
+    "volume": 0.5
+  },
+  "credit": {
+    "author": "Vlad Krotov",
+    "licence": "Pixabay Content License",
+    "source": "https://pixabay.com/users/moodmode-33139253/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=138300",
+    "changes": "re-encoded as MP3 at 96 kbps, 44.1 kHz, loudness normalised"
+  }
+}

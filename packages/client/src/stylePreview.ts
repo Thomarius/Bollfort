@@ -1,4 +1,5 @@
-import { artForStyle, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { styleArt } from './styles/registry.js';
 import { applyEnclosure, computeEnclosure, stateFromAscii, type MatchState } from '@bollfort/sim';
 
 import { roseSpot } from './render/corner.js';
@@ -81,7 +82,7 @@ async function draw(
 ): Promise<string> {
   const canvas = document.createElement('canvas');
   const scene = new Scene();
-  const art = artForStyle(defaultArtConfig, style);
+  const art = styleArt(defaultArtConfig, style);
   const look = { theme: await createTheme(style, PREVIEW_SEED), art };
   try {
     await scene.init(canvas, { build: look, combat: look }, defaultArtConfig);

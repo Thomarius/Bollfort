@@ -1,23 +1,27 @@
-import type { ArtConfig, WildWestStyleConfig } from '@bollfort/config';
+import type { ArtConfig } from '@bollfort/config';
 import { isLoaded, Structure, type MatchState, type Shot } from '@bollfort/sim';
 import { Container, Graphics, Text, type GraphicsContext } from 'pixi.js';
 
-import { t as text } from '../i18n.js';
-import { motionReduced } from '../motion.js';
-import type { TimerSpot } from '../timerSpot.js';
+import { t as text } from '../../i18n.js';
+import { motionReduced } from '../../motion.js';
+import type { TimerSpot } from '../../timerSpot.js';
 
-import { cannonBase } from './cannonBase.js';
-import { clearDrawn } from './clearDrawn.js';
-import { climaxLevel, cornerSpot, hurry } from './corner.js';
-import { IslandParts } from './islandParts.js';
-import { hash } from './noise.js';
-import { release } from './release.js';
-import type { SceneryItem } from './scenery.js';
-import { SceneryLayer } from './sceneryLayer.js';
-import { WildWestSeaLife } from './seaLife.js';
-import { ShapeTheme } from './shapeTheme.js';
-import { Memos, StampBook, Stamps, viewKey } from './stamps.js';
-import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { cannonBase } from '../../render/cannonBase.js';
+import { clearDrawn } from '../../render/clearDrawn.js';
+import { climaxLevel, cornerSpot, hurry } from '../../render/corner.js';
+import { IslandParts } from '../../render/islandParts.js';
+import { hash } from '../../render/noise.js';
+import { release } from '../../render/release.js';
+import type { SceneryItem } from '../../render/scenery.js';
+import { SceneryLayer } from '../../render/sceneryLayer.js';
+import { ShapeTheme } from '../../render/shapeTheme.js';
+import { Memos, StampBook, Stamps, viewKey } from '../../render/stamps.js';
+import {
+  TerrainStrips,
+  whole,
+  type TerrainPass,
+  type TerrainPlan,
+} from '../../render/terrainStrips.js';
 import {
   Fireworks,
   FlagHoist,
@@ -53,8 +57,8 @@ import {
   type Theme,
   type ThemeLayers,
   type ViewTransform,
-} from './theme.js';
-import { outline, trace, wallGeometry } from './walls.js';
+} from '../../render/theme.js';
+import { outline, trace, wallGeometry } from '../../render/walls.js';
 import {
   ADOBE,
   CLIFF,
@@ -78,7 +82,9 @@ import {
   drawPumpTower,
   drawPumpWheel,
   drawTumbleweed,
-} from './wildwest/drawings.js';
+} from './drawings.js';
+import { WILDWEST, WILDWEST_WORDS, type WildWestStyleConfig } from './data.js';
+import { WildWestSeaLife } from './seaLife.js';
 
 const DEAD = 0x9a948a;
 const DEAD_DARK = 0x6a645a;
@@ -206,7 +212,7 @@ export class WildWestTheme extends ShapeTheme implements Theme {
 
   init(layers: ThemeLayers, art: ArtConfig): Promise<void> {
     this.art = art;
-    this.style = art.wildwest;
+    this.style = WILDWEST;
     layers.terrain.addChild(
       this.terrainStrips.container,
       this.craterGfx,
@@ -558,7 +564,7 @@ export class WildWestTheme extends ShapeTheme implements Theme {
       for (let k = 0; k < 5; k++) this.throw(block.x + 0.5, block.y + 0.4, 'chip', tint);
     }
     if (Math.random() < this.style.wordChance && this.words.length < WORDS_AT_ONCE) {
-      const all = text('wildwest.words').split('|');
+      const all = text(WILDWEST_WORDS).split('|');
       this.words.push({
         x: x + 0.5,
         y: y - 0.6,

@@ -19,3 +19,7 @@ soaks/
 trailer-build/
 # The Steam test bench's reports and logs (tools/steambench).
 steambench-results/
+
+# The supporter styles, a private repository checked out here on the developer's machine only
+# (packages/client/supporterPlugin.ts): never part of this one.
+/supporter/

@@ -106,10 +106,11 @@ const MusicEntrySchema = z.strictObject({
 });
 
 /** A style's own track, always looped: it stands in for the building or the battle music. */
-const StyleMusicEntrySchema = z.strictObject({
+export const StyleMusicEntrySchema = z.strictObject({
   file: z.string().min(1),
   volume: z.number().min(0).max(1),
 });
+export type StyleMusicEntry = z.infer<typeof StyleMusicEntrySchema>;
 
 /**
  * The open licences OpenGameArt offers, where every file came from, each with where its
@@ -132,7 +133,7 @@ export const AUDIO_LICENCES = {
 export type AudioLicence = keyof typeof AUDIO_LICENCES;
 
 /** Who made an audio file and on what terms: what the attribution licences ask to be shown. */
-const AudioCreditSchema = z.strictObject({
+export const AudioCreditSchema = z.strictObject({
   /** The work's title, as its author published it — where it is known. */
   title: z.string().min(1).optional(),
   author: z.string().min(1),
@@ -162,7 +163,7 @@ export const AudioManifestSchema = z.strictObject({
    * The styles' own tracks, by style; a style left out has none and always plays the shared
    * music — Minimal, Medieval and Night, whose own the shared music is (the user's).
    */
-  styleMusic: z.partialRecord(ArtStyleSchema, StyleMusicEntrySchema),
+  styleMusic: z.record(ArtStyleSchema, StyleMusicEntrySchema),
   /**
    * Once a style's track has played, the rounds after that one in which it may not play
    * again; the rest of its own round is held back too. Other styles' tracks are not. How often a
@@ -180,6 +181,30 @@ export const AudioManifestSchema = z.strictObject({
 });
 
 export type AudioManifest = z.infer<typeof AudioManifestSchema>;
+
+/** A style's own track and its credit, brought by the style itself (the client's registry). */
+export interface StyleMusic {
+  style: ArtStyle;
+  entry: StyleMusicEntry;
+  credit: AudioCredit;
+}
+
+/**
+ * The manifest with the tracks that styles bring themselves, after the manifest's own and in
+ * the order given, each credited by its file — as if the manifest had named them.
+ */
+export function withStyleMusic(audio: AudioManifest, tracks: readonly StyleMusic[]): AudioManifest {
+  if (tracks.length === 0) return audio;
+  const styleMusic = { ...audio.styleMusic };
+  const credits = { ...audio.credits };
+  for (const { style, entry, credit } of tracks) {
+    if (style in styleMusic) throw new Error(`style "${style}" has a track in the manifest too`);
+    if (entry.file in credits) throw new Error(`"${entry.file}" is credited in the manifest too`);
+    styleMusic[style] = entry;
+    credits[entry.file] = credit;
+  }
+  return { ...audio, styleMusic, credits };
+}
 
 /** Every path a cue may load: its file, and `.2`, `.3`, … up to its variant count. */
 export function cuePaths(entry: { file: string; variants?: number | undefined }): string[] {

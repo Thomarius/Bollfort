@@ -1,18 +1,11 @@
-import {
-  ArtStyleSchema,
-  stylesFor,
-  styleServes,
-  type ArtLook,
-  type ArtStyle,
-  type ArtStyles,
-  type TextKey,
-} from '@bollfort/config';
+import type { ArtLook, ArtStyle, ArtStyles } from '@bollfort/config';
 
 import { LivePreview } from './galleryLive.js';
 import { t } from './i18n.js';
 import { escape } from './html.js';
 import { store, stored } from './storage.js';
 import { stylePreview } from './stylePreview.js';
+import { STYLE_IDS, isStyle, styleDefinition, styleServes, stylesFor } from './styles/registry.js';
 
 /**
  * Choosing the two looks (ARCHIVE 12b): a style each for building and for combat, or
@@ -31,37 +24,9 @@ export type LookChoices = Record<ArtLook, LookChoice>;
 
 export const RANDOM = 'random' as const;
 
-/** The texts naming the styles, as the menu and the gallery offer them. */
-const STYLE_NAMES: Record<LookChoice, TextKey> = {
-  flat: 'style.flat',
-  pixel: 'style.pixel',
-  night: 'style.night',
-  cyberpunk: 'style.cyberpunk',
-  blueprint: 'style.blueprint',
-  parchment: 'style.parchment',
-  bricks: 'style.bricks',
-  glass: 'style.glass',
-  chocolate: 'style.chocolate',
-  halloween: 'style.halloween',
-  sakura: 'style.sakura',
-  oktoberfest: 'style.oktoberfest',
-  opera: 'style.opera',
-  office: 'style.office',
-  undersea: 'style.undersea',
-  electric: 'style.electric',
-  cartoon: 'style.cartoon',
-  christmas: 'style.christmas',
-  noir: 'style.noir',
-  sports: 'style.sports',
-  pirates: 'style.pirates',
-  anime: 'style.anime',
-  mythology: 'style.mythology',
-  wildwest: 'style.wildwest',
-  random: 'style.random',
-};
-
+/** A style's name, or "random"'s, as the menu and the gallery offer them. */
 export function lookName(choice: LookChoice): string {
-  return t(STYLE_NAMES[choice]);
+  return t(choice === RANDOM ? 'style.random' : styleDefinition(choice).name);
 }
 
 /**
@@ -75,8 +40,7 @@ export function chooseLook(
 ): LookChoice {
   for (const candidate of candidates) {
     if (candidate === RANDOM) return RANDOM;
-    const style = ArtStyleSchema.safeParse(candidate);
-    if (style.success && styleServes(style.data, look)) return style.data;
+    if (isStyle(candidate) && styleServes(candidate, look)) return candidate;
   }
   return fallback;
 }
@@ -88,14 +52,14 @@ const FAVOURITES_KEY = 'bollfort.favourites';
 export function storedFavourites(): ArtStyle[] {
   try {
     const raw: unknown = JSON.parse(stored(FAVOURITES_KEY) ?? '[]');
-    return Array.isArray(raw) ? ArtStyleSchema.options.filter((style) => raw.includes(style)) : [];
+    return Array.isArray(raw) ? STYLE_IDS.filter((style) => raw.includes(style)) : [];
   } catch {
     return [];
   }
 }
 
 export function saveFavourites(styles: readonly ArtStyle[]): void {
-  store(FAVOURITES_KEY, JSON.stringify(ArtStyleSchema.options.filter((s) => styles.includes(s))));
+  store(FAVOURITES_KEY, JSON.stringify(STYLE_IDS.filter((s) => styles.includes(s))));
 }
 
 /**
@@ -196,7 +160,7 @@ export class LookRotation {
       const others = from.filter((style) => !chosen.includes(style));
       for (const style of others.length > 0 ? others : from) drawn.add(style);
     }
-    const pool = ArtStyleSchema.options.filter((style) => drawn.has(style));
+    const pool = STYLE_IDS.filter((style) => drawn.has(style));
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.min(i, Math.floor(this.random() * (i + 1)));
       [pool[i], pool[j]] = [pool[j]!, pool[i]!];
@@ -334,12 +298,11 @@ export function openLookGallery(options: GalleryOptions): void {
     hovered = card;
     const image = card?.querySelector<HTMLImageElement>('img[data-preview]');
     const choice = card?.dataset.choice;
-    const style = ArtStyleSchema.safeParse(choice);
-    if (image === null || image === undefined || !style.success) {
+    if (image === null || image === undefined || !isStyle(choice)) {
       live.hide();
       return;
     }
-    live.show(style.data, image);
+    live.show(choice, image);
   });
   root.addEventListener('pointerleave', () => {
     hovered = null;
@@ -393,17 +356,15 @@ export function openLookGallery(options: GalleryOptions): void {
     }
     // A heart is inside its card, so it is asked first: hearting a style does not choose it.
     const hearted = target.closest<HTMLElement>('.heart');
-    const style = ArtStyleSchema.safeParse(hearted?.closest<HTMLElement>('.card')?.dataset.choice);
-    if (hearted !== null && style.success) {
+    const style = hearted?.closest<HTMLElement>('.card')?.dataset.choice;
+    if (hearted !== null && isStyle(style)) {
       favour(
-        favourites.includes(style.data)
-          ? favourites.filter((s) => s !== style.data)
-          : [...favourites, style.data],
+        favourites.includes(style) ? favourites.filter((s) => s !== style) : [...favourites, style],
       );
       return;
     }
     if (target.closest('.hearts-all') !== null) {
-      favour(ArtStyleSchema.options);
+      favour(STYLE_IDS);
       return;
     }
     if (target.closest('.hearts-none') !== null) {

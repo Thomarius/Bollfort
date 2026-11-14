@@ -1,10 +1,11 @@
-import { ArtStyleSchema, defaultArtConfig } from '@bollfort/config';
+import { defaultArtConfig } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { stateFromAscii } from '@bollfort/sim';
 
 import { seaDepth } from './ocean.js';
 import { nextTorch } from './pixel.js';
+import { STYLE_IDS } from '../styles/registry.js';
 import { createTheme } from './scene.js';
 import {
   FlagHoist,
@@ -69,9 +70,9 @@ describe('theme selection', () => {
 
   // Every style's module is imported here, all 24 (ARCHIVE 15zf): about 4 s alone, and past the
   // default 5 s in a full `npm run check` with the other files running beside it (2026-11-03).
-  it('covers every style the config allows', { timeout: 30_000 }, async () => {
-    // A style nameable in config but missing here would be a black screen.
-    for (const style of ArtStyleSchema.options) {
+  it('covers every style the registry lists', { timeout: 30_000 }, async () => {
+    // A style listed but drawing nothing, or as another, would be a black screen.
+    for (const style of STYLE_IDS) {
       expect((await createTheme(style)).id).toBe(style);
     }
   });

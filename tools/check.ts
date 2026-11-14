@@ -3,8 +3,19 @@
 // The tests take most of the time on their own, so the others cost almost nothing beside
 // them. CI runs the same four as separate steps (.github/workflows/ci.yml).
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 
-const steps = ['format:check', 'lint', 'typecheck', 'test'];
+// The private supporter styles (STEAM.md §6.1), where checked out: their tests run with the
+// rest, lint covers them, and this step typechecks and formats them — `format:check` and
+// `typecheck` pass over a folder that is in `.gitignore` and no workspace.
+const supporter = existsSync('supporter/src/index.ts');
+const steps = [
+  'format:check',
+  'lint',
+  'typecheck',
+  'test',
+  ...(supporter ? ['supporter:check'] : []),
+];
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const started = Date.now();
 

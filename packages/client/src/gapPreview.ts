@@ -1,4 +1,5 @@
-import { ArtStyleSchema, artForStyle, defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { defaultArtConfig, type ArtStyle } from '@bollfort/config';
+import { STYLE_IDS, isStyle, styleArt } from './styles/registry.js';
 import { applyEnclosure, computeEnclosure, stateFromAscii, type MatchState } from '@bollfort/sim';
 
 import { buildHints } from './hints.js';
@@ -43,7 +44,8 @@ export async function showGapPreview(): Promise<void> {
   const params = new URLSearchParams(location.search);
   const tile = Number(params.get('tile') ?? 20);
   const stillTile = Number(params.get('stillTile') ?? 12);
-  const first = ArtStyleSchema.safeParse(params.get('style')).data ?? 'flat';
+  const asked = params.get('style');
+  const first = isStyle(asked) ? asked : 'flat';
 
   document.body.innerHTML = '';
   document.body.style.cssText = 'margin:0;background:#1a1a24;overflow:auto';
@@ -72,7 +74,7 @@ export async function showGapPreview(): Promise<void> {
     }
     running = await runLive(live, style, tile);
   };
-  for (const style of ArtStyleSchema.options) {
+  for (const style of STYLE_IDS) {
     const b = document.createElement('button');
     b.textContent = style;
     b.dataset['style'] = style;
@@ -87,7 +89,7 @@ export async function showGapPreview(): Promise<void> {
     `margin-top:18px;display:grid;gap:4px 6px;align-items:center;` +
     `grid-template-columns:repeat(3,84px ${41 * stillTile}px)`;
   page.append(sheet);
-  for (const style of ArtStyleSchema.options) {
+  for (const style of STYLE_IDS) {
     const label = document.createElement('div');
     label.textContent = style;
     const img = document.createElement('img');
@@ -108,7 +110,7 @@ interface Board {
 async function board(style: ArtStyle, tile: number): Promise<Board> {
   const canvas = document.createElement('canvas');
   const scene = new Scene();
-  const look = { theme: await createTheme(style, SEED), art: artForStyle(defaultArtConfig, style) };
+  const look = { theme: await createTheme(style, SEED), art: styleArt(defaultArtConfig, style) };
   await scene.init(canvas, { build: look, combat: look }, defaultArtConfig);
   const state = gapState();
   const enclosure = computeEnclosure(state);

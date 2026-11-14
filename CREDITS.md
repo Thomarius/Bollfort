@@ -4,8 +4,8 @@ The code is under the MIT licence.
 
 ## Audio
 
-Made from `config/audio.manifest.json` by `npm run credits`: edit the manifest, not
-this file.
+Made from `config/audio.manifest.json` and the credits the styles bring themselves
+(`packages/client/src/styles/`) by `npm run credits`: edit those, not this file.
 
 ### Music
 

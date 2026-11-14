@@ -1,0 +1,29 @@
+{
+  "en": {
+    "style.wildwest": "Wild West",
+    "wildwest.call.castleSelect": "Stake your claim!",
+    "wildwest.call.combat": "Draw!",
+    "wildwest.call.build": "Mend the fences!",
+    "wildwest.call.cannonPlace": "Roll out the barrels!",
+    "wildwest.call.final": "The last showdown",
+    "wildwest.words": "KA-BLAM!|BOOM!|KA-POW!|BLAM!|KRAKOOM!"
+  },
+  "de": {
+    "style.wildwest": "Wilder Westen",
+    "wildwest.call.castleSelect": "Steckt euren Claim ab!",
+    "wildwest.call.combat": "Zieht!",
+    "wildwest.call.build": "Flickt die Zäune!",
+    "wildwest.call.cannonPlace": "Rollt die Fässer raus!",
+    "wildwest.call.final": "Der letzte Showdown",
+    "wildwest.words": "KA-BUMM!|BUMM!|PENG!|KRACH!|WUMMS!"
+  },
+  "hes": {
+    "style.wildwest": "Wilder Weste",
+    "wildwest.call.castleSelect": "Steckt eusch eurn Claim ab!",
+    "wildwest.call.combat": "Zieht!",
+    "wildwest.call.build": "Flickt die Zäun!",
+    "wildwest.call.cannonPlace": "Rollt die Fässer enaus!",
+    "wildwest.call.final": "De letzte Showdown",
+    "wildwest.words": "KA-BUMM!|BUMM!|PENG!|KRACH!|WUMMS!"
+  }
+}

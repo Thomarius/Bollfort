@@ -1,11 +1,11 @@
 import {
-  artForStyle,
   defaultArtConfig,
   variantCost,
   variantKind,
   type ArtStyle,
   type TowerVariant,
 } from '@bollfort/config';
+import { styleArt } from './styles/registry.js';
 import {
   computeEnclosure,
   craterTilesOf,
@@ -73,7 +73,7 @@ export class TowerPreview {
     if (this.scene === null) {
       const look = {
         theme: await createTheme(this.style, state.seed),
-        art: artForStyle(defaultArtConfig, this.style),
+        art: styleArt(defaultArtConfig, this.style),
       };
       const scene = new Scene();
       await scene.init(this.canvas, { build: look, combat: look }, defaultArtConfig);

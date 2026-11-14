@@ -18,7 +18,8 @@
     "@bollfort/tournament": "*",
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/rubik": "^5.3.0",
-    "pixi.js": "^8.21.0"
+    "pixi.js": "^8.21.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@bollfort/server": "*"

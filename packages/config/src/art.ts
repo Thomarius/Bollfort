@@ -43,51 +43,14 @@ export const PlayerPaletteSchema = z.strictObject({
 export type PlayerPalette = z.infer<typeof PlayerPaletteSchema>;
 
 /**
- * Visual styles are interchangeable implementations of one renderer interface.
- * `flat` is the minimal look: solid colour, no textures, no atlas to generate. `night` is
- * the pixel style under a palette of its own (`stylePalettes`). `cyberpunk` is neon
- * outlines on a dark circuit board, `blueprint` a plan in white ink on blue paper,
- * `parchment` an old hand-drawn map, `bricks` a board built of toy bricks, `glass` a
- * church window of stained glass, `chocolate` a sweet-shop land on a river of chocolate,
- * `halloween` a haunted land round a bog, `sakura` an Edo castle town as a woodblock print,
- * `oktoberfest` the beer festival on an island in a sea of beer, `opera` a night at the opera
- * on a sea whose waves are staves, `office` an open-plan office at war with itself,
- * `undersea` a coral reef on the seabed, the deep all round it, `electric` a storm
- * laboratory under a thunderstorm, `cartoon` a 1930s rubber-hose cartoon in black and white, `christmas` a snowy island on Christmas Eve,
- * `noir` a crime city at night drawn as a cel-shaded graphic novel, `sports` a stadium whose
- * guns are sportsmen of ten ball sports throwing, kicking and hitting their balls, `pirates`
- * a pirates' cove in Caribbean daylight, log stockades and ship's cannon with parrots on them,
- * `anime` a summer's day in an anime, its guns chibi heroes of eight clans, a clan to a team,
- * `mythology` ancient Greece as black-figure vase painting, its guns onager catapults, `wildwest`
- * a showdown at high noon among the mesas, its guns mortar barrels.
+ * A visual style's name. Styles are interchangeable implementations of one renderer interface,
+ * and which there are, and what each brings — its looks, its theme, its banner, its own config
+ * and texts — is the client's registry (`client/src/styles/registry.ts`), so a style can be
+ * added from outside the shared files (SP1a). A name is checked against the registry as the
+ * client starts, as a typo here would have been by the schema.
  */
-export const ArtStyleSchema = z.enum([
-  'flat',
-  'pixel',
-  'night',
-  'cyberpunk',
-  'blueprint',
-  'parchment',
-  'bricks',
-  'glass',
-  'chocolate',
-  'halloween',
-  'sakura',
-  'oktoberfest',
-  'opera',
-  'office',
-  'undersea',
-  'electric',
-  'cartoon',
-  'christmas',
-  'noir',
-  'sports',
-  'pirates',
-  'anime',
-  'mythology',
-  'wildwest',
-]);
-export type ArtStyle = z.infer<typeof ArtStyleSchema>;
+export const ArtStyleSchema = z.string().regex(/^[a-z][a-z0-9]*$/, 'a style name');
+export type ArtStyle = string;
 
 /**
  * The shapes a player can carry beside their colour (PLAN 11.15 X6), so eight players,
@@ -1041,37 +1004,6 @@ export const MythologyStyleSchema = z.strictObject({
 });
 export type MythologyStyleConfig = z.infer<typeof MythologyStyleSchema>;
 
-/**
- * The Wild West look (ARCHIVE 14y): mesas over a canyon floor at high noon — adobe
- * walls, staked claims, frontier buildings with windpumps turning while sealed, and mortar
- * barrels for guns lobbing dynamite; tumbleweeds rolling.
- */
-export const WildWestStyleSchema = z.strictObject({
-  /** A barrel's hop as it fires, its rocking while it reloads, a windpump's turn. */
-  hopMs: z.number().int().positive(),
-  rockMs: z.number().int().positive(),
-  pumpTurnMs: z.number().int().positive(),
-  /** Tumbleweeds rolling over each island's open ground, and across the canyon floor. */
-  tumbleweedsPerIsland: z.number().int().nonnegative(),
-  tumbleweedTilesPerSecond: z.number().positive(),
-  floorTumbleweedEveryMs: z.number().int().positive(),
-  /** A stagecoach crossing the canyon floor now and then, and vultures circling. */
-  stagecoachEveryMs: z.number().int().positive(),
-  stagecoachTilesPerSecond: z.number().positive(),
-  vultures: z.number().int().nonnegative(),
-  /** Gold glinting in the claims each second, and the share of wall hits that letter a word. */
-  glintsPerSecond: z.number().nonnegative(),
-  wordChance: z.number().min(0).max(1),
-  wordMs: z.number().int().positive(),
-  /** High noon: the widescreen bars' share of the screen's height, and the heat's shimmer. */
-  barShare: z.number().min(0).max(0.5),
-  shimmerAlpha: z.number().min(0).max(1),
-  /** The locomotive's puff, calm and hurried. */
-  puffMs: z.number().int().positive(),
-  hurriedPuffMs: z.number().int().positive(),
-});
-export type WildWestStyleConfig = z.infer<typeof WildWestStyleSchema>;
-
 /** One of the two looks a match is drawn in. */
 export type ArtLook = 'build' | 'combat';
 
@@ -1082,87 +1014,12 @@ export type ArtLook = 'build' | 'combat';
  * nothing.
  */
 
-export const ArtStylesSchema = z
-  .strictObject({
-    build: ArtStyleSchema,
-    combat: ArtStyleSchema,
-  })
-  .refine((styles) => styleServes(styles.build, 'build'), {
-    message: 'the build look must be a style made for building',
-    path: ['build'],
-  })
-  .refine((styles) => styleServes(styles.combat, 'combat'), {
-    message: 'the combat look must be a style made for combat',
-    path: ['combat'],
-  });
+export const ArtStylesSchema = z.strictObject({
+  /** Each a style made for its look, which the client's registry checks as it starts. */
+  build: ArtStyleSchema,
+  combat: ArtStyleSchema,
+});
 export type ArtStyles = z.infer<typeof ArtStylesSchema>;
-
-/**
- * Which looks each style is made for. A style may be made for one look only — a calm
- * drafting-paper build look, say — and is then offered for that one
- * alone. A property of the drawing code rather than a tunable, so it lives here, and a
- * style cannot be added without saying.
- */
-export const STYLE_LOOKS: Record<ArtStyle, readonly ArtLook[]> = {
-  flat: ['build', 'combat'],
-  pixel: ['build', 'combat'],
-  night: ['build', 'combat'],
-  cyberpunk: ['build', 'combat'],
-  blueprint: ['build', 'combat'],
-  parchment: ['build', 'combat'],
-  bricks: ['build', 'combat'],
-  glass: ['build', 'combat'],
-  chocolate: ['build', 'combat'],
-  halloween: ['build', 'combat'],
-  sakura: ['build', 'combat'],
-  oktoberfest: ['build', 'combat'],
-  opera: ['build', 'combat'],
-  office: ['build', 'combat'],
-  undersea: ['build', 'combat'],
-  electric: ['build', 'combat'],
-  cartoon: ['build', 'combat'],
-  christmas: ['build', 'combat'],
-  noir: ['build', 'combat'],
-  sports: ['build', 'combat'],
-  pirates: ['build', 'combat'],
-  anime: ['build', 'combat'],
-  mythology: ['build', 'combat'],
-  wildwest: ['build', 'combat'],
-};
-
-export function styleServes(
-  style: ArtStyle,
-  look: ArtLook,
-  looks: Record<ArtStyle, readonly ArtLook[]> = STYLE_LOOKS,
-): boolean {
-  return looks[style].includes(look);
-}
-
-/** The styles made for a look, in the order the menu offers them. */
-export function stylesFor(
-  look: ArtLook,
-  looks: Record<ArtStyle, readonly ArtLook[]> = STYLE_LOOKS,
-): ArtStyle[] {
-  return ArtStyleSchema.options.filter((style) => styleServes(style, look, looks));
-}
-
-/**
- * The first of `candidates` that names a style made for `look` — a link's, then what the
- * menu saved, then the default, say — so a stale or hand-typed choice falls through to
- * the next rather than drawing a look in a style that was never made for it.
- */
-export function chooseStyle(
-  look: ArtLook,
-  candidates: readonly unknown[],
-  fallback: ArtStyle,
-  looks: Record<ArtStyle, readonly ArtLook[]> = STYLE_LOOKS,
-): ArtStyle {
-  for (const candidate of candidates) {
-    const style = ArtStyleSchema.safeParse(candidate);
-    if (style.success && styleServes(style.data, look, looks)) return style.data;
-  }
-  return fallback;
-}
 
 /**
  * A style's own colours, over the shared ones: any palette entries it names, and the
@@ -1221,11 +1078,39 @@ function rampProblems(own: readonly PlayerPalette[], shared: readonly PlayerPale
 }
 
 /**
- * The art as one style draws it: the shared config with that style's own colours laid
- * over it. Every theme is handed this rather than the shared art.
+ * What is wrong with a style's own colours against the shared ones they restyle: a hue moved
+ * too far, a player or a team family missing. Empty when they may be used. The schema asks it
+ * of `stylePalettes`, and the client's registry of a palette a style brings itself.
  */
-export function artForStyle(art: ArtConfig, style: ArtStyle): ArtConfig {
-  const own = art.stylePalettes[style];
+export function stylePaletteProblems(
+  own: StylePalette,
+  shared: {
+    players: readonly PlayerPalette[];
+    teamFamilies: readonly (readonly PlayerPalette[])[];
+  },
+): string[] {
+  return [
+    ...(own.players ? rampProblems(own.players, shared.players) : []),
+    ...(own.teamFamilies
+      ? own.teamFamilies.length === shared.teamFamilies.length
+        ? own.teamFamilies.flatMap((family, t) =>
+            rampProblems(family, shared.teamFamilies[t]!).map((p) => `team family ${t} ${p}`),
+          )
+        : [`has ${own.teamFamilies.length} team families, not ${shared.teamFamilies.length}`]
+      : []),
+  ];
+}
+
+/**
+ * The art as one style draws it: the shared config with that style's own colours laid
+ * over it. Every theme is handed this rather than the shared art. `own` is the style's
+ * palette, from `stylePalettes` unless the style brings its own (the client's registry).
+ */
+export function artForStyle(
+  art: ArtConfig,
+  style: ArtStyle,
+  own: StylePalette | undefined = art.stylePalettes[style],
+): ArtConfig {
   if (own === undefined) return art;
   return {
     ...art,
@@ -1262,7 +1147,6 @@ export const ArtConfigSchema = z
     pirates: PiratesStyleSchema,
     anime: AnimeStyleSchema,
     mythology: MythologyStyleSchema,
-    wildwest: WildWestStyleSchema,
     scenery: ScenerySchema,
     /** Effects both styles draw alike, because they carry information. */
     effects: z.strictObject({
@@ -1465,7 +1349,7 @@ export const ArtConfigSchema = z
       .min(2)
       .refine((shapes) => new Set(shapes).size === shapes.length, 'a shape is listed twice'),
     /** Each style's own colours, where it has any; see `StylePaletteSchema`. */
-    stylePalettes: z.partialRecord(ArtStyleSchema, StylePaletteSchema),
+    stylePalettes: z.record(ArtStyleSchema, StylePaletteSchema),
 
     dither: z.strictObject({
       enabled: z.boolean(),
@@ -1561,17 +1445,7 @@ export const ArtConfigSchema = z
   })
   .superRefine((a, ctx) => {
     for (const [style, own] of Object.entries(a.stylePalettes)) {
-      const problems = [
-        ...(own?.players ? rampProblems(own.players, a.players) : []),
-        ...(own?.teamFamilies
-          ? own.teamFamilies.length === a.teamFamilies.length
-            ? own.teamFamilies.flatMap((family, t) =>
-                rampProblems(family, a.teamFamilies[t]!).map((p) => `team family ${t} ${p}`),
-              )
-            : [`has ${own.teamFamilies.length} team families, not ${a.teamFamilies.length}`]
-          : []),
-      ];
-      for (const problem of problems) {
+      for (const problem of stylePaletteProblems(own, a)) {
         ctx.addIssue({
           code: 'custom',
           message: `style "${style}": ${problem}`,
