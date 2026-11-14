@@ -12284,3 +12284,36 @@ under its own name in sepia, its own skin, banner, title and texts in three lang
 the seam but music. A default build with the package present carries nothing of it; the flagged
 one does; `npm run check` passes with it (1366 tests and `supporter:check`) and without (1360).
 Not built: serving the package's own audio and pictures, needed before real styles (SP4).
+
+## 16h. The supporter package's own files, and the seam on Windows (2026-11-14)
+
+The step before SP4 (STEAM.md §6.1): a supporter style needs its own music and pictures, and SP1
+brought no file — Vite's `publicDir` is the public `assets/` alone. Now `supporterPlugin.ts` serves
+`supporter/assets/`, laid out as `assets/` is, at the same URLs — its
+`audio/music/styles/x.mp3` is `/audio/music/styles/x.mp3` — so a style names its track as every
+style does. On
+the dev server by a middleware before the public folder; in a build carrying the styles
+(`BOLLFORT_SUPPORTER=1`) copied into `dist/`, and a default build copies nothing. A file shadowing a
+public one fails the build; the package's tests check every audio file of its own is a style's
+track and credited, and none shadows a public file. The in-game Credits list a supporter track only
+in the admin mode, where the manifest has it; `CREDITS.md` never does.
+
+With it, `?supporter=1&page=NAME` opens a developer's page the package brings (`SUPPORTER_PAGES`,
+the stub's third list, empty in public): a style's sketch while it is designed, kept private with
+the style rather than in `main.ts` as the public styles' sketches were.
+
+**The seam had never worked on Windows.** Vite's module ids have forward slashes there too, and the
+plugin compared them with `path.resolve`'s backslashes: the stub was never answered, and the guard
+failing a build that reaches into `supporter/` never fired. SP1b was checked on Linux. Both are
+compared as Vite writes them now (`normalizePath`); the package's test that the stub is answered
+found it. And a clone on Windows took CRLF endings from `core.autocrlf`, which prettier refuses:
+the checkout here is set to LF.
+
+**The first supporter style built** (the same day, SP4's first): designed with the user, sketched
+on such a page in two rounds and built in the package, its design and its record in
+`supporter/docs/`, not here, since the style itself is private. Two things learned for every style:
+a gun must stand on a block filling its footprint, or open gun space is hard to see (the user,
+from the sketch, as Mythos's testers the same day); and a climax drawn at the screen's edges must
+be kept to the sea beside the map, measured from `tileX(view, 0)` and `tileY(view, 0)`, or at a
+tight window it covers the islands' outer rows. The sketch page was removed once the style was
+built; the `page` hook stays for the next.

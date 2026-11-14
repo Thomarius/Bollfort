@@ -210,7 +210,8 @@ server rebuilt and every page reloaded for):
   (in `.gitignore`; not under `packages/`, every folder of which is a workspace), answering the
   public stub `styles/supporter.ts` through `client/supporterPlugin.ts`: on the dev server and in
   tests when present, in a production build only with `BOLLFORT_SUPPORTER=1`, and shown only with
-  `?supporter=1`. Its one style, `sample`, is a throwaway.
+  `?supporter=1`. Its throwaway `sample` style, which proved the seam, was removed once the
+  first real style was built (2026-11-14).
 
 - **Bots twice as fast, a hit drawing only its island** (ARCHIVE 16d, 2026-11-13): Dinic's
   levels from the sink, "no wall possible" known before the flow, every match's hash unchanged
@@ -663,7 +664,9 @@ server rebuilt and every page reloaded for):
   menu); next AC5, with the App ID. **And the supporter styles' seam** (2026-11-14, ARCHIVE 16g,
   STEAM.md §6.1 SP1): new styles prepared in the private package `supporter/`, kept out of every
   public build, free game or paid pack decided later; next, the package's own audio and pictures
-  served, then the styles (SP4).
+  served (ARCHIVE 16h: `supporter/assets/` at the public URLs, a developer's page by
+  `?supporter=1&page=NAME`), and the first supporter style designed, sketched and built there, its design and its record
+  in `supporter/docs/` (2026-11-14, SP4's first); next, the users' play of it.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.

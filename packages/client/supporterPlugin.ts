@@ -1,7 +1,7 @@
-import { existsSync } from 'node:fs';
-import { resolve, sep } from 'node:path';
+import { createReadStream, existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { extname, join, relative, resolve, sep } from 'node:path';
 
-import type { Plugin } from 'vite';
+import { normalizePath, type Plugin } from 'vite';
 
 /*
  * The supporter styles' seam at build time (STEAM.md §6.1, SP1b). The styles are a private
@@ -17,6 +17,47 @@ const repoRoot = resolve(import.meta.dirname, '..', '..');
 export const SUPPORTER_DIR = resolve(repoRoot, 'supporter');
 const ENTRY = resolve(SUPPORTER_DIR, 'src', 'index.ts');
 const STUB = resolve(import.meta.dirname, 'src', 'styles', 'supporter.ts');
+/**
+ * Vite's module ids have forward slashes on Windows too, where `resolve` gives backslashes: both
+ * are compared as Vite writes them, or the stub is never answered there, and the guard below
+ * never fires.
+ */
+const STUB_ID = normalizePath(STUB);
+const ENTRY_ID = normalizePath(ENTRY);
+const DIR_ID = normalizePath(SUPPORTER_DIR) + '/';
+/**
+ * The package's own files — its styles' music, and pictures — laid out as the public `assets/`
+ * is and served beside it at the same URLs: `supporter/assets/audio/music/styles/x.mp3` is
+ * `/audio/music/styles/x.mp3`, as the public tracks are, so a style names its track as any does.
+ */
+export const SUPPORTER_ASSETS = resolve(SUPPORTER_DIR, 'assets');
+const PUBLIC_ASSETS = resolve(repoRoot, 'assets');
+
+/** The package's files, by their path under `assets/` with forward slashes. */
+export function supporterAssets(): string[] {
+  if (!existsSync(SUPPORTER_ASSETS)) return [];
+  const walk = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory() ? walk(join(dir, entry.name)) : [join(dir, entry.name)],
+    );
+  return walk(SUPPORTER_ASSETS).map((path) =>
+    relative(SUPPORTER_ASSETS, path).split(sep).join('/'),
+  );
+}
+
+/** A file of the package's shadowing a public one would change the free game's: refused. */
+function assetClashes(): string[] {
+  return supporterAssets().filter((path) => existsSync(join(PUBLIC_ASSETS, path)));
+}
+
+const CONTENT_TYPES: Record<string, string> = {
+  '.mp3': 'audio/mpeg',
+  '.ogg': 'audio/ogg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+  '.json': 'application/json',
+};
 
 /** Whether the private package is checked out here. */
 export function supporterPresent(): boolean {
@@ -43,16 +84,60 @@ export function supporterPlugin(wanted: boolean): Plugin {
   return {
     name: 'bollfort-supporter',
     enforce: 'pre',
+    buildStart() {
+      if (!wanted) return;
+      const clashes = assetClashes();
+      if (clashes.length > 0) {
+        throw new Error(`the supporter package's files shadow public ones: ${clashes.join(', ')}`);
+      }
+    },
+    // The dev server: the package's files where a request names one, before the public folder.
+    configureServer(server) {
+      if (!wanted) return;
+      server.middlewares.use((req, res, next) => {
+        if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+        let path: string;
+        try {
+          path = decodeURIComponent((req.url ?? '').split('?')[0]!);
+        } catch {
+          return next();
+        }
+        const file = resolve(SUPPORTER_ASSETS, '.' + path);
+        if (
+          !file.startsWith(SUPPORTER_ASSETS + sep) ||
+          !existsSync(file) ||
+          !statSync(file).isFile()
+        ) {
+          return next();
+        }
+        res.setHeader('Content-Type', CONTENT_TYPES[extname(file)] ?? 'application/octet-stream');
+        res.setHeader('Content-Length', statSync(file).size);
+        res.setHeader('Cache-Control', 'no-cache');
+        if (req.method === 'HEAD') return res.end();
+        createReadStream(file).pipe(res);
+      });
+    },
+    // A build carrying the styles: their files into `dist/` beside the public ones.
+    generateBundle() {
+      if (!wanted) return;
+      for (const path of supporterAssets()) {
+        this.emitFile({
+          type: 'asset',
+          fileName: path,
+          source: readFileSync(join(SUPPORTER_ASSETS, path)),
+        });
+      }
+    },
     async resolveId(source, importer, options) {
       if (!wanted || importer === undefined || !/(^|\/)supporter(\.js|\.ts)?$/.test(source)) {
         return null;
       }
       const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
-      return resolved?.id === STUB ? ENTRY : null;
+      return resolved !== null && normalizePath(resolved.id) === STUB_ID ? ENTRY_ID : null;
     },
     load(id) {
       // Never by another way in either: a stray import of the package fails the build.
-      if (!wanted && id.startsWith(SUPPORTER_DIR + sep)) {
+      if (!wanted && normalizePath(id).startsWith(DIR_ID)) {
         throw new Error(`${id} is the private supporter package, not part of this build`);
       }
       return null;

@@ -40,6 +40,7 @@ import { startPadLoop } from './padLoop.js';
 import { installStoreArt, storeArtMode } from './storeArt.js';
 import { gameHost, steamMissing } from './host.js';
 import { startSteamPlay } from './steam/steamPlay.js';
+import { supporterAdmin } from './styles/admin.js';
 
 /**
  * Bollfort client.
@@ -80,6 +81,17 @@ if (params.get('icons') === 'sheet') {
   void import('./gapPreview.js')
     .then(({ showGapPreview }) => showGapPreview())
     .catch((e: unknown) => showError('gaps', e));
+} else if (supporterAdmin() && params.get('page') !== null) {
+  // A developer's page the private supporter package brings, a style's sketch while it is
+  // designed (`styles/supporter.ts`); without the package there are none.
+  const name = params.get('page')!;
+  void import('./styles/supporter.js')
+    .then(({ SUPPORTER_PAGES }) => {
+      const page = SUPPORTER_PAGES[name];
+      if (page === undefined) throw new Error(`no supporter page "${name}"`);
+      return page();
+    })
+    .catch((e: unknown) => showError('page', e));
 } else {
   // Every sound and music file first, behind a loading screen (ARCHIVE 14b);
   // then the page the query asks for.

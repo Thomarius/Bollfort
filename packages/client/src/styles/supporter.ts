@@ -16,3 +16,9 @@ export const SUPPORTER_DATA: readonly StyleData[] = [];
 
 /** The supporter styles as the page uses them, in the order the menu offers them. */
 export const SUPPORTER_STYLES: readonly StyleDefinition[] = [];
+
+/**
+ * The package's own developer pages, by `?supporter=1&page=NAME` (`main.ts`): a style's sketch
+ * while it is designed, kept with the style rather than here.
+ */
+export const SUPPORTER_PAGES: Readonly<Record<string, () => Promise<void>>> = {};

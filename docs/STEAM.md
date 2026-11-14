@@ -582,8 +582,8 @@ licence allows commercial use, but each track and anything else is checked again
 **The packages**, when it comes: SP1 the seam and the private package with one style, the admin
 mode — **done** (2026-11-14, ARCHIVE 16g), as SP1a, every style in a registry and the Wild West
 in a folder of its own, and SP1b, the private package with a throwaway `sample` style; SP2 the locks in the gallery, the previews, the ownership check and the store button;
-before SP4, the package's own audio and pictures served (SP1 brought no file: the sample has
-no music, and `publicDir` is the public `assets/` alone); SP3 the
+before SP4, the package's own audio and pictures served — **done** (2026-11-14, ARCHIVE 16h:
+`supporter/assets/` served beside the public `assets/` at the same URLs); SP3 the
 depot and the release job's private checkout; SP4 the five styles, each as any style is made
 (the style pass's readability, `IslandParts`, the performance check at eight players).
 
