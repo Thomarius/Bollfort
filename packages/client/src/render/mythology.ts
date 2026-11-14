@@ -451,7 +451,12 @@ export class MythologyTheme extends ShapeTheme implements Theme {
       const out = owner === 0 || state.players[owner - 1]?.eliminated !== false;
       this.drawMeander(g, view, cells, (x, y) => wallAt(x, y) === owner, out ? -1 : owner - 1);
     }
-    for (const cannon of state.cannons) cannonBase(g, view, cannon, null, CLAY_DARK);
+    // A plate of light clay ringed in the glaze, as the icon's disc: a bare outline in clay was
+    // lost on the mosaic, and the testers could not see at a glance where a gun still fitted
+    // (the test session, 2026-11-14).
+    for (const cannon of state.cannons) {
+      cannonBase(g, view, cannon, CLAY_LIGHT, GLAZE, 1, 0.1);
+    }
   }
 
   /**

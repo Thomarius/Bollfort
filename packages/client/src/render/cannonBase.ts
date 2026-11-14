@@ -20,6 +20,8 @@ export function cannonBase(
   fill: number | null,
   edge: number,
   fillAlpha = 0.65,
+  /** The edge's width in tiles: a hairline by default, Mythos's glaze bolder. */
+  edgeWidth = 0.06,
 ): void {
   const t = view.tile;
   g.rect(
@@ -29,5 +31,5 @@ export function cannonBase(
     (cannon.h - 2 * INSET) * t,
   );
   if (fill !== null) g.fill({ color: fill, alpha: fillAlpha });
-  g.stroke({ width: Math.max(1, t * 0.06), color: edge });
+  g.stroke({ width: Math.max(1, t * edgeWidth), color: edge });
 }

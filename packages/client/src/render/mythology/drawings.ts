@@ -64,20 +64,20 @@ export function drawFrame(g: Graphics, t: number, broken: boolean): void {
   g.ellipse(0, -u(0.02), u(0.85), u(0.1));
   g.fill({ color: 0x000000, alpha: 0.18 });
   // The beam, its grain incised.
-  g.roundRect(-u(0.78), -u(0.34), u(1.5), u(0.18), u(0.04));
+  g.roundRect(-u(0.8), -u(0.38), u(1.56), u(0.24), u(0.05));
   g.fill({ color: GLAZE });
-  g.moveTo(-u(0.7), -u(0.25)).lineTo(u(0.64), -u(0.25));
+  g.moveTo(-u(0.72), -u(0.26)).lineTo(u(0.66), -u(0.26));
   g.stroke({ width: incised(t), color: CLAY });
   // The wheels, solid discs with an incised rim and hub.
   for (const x of [-0.5, 0.42]) {
-    g.circle(u(x), -u(0.14), u(0.14));
+    g.circle(u(x), -u(0.15), u(0.17));
     g.fill({ color: GLAZE });
-    g.circle(u(x), -u(0.14), u(0.09));
-    g.circle(u(x), -u(0.14), u(0.025));
+    g.circle(u(x), -u(0.15), u(0.11));
+    g.circle(u(x), -u(0.15), u(0.03));
     g.stroke({ width: incised(t), color: CLAY });
   }
   // The torsion bundle: a skein of rope between the beams, incised turns.
-  g.roundRect(u(PIVOT.x - 0.13), u(PIVOT.y - 0.12), u(0.26), u(0.24), u(0.06));
+  g.roundRect(u(PIVOT.x - 0.16), u(PIVOT.y - 0.15), u(0.32), u(0.3), u(0.07));
   g.fill({ color: GLAZE });
   for (const k of [-0.07, 0, 0.07]) {
     g.moveTo(u(PIVOT.x + k - 0.03), u(PIVOT.y - 0.1)).lineTo(
@@ -90,9 +90,9 @@ export function drawFrame(g: Graphics, t: number, broken: boolean): void {
   const lean = broken ? 0.35 : 0;
   g.moveTo(u(0.28), -u(0.3)).lineTo(u(0.28 + lean), -u(broken ? 0.7 : 1.08));
   g.moveTo(u(0.46), -u(0.3)).lineTo(u(0.46 + lean * 0.5), -u(broken ? 0.62 : 1.08));
-  g.stroke({ width: Math.max(1.5, u(0.08)), color: GLAZE, cap: 'round' });
+  g.stroke({ width: Math.max(2, u(0.13)), color: GLAZE, cap: 'round' });
   if (!broken) {
-    g.roundRect(u(0.18), -u(1.16), u(0.38), u(0.12), u(0.05));
+    g.roundRect(u(0.16), -u(1.18), u(0.42), u(0.16), u(0.06));
     g.fill({ color: GLAZE });
     g.roundRect(u(0.22), -u(1.13), u(0.2), u(0.06), u(0.03));
     g.fill({ color: SLIP_WHITE });
@@ -106,14 +106,14 @@ export function drawFrame(g: Graphics, t: number, broken: boolean): void {
 export function drawArm(g: Graphics, t: number, loaded: boolean): void {
   const u = (v: number): number => v * t;
   g.moveTo(0, 0).lineTo(u(ARM_LENGTH), 0);
-  g.stroke({ width: Math.max(1.5, u(0.1)), color: GLAZE, cap: 'round' });
+  g.stroke({ width: Math.max(2, u(0.15)), color: GLAZE, cap: 'round' });
   g.moveTo(u(0.1), 0).lineTo(u(ARM_LENGTH - 0.12), 0);
   g.stroke({ width: incised(t) * 0.8, color: CLAY });
   // The cup, open away from the arm.
   // Every arc starts with a move to its first point, or it is joined to wherever the path last
   // was — the canvas's origin, across the whole board (the first look).
   arcFrom(g, u(ARM_LENGTH + 0.04), 0, u(0.14), Math.PI * 0.35, Math.PI * 1.65, true);
-  g.stroke({ width: Math.max(1.2, u(0.06)), color: GLAZE, cap: 'round' });
+  g.stroke({ width: Math.max(1.5, u(0.09)), color: GLAZE, cap: 'round' });
   if (loaded) drawStone(g, t, u(ARM_LENGTH + 0.06), 0, 0.12);
 }
 
