@@ -300,6 +300,33 @@ describe('match audio', () => {
     for (let tick = 280; tick < 300; tick++) match.frame(clock('intermission', tick, 300));
     expect(audio.sfx).not.toContain('countdown_tick');
   });
+
+  it("counts down in the look's own voice where its style has one, else with the tick", () => {
+    const struck: [ArtStyle, number][] = [];
+    const audio = new Recorder();
+    // The build look's style counts down in its own voice; the combat look's has none.
+    const own = Object.assign(audio, {
+      playStyle: (style: ArtStyle, _sound: string, gain = 1): boolean => {
+        if (style !== 'opera') return false;
+        struck.push([style, gain]);
+        return true;
+      },
+    });
+    const match = new MatchAudio(own, HUMAN, {
+      rules: { chance: 0, pauseRounds: 0, hasTrack: () => false },
+      styleOf: (look) => (look === 'build' ? 'opera' : 'noir'),
+      roll: () => 0.99,
+    });
+    match.handle([phase('build')]);
+    for (let tick = 90; tick < 300; tick++) match.frame(clock('build', tick, 300));
+    expect(struck).toHaveLength(5);
+    expect(struck[4]![1]).toBeGreaterThan(struck[0]![1]);
+    expect(audio.sfx).not.toContain('countdown_tick');
+    match.handle([phase('combat')]);
+    for (let tick = 90; tick < 300; tick++) match.frame(clock('combat', tick, 300));
+    expect(audio.sfx.filter((c) => c === 'countdown_tick')).toHaveLength(5);
+    expect(struck).toHaveLength(5);
+  });
 });
 
 describe('special towers in the sound', () => {

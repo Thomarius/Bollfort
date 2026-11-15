@@ -12317,3 +12317,20 @@ from the sketch, as Mythos's testers the same day); and a climax drawn at the sc
 be kept to the sea beside the map, measured from `tileX(view, 0)` and `tileY(view, 0)`, or at a
 tight window it covers the islands' outer rows. The sketch page was removed once the style was
 built; the `page` hook stays for the next.
+
+## 16i. A style's own sounds (2026-11-15)
+
+A supporter style asked for a sound of its own (`supporter/docs/`): a clock striking where every
+other style ticks over a phase's last seconds. Until now a style could bring a track and nothing
+else. Now `StyleData.sounds` holds sounds by the shared cue each stands in for while that style is
+the look on screen (`STYLE_SOUNDS` in `config/src/audio.ts`). There is one so far, `countdown`,
+which replaces the countdown's tick. They are added to the manifest as the tracks are
+(`withStyleSounds`, beside `withStyleMusic`), credited by their files, listed among the sound
+effects in the Credits, and loaded and decoded with the other sounds.
+
+`MatchAudio.frame` asks the player for the phase's look's own `countdown` first (`playStyle`,
+optional on `Cues`) and plays the tick only when there is none, or when its file is not there. So
+the sound follows the look on screen: a match built in one style and fought in another ticks in
+one phase and strikes in the other. No public style has one, and `audio.manifest.json`'s
+`styleSounds` is empty. The supporter package's test that every file of its own is named and
+credited covers sounds too. The countdown and the manifest each have a test.

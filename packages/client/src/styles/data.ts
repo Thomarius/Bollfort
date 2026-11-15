@@ -5,6 +5,8 @@ import {
   locales,
   stylePaletteProblems,
   withStyleMusic,
+  withStyleSounds,
+  type StyleSound,
   type ArtStyle,
   type AudioManifest,
   type Language,
@@ -33,11 +35,20 @@ export const OWN_STYLE_DATA: readonly StyleData[] = [
   ...(supporterAdmin() ? SUPPORTER_DATA : []),
 ];
 
-/** The audio manifest with the styles' own tracks, each credited by its file. */
-export const audioManifest: AudioManifest = withStyleMusic(
-  defaultAudioManifest,
+/** The audio manifest with the styles' own tracks and sounds, each credited by its file. */
+export const audioManifest: AudioManifest = withStyleSounds(
+  withStyleMusic(
+    defaultAudioManifest,
+    OWN_STYLE_DATA.flatMap((style) =>
+      style.music === undefined ? [] : [{ style: style.id, ...style.music }],
+    ),
+  ),
   OWN_STYLE_DATA.flatMap((style) =>
-    style.music === undefined ? [] : [{ style: style.id, ...style.music }],
+    Object.entries(style.sounds ?? {}).map(([sound, own]) => ({
+      style: style.id,
+      sound: sound as StyleSound,
+      ...own,
+    })),
   ),
 );
 

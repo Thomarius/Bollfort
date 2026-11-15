@@ -23,6 +23,7 @@ import {
   applySettings,
   defaultTeams,
   teamsBalanced,
+  withStyleSounds,
   validPlayerCounts,
   defaultSettings,
   mergeSettings,
@@ -164,7 +165,7 @@ describe('audio manifest', () => {
   const credit = {
     title: 'Click',
     author: 'Someone',
-    licence: 'CC0',
+    licence: 'CC0' as const,
     source: 'https://opengameart.org/content/click',
   };
 
@@ -198,6 +199,27 @@ describe('audio manifest', () => {
     const { sfx } = audioCredits(audio);
     // One line for the folder where its first file stands, and the file with its own.
     expect(sfx.map((line) => line.path)).toEqual(['sfx/', 'sfx/cannon_fire.2.ogg']);
+  });
+
+  it("adds a style's own sounds with their credits, loaded and listed among the sounds", () => {
+    const own = { ...credit, title: 'Bell' };
+    const audio = withStyleSounds(defaultAudioManifest, [
+      {
+        style: 'opera',
+        sound: 'countdown',
+        entry: { file: 'sfx/styles/bell.mp3', volume: 0.5 },
+        credit: own,
+      },
+    ]);
+    expect(audio.styleSounds.opera?.countdown?.file).toBe('sfx/styles/bell.mp3');
+    expect(creditFor(audio, 'sfx/styles/bell.mp3')).toBe(own);
+    expect(audioCredits(audio).sfx.map((line) => line.path)).toContain('sfx/styles/bell.mp3');
+    expect(validateConfigBundle({ ...defaultConfigBundle, audio })).toEqual([]);
+    expect(() =>
+      withStyleSounds(audio, [
+        { style: 'opera', sound: 'countdown', entry: { file: 'sfx/x.mp3', volume: 1 }, credit },
+      ]),
+    ).toThrow();
   });
 
   it('takes only the licences it can link, and a source that is an address', () => {

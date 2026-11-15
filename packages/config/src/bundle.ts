@@ -1,4 +1,4 @@
-import { SFX_CUES, MUSIC_CUES, cuePaths, type AudioManifest } from './audio.js';
+import { SFX_CUES, MUSIC_CUES, cuePaths, styleSoundEntries, type AudioManifest } from './audio.js';
 import type { Ruleset } from './ruleset.js';
 import type { TerrainConfig } from './terrain.js';
 import type { ArtConfig } from './art.js';
@@ -150,6 +150,7 @@ function missingCues(audio: AudioManifest): string[] {
     ...Object.values(audio.sfx),
     ...Object.values(audio.music),
     ...Object.values(audio.styleMusic),
+    ...styleSoundEntries(audio),
   ].flatMap(cuePaths);
   for (const path of Object.keys(audio.credits)) {
     const loads = path.endsWith('/')

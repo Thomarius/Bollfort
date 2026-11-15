@@ -1,9 +1,12 @@
 import {
+  styleSoundCue,
   styleTrack,
   type ArtStyle,
   type AudioManifest,
   type MusicTrack,
   type SfxCue,
+  type StyleSound,
+  type StyleSoundEntry,
 } from '@bollfort/config';
 import { store, stored } from './storage.js';
 
@@ -260,7 +263,28 @@ export class Audio {
    * heard as loud wherever it is.
    */
   play(cue: SfxCue, gain = 1, delayMs = 0, pan = 0): void {
-    const entry = this.manifest.sfx[cue];
+    this.sound(cue, this.manifest.sfx[cue], gain, delayMs, pan);
+  }
+
+  /**
+   * A style's own sound in place of a shared cue (`STYLE_SOUNDS`), as `play` would play it.
+   * False where the style has none, or its file is not there, so the shared cue plays instead.
+   */
+  playStyle(style: ArtStyle, sound: StyleSound, gain = 1): boolean {
+    const entry = this.manifest.styleSounds[style]?.[sound];
+    const cue = styleSoundCue(style, sound);
+    if (entry === undefined || (this.sources.get(cue)?.length ?? 0) === 0) return false;
+    this.sound(cue, entry, gain, 0, 0);
+    return true;
+  }
+
+  private sound(
+    cue: string,
+    entry: StyleSoundEntry | undefined,
+    gain: number,
+    delayMs: number,
+    pan: number,
+  ): void {
     // Not while the context waits for a gesture: cues started in a suspended context all
     // sounded at once as it resumed. Music may wait in it — it starts as the context does.
     if (!entry || this.ctx === null || this.master === null || this.ctx.state !== 'running') {
@@ -369,7 +393,7 @@ export class Audio {
   }
 
   /** One of the cue's surviving variants, or null when none of its files exist. */
-  private pick(cue: SfxCue | MusicTrack): string | null {
+  private pick(cue: string): string | null {
     const paths = this.sources.get(cue);
     if (paths === undefined || paths.length === 0) return null;
     // Math.random, deliberately: see the note at the top of this file.
@@ -418,6 +442,12 @@ export class Audio {
     }
     for (const [cue, entry] of Object.entries(this.manifest.sfx)) {
       add(cue, variantPaths(`${basePath}/${entry.file}`, entry.variants ?? 1), 'sfx');
+    }
+    for (const [style, own] of Object.entries(this.manifest.styleSounds)) {
+      for (const [sound, entry] of Object.entries(own)) {
+        const cue = styleSoundCue(style as ArtStyle, sound as StyleSound);
+        add(cue, variantPaths(`${basePath}/${entry.file}`, entry.variants ?? 1), 'sfx');
+      }
     }
     report();
     await Promise.all(jobs);

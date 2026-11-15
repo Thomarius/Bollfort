@@ -7,6 +7,8 @@ import type {
   LocaleText,
   StyleMusicEntry,
   StylePalette,
+  StyleSound,
+  StyleSoundEntry,
   TextKey,
 } from '@bollfort/config';
 import type { Phase } from '@bollfort/sim';
@@ -57,6 +59,13 @@ export interface StyleData {
   readonly palette?: StylePalette;
   /** Its own track, as the audio manifest's `styleMusic` would hold, and the file's credit. */
   readonly music?: { readonly entry: StyleMusicEntry; readonly credit: AudioCredit };
+  /**
+   * Its own sounds, each standing in for a shared cue while its look is on screen, and each
+   * file's credit: `countdown` for the countdown's tick.
+   */
+  readonly sounds?: Partial<
+    Record<StyleSound, { readonly entry: StyleSoundEntry; readonly credit: AudioCredit }>
+  >;
   /** Its texts, keyed `style.<id>` for its name and `<id>.…` for the rest. */
   readonly texts?: StyleTexts;
 }

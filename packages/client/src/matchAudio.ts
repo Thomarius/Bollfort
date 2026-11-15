@@ -5,12 +5,13 @@ import {
   type MusicCue,
   type MusicTrack,
   type SfxCue,
+  type StyleSound,
 } from '@bollfort/config';
 import type { MatchEvent, MatchState, Phase } from '@bollfort/sim';
 
 import { COUNTDOWN_FROM, countdownGain, showsClock } from './clock.js';
 import { chooseStyleTrack, type StylePauses, type StyleTrackRules } from './styleMusic.js';
-import type { Look } from './transition.js';
+import { lookOf, type Look } from './transition.js';
 
 /**
  * The part of the audio player this needs.
@@ -26,6 +27,11 @@ export interface Cues {
    */
   play(cue: SfxCue, gain?: number, delayMs?: number, pan?: number): void;
   music(cue: MusicTrack | null): void;
+  /**
+   * A style's own sound in place of a shared cue, if it has one; false, and the shared cue
+   * plays. Optional, for players that know of none.
+   */
+  playStyle?(style: ArtStyle, sound: StyleSound, gain?: number): boolean;
 }
 
 /**
@@ -370,6 +376,10 @@ export class MatchAudio {
     const secondsLeft = Math.ceil(ticksLeft / state.ruleset.tickRateHz);
     if (secondsLeft > COUNTDOWN_FROM || secondsLeft === this.countedAt) return;
     this.countedAt = secondsLeft;
-    this.audio.play('countdown_tick', countdownGain(secondsLeft));
+    const gain = countdownGain(secondsLeft);
+    // The look on screen may count down in its own voice: a clock striking for the tick.
+    const style = this.styles?.styleOf(lookOf(state.phase));
+    if (style !== undefined && this.audio.playStyle?.(style, 'countdown', gain) === true) return;
+    this.audio.play('countdown_tick', gain);
   }
 }

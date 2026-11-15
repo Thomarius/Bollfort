@@ -125,6 +125,7 @@
       "loop": false
     }
   },
+  "styleSounds": {},
   "styleMusic": {
     "cyberpunk": {
       "file": "music/styles/cyberpunk.mp3",

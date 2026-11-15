@@ -76,7 +76,7 @@ export function styleTrack(style: ArtStyle): StyleTrack {
   return `style:${style}`;
 }
 
-const SfxEntrySchema = z.strictObject({
+export const SfxEntrySchema = z.strictObject({
   file: z.string().min(1),
   volume: z.number().min(0).max(1),
   /** Numbered alternates chosen at random, to avoid repetition fatigue. */
@@ -104,6 +104,22 @@ const MusicEntrySchema = z.strictObject({
   variants: z.number().int().positive().optional(),
   loop: z.boolean(),
 });
+
+/**
+ * The sounds a style may bring of its own, each standing in for a shared cue while that style is
+ * the look on screen: `countdown` for the countdown's tick over a phase's last seconds. None
+ * of the styles in this repository has one; the seam is for styles kept elsewhere.
+ */
+export const STYLE_SOUNDS = ['countdown'] as const;
+export type StyleSound = (typeof STYLE_SOUNDS)[number];
+
+/** A style's own sound, as a sound effect's entry. */
+export type StyleSoundEntry = z.infer<typeof SfxEntrySchema>;
+
+/** What the sound player keeps a style's own sound under, beside the cues. */
+export function styleSoundCue(style: ArtStyle, sound: StyleSound): string {
+  return `style:${style}:${sound}`;
+}
 
 /** A style's own track, always looped: it stands in for the building or the battle music. */
 export const StyleMusicEntrySchema = z.strictObject({
@@ -164,6 +180,8 @@ export const AudioManifestSchema = z.strictObject({
    * music — Minimal, Medieval and Night, whose own the shared music is (the user's).
    */
   styleMusic: z.record(ArtStyleSchema, StyleMusicEntrySchema),
+  /** The styles' own sounds, by style and sound (`STYLE_SOUNDS`); a style left out has none. */
+  styleSounds: z.record(ArtStyleSchema, z.partialRecord(z.enum(STYLE_SOUNDS), SfxEntrySchema)),
   /**
    * Once a style's track has played, the rounds after that one in which it may not play
    * again; the rest of its own round is held back too. Other styles' tracks are not. How often a
@@ -204,6 +222,38 @@ export function withStyleMusic(audio: AudioManifest, tracks: readonly StyleMusic
     credits[entry.file] = credit;
   }
   return { ...audio, styleMusic, credits };
+}
+
+/** A style's own sound and its credit, brought by the style itself (the client's registry). */
+export interface StyleSoundOf {
+  style: ArtStyle;
+  sound: StyleSound;
+  entry: StyleSoundEntry;
+  credit: AudioCredit;
+}
+
+/** The manifest with the sounds that styles bring themselves, each credited by its file. */
+export function withStyleSounds(
+  audio: AudioManifest,
+  sounds: readonly StyleSoundOf[],
+): AudioManifest {
+  if (sounds.length === 0) return audio;
+  const styleSounds: AudioManifest['styleSounds'] = { ...audio.styleSounds };
+  const credits = { ...audio.credits };
+  for (const { style, sound, entry, credit } of sounds) {
+    const own = { ...styleSounds[style] };
+    if (sound in own) throw new Error(`style "${style}" has its ${sound} sound twice`);
+    if (entry.file in credits) throw new Error(`"${entry.file}" is credited in the manifest too`);
+    own[sound] = entry;
+    styleSounds[style] = own;
+    credits[entry.file] = credit;
+  }
+  return { ...audio, styleSounds, credits };
+}
+
+/** Every style's own sounds' entries, in the manifest's order. */
+export function styleSoundEntries(audio: AudioManifest): StyleSoundEntry[] {
+  return Object.values(audio.styleSounds).flatMap((own) => Object.values(own));
 }
 
 /** Every path a cue may load: its file, and `.2`, `.3`, … up to its variant count. */
@@ -253,6 +303,6 @@ export function audioCredits(audio: AudioManifest): {
   };
   return {
     music: list([...Object.values(audio.music), ...Object.values(audio.styleMusic)]),
-    sfx: list(Object.values(audio.sfx)),
+    sfx: list([...Object.values(audio.sfx), ...styleSoundEntries(audio)]),
   };
 }

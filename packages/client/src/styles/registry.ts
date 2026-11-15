@@ -140,6 +140,9 @@ export function registryProblems(
   for (const id of Object.keys(audioManifest.styleMusic)) {
     if (!ids.has(id)) problems.push(`audio: styleMusic has a track for "${id}", no style`);
   }
+  for (const id of Object.keys(audioManifest.styleSounds)) {
+    if (!ids.has(id)) problems.push(`audio: styleSounds has sounds for "${id}", no style`);
+  }
   for (const look of ['build', 'combat'] as const) {
     const style = art.styles[look];
     if (!styles.some((s) => s.id === style && s.looks.includes(look))) {
