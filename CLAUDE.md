@@ -195,478 +195,60 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-**Done** (2026-11-12; the latest release **v0.11.0**, 2026-11-12, with Steam achievements built
-and tried on 480; before it v0.10.3, 2026-11-11 — the releases before that were deleted with their
-tags, since their notes and menu named the original (ARCHIVE 15zx) — each with the Steam build
-for the test rounds on 480 beside the portable files; the history was rewritten without AI attribution lines before v0.10.0 (the old hashes in
-`recordings/commit-map.txt`); protocol 36, recording format 4, which a test session needs the
-server rebuilt and every page reloaded for):
+The latest release is **v0.11.0** (2026-11-12): protocol 36, recording format 4 — a test session
+needs the server rebuilt and every page reloaded after either changes. Releases before v0.10.3
+were deleted with their tags, since their notes and menu named the original (ARCHIVE 15zx); the
+history was rewritten without AI attribution lines before v0.10.0, the old hashes in
+`recordings/commit-map.txt`. **What is built, and how each decision was reached, is in
+`docs/ARCHIVE.md`** — read its entry before reworking anything below. In brief:
 
-- **Styles as self-contained units, and the supporter styles' seam** (ARCHIVE 16g, 2026-11-14,
-  STEAM.md §6.1 SP1): every style in one registry (`client/src/styles/registry.ts`), the 23 base
-  styles rows in `styles/base.ts` with their parts in the shared files (they stay so, the user's),
-  the Wild West whole in `styles/wildwest/` — pixel for pixel and CSS value for value as before.
-  The private repository `Thomarius/bollfort-supporter` is checked out as `supporter/` in the root
-  (in `.gitignore`; not under `packages/`, every folder of which is a workspace), answering the
-  public stub `styles/supporter.ts` through `client/supporterPlugin.ts`: on the dev server and in
-  tests when present, in a production build only with `BOLLFORT_SUPPORTER=1`, and shown only with
-  `?supporter=1`. Its throwaway `sample` style, which proved the seam, was removed once the
-  first real style was built (2026-11-14).
-
-- **Bots twice as fast, a hit drawing only its island** (ARCHIVE 16d, 2026-11-13): Dinic's
-  levels from the sink, "no wall possible" known before the flow, every match's hash unchanged
-  (Level 6 28 → 16 s); a gun's firing out of `IslandParts`' key, 3.9 islands drawn a hit → 1.4,
-  Oktoberfest's render p99 27 → 13 ms. Then Medieval's and Night's particles as sprites
-  (`Particles`, ARCHIVE 16e: render 4.5 → 3.7 and 6.7 → 5.8 ms); the scan's other findings measured
-  and all dropped as not significant enough (ARCHIVE 16f, 2026-11-14, the user's), item 9 closed.
-
-- **The original named only in the Credits and the README** (ARCHIVE 15zx, 2026-11-11, a
-  lawyer's advice): gone from the menu, the desktop window, the release notes and `CREDITS.md`.
-
-- **S3, Steam lobbies, done** (ARCHIVE 15zs, 15zu, 15zw, 2026-11-09 to 2026-11-11): the bench, then
-  twelve checks by two people on two Windows machines; three faults found and fixed in v0.10.2 —
-  no leave prompt over the demo, Find a game filtered by Steam through `koffi` with friends'
-  lobbies first (`steamLobbyFinder.ts`), and a Steam host's room ending with the host
-  (`endsWithHost`, `host_left`, Back to menu on the Connection lost panel too) — approved on
-  Windows and on the bench. Find a game asks again 5 s after each answer, its refresh button a
-  ring filling over the wait (the user's, after v0.10.2).
-
-- **The store page's material, the app's icon** (ARCHIVE 15zo, 2026-11-06, STEAM.md S4, made on the
-  user's gaming PC): the texts in English and German, tags, features and system requirements ready to
-  type in (`docs/STORE_PAGE.md`); the description's loops in `assets/store/description/`, filmed
-  with `&labels=0` and cut by `tools/storeart/loops.sh`; the app's icon, Minimal's B, on the .exe
-  (its own `.ico`: Windows read no all-PNG one), the AppImage and the windows; the portable app's
-  splash, which still read Bollwerk. Developer and publisher: the user's own name.
-- **The store's art and the trailer** (ARCHIVE 15zn, 2026-11-04 to 2026-11-06): capsules, library
-  art and logo, eight screenshots in `assets/store/`; the trailer, 55 s, filmed again on the gaming
-  PC (`docs/TRAILER.md`) at half the screen's shake, the music at −14 LUFS.
-
-- **The host's Remove and Find a game** (ARCHIVE 15zj, 2026-11-03, STEAM.md K and B; protocol 35):
-  a guest removed in the lobby goes back to the menu and is refused by the room for its life, by
-  a random browser ID kept in storage (`browserId.ts`); the menu's list of open games is a Find a
-  game window with two filters and, with none, Host a single match, public (`findGames.ts`).
-- **No recordings in packaged builds** (ARCHIVE 15zi, STEAM.md R): `record: !app.isPackaged`.
-
-- **Renamed Bollfort** (ARCHIVE 15zh, 2026-11-03, STEAM.md §9.1, the user's): Bollwerk is a live
-  mark in games' classes and another game of the name is coming, so everything is Bollfort — the
-  title (its F and T new bitmaps), the texts, `@bollfort/*`, `BOLLFORT_*`, the browser's
-  `bollfort.*` keys (no migration: testers' settings are lost once), the desktop app's ID and files.
-
-- **Hessian** (ARCHIVE 15z, 2026-11-01, the user's joke): a third language, southern Hessian
-  after Badesalz, a normal button beside English and Deutsch, its disclaimer German.
-
-- **Walls readable in every look** (ARCHIVE 15x, 2026-11-01, the testers' feedback): every style
-  checked in the build phase; Halloween's crypt walls darker with a rim glowing in the owner's
-  light, Blueprint's walls of the paper's hue chalked round, and the piece in hand edged dark under
-  light (`strokePieceEdge`) in Halloween, Pixel and Night, Sakura, Noir, Stained glass and Toy bricks.
-
-- **Special towers finished** (ARCHIVE 15t, 15u, 2026-10-30): the nine towers play-tested by the
-  user, great; the team soaks dropped (the user's). Their balance is closed and they are **off by
-  default for good** — a wacky addition, not the base game (ARCHIVE 13zw); a new tower is
-  balanced at Level 5 only, its variants against each other and against no tower (the user's).
-  And the end screen's Show the board pulls the camera out to the whole map (15t); since, the
-  Frost Cannon's snowflakes and the Subwoofer's pulsing rings and band on the cursor (15v).
-
-- **The towers' emblems by the cursor** (ARCHIVE 15r, 2026-10-30, the user's): in place of a
-  second reload ring, each impact tower's emblem below and right of the reticle, filling from the
-  bottom as it reloads and lit while ready; **Tower emblems** in Options, Next or All.
-
-- **The Subwoofer, and the towers evened out** (ARCHIVE 15p, 15q, 2026-10-30, the user's design;
-  protocol 34): the ninth and last special tower, aimed as the Laser Tower is — a wave 2 (cost 2)
-  or 3 (cost 3) lanes wide through the tile clicked, each lane clearing the first wall it reaches
-  as the wave travels (`subwoofer.ts`, `state.waves`, the Laser's exact `walkRay`). Built first as
-  a tower that fired on its own towards the nearest wall, it stayed the weakest; reworked the same
-  day. Then every tower soaked against every other at its cost (§5 BS of SPECIAL_TOWERS.md) and
-  the outliers evened out: Architect 2's gun slower (flight factor 2), Lightning 3's miss chance
-  0.67, the Frost Cannon faster (0.85) and cost 3's freeze through the overtime, Subwoofer 3 at
-  1.15 — every tower now 44–56% against the others at its cost. The soak tool plays N-player
-  tables (`--players`).
-
-- **A demo behind the menu** (ARCHIVE 15m, 2026-10-29, the user's design; an attract mode once
-  dropped in 11w): after 30 s of the bare menu untouched, or the corner's Demo button, level-5
-  bots play five-round tables — three or four free-for-all, or two against two, special towers
-  on or off — in the menu's looks, under the menu's music with no sounds, without a summary,
-  the winners' camera shot then the next match, through black; a left click anywhere but the
-  corner's buttons, or Esc, brings the menu back. Never recorded; paused while the window is
-  away (`demo.ts`, `demoTable.ts`, `art.demo`). In v0.9.24, with the fix for a leak it found: every
-  `Stamps` had kept its whole stage, some 11 MB a match. Tried by the user: fades and caption
-  good, the score bar taken out after (2026-10-29, v0.9.25), the board the whole window. A
-  Windows screensaver made of it was weighed and dropped (the user's, ARCHIVE 15o).
-
-- **The end screen in the menus' look** (ARCHIVE 15k, 2026-10-28, v0.9.23, approved by the
-  user from screenshots): the headline in the look's lettering and your own place under it, the winner
-  crowned, headings explained on hover, lives as pips, award icons (`AWARD_ICONS`), a chart with
-  a scale and each round's scores on hover, the menus' button tiers, Show the board, the points
-  counting up; it fits between the HUD's bar and the corner, and Pause is gone from it.
-
-- **The menus reviewed** (ARCHIVE 15j, 2026-10-28, v0.9.23): every room public, the
-  Public / Private switch gone; the looks as cards to click, no arrows; Options and the pause
-  menu one settings column (`settingsRows.ts`), a speaker on each volume; Sit here in the lobby,
-  no seed or level pips shown, the map's numbers clear of castles (`labelSpots`); the Credits
-  folded; small motions. Tested and approved by the user. The end screen's review is for a
-  session of its own.
-
-- **The online link's steps shown** (ARCHIVE 15h, 2026-10-28, v0.9.22, the user's report): the
-  desktop app's Share a link online names its three steps, counts the seconds, shows a bar and
-  the address greyed until it answers; the check asks Cloudflare's resolver (1.1.1.1), not the
-  system's, which had remembered the name as missing — open after 8 s rather than 36.
-
-- **Windows that keep their size** (ARCHIVE 15f, 2026-10-28, v0.9.21, the user's feedback): the
-  lobby, the tower menu and the new tournament one height whatever is chosen — the map in a box
-  of one shape (`PREVIEW_ASPECT`), every tower text stacked in one cell, rows disabled rather
-  than hidden; rounds and lives no longer offered, the config's 10 and 3; the archnemesis on by
-  default.
-
-- **A tournament's bots keep their towers** (ARCHIVE 15d, 2026-10-28, the user's design; protocol
-  33, v0.9.20): fixed as the tournament is made, half the other teams one tower's and
-  named for it (`names.towerTeams`), the rest a tower each; the host's teammates' chosen in the
-  setup, Random by default. With it the lobby's feedback (15c): You | Bot for the host's seat, the
-  room's code beside the heading, a seat's tower a small icon, teams and players as buttons.
-
-- **The menus' new look, MS1: foundations** (ARCHIVE 14zv, 2026-10-28, PLAN §11 item 4, from a
-  mockup the user approved, removed once built): Inter and Rubik bundled, the
-  panels rounded and solid where stacked, three button tiers, icons (`icons.ts`), our own hover
-  texts (`data-tip`) for the browser's `title`, the font licences in the Credits and `assets/fonts/`.
-  MS2 (ARCHIVE 14zw): every few-option `<select>` shown as buttons, a stepper or a switch
-  (`choices.ts`, `data-ui`), the select kept hidden as the choice. MS4 (ARCHIVE 14zy): each
-  window in the next look at Medium (`menuLook.ts`), the pause menu and the summary at Medium in
-  the match's look, and the look's corner piece in the screen's corner (ARCHIVE 14zz) — whether a
-  new look at every window distracts is for the users to try in play; MS3 (ARCHIVE 14zx): the menu in two columns, its
-  looks as cards, the seats as cards in their colours, windows fading in (`windowEntry.ts`).
-
-- **UI polish, UP1: in the match** (ARCHIVE 14zr, 2026-10-28, PLAN §11 item 4): "You are
-  here" clear of the castles, "opening" for round 0, the pause menu as a column, the corner's
-  buttons and the round label readable, your row marked in the end screen, and a local match
-  paused as its window loses focus; UP2 (ARCHIVE 14zs): Single match first and largest, the
-  Public / Private switch showing both, a Full screen button beside Sound; UP3 (ARCHIVE 14zt): the last table remembered, local and
-  a room alike, and the lobby's settings explained on hover.
-
-- **How to play in sections** (ARCHIVE 14zq, 2026-10-28): four tabs — Basics, Building,
-  Combat, Extras — thirteen pages, three new (choosing a castle, a gun for every sealed
-  castle, teams); opened from the pause menu too, at the section of the phase being played.
-  Approved by the user.
-
-- **A link online, and the firewall reported** (ARCHIVE 14zk, 2026-10-26): the desktop app's
-  switch Share a link online runs a Cloudflare quick tunnel (free, no account, no router setting),
-  its program fetched once and checked against pinned checksums, its link in the lobby's
-  invitation; and on Windows the window says whether the firewall lets players in, and why not.
-  Tested and approved by the users (ARCHIVE 14zm).
-
-- **Performance, the analysis of 2026-10-26** (ARCHIVE 14zc–14zf, PLAN §11 item 3): a look out
-  of sight is off the stage, since Pixi updates every render group on it, hidden or not — a look
-  made in the background had been built inside the game's frame, up to 168 ms of one, now 14–22;
-  the menu's sea paused under a match and the HUD's tallies set as text; the board's layers render
-  groups of their own; every style's triangulation measured, and Cyberpunk's rain, Sakura's carp
-  and Opera's horns, windows and notes drawn once (1.4–1.6 → 0.7–1.1 ms a frame), approved in play;
-  then Oktoberfest's bubbles and wheel, no style over 1.0 ms now, and two bugs the reading found —
-  Halloween's candle flames and Chocolate's gloss on the island drawn last only (14zh, 14zi);
-  and its leftovers (14zo, 2026-10-27): eight styles' routines drawn once, stamped or split, a
-  third to two-fifths off their triangulation, Sakura's walls apart from its keeps and guns.
-
-- **The styles' own music** (ARCHIVE 14za, 2026-10-25, the users' idea; its plan retired there):
-  21 tracks from Pixabay, one for every style but Minimal, Medieval and Night, in
-  `assets/audio/music/styles/<style>.mp3`, re-encoded and normalised as the rest. As a build look or
-  a combat look starts, its style's track plays in place of the shared one with the chance the
-  player sets in **Style music**, in Options and the pause menu — Always (the default), Half the
-  time or Never, taken at the next look (`styleMusicSetting.ts`, ARCHIVE 14zn) — and a style's track rests `styleTrackPauseRounds` (3)
-  rounds after it played, in the audio manifest. Chosen by
-  a pure function (`styleMusic.ts`), the page's own roll, never the match's. Played by the user,
-  working well.
-- **The bots' towers chosen by the host** (ARCHIVE 14z, 2026-10-25; protocol 32): in a single
-  match the host picks each bot's special tower or none, Random its draw from the seed; No tower
-  back for people too, the tower menu ten cards in two rows.
-
-- **Graphics and Motion** (ARCHIVE 14s, 2026-10-24, the user's wish): one Graphics setting, High
-  (the dark styles' glow bloomed, `render/bloom.ts`, taken on and off live), Medium (the default)
-  and Low (one pixel a pixel), in place of Effects' Glowing and Sharpness; Motion, Full or Reduced,
-  a switch of its own; old choices carried over. With them in the menu's **Options** (ARCHIVE
-  14t), a panel beside How to play holding the language, Graphics, Motion, the volumes and the Style music (14zn), so
-  the menu keeps the looks. Tested and approved by the users (ARCHIVE 14zm).
-- **Corner gaps pinged** (ARCHIVE 14r, 2026-10-24, the user's idea): in the build phase a castle
-  of your own with only corner gaps left — sealed by a 4-connected flood, not by the real one —
-  has each leak pinged at the corner its two walls share, never on a tile (`cornerGaps.ts`,
-  `drawCornerGaps`); chosen from four marks on `?gaps=preview`. Tested and approved by the users.
-- **Mythos and Wild West** (ARCHIVE 14x, 14y, 2026-10-24, the two last styles, designed with the
-  user and sketched first): **Mythos** the board as a black-figure vase — the wine-dark sea, the
-  meander for walls, a mosaic for sealed ground, temples whose altar fire burns while sealed,
-  **onager catapults** whose arm swings back over the top as their shot flies, Sisyphus in a
-  tondo in the corner and the bearded gods watching at the climax. **Wild West** mesas over a
-  canyon floor — adobe walls, staked claims, windpumps turning while sealed, **mortar barrels**
-  lobbing dynamite, tumbleweeds, a locomotive, high noon's widescreen bars. The user's rule for
-  both: one gun design, no people as guns. Tested in play and approved by the users.
-- **Anime** (ARCHIVE 14w, 2026-10-24, the user's idea, designed with them on a sketch page): the
-  twenty-second look, the match as an anime season — **the guns chibi heroes of eight clans, a
-  clan to a team, their hair in the owner's colour**, an aura of flame growing while a shot flies
-  (the reload as a charge), the clan's own shot; screentone for sealed ground, a magic circle
-  under each school while sealed, shattering at a breach; the banners episode cards with your
-  hero's face for the moment (`animeBanner.ts`), and **small cut-ins of two heroes' faces on open
-  sea at the big moments**, never over anything in play (`cutInSpot`). Tested and approved by
-  the users.
-- **Pirates** (ARCHIVE 14q, 2026-10-23, the user's idea, its elements their choices): the
-  twenty-first look, a pirates' cove in Caribbean daylight — log stockades stained and roped in
-  the owner's colour, forts flying the Jolly Roger while sealed, ship's cannon with **a parrot in a
-  pirate hat on every gun ready to fire**, scared up by its shot and landing again as the gun is
-  loaded (`parrotFlight`), a plug in a silenced gun's muzzle; chain shot, tiki torches, ghost
-  crabs, a galleon in the corner and the Kraken at the climax. Tested and approved by the users.
-- **The Lullaby Tower** (ARCHIVE 14m, 2026-10-23, the user's design, reworked; protocol 31,
-  v0.9.12): an eighth special tower, a cannon's shot that lulls the 2 (cost 2) or 3 (cost 3)
-  enemy guns nearest the tile hit within 8 tiles — a cannon asleep at once, a special tower after 2
-  lullabies, the Allerdickste Bertha immune, an Architect lulled as a cannon — asleep for 3 seconds, its reload
-  paused, every gun awake as combat ends (`lullaby.ts`, `asleepUntil`, `lulled`). Balanced at
-  Level 5: on par with the cost-2 impact towers (48–52%), 43–51% against the cost-3 ones, 53 / 49%
-  against the Rapid Cannon. Played by the user (14n); its reach and Zs on the cursor after.
-- **The Frost Cannon** (ARCHIVE 14l, 2026-10-21, the user's design, risky on purpose; protocol
-  30, v0.9.12): a seventh special tower, a cannon's shot that freezes the tile it hits,
-  wall or ground, against building — for 60% of the next build phase at cost 2, the whole phase
-  until the clock runs out at cost 3 — an Architect in reach thawing it, a continue wiping it
-  (`frost.ts`, `state.frozen`, hashed only while there are any). Bots build round frozen tiles.
-  Balanced at Level 5 to 59 / 70% against no tower, 56% head to head; a freeze cost the rival a
-  round in some 5% of rounds at the whole phase's first setting. Played by the user (14n).
-- **The Laser Tower** (ARCHIVE 14k, 2026-10-21, the user's design; protocol 29,
-  v0.9.12): a sixth special tower, a beam on the instant from the tower through the tile clicked
-  to the map's edge, clearing the first 2 walls on its line (2.5 at cost 3, the fraction a chance)
-  of any live opponent's; its reload the flight to the first wall it clears (`traceLaser`,
-  `laser.ts`). Balanced at Level 5 to 66 / 67% against no tower, 56% head to head; its line
-  shown from the tower through the cursor. Played by the user, two fixes after (14k).
-- **A climax for every style but Minimal** (ARCHIVE 14i, 2026-10-19): Medieval's beacons lit
-  round the sea, Night's blood moon, Cyberpunk's overload, Blueprint's rush job, Parchment's wind
-  heads, Toy bricks' light-up studs and Stained glass's sun breaking through — and their corner
-  pieces hurrying in every phase's last seconds, as the others' do (`hurry` in `corner.ts`).
-  Checked in play by the users (ARCHIVE 14j).
-- **Stadium, the Sports style** (ARCHIVE 14d, 2026-10-19): the twentieth look, its guns
-  pictogram sportsmen of ten ball sports (`sports/figures.ts`), a sport to a gun by its id and the
-  seed, ready the moment before the strike with the ball apart from the figure, the shot's ball
-  leaving from that spot; the sea the stands (`sports/stands.ts`), a wave going round as a castle
-  is sealed; the cheapest of the shape-drawn styles measured.
-- **Audio loaded once** (ARCHIVE 14b, 2026-10-18, v0.9.11; the styles' music's Package A):
-  every sound and music file fetched once behind a loading screen before the first menu, its bar
-  counting bytes; the server's `ETag`, `Cache-Control: no-cache` and 304s, so a reload downloads
-  nothing; the music re-encoded to MP3 at 96 kbps, loudness normalised (25 MB → 9.2 MB), kept
-  compressed and played by an `<audio>` element through the music bus — the page's memory in an
-  eight-player match 633 MB → 356 MB.
-- **Each style's own cannon as the placement icon** (ARCHIVE 13zv, v0.9.9), drawn by the style
-  (`drawCannonIcon`) and rendered once to an image; the towers' own sounds (13zx). The testers'
-  choice (ARCHIVE 14j); the generic cannon kept behind `art.cannonIcons: "generic"`, to switch
-  back to; `?icons=sheet` shows every style's.
-
-- **Special towers** (2026-10-14 to 2026-10-16, ARCHIVE 13zk–13zo, the towers' reference
-  `docs/SPECIAL_TOWERS.md`): Big Bertha, the Architect, the Rapid Cannon and (2026-10-17, ARCHIVE
-  13zs, v0.9.8) the Lightning Tower — a strike on the instant that
-  jumps from wall to wall, its chance from the seed — and (2026-10-17, ARCHIVE 13zz) the
-  Allerdickste Bertha, one shell a combat phase, 10 seconds in the air, a crater a circle 5
-  blocks across (13 or 21 tiles, re-balanced 2026-10-19, ARCHIVE 14h) — each at a cost of 2 and 3 cannons, bought in the cannon phase with the right button, switched on per table (off by
-  default). The rules in `sim/src/specials.ts`; bots buy, site and fire them; a tower scores as
-  the cannons it cost. Balanced in two-player soaks to 50–70% against no tower
-  (`tools/headless/src/towerSoak.ts`, the harness's `--set`); the Architect's reach a circle from
-  its centre. In the client: emblems, Bertha's cross and flames on the cursor, the Architect's
-  circle outlined, cannon icons and the right button's hint beside the cursor, and the **tower
-  menu** with a preview played by the rules (`towerMenu.ts`, `towerShow.ts`). With it, from the
-  testers: the cannon ghost a square in every style (`drawCannonGhost`), no cannons shown once
-  none fits, and the seal's fanfare for the overtime's last piece. Play-tested by the users with
-  no issues found (2026-10-17, ARCHIVE 13zp).
-
-- **More ground for the same pieces** (ARCHIVE 13zi, 2026-10-14): the planner also weighs
-  widening once the walls stand, boldly (`BOLD`: a margin of 1 or 1.3 in place of the level's
-  `riskMargin`), before thickening. Level 6 ground 91 → 106 tiles a round, score +14%, the same
-  pieces and failed rounds; the ladder held. Bots had been as quick as people but cautious.
-- **Scoring by ground and guns** (ARCHIVE 13zd, its design 13ze, 2026-10-14): territory no
-  longer multiplied by castles, and 5 points a gun firing at the resolution; one formula in the
-  sim (`heldPoints`) that the bots value walls by, plus their castles' guns where the wall
-  leaves room to stand them (`wallValue`). Measured against the old rule: the ladder flatter
-  but intact, castles held a little fewer, guns firing unchanged, damage a quarter of a score.
-
-- **Feedback after v0.9.4** (ARCHIVE 13zb, 2026-10-12): the title's sweep eased, with a pause
-  out of sight; the lobby's music for guests after a match; the league's tie-breaks (wins,
-  head-to-head, Buchholz, placings, the lot) shown and explained, no two-team league matches
-  where avoidable, and a League window in place of the bracket during the league.
-
-- **Build phases played out in advance** (ARCHIVE 13z, its design 13zf, 2026-10-12):
-  in the intermission every bot plays strategies out on a snapshot of its island — exact,
-  since nothing but its own pieces changes it — and lays the best rollout's pieces on their
-  ticks. An anytime search (`PlanSearch`) within the table's budget (`ai.planning.stepsPerTick`)
-  ends at the bot's first piece, so the game never waits. A minimum of three guns, a round
-  failed on purpose with an effort rather than a hollow seal, and by level a search depth,
-  slips and blunders (`planDepth`, `planSlip`, `planBlunder`); the ladder even, Thomas's target
-  Level 6. Two fixes it needed: `weakestWall` counts only its island's wall, and the sim
-  re-solves the enclosure as a build phase opens.
-
-- **Bots that miss as people do** (ARCHIVE 13r, 2026-10-11): own accuracy from 60% at Level 1
-  to 100% at Levels 9–10, the misses a second shot at the last tile or a tile beside the wall,
-  as the testers' were (`ai.aim`); a gun fired only once it has stood ready for `readyDelayMs`;
-  and nearness weighed in choosing whom to shoot (`rivalDistanceExponent`). Tuned on walls
-  destroyed per gun per combat phase so Thomas sits at Level 5–6, Mausica at 2–3; the ladder
-  held. With a life left a bot passes over a hollow seal — fewer guns kept than a continue
-  gives — for the wall keeping its guns (ARCHIVE 13t, the user's rule): no more dead guns. And
-  bots build at people's pace, a piece's time charged to the piece in hand — Thomas's at about
-  Level 6, Mausica's at 3 (ARCHIVE 13v) — so territory now rises with level.
-- **Wipes by the scissor** (ARCHIVE 13o, 2026-10-11): a wipe renders the stage in two passes,
-  each look only on its side of the line, cut by the GL scissor rather than masked, pixel for
-  pixel as before; wipes between two heavy looks went from 19–20 dropped frames a second to 7, the
-  rest of play's 5–6, at 3840×2160. The planned culling by the line was built, measured to gain
-  almost nothing, and taken out.
-- **The terrain in strips** (ARCHIVE 13n, 2026-10-10): every style's terrain drawn and first
-  rendered a strip of rows at a time (`TerrainStrips`), pixel for pixel as before, so a new
-  look's terrain no longer costs one long frame.
-- **The bots in a worker** (ARCHIVE 13k, 2026-10-10): a local match's bots plan in a Web
-  Worker in lockstep with the page, every action on the tick it had on the page's thread, with
-  fallbacks to the thread; and three rendering leads, the crowns keyed (`MainCastles`), an empty
-  `Graphics` left alone by its frame's clear (`clearDrawn`), and a stamp's skew reset.
-- **Ready and favourite looks** (ARCHIVE 13i, 2026-10-10): a room's guests say Ready, and the
-  host's Start waits for them all (the server refuses it too); styles hearted in the gallery,
-  ♥ All and ♥ None, and Random draws only from the favourites, or from all with none.
-- **Performance and sound** (ARCHIVE 13e, 13f): Random looks that came round again fixed
-  (Pixel's and Night's never finished warming); a Sharpness setting (Sharp or Fast, the render
-  resolution); Chocolate's and Blueprint's frames cut to the other styles'; the music starting as
-  the page opens where the browser allows, always in the desktop app's window.
-- **The style pass** (ARCHIVE 12zt–12zz, 13a, 13b): every style but Minimal reviewed in the same
-  screenshots and finished in nine packages — readability first (S1), then Parchment, Blueprint,
-  Pixel and Night, Toy bricks, Stained glass and Cyberpunk made things of their setting (castles,
-  guns, walls, sealed ground, life), then the middle styles' walls and guns and the last touches;
-  the main castle's crown, still one shared mark, smaller and at the castle's foot.
-- **Team seating** (ARCHIVE 12zs, 13c): four teams of two on one of the grid's four fair
-  seatings (`teamLayouts`); three teams of two on a compact hex of six (`hex`, `rowGapTiles`),
-  wide rather than fair, the users' choice for wide screens.
-- **The third feedback** (ARCHIVE 12zr): a tournament's lobby is one screen for the host and
-  their teammates, a Match tab (the map, the seats, who plays in place of which bot) and a
-  Tournament tab (the standings, the bracket as an icon beside them), opening on the match.
-  The host's room passes their save on to the teammates' pages (protocol 20,
-  `tournamentSave`, the one message allowed up to `limits.maxTournamentBytes`).
-- **Tournament mode** (2026-10-08, ARCHIVE 12ze–12zk, its design in 13w): the host's team
-  of people and bots against a field of named bot teams, through a league (one match size a
-  matchday) and a single- or double-elimination knockout, saved in the browser between
-  matches. The core is `packages/tournament` — a save is settings, field, plan and finished
-  steps, and `Progress` derives the rest; matches without the host's team are quick rolls
-  over linear level ratings. A match is played at a fixed table (`matchTable`, given names
-  and personalities), offline or in a room friends join by code to sit in the host's team
-  (protocol 18, `TournamentTable`); one left before its end is played again. Its last work
-  package, T8, the users' play-testing, closed with everything working (ARCHIVE 13m).
-- **The second feedback** (ARCHIVE 12zp): lives, one to five, chosen in the lobby beside the
-  rounds and in the tournament (`MatchSettings.continues`, protocol 19); a tournament's
-  matches of 1–15 rounds; the archnemesis's teammates at the top level, him one above, carried
-  to the final by the rolls unless the host puts him out (in double elimination's winners'
-  bracket he rolls as anyone); the last match framed under a trophy; and the **Bracket**
-  window, the knockout as a tree of matches (`tournamentBracket.ts`, pure, and its view).
-- **The first feedback of that round** (ARCHIVE 12zl, 12zm): the score bar sorts teams by
-  standing; the title's line glides without pause; the match's summary is larger and no
-  longer reveals the bots' personalities; and the looks' wipes are smoother — the coming
-  look primed in the pause before its banner (`Scene.prime`), a new random look made a
-  frame's share at a time (`withDrawBudget` in `IslandParts`).
-- **The game**: its rules, online play with rooms, a games browser, pause, and recording
-  of every match (ARCHIVE 11e, each header stamped with the server's commit); team mode
-  (ARCHIVE 10u), the teams named where a table names them (`MatchState.teamNames`); bots as
-  a skill level 1–10 chosen in the lobby and a personality dealt from the seed (M13,
-  ARCHIVE 11x–11zb); bots sharing a few plans a tick (ARCHIVE 12p) and skipping searches
-  that cannot fit (ARCHIVE 12s).
-- **Stronger bots** (ARCHIVE 12x–12z, the plan 13zg): bots plan round tiles no
-  piece can cover (`coverable`, `markUncoverable`), and once sealed widen their wall
-  (`widensWhenSealed`, `widen`) — such a bot won 65 of 96 against two of the old. A learned
-  fit (`fitWeights`, null by default) and its trainer (`tools/headless/src/cem.ts`) matched
-  the hand-made fit; the learning work is closed, its remaining steps dropped (2026-10-14).
-- **A refactoring** (ARCHIVE 12w), the game unchanged: the bot is `Gunner`, `Builder` and
-  `Siting`; main.ts is app, prefs, session, menu, lobbyFlow and matchScreen, the last with
-  `BoardEffects`; a room's match is `MatchRunner`; the styles since Chocolate extend
-  `ShapeTheme`; seats are dealt by `dealSeats` and bots driven by `takeBotTurns`.
-- **The looks**: twenty-four styles for either look — Minimal, Medieval, Night, Cyberpunk,
-  Blueprint, Parchment, Toy bricks, Stained glass, Chocolate (ARCHIVE 11zy), Halloween
-  (12a), Sakura (12d), Oktoberfest (12e), Opera (12f), Office (12l), Under the sea (12u),
-  Electric (12v), Cartoon, a rubber-hose reel in black and white (12zb), Christmas (12zc),
-  Noir, a crime city at night as a cel-shaded graphic novel, hatched in ink (12zn),
-  Stadium (`sports`), whose guns are sportsmen of ten ball sports (14d), Pirates (14q),
-  Anime, the match as an anime season, its guns chibi heroes of eight clans (14w), Mythos, a
-  black-figure vase (14x), and the Wild West among the mesas (14y) —
-  each carried to the panels, the big timer, the island banners and the finish (ARCHIVE
-  11zz), each with a piece in the sea's corner (`corner.ts`, 12t); chosen from a gallery with
-  Random, a new style every round (12q), and changeable mid-match from the pause menu (12b).
-- **Around a match**: How to play, the ranking between rounds, awards, a rematch, music
-  and sounds volumes, a pause menu with Leave match; rounds of test-session feedback
-  (ARCHIVE 11n–11w, 11ze, 12zl). Mouse only; Esc for pause is the one key.
-- **Languages**: English, German and Hessian (`hes`, the user's joke, southern Hessian after
-  Badesalz, its disclaimer German; ARCHIVE 15z), every text in `config/locale/`, chosen in the menu's
-  Options and the pause menu, the desktop window in the system's language (M15, ARCHIVE 12g). A text is a key
-  until shown (`t` in `client/src/i18n.ts`); a new text goes into every locale file, or
-  `locale.test.ts` fails.
-- **Releases**: the desktop app, a portable file for Windows and Linux (M14, ARCHIVE
-  11zp–11zt); every audio file credited (ARCHIVE 11zx). Deployment is verified by a CI job,
-  since there is no Docker on this machine. **UPnP** (ARCHIVE 12j): the desktop app's switch
-  Open to the internet, off by default, and `npm start -- --upnp` ask the router to open the
-  port; the lobby then offers an invite link. Never in the image. Tested by the user from
-  outside, successfully (2026-10-09).
-- **Balance** (M7, ARCHIVE 12h): a weekend soak of 22,656 matches found the points game on
-  target and one cliff, Level 4 to 5, ended by `carelessness` fading by level. The default
-  is to change no rule without a very good reason. `npm run soak` reruns the whole plan.
-- **Rendering performance** (ARCHIVE 12n): 58–60 fps at eight players on an integrated GPU,
-  every effect kept; no memory kept by a swap of looks (ARCHIVE 12q); every look, corner
-  piece and German checked in play by the user (ARCHIVE 12n–12t).
+- **The game** (ARCHIVE 10u–12zk): its rules, online rooms, Find a game, pause, recordings, team
+  matches, bots of levels 1–10 with personalities, tournaments (`packages/tournament`, ARCHIVE
+  12ze–12zr), a demo behind the menu (15m, never recorded), How to play (14zq), the end screen
+  (15k), achievements' detector (16a).
+- **Bots** (ARCHIVE 12x–13zi, 16d): build phases played out in advance (13zf), misses as people
+  miss (13r), people's building pace (13v). Thomas plays at about Level 6, Mausica at 2–3 — the
+  yardstick bots are tuned against. The learning work is closed (13zg).
+- **Balance** (ARCHIVE 12h): the weekend soak found the points game on target. **Change no rule
+  without a very good reason**; `npm run soak` reruns it.
+- **Special towers** (ARCHIVE 13zk–15u, `docs/SPECIAL_TOWERS.md`): nine, **off by default for
+  good** — a wacky addition, not the base game. A new tower is balanced at Level 5 only, its
+  variants against each other and against no tower (the user's).
+- **The looks** (ARCHIVE 11zy–14y, 16g): 24 styles, each with its own corner piece, climax,
+  banner, HUD skin, title, finish, cannon icon and (all but Minimal, Medieval, Night) music
+  (14za); every style in one registry (`client/src/styles/registry.ts`), the Wild West the model
+  of a self-contained one. 58–60 fps at eight players on an integrated GPU (12n) is the bar.
+- **Languages**: English, German and Hessian (`hes`, the user's joke after Badesalz, its
+  disclaimer German; ARCHIVE 15z). A text is a key until shown (`t` in `client/src/i18n.ts`); a
+  new text goes into every locale file, or `locale.test.ts` fails.
+- **Releases and networking**: the desktop app (ARCHIVE 11zp–11zt); UPnP (12j) and a Cloudflare
+  quick tunnel (14zk) as switches in the desktop app, never in the image; Docker deployment
+  verified by CI only, since there is no Docker here.
+- **The supporter styles** (ARCHIVE 16g, 16h; STEAM.md §6.1): new styles kept out of every public
+  build in the private repository `Thomarius/bollfort-supporter`, checked out as `supporter/`
+  (git-ignored; not under `packages/`, every folder of which is a workspace). The public stub
+  `styles/supporter.ts` is answered by `client/supporterPlugin.ts` on the dev server and in
+  tests when the package is there, in a production build only with `BOLLFORT_SUPPORTER=1`, and
+  the styles are shown only with `?supporter=1`; `supporter/assets/` is served at the public
+  URLs, and `?supporter=1&page=NAME` opens a page of the package's. Each style's design and record
+  are in `supporter/docs/`, never in this repository. Free game or paid pack is decided later.
 
 **Next** — PLAN §11, towards a first feature-ready version:
 
-- **An online session** (PLAN §11 item 5, to be scheduled with the users): the online-only states
-  not yet checked with the real server — the open games listed, a room's code — and a tournament
-  match's end and a person's Rematch.
-- **Polish before the first feature-ready version** (PLAN §11 item 7, triaged 2026-11-01): five
-  packages, PR1 the server's robustness done (ARCHIVE 15zb: a heartbeat, `maxPayload`,
-  recordings appended without blocking and capped, never pruned, hash-named assets `immutable`);
-  PR2 the connection in the match done (ARCHIVE 15zc: a dropped socket rejoins its seat by
-  itself, a notice over the board, a desync rejoined for the server's board, AWAY on a card);
-  PR3 built (ARCHIVE 15zd: shots panned by place, `panWidth` 0.7, the cannon's and the
-  impact's pitch varied 4%), approved by the user; PR4 built (ARCHIVE 15ze: the bad piece
-  shaking in every style, a spent life's pip marked, the reason and the leak shown as a life
-  goes, hover texts larger), approved by the user; PR5 the styles loaded when needed done
-  (ARCHIVE 15zf: each style its own module, `createTheme` async, 32% less script before the
-  menu). Item 7 is finished.
-
-- **Steam** (PLAN §11 item 8, decided 2026-11-02): a free release after the online session,
-  the whole game and every style, no DLC (2026-11-03, the user's); the design and its packages
-  in `docs/STEAM.md`. N, R, K and B done (ARCHIVE 15zh–15zj); T, the transport interface at
-  both ends with a fake network and whole matches over it (ARCHIVE 15zl); and C, native controller
-  support — the match, the menus, the bindings, glyphs, the Deck's screen and an on-screen keyboard
-  (ARCHIVE 15zm, played by the user with a real pad); S4's material that needs no account
-  (ARCHIVE 15zn, 15zo). **S1, the spike on App ID 480**: its code was on the branch `s1-steam-spike`
-  (deleted 2026-11-09, its last commit `185c2ae02705`), run by the user on two machines with two accounts; what one account can show is
-  checked by its `auto.mjs`, passed on Windows and Linux (2026-11-07, STEAM.md §3.3: the overlay
-  draws in the first window made on Windows, not at all on the Linux desktop; under Steam on Linux
-  the app must start without Chromium's sandbox). The two-account part run 2026-11-08 and 09, by
-  hand and on **the Steam bench** (STEAM.md §3.4, `tools/steambench`: this machine against a VM,
-  `bollfort-guest`, with a second account, arnoldex83, the network shaped by `tc`): matches over
-  P2P clean, also under delay and loss; a guest cut off or restarted cannot get back in, which
-  S3 must solve (§3.3); a guest's invite seats a third account (Q4). **S1 is done** (ARCHIVE
-  15zq); no fork of `steamworks.js` (§3.2). **S2, the Steam build, is done** (ARCHIVE 15zr,
-  §3.5): `BOLLFORT_STEAM=1` builds `steamMain.ts`, packaged to `release/steam/`, checked by the
-  bench's `start`. **S3, Steam lobbies (§7.3), is built and passes the whole bench** (ARCHIVE
-  15zs, 2026-11-09; protocol 36): P2P transport, rejoining by Steam ID, lobbies, codes, invites,
-  Back to the match, avatars (`koffi`) and Steam's language — outage and restart, where the spike
-  failed, included. **S3's checks by hand** run on two Windows machines (ARCHIVE 15zw,
-  2026-11-11): nine of twelve passed, and three fixed — no leave prompt over the demo, Find a game
-  filtered by Steam through `koffi` with friends' lobbies first, and a Steam host's room ending
-  with the host (`endsWithHost`, `host_left`). Approved on Windows with v0.10.2, and the bench's
-  `join`, `public` and `private` passed: **S3 is done.** **S3.6
-  is built and passes the bench** (ARCHIVE 15zu, 2026-11-09): nobody new joins a running match
-  (`match_running`); a player who left comes back by the host's **Invite back** in the pause
-  menu (`InviteUserToLobby` through `koffi`), straight to the inviter, or on restarting by a
-  prompt to rejoin; a lobby's seat held 10 s (`reconnect.lobbyHoldMs`); a tournament's room has
-  its Steam lobby too. Prepared for S4 without the App ID (ARCHIVE 15zv): rich presence's
-  tokens and files (`assets/steam/`, `tools/steamworks`) and the release job's Steam upload,
-  off until the repository's variables name the app (STEAM.md §9.2's steps). The steps meant for S3's wait
-  were done: the icon seen on Linux (2026-11-06) and the system requirements measured on the
-  packaged app (ARCHIVE 15zp, 2026-11-07: 4 GB and two cores at the least, 8 GB and four
-  recommended), on Windows and then on the Linux machine's Ryzen 3 and integrated Renoir
-  graphics, `sysreq.ts` running on both: 56–59 fps at full screen, two slow cores enough, the
-  lines unchanged. **Next: S4**, waiting on Valve's answer to the Steamworks registration
-  (2026-11-11): then the fee, the App ID, the release job switched on (STEAM.md §9.2) and the
-  store page typed in. **Meanwhile: Steam achievements** (2026-11-12), designed in
-  `docs/STEAM_ACHIEVEMENTS.md` — the user's rules (bot matches count, floors of Level 5 and 8 at
-  most, grind of 10–20 matches at most, no hidden ones, none about the looks): **35**, named in
-  English and German, their thresholds from the recordings (ARCHIVE 15zz, AC1 done), and their
-  config and detector (`config/achievements.json`, `AchievementWatcher`; ARCHIVE 16a, AC2 done);
-  and their texts and icons (ARCHIVE 16b, AC4 done, `assets/steam/achievements/`); the client and
-  the bridge to Steam built (ARCHIVE 16c, AC3: `steam/achievements.ts`, `steamAchievements.ts`),
-  tried on 480 with `BOLLFORT_ACHIEVEMENTS=spacewar` (an `autostart=1` match never counts: drive the
-  menu); next AC5, with the App ID. **And the supporter styles' seam** (2026-11-14, ARCHIVE 16g,
-  STEAM.md §6.1 SP1): new styles prepared in the private package `supporter/`, kept out of every
-  public build, free game or paid pack decided later; next, the package's own audio and pictures
-  served (ARCHIVE 16h: `supporter/assets/` at the public URLs, a developer's page by
-  `?supporter=1&page=NAME`), and the first supporter style designed, sketched and built there, its design and its record
-  in `supporter/docs/` (2026-11-14, SP4's first); next, the users' play of it.
+- **The users' play of the first supporter style** (2026-11-14), then the next styles (SP4).
+- **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
+  listed and a room's code with the real server, a tournament match's end and a person's Rematch.
+- **Steam** (PLAN §11 item 8; `docs/STEAM.md`): a free release, the whole game and every style,
+  no DLC (the user's, 2026-11-03). Done: N, R, K, B, T, C, S1–S3.6 (ARCHIVE 15zh–15zw), the store's
+  material (15zn, 15zo, `docs/STORE_PAGE.md`), and achievements AC1–AC4 (15zz–16c,
+  `docs/STEAM_ACHIEVEMENTS.md`). **Waiting on Valve's answer to the Steamworks registration**
+  (2026-11-11) for S4 — the fee, the App ID, the release job's Steam upload switched on (STEAM.md
+  §9.2), the store page typed in — and AC5. Until then everything runs on App ID 480:
+  `BOLLFORT_STEAM=1` builds the Steam app (`steamMain.ts`, into `release/steam/`);
+  `BOLLFORT_ACHIEVEMENTS=spacewar` tries the achievements (an `autostart=1` match never counts:
+  drive the menu); the Steam bench (STEAM.md §3.4, `tools/steambench`) plays this machine
+  against the VM `bollfort-guest` and its second account. Under Steam on Linux the app must
+  start without Chromium's sandbox.
 
 Closed for good: the bot learning work (ARCHIVE 13zg) and French (the user's decisions). Signing
 the Windows app was explained (PLAN §12) and is not pursued for now.
