@@ -1201,9 +1201,9 @@ export const ArtConfigSchema = z
       }),
     }),
     /**
-     * The camera, which moves only while nothing is playable: onto the viewer's island as
-     * the match opens and out to the whole map, and slowly onto the winner at game over.
-     * Still under reduced motion.
+     * The camera, which moves of itself only while nothing is playable: onto the viewer's island
+     * as the match opens and out to the whole map, and slowly onto the winner at game over.
+     * Still under reduced motion. The island zoom, at the player's asking, is the exception.
      */
     camera: z.strictObject({
       /** How close the opening starts on the viewer's island, the whole map being 1. */
@@ -1216,6 +1216,21 @@ export const ArtConfigSchema = z
       winnerPushMs: z.number().int().positive(),
       /** How long the pull out to the whole map takes for Show the board, and back in. */
       peekMs: z.number().int().positive(),
+      /**
+       * The island zoom (the client's `islandZoom.ts`), the one move made while something is
+       * playable: how long it takes either way when the player asks for it, quick under the
+       * build clock.
+       */
+      islandZoomMs: z.number().int().positive(),
+      /**
+       * How long the moves the phases make take — in as a build phase opens zoomed in, out
+       * before combat or a castle to choose — calm, as the opening's pull out is.
+       */
+      islandAutoZoomMs: z.number().int().positive(),
+      /** The sea kept round the island's box, in tiles, so its shore is not at the screen's edge. */
+      islandMarginTiles: z.number().nonnegative(),
+      /** The closest it goes, the whole map being 1, however few the islands. */
+      islandZoomMax: z.number().min(1),
     }),
     /** The end-of-match summary. */
     summary: z.strictObject({

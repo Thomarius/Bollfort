@@ -44,6 +44,18 @@ import { storeArtMode, storeArtSplit } from './storeArt.js';
 import { CURSOR_SPEEDS, storedCursorSpeed } from './padSettings.js';
 import { howToSectionFor, openHowToPlay } from './howToPlay.js';
 import { openingShot, peekTowards, winnerShot, type CameraShot } from './camera.js';
+import { storedBuildZoom } from './buildZoomSetting.js';
+import {
+  IslandZoom,
+  buttonSpot,
+  islandBox,
+  islandShot,
+  screenRect,
+  timerBeside,
+  towardsIsland,
+  type Rect,
+} from './islandZoom.js';
+import { ZOOM_BUTTON_PX, ZoomButton } from './zoomButton.js';
 import { perf } from './perf.js';
 import { bannerProgress, looksAround, type Look } from './transition.js';
 import { Scene, createTheme, type Ghost, type SceneLook } from './render/scene.js';
@@ -363,8 +375,22 @@ export async function runSession(
   // A demo has no bar, its board the whole window (the user's, 2026-10-29).
   // Nor has store art (`storeArt.ts`), the board the whole picture.
   const barPx = demo || storeArtMode(params) !== null ? 0 : HUD_BAR_PX;
+  /**
+   * The screen the island zoom fits the island into: below the bar, above the corner's row of
+   * buttons, a little in from the edges — so nothing of the island is under the HUD.
+   */
+  let zoomFrame: Rect = { x: 0, y: 0, w: 1, h: 1 };
   const fit = (): void => {
     scene.resize(session.state, globalThis.innerWidth, globalThis.innerHeight, barPx);
+    const pad = 8;
+    const corner = document.querySelector('#corner')?.getBoundingClientRect();
+    const bottom = corner !== undefined && corner.height > 0 ? corner.top : globalThis.innerHeight;
+    zoomFrame = {
+      x: pad,
+      y: barPx + pad,
+      w: Math.max(1, globalThis.innerWidth - 2 * pad),
+      h: Math.max(1, bottom - pad - (barPx + pad)),
+    };
     scene.drawTerrain(session.state);
     board.drawFloodedTerritory(performance.now());
     board.drawBoard();
@@ -481,6 +507,7 @@ export async function runSession(
   const cleanup = (): void => {
     cancelAnimationFrame(frame);
     controls.detach();
+    zoomButton.destroy();
     pause?.destroy();
     globalThis.removeEventListener('blur', onBlur);
     globalThis.removeEventListener('focus', onFocus);
@@ -599,7 +626,22 @@ export async function runSession(
         0,
         Math.ceil((state.phaseEndTick - state.tick) / state.ruleset.tickRateHz),
       );
-      hud.labels.showBigTimer({ ...centre, sizePx: edge.x - centre.x }, seconds);
+      let at = { ...centre, sizePx: edge.x - centre.x };
+      // Zoomed in, its spot in the open water is off screen or under the island: it goes into
+      // the sea beside the island at the size the whole map gives it, where there is room.
+      const side =
+        zoomedBy > 0 && ownRect !== null
+          ? timerBeside(ownRect, zoomFrame, bigTimerAt.size * scene.tilePx())
+          : null;
+      if (side !== null) {
+        const size = bigTimerAt.size * scene.tilePx();
+        at = {
+          x: at.x + (side.x - at.x) * zoomedBy,
+          y: at.y + (side.y - at.y) * zoomedBy,
+          sizePx: at.sizePx + (size - at.sizePx) * zoomedBy,
+        };
+      }
+      hud.labels.showBigTimer(at, seconds);
     } else {
       hud.labels.showBigTimer(null, 0);
     }
@@ -911,6 +953,23 @@ export async function runSession(
   /** When this client first saw the match over, for the push onto the winner. */
   let overAt: number | null = null;
 
+  /**
+   * The island zoom (`islandZoom.ts`): the person's island and its box, how far in the camera
+   * is, and the island where it stands on screen, for the magnifier and the big timer.
+   */
+  const islandZoom = new IslandZoom();
+  const ownBox =
+    session.humanPlayer >= 0 && !demo && storeArtMode(params) === null
+      ? islandBox(session.state, session.state.players[session.humanPlayer]?.islandId ?? -1)
+      : null;
+  let zoomedBy = 0;
+  let ownRect: Rect | null = null;
+  let zoomAt: number | null = null;
+  const toggleZoom = (): void => {
+    if (islandZoom.toggle()) audio.play('select');
+  };
+  const zoomButton = new ZoomButton(app!, toggleZoom);
+
   /** How far Show the board has pulled the camera out, 0 to 1, and when it last moved. */
   let peek = 0;
   let peekAt: number | null = null;
@@ -928,12 +987,46 @@ export async function runSession(
     peek = peekTowards(peek, hud.endScreen.peeking, now - (peekAt ?? now), art);
     peekAt = now;
     const winners = state.winners.flatMap((id) => islandCentre.get(id) ?? []);
-    const shot = motionReduced()
+    const moving = motionReduced()
       ? null
       : (heldShot(now) ??
         openingShot(state, session.tickFraction, islandCentre.get(session.humanPlayer), art) ??
         winnerShot(state, now - (overAt ?? now), winners, art, peek));
-    scene.setCamera(state, shot);
+    // The island zoom, at the player's asking: a cut under reduced motion, not left out.
+    zoomedBy =
+      ownBox === null
+        ? 0
+        : islandZoom.update(
+            state,
+            session.humanPlayer,
+            storedBuildZoom(),
+            session.tickFraction,
+            now - (zoomAt ?? now),
+            { manualMs: art.islandZoomMs, autoMs: art.islandAutoZoomMs },
+            motionReduced(),
+          );
+    zoomAt = now;
+    const view = scene.fittedView();
+    const close =
+      ownBox !== null && zoomedBy > 0
+        ? islandShot(view, state, ownBox, zoomFrame, art.islandMarginTiles, art.islandZoomMax)
+        : null;
+    // A placement is replaced, never changed, so the old one can be kept to compare.
+    const was = scene.cameraPlacement();
+    scene.setCamera(
+      state,
+      moving ?? (close === null ? null : towardsIsland(view, close, zoomedBy)),
+    );
+    const after = scene.cameraPlacement();
+    // The ghost stays under the mouse as the board moves beneath it.
+    if (after.zoom !== was.zoom || after.x !== was.x || after.y !== was.y) controls.followCamera();
+    ownRect = ownBox === null ? null : screenRect(view, after, ownBox);
+    zoomButton.update(
+      islandZoom.available && ownRect !== null && session.pausedBy === null
+        ? buttonSpot(ownRect, zoomFrame, ZOOM_BUTTON_PX)
+        : null,
+      islandZoom.zoomedIn,
+    );
 
     // "You are here", from the start of the match until the viewer has chosen a castle:
     // seats are shuffled onto islands, so nobody knows which is theirs until told.
@@ -1006,6 +1099,7 @@ export async function runSession(
         session.state.players[session.humanPlayer]?.eliminated !== true;
       if (free) pads.claim(now);
       padMatch.update(free ? reading : null, free ? pads.pressed : new Set(), delta, pads.active);
+      if (free && pads.pressed.has('zoom')) toggleZoom();
     }
 
     autopilot?.update(now);

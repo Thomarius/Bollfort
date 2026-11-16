@@ -1,3 +1,9 @@
+import {
+  buildZoomOptions,
+  parseBuildZoom,
+  saveBuildZoom,
+  storedBuildZoom,
+} from './buildZoomSetting.js';
 import { graphicsOptions, parseGraphics, saveGraphics, storedGraphics } from './graphics.js';
 import { openController } from './controllerWindow.js';
 import { escape } from './html.js';
@@ -20,7 +26,8 @@ import { refreshVolumeSliders, volumeSliders, type VolumeTarget } from './volume
 
 /**
  * The player's settings — the language, the Graphics, the Motion, the two volumes, how
- * often the styles' own music plays, the towers' emblems by the cursor and the controller — as one column of rows, built here for the menu's Options
+ * often the styles' own music plays, the towers' emblems by the cursor, the island zoom and the
+ * controller — as one column of rows, built here for the menu's Options
  * and the pause menu alike, so the two look and order them the same (2026-10-28: the pause
  * menu's had been smaller, dimmer and in another order).
  */
@@ -43,6 +50,7 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
     `<label>${t('settings.motion')} <select class="motion" data-ui="seg">${motionOptions()}</select></label>` +
     `<label data-tip="${escape(t('settings.styleMusicTitle'))}">${t('settings.styleMusic')} <select class="style-music" data-ui="seg">${styleMusicOptions()}</select></label>` +
     `<label data-tip="${escape(t('settings.towerBadgesTitle'))}">${t('settings.towerBadges')} <select class="tower-badges" data-ui="seg">${towerBadgesOptions()}</select></label>` +
+    `<label data-tip="${escape(t('settings.buildZoomTitle'))}">${t('settings.buildZoom')} <select class="build-zoom" data-ui="seg">${buildZoomOptions()}</select></label>` +
     // A window of its own (`controllerWindow.ts`): its rows here would make the pause menu
     // taller than the Deck's screen.
     `<label data-tip="${escape(t('settings.controllerTitle'))}">${t('settings.controller')} <button type="button" class="controller-open quiet">${t('controller.setUp')}</button></label>`;
@@ -80,6 +88,12 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
     actions.click();
     saveTowerBadges(parseTowerBadges(badges.value) ?? 'next');
   });
+  // Taken at once in a match, in a build or cannon phase (`islandZoom.ts`).
+  const zoom = node.querySelector<HTMLSelectElement>('.build-zoom')!;
+  zoom.addEventListener('change', () => {
+    actions.click();
+    saveBuildZoom(parseBuildZoom(zoom.value) ?? 'out');
+  });
   node.querySelector('.controller-open')?.addEventListener('click', (event) => {
     // Not the label's: a click inside a label goes to its first control too.
     event.preventDefault();
@@ -97,6 +111,7 @@ function showStored(node: HTMLElement): void {
   node.querySelector<HTMLSelectElement>('.motion')!.value = storedMotion();
   node.querySelector<HTMLSelectElement>('.style-music')!.value = storedStyleMusic();
   node.querySelector<HTMLSelectElement>('.tower-badges')!.value = storedTowerBadges();
+  node.querySelector<HTMLSelectElement>('.build-zoom')!.value = storedBuildZoom();
 }
 
 /** The rows brought up to date with the settings as they stand, as a menu reopens. */

@@ -12334,3 +12334,58 @@ the sound follows the look on screen: a match built in one style and fought in a
 one phase and strikes in the other. No public style has one, and `audio.manifest.json`'s
 `styleSounds` is empty. The supporter package's test that every file of its own is named and
 credited covers sounds too. The countdown and the manifest each have a test.
+
+## 16j. The island zoom (2026-11-16)
+
+**The tester's wish**: to zoom in on one's own island while building, to see the wall better.
+Discussed with the user before building: zooming can confuse, and the other islands matter while
+building — above all in a team match, where people build on their teammates' islands — so it is
+an option, never forced, and combat always shows the whole map.
+
+**The design** (the user's):
+
+- **Two states only**: the whole map, or the player's **own** island fitted to the screen. No
+  other island (helping a teammate is done from the whole map, one click away), no free zoom, no
+  panning.
+- **A magnifier on the island's bottom-right corner** (`zoomButton.ts`), in the build and cannon
+  phases. It is the mouse's way to zoom, since the wheel already turns the piece and the rule is
+  that a controller only does what the mouse can. It is also the hint that the zoom exists. With
+  a pad in use it wears the glyph of the controller's new **Zoom** action (RB by default; saved
+  bindings without it take RB or the first button free, `parseBindings`).
+- **A setting**, Island zoom, in Options and the pause menu: **Off** (no button, the game as it
+  was), **Start out** (the default) and **Start in**. The chosen state is applied as **every
+  build phase** opens, behind its "Rebuild" banner. The user's case: open each build phase on
+  one's own wall, zoom out to help a teammate, and be back on one's own wall after the next
+  barrage. A setting changed during a build or cannon phase takes effect at once.
+- **From the first build phase on**: the opening (castle choice and first cannons) and a
+  continue's castle choice show the whole map, which is what the player decides by. The cannon
+  phase after a build keeps whatever the build phase ended on. The move out is made as the
+  cannon phase closes, before "Fire!".
+- **The island is never under the HUD**: it is fitted below the bar and above the corner's
+  buttons, with a tile of sea round it (`art.camera.islandMarginTiles`), at most 4× closer
+  (`islandZoomMax`). The camera keeps the board's edges on screen, which pushes an island on the
+  board's edge off the middle, so the zoom is eased back until the island is whole in that frame
+  (`islandShot`).
+
+**How it is built**: `islandZoom.ts` is pure and tested — the stages (`zoomStage`), the state
+through a match (`IslandZoom`), the fit, the move from the map to the island (the island's middle
+moving steadily as the zoom grows in proportion), the magnifier's and the big timer's spots.
+`placeShot` (`camera.ts`) is the scene's camera placement as a pure function, and a shot may
+now put its focus at a screen point (`at`). **Two paces** (the user's, after the first build): a
+move the player asks for — the magnifier, a controller's Zoom, the setting changed — takes 280 ms
+(`islandZoomMs`), since it is made under the build clock; a move the phases make — in behind
+"Rebuild", out before "Fire!" or for a castle to choose — takes 3 s (`islandAutoZoomMs`), calm
+like the opening's pull out (3.5 s of its 5 s intermission), and still done within the 4 s
+banner. A press during a calm move finishes it at the quick pace. Either is a cut under reduced
+motion: it is asked for, not imposed, so it is not left out. While the camera moves,
+the ghost stays under the mouse (`Controls.followCamera`); a controller's ghost keeps its tile.
+When zoomed in, the big timer's spot in open water is off screen or under the island, so it
+goes into the sea beside the island's shore at the size the whole map gives it (`timerBeside`).
+Out in the middle of that strip of sea it sat on the neighbour's island. A How to play page in
+Building shows the magnifier at work. The pause menu, one row longer, is 759 px tall at
+1280×800.
+
+**Measured in the page**: at 1400×900 the zoom is 2.7× at eight players, 2.0× at three and four,
+and 1.3× at two, where the islands are already large; on the Deck's 1280×800 at eight the island
+fits whole (by screenshot). Display only: the sim,
+the protocol and recordings are untouched. Not yet played by the users.

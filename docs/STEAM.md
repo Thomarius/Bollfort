@@ -898,6 +898,9 @@ only in combat, as in the original arcade game.
   Back or Close). In combat, where the right button does nothing, **holding it speeds the cursor
   up**.
 - **Menu** (default **Start**) is Esc: the pause menu, and back out of it.
+- **Zoom** (default **RB**, 2026-11-16) is the island zoom's magnifier by the player's island in
+  the build and cannon phases (ARCHIVE 16j). Bindings saved before it take RB, or the first
+  button free.
 - **Movement**: the d-pad and the left stick, in every phase and every window.
 
 **In the match**

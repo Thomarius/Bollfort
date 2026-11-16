@@ -3,7 +3,17 @@ import { describe, expect, it } from 'vitest';
 
 import { between, openingShot, peekTowards, winnerShot } from './camera.js';
 
-const art = { openingZoom: 2, openingHold: 0.25, winnerZoom: 1.5, winnerPushMs: 1000, peekMs: 500 };
+const art = {
+  openingZoom: 2,
+  openingHold: 0.25,
+  winnerZoom: 1.5,
+  winnerPushMs: 1000,
+  peekMs: 500,
+  islandZoomMs: 300,
+  islandAutoZoomMs: 3000,
+  islandMarginTiles: 1,
+  islandZoomMax: 4,
+};
 
 function state(fields: Partial<Record<string, unknown>>): MatchState {
   return {

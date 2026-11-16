@@ -1558,7 +1558,11 @@
     "openingHold": 0.3,
     "winnerZoom": 1.35,
     "winnerPushMs": 7000,
-    "peekMs": 700
+    "peekMs": 700,
+    "islandZoomMs": 280,
+    "islandAutoZoomMs": 3000,
+    "islandMarginTiles": 1,
+    "islandZoomMax": 4
   },
   "summary": {
     "delayMs": 4000

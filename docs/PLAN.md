@@ -1520,9 +1520,10 @@ close on the viewer's own island, marked **"You are here"** until they choose a 
 seats are shuffled onto islands, so nobody knows which is theirs until told — and pulls
 out to the whole map before the castle choice opens. At game over the camera pushes
 slowly onto the winners' islands, about where they stand, since the middle of the screen
-is the summary's. **The camera moves only while nothing is playable**, as a pure function
+is the summary's. **The camera moves of itself only while nothing is playable**, as a pure function
 of the sim clock (the opening) or of time since the end, and stands still under reduced
-motion; the scene maps clicks and HTML overlays through it all the same, and the wipe's
+motion — the one exception the **island zoom** (ARCHIVE 16j), a move the player asks for in the
+build and cannon phases, a cut under reduced motion; the scene maps clicks and HTML overlays through it all the same, and the wipe's
 masks sit outside it, since the banner's line is in screen space. **The last round is
 marked**: its banner is headed "Final round" with "Fire!" under it, a stamp lands across
 the board as it opens, the round counter says so, and a faint dusk holds at the screen's

@@ -5,14 +5,29 @@ import { parseBindings, parseCursorSpeed, rebind } from './padSettings.js';
 
 describe('binding a button', () => {
   it('gives the action the button', () => {
-    expect(rebind(DEFAULT_BINDINGS, 'accept', 2)).toEqual({ accept: [2], turn: [1], menu: [9] });
+    expect(rebind(DEFAULT_BINDINGS, 'accept', 2)).toEqual({
+      accept: [2],
+      turn: [1],
+      menu: [9],
+      zoom: [5],
+    });
   });
 
   it('swaps with the action that had it, so each keeps one and none is left without', () => {
     // B to Accept: Turn takes A, Accept's old one.
-    expect(rebind(DEFAULT_BINDINGS, 'accept', 1)).toEqual({ accept: [1], turn: [0], menu: [9] });
+    expect(rebind(DEFAULT_BINDINGS, 'accept', 1)).toEqual({
+      accept: [1],
+      turn: [0],
+      menu: [9],
+      zoom: [5],
+    });
     // A to Menu: Accept takes Start.
-    expect(rebind(DEFAULT_BINDINGS, 'menu', 0)).toEqual({ accept: [9], turn: [1], menu: [0] });
+    expect(rebind(DEFAULT_BINDINGS, 'menu', 0)).toEqual({
+      accept: [9],
+      turn: [1],
+      menu: [0],
+      zoom: [5],
+    });
   });
 
   it('leaves the d-pad and the guide button alone', () => {
@@ -27,6 +42,16 @@ describe('the bindings as saved', () => {
     expect(parseBindings(JSON.stringify(saved))).toEqual(saved);
   });
 
+  it('gives a set saved before Zoom its default, or the first button free', () => {
+    expect(parseBindings('{"accept":[0],"turn":[1],"menu":[9]}')).toEqual(DEFAULT_BINDINGS);
+    expect(parseBindings('{"accept":[5],"turn":[1],"menu":[9]}')).toEqual({
+      accept: [5],
+      turn: [1],
+      menu: [9],
+      zoom: [0],
+    });
+  });
+
   it('refuses anything not a whole, valid set, so the defaults stand', () => {
     for (const text of [
       null,
@@ -34,6 +59,7 @@ describe('the bindings as saved', () => {
       '{}',
       '{"accept":[0],"turn":[1]}',
       '{"accept":[0],"turn":[0],"menu":[9]}',
+      '{"accept":[0],"turn":[1],"menu":[9],"zoom":[1]}',
       '{"accept":[13],"turn":[1],"menu":[9]}',
       '{"accept":[0,2],"turn":[1],"menu":[9]}',
     ])

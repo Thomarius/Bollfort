@@ -37,7 +37,11 @@ describe('button glyphs', () => {
   });
 
   it('shows a remapped button as bound', () => {
-    const html = withGlyphs((m) => m.accept, { accept: [2], turn: [1], menu: [9] }, 'playstation');
+    const html = withGlyphs(
+      (m) => m.accept,
+      { accept: [2], turn: [1], menu: [9], zoom: [5] },
+      'playstation',
+    );
     expect(html).toBe(glyphHtml(2, 'playstation'));
   });
 });

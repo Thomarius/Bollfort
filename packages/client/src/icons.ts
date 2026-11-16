@@ -38,6 +38,11 @@ export const ICONS = {
     '<rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/>',
   ),
   crown: stroke('<path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" fill="currentColor"/>'),
+  // The island zoom's magnifier on the board (`zoomButton.ts`), alone: its words are its title.
+  zoomIn: stroke(
+    '<circle cx="10.5" cy="10.5" r="7"/><path d="M21 21l-5.5-5.5M10.5 7.5v6M7.5 10.5h6"/>',
+  ),
+  zoomOut: stroke('<circle cx="10.5" cy="10.5" r="7"/><path d="M21 21l-5.5-5.5M7.5 10.5h6"/>'),
   eye: stroke(
     '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   ),

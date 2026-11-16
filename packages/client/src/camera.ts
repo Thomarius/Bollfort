@@ -18,6 +18,50 @@ export interface CameraShot {
    * the middle. The push onto the winner: the middle is where the summary is.
    */
   inPlace?: boolean;
+  /**
+   * Where on screen, in pixels, the focus is put instead: the island zoom's, which fits the
+   * island into the part of the screen the HUD leaves free (`islandZoom.ts`).
+   */
+  at?: { x: number; y: number };
+}
+
+/** The board as fitted to the window at zoom 1 (`Scene.resize`). */
+export interface FittedView {
+  tile: number;
+  originX: number;
+  originY: number;
+  width: number;
+  height: number;
+}
+
+/** The camera as applied: its zoom, and the screen offset of the board under it. */
+export interface CameraPlacement {
+  zoom: number;
+  x: number;
+  y: number;
+}
+
+/**
+ * Where a shot puts the board: the focus brought to the board's middle, where it stands, or
+ * to `at`, and the offsets kept far enough in that the zoomed view never runs past the edges
+ * of the window, where there is nothing drawn.
+ */
+export function placeShot(
+  view: FittedView,
+  board: { width: number; height: number },
+  shot: CameraShot | null,
+): CameraPlacement {
+  if (shot === null || shot.zoom <= 1) return { zoom: 1, x: 0, y: 0 };
+  const { tile, originX, originY, width, height } = view;
+  const z = shot.zoom;
+  // The focus on screen as the whole map shows it, and where it is to be put.
+  const fx = originX + shot.focusX * tile;
+  const fy = originY + shot.focusY * tile;
+  const tx = shot.at?.x ?? (shot.inPlace === true ? fx : originX + (tile * board.width) / 2);
+  const ty = shot.at?.y ?? (shot.inPlace === true ? fy : originY + (tile * board.height) / 2);
+  const clamp = (offset: number, size: number): number =>
+    Math.min(0, Math.max(size * (1 - z), offset));
+  return { zoom: z, x: clamp(tx - fx * z, width), y: clamp(ty - fy * z, height) };
 }
 
 type CameraArt = ArtConfig['camera'];

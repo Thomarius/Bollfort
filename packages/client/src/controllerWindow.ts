@@ -34,6 +34,7 @@ const ACTION_TEXTS = {
   accept: { name: 'controller.accept', tip: 'controller.acceptTitle' },
   turn: { name: 'controller.turn', tip: 'controller.turnTitle' },
   menu: { name: 'controller.menu', tip: 'controller.menuTitle' },
+  zoom: { name: 'controller.zoom', tip: 'controller.zoomTitle' },
 } as const;
 
 export function openController(click: () => void): void {

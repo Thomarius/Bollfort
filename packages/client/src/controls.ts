@@ -262,6 +262,11 @@ type InputCue = 'piece_rotate' | 'piece_invalid';
  */
 export class Controls {
   private hover: { x: number; y: number } | null = null;
+  /**
+   * Where the mouse last was over the canvas, in its pixels, for the tile under it as the
+   * camera moves (the island zoom); null once it left, or a controller took the ghost.
+   */
+  private pointer: { x: number; y: number } | null = null;
   private rotation = 0;
   /** Whether the right button has switched the cannon ghost to the player's tower. */
   private towerChosen = false;
@@ -283,14 +288,12 @@ export class Controls {
   attach(): void {
     const move = (event: PointerEvent): void => {
       const rect = this.canvas.getBoundingClientRect();
-      this.hover = this.scene.tileAt(
-        this.state,
-        event.clientX - rect.left,
-        event.clientY - rect.top,
-      );
+      this.pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      this.hover = this.scene.tileAt(this.state, this.pointer.x, this.pointer.y);
     };
     const leave = (): void => {
       this.hover = null;
+      this.pointer = null;
     };
     const down = (event: PointerEvent): void => {
       if (event.button === 2) {
@@ -335,6 +338,17 @@ export class Controls {
   /** Puts the ghost or the reticle over a tile, as a controller moves it (`padMatch.ts`). */
   set hoverTile(tile: { x: number; y: number } | null) {
     this.hover = tile;
+    this.pointer = null;
+  }
+
+  /**
+   * The tile under the mouse again after the camera moved under it (the island zoom): the
+   * ghost stays under the pointer rather than on the tile it was over. A controller's ghost
+   * keeps its tile, and goes with the board.
+   */
+  followCamera(): void {
+    if (this.pointer !== null)
+      this.hover = this.scene.tileAt(this.state, this.pointer.x, this.pointer.y);
   }
 
   /**

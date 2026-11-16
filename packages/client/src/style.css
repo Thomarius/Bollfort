@@ -2553,6 +2553,49 @@ body.hud-bricks #hud .roster .line .shape path {
   color: var(--ink);
 }
 
+/* The island zoom's magnifier (zoomButton.ts), on the corner of the player's island in the
+   build and cannon phases: dressed as the corner's switches, round, its size ZOOM_BUTTON_PX.
+   A controller's glyph rides on its lower edge. */
+.island-zoom {
+  position: fixed;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 50%;
+  background: rgb(14 17 26 / 82%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 35%);
+  color: #d4d7e2;
+  cursor: pointer;
+}
+
+.island-zoom:hover,
+.island-zoom.in {
+  border-color: var(--hud-accent, #e8c35a);
+  color: var(--ink, #fff);
+}
+
+.island-zoom[hidden] {
+  display: none;
+}
+
+.island-zoom .icon {
+  width: 22px;
+  height: 22px;
+}
+
+.island-zoom .glyph {
+  position: absolute;
+  bottom: -0.55em;
+  left: 50%;
+  margin: 0;
+  font-size: 12px;
+  transform: translateX(-50%);
+}
+
 /* Over the whole board, so a click cannot reach it while nothing moves; the connection's
    notice (connectionNotice.ts) above the pause menu, which a dropped page cannot leave. */
 .connection-overlay {

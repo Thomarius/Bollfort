@@ -6,7 +6,7 @@ import { Application, BigPool, Container, Graphics, Rectangle, RenderTexture } f
 // was made — and that renderer, without the pipe, threw at the first text it drew (ARCHIVE 15zf).
 import 'pixi.js/text';
 
-import type { CameraShot } from '../camera.js';
+import { placeShot, type CameraShot, type FittedView } from '../camera.js';
 import type { DrainWash, SealGlow } from '../seal.js';
 import type { Look } from '../transition.js';
 import { clearDrawn } from './clearDrawn.js';
@@ -613,24 +613,19 @@ export class Scene {
    * window, where there is nothing drawn.
    */
   setCamera(state: MatchState, shot: CameraShot | null): void {
-    if (shot === null || shot.zoom <= 1) {
-      this.camera = { zoom: 1, x: 0, y: 0 };
-    } else {
-      const { tile, originX, originY, width, height } = this.view;
-      const z = shot.zoom;
-      // The focus on screen as the whole map shows it, and where it is to be put: the
-      // board's middle, or where it already stands.
-      const fx = originX + shot.focusX * tile;
-      const fy = originY + shot.focusY * tile;
-      const tx = shot.inPlace === true ? fx : originX + (tile * state.width) / 2;
-      const ty = shot.inPlace === true ? fy : originY + (tile * state.height) / 2;
-      // Offsets that keep the zoomed view inside the fitted window, where there is board.
-      const clamp = (offset: number, size: number): number =>
-        Math.min(0, Math.max(size * (1 - z), offset));
-      this.camera = { zoom: z, x: clamp(tx - fx * z, width), y: clamp(ty - fy * z, height) };
-    }
+    this.camera = placeShot(this.view, state, shot);
     this.cameraRoot.scale.set(this.camera.zoom);
     this.cameraRoot.position.set(this.camera.x, this.camera.y);
+  }
+
+  /** The board as fitted to the window, before any zoom of the camera: the island zoom's frame. */
+  fittedView(): FittedView {
+    return this.view;
+  }
+
+  /** The camera as last pointed, for whoever must follow it (the cursor's tile, `Controls`). */
+  cameraPlacement(): Readonly<{ zoom: number; x: number; y: number }> {
+    return this.camera;
   }
 
   /** A tile's size in screen pixels as the whole map shows it, before any zoom of the camera. */

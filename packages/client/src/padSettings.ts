@@ -13,7 +13,7 @@ import { store, stored } from './storage.js';
 const BINDINGS_KEY = 'bollfort.padBindings';
 const CURSOR_KEY = 'bollfort.padCursor';
 
-export const PAD_ACTIONS: readonly PadAction[] = ['accept', 'turn', 'menu'];
+export const PAD_ACTIONS: readonly PadAction[] = ['accept', 'turn', 'menu', 'zoom'];
 
 /**
  * The buttons an action may take, in the standard mapping: the face buttons, the shoulders and
@@ -22,7 +22,10 @@ export const PAD_ACTIONS: readonly PadAction[] = ['accept', 'turn', 'menu'];
  */
 export const BINDABLE: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
-/** Bindings as saved, or null for anything not a whole, valid set of them. */
+/**
+ * Bindings as saved, or null for anything not a whole, valid set of them. Saved before Zoom was
+ * an action (2026-11-16), a set without it takes its default button, or the first one free.
+ */
 export function parseBindings(text: string | null): Bindings | null {
   if (text === null) return null;
   let value: unknown;
@@ -35,6 +38,13 @@ export function parseBindings(text: string | null): Bindings | null {
   const record = value as Record<string, unknown>;
   const result: Partial<Record<PadAction, readonly number[]>> = {};
   const seen = new Set<number>();
+  if (record['zoom'] === undefined) {
+    const taken = new Set<unknown>();
+    for (const buttons of Object.values(record))
+      if (Array.isArray(buttons)) for (const b of buttons as unknown[]) taken.add(b);
+    const free = [...DEFAULT_BINDINGS.zoom, ...BINDABLE].find((b) => !taken.has(b));
+    record['zoom'] = free === undefined ? undefined : [free];
+  }
   for (const action of PAD_ACTIONS) {
     const buttons = record[action];
     if (!Array.isArray(buttons) || buttons.length !== 1) return null;

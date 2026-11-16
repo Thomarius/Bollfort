@@ -25,9 +25,9 @@ import {
 } from './howToPlay.js';
 
 describe('how to play', () => {
-  it('is thirteen pages of ten words or fewer, each standing still inside its own loop', () => {
+  it('is fourteen pages of ten words or fewer, each standing still inside its own loop', () => {
     const pages = HOW_TO_PLAY.flatMap((chapter) => chapter.pages);
-    expect(pages).toHaveLength(13);
+    expect(pages).toHaveLength(14);
     expect(new Set(pages.map((page) => page.caption)).size).toBe(pages.length);
     for (const page of pages) {
       expect(t(page.caption).split(/\s+/).length).toBeLessThanOrEqual(10);

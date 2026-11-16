@@ -32,7 +32,7 @@ describe('reading a pad', () => {
   });
 
   it('follows the bindings, a button bound elsewhere doing what it is bound to', () => {
-    const swapped = { accept: [1], turn: [0], menu: [9] };
+    const swapped = { accept: [1], turn: [0], menu: [9], zoom: [5] };
     expect([...readPad(pad([0]), swapped, 0.25).held]).toEqual(['turn']);
   });
 

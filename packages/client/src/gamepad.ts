@@ -7,19 +7,20 @@ import type { ArtConfig } from '@bollfort/config';
  * the browser's Gamepad API and `padMatch.ts` drives the match's `Controls` with it.
  *
  * The rule (the user's, 2026-11-02): a controller only ever does what the mouse already can.
- * Accept is the left button, Turn the right, Menu is Esc.
+ * Accept is the left button, Turn the right, Menu is Esc, and Zoom the magnifier by the
+ * player's island (`islandZoom.ts`).
  */
 
-export type PadAction = 'accept' | 'turn' | 'menu';
+export type PadAction = 'accept' | 'turn' | 'menu' | 'zoom';
 
 /** The buttons bound to each action, by their index in the standard mapping. */
 export type Bindings = Readonly<Record<PadAction, readonly number[]>>;
 
 /**
- * A, B and Start in the W3C standard mapping, which Chromium gives an Xbox pad and Steam
- * Input's default (§8): A is 0, B is 1, Start 9.
+ * A, B, Start and the right shoulder in the W3C standard mapping, which Chromium gives an Xbox
+ * pad and Steam Input's default (§8): A is 0, B is 1, Start 9, RB 5.
  */
-export const DEFAULT_BINDINGS: Bindings = { accept: [0], turn: [1], menu: [9] };
+export const DEFAULT_BINDINGS: Bindings = { accept: [0], turn: [1], menu: [9], zoom: [5] };
 
 /** The d-pad's buttons in the standard mapping. */
 const DPAD = { up: 12, down: 13, left: 14, right: 15 } as const;

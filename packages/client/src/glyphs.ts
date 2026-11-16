@@ -36,10 +36,15 @@ export function glyphHtml(button: number, family: PadFamily): string {
 }
 
 /** Stand for the glyphs in a text until it is escaped: private-use characters, in no locale. */
-const MARKS = { accept: '\u{E000}', turn: '\u{E001}', menu: '\u{E002}' } as const;
+const MARKS = {
+  accept: '\u{E000}',
+  turn: '\u{E001}',
+  menu: '\u{E002}',
+  zoom: '\u{E003}',
+} as const;
 
 /**
- * A text with `{accept}`, `{turn}` or `{menu}` in it as HTML: the text escaped, and in each
+ * A text with `{accept}`, `{turn}`, `{menu}` or `{zoom}` in it as HTML: the text escaped, and in each
  * place the glyph of the button bound to that action.
  */
 export function withGlyphs(
@@ -48,7 +53,7 @@ export function withGlyphs(
   family: PadFamily,
 ): string {
   let html = escape(text(MARKS));
-  for (const action of ['accept', 'turn', 'menu'] as const) {
+  for (const action of ['accept', 'turn', 'menu', 'zoom'] as const) {
     const button = bindings[action][0];
     html = html.split(MARKS[action]).join(button === undefined ? '' : glyphHtml(button, family));
   }

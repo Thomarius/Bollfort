@@ -18,6 +18,7 @@ const PAD_CAPTIONS: Partial<Record<TextKey, TextKey>> = {
   'howTo.mouse': 'howTo.padMouse',
   'howTo.towerSwitch': 'howTo.padTowerSwitch',
   'howTo.fire': 'howTo.padFire',
+  'howTo.zoom': 'howTo.padZoom',
 };
 import { motionReduced } from './motion.js';
 import { store, stored } from './storage.js';
@@ -838,6 +839,54 @@ const cornerPage: HowToPage = {
   },
 };
 
+/**
+ * The island zoom (`islandZoom.ts`): the magnifier on the corner of the player's island is
+ * pressed, and the island grows to fill the picture; pressed again, the whole map comes back.
+ */
+const zoomPage: HowToPage = {
+  caption: 'howTo.zoom',
+  loopMs: 4600,
+  stillMs: 2400,
+  draw(ctx, w, h, ms) {
+    const whole = fit(TEAM_OPEN, w * 0.03, h * 0.04, w * 0.94, h * 0.92);
+    // The red island and a tile of sea round it, tiles 0 to 9, fitted to the picture.
+    const t = Math.min((w * 0.94) / 10, (h * 0.92) / 10);
+    const close = { t, ox: (w - 10 * t) / 2, oy: (h - 10 * t) / 2 };
+    const f = ease(span(ms, 900, 1500)) * (1 - ease(span(ms, 3400, 4000)));
+    const at = {
+      t: whole.t * (close.t / whole.t) ** f,
+      ox: whole.ox + (close.ox - whole.ox) * f,
+      oy: whole.oy + (close.oy - whole.oy) * f,
+    };
+    drawBoard(ctx, TEAM_OPEN, at, { floodTo: TEAM_OPEN.floodSteps });
+    // The magnifier, on the island's bottom-right corner, lit while pressed.
+    const pressed = (ms > 700 && ms < 950) || (ms > 3200 && ms < 3450);
+    const zoomedIn = ms >= 950 && ms < 3450;
+    const r = h * 0.07;
+    const cx = Math.min(at.ox + 9 * at.t, w - r - 4);
+    const cy = Math.min(at.oy + 9 * at.t, h - r - 4);
+    ctx.fillStyle = '#0e111a';
+    ctx.strokeStyle = pressed ? ACCENT : INK;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = pressed ? ACCENT : INK;
+    ctx.beginPath();
+    ctx.arc(cx - r * 0.12, cy - r * 0.12, r * 0.42, 0, Math.PI * 2);
+    ctx.moveTo(cx + r * 0.2, cy + r * 0.2);
+    ctx.lineTo(cx + r * 0.55, cy + r * 0.55);
+    ctx.moveTo(cx - r * 0.34, cy - r * 0.12);
+    ctx.lineTo(cx + r * 0.1, cy - r * 0.12);
+    if (!zoomedIn) {
+      ctx.moveTo(cx - r * 0.12, cy - r * 0.34);
+      ctx.lineTo(cx - r * 0.12, cy + r * 0.1);
+    }
+    ctx.stroke();
+  },
+};
+
 /** Guns fire only from sealed ground: the one outside it greyed and struck through. */
 const gunsPage: HowToPage = {
   caption: 'howTo.guns',
@@ -1354,7 +1403,11 @@ export interface HowToChapter {
  */
 export const HOW_TO_PLAY: readonly HowToChapter[] = [
   { id: 'basics', title: 'howTo.section.basics', pages: [roundPage, mousePage, scorePage] },
-  { id: 'building', title: 'howTo.section.building', pages: [choosePage, sealPage, cornerPage] },
+  {
+    id: 'building',
+    title: 'howTo.section.building',
+    pages: [choosePage, sealPage, cornerPage, zoomPage],
+  },
   { id: 'combat', title: 'howTo.section.combat', pages: [gunsPage, castlesPage, combatPage] },
   {
     id: 'extras',
