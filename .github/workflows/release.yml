@@ -39,7 +39,7 @@ jobs:
           cache: npm
       - run: npm ci
       # Every sound shipped must be credited, as its licence asks (CREDITS.md).
-      - run: npx vitest run packages/config/src/audioFiles.test.ts
+      - run: npx vitest run packages/client/src/audioFiles.test.ts
       # And every npm package shipped has its licence beside the app (THIRD_PARTY_LICENSES.md).
       - run: npx vitest run tools/licences
       - run: npm run build
