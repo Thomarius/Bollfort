@@ -78,6 +78,8 @@
   "pause.by": "{name} paused the match",
   "pause.button": "Pause",
   "pause.buttonTitle": "Pause the match for everyone (Esc)",
+  "title.room": "Room {code} · {people}/{seats}",
+  "title.paused": "Paused",
   "pause.title": "Paused",
   "pause.resume": "Resume",
   "pause.looks": "Looks",

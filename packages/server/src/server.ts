@@ -112,6 +112,8 @@ const MIME: Record<string, string> = {
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
+  // The page's icon in the tab (`index.html`).
+  '.ico': 'image/x-icon',
   // Audio cues may be supplied in any format the browser can decode, so the manifest
   // names whatever file exists and this has to be able to describe it. `decodeAudioData`
   // reads the bytes and ignores the content type, so getting one of these wrong is not

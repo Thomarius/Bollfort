@@ -46,6 +46,7 @@ import { howToSectionFor, openHowToPlay } from './howToPlay.js';
 import { openingShot, peekTowards, winnerShot, type CameraShot } from './camera.js';
 import { storedBuildZoom } from './buildZoomSetting.js';
 import { wheelZooms } from './mouseWheelSetting.js';
+import { guardLeaving, showTitle } from './pageTitle.js';
 import { frameDue, frameIntervalMs } from './displaySettings.js';
 import {
   IslandZoom,
@@ -523,6 +524,8 @@ export async function runSession(
     stopGraphics();
     scene.destroy();
     session.dispose?.();
+    showTitle(null);
+    guardLeaving(false);
   };
 
   /** The intermission whose banner is showing, by the tick it ends on. */
@@ -1132,6 +1135,15 @@ export async function runSession(
       session.humanPlayer,
       session.state.players.map((p) => p.name),
       session.finished,
+    );
+    // The tab (`pageTitle.ts`): paused said in its title, and closing it asked about while the
+    // person still has a match to lose — not watching, knocked out, or once it is over.
+    showTitle(session.pausedBy !== null && !session.finished ? { kind: 'paused' } : null);
+    guardLeaving(
+      session.humanPlayer >= 0 &&
+        !demo &&
+        !session.finished &&
+        session.state.players[session.humanPlayer]?.eliminated !== true,
     );
     applyEvents(events);
     matchAudio?.handle(events);

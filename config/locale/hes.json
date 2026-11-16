@@ -78,6 +78,8 @@
   "pause.by": "{name} hot des Schbiel aagehalte",
   "pause.button": "Paus",
   "pause.buttonTitle": "Des Schbiel fer all aahalte (Esc)",
+  "title.room": "Raum {code} · {people}/{seats}",
+  "title.paused": "Paus",
   "pause.title": "Paus",
   "pause.resume": "Weider",
   "pause.looks": "Optik",

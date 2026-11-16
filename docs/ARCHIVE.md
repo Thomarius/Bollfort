@@ -12454,3 +12454,28 @@ Asked which options a game usually has that Bollfort lacked, I listed some; the 
 
 The three settings are made by one helper, `storedChoice`, rather than written out by hand as
 each older setting is. Display is now five rows, so the panel is 471 px tall at 1280×800.
+
+## 16m. The browser's tab: icon, title, a question before leaving a match (2026-11-16)
+
+The browser version had no icon in its tab: nothing named one, so the browser asked for
+`/favicon.ico`, which the server answers with the page itself (any unknown path is `index.html`).
+Asked what else was easy for the browser, I listed four; the user chose three, and left out link
+previews for shared room links, whose picture needs the server's own address.
+
+- **The icon**: the red B the desktop app wears, `assets/store/shortcut_icon.ico` (16 to 256 px)
+  and `.png` (512 px), named in `index.html`. The server sent the `.ico` as a binary blob, so it
+  has its type now, `image/x-icon`.
+- **The title** (`pageTitle.ts`): "Bollfort · Room CODE · 2/4" in an online room — the people at
+  the table of its seats, for a host waiting in another tab — and "Bollfort · Paused" in a paused
+  match; "Bollfort" otherwise. A local table has no code and says nothing more.
+- **Asked before leaving**: while a person plays a match, not watching, knocked out or done, the
+  browser asks before the tab is closed, reloaded or left by Back, which would end it, and online
+  give up the seat. Never in the desktop and Steam apps (Electron in the user agent): there a page
+  asking stops the window closing without a word. The game's own Leave match never reloads the
+  page, so it is not asked twice.
+- **A description and a theme colour** in `index.html`, for search results, link previews' words
+  and the browser's bar.
+
+Checked in pages: the titles on the menu, in a match, paused, and in a room on a server of its own
+before and after a guest joined; the question asked as a match's tab closes and not on the menu.
+Not tried in the desktop app.

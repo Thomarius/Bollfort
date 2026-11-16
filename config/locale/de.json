@@ -78,6 +78,8 @@
   "pause.by": "{name} hat das Spiel angehalten",
   "pause.button": "Pause",
   "pause.buttonTitle": "Das Spiel für alle anhalten (Esc)",
+  "title.room": "Raum {code} · {people}/{seats}",
+  "title.paused": "Pausiert",
   "pause.title": "Pause",
   "pause.resume": "Weiter",
   "pause.looks": "Optik",

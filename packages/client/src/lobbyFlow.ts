@@ -66,6 +66,7 @@ import { openTowerMenu } from './towerMenu.js';
 import { preferredSpecials, preferredTower, saveSpecials, saveTower } from './towers.js';
 import { saveTable, storedTable, type RememberedTable } from './tableMemory.js';
 import { tournamentEnded } from './steam/achievements.js';
+import { showTitle } from './pageTitle.js';
 
 /** The lobby, one screen whether a server holds the table or the browser does. */
 
@@ -121,6 +122,17 @@ export function drawLobby(view: LobbyView, on: LobbyHandlers): void {
   const nudged = before === null ? [] : nudgedSettings(before, view, touched);
   drawn = view;
   touched = null;
+  // An online room's code and how many people sit at it, for a host waiting in another tab.
+  showTitle(
+    view.code === null
+      ? null
+      : {
+          kind: 'room',
+          code: view.code,
+          people: view.seats.filter((s) => !s.isBot && s.connected).length,
+          seats: view.playerCount,
+        },
+  );
   // A guest is brought back here by the room after a match, never through the menu, and
   // heard the match's victory music on in the lobby until this (test session, 2026-10-12).
   // The track already up, this does nothing, so every redraw may ask.

@@ -25,6 +25,7 @@ import type { RoomListing } from '@bollfort/protocol';
 import { openNewTournament, openResumeList, type TournamentExits } from './tournamentMenu.js';
 import { savedTournaments } from './tournamentSaves.js';
 import { playTournament } from './tournamentFlow.js';
+import { showTitle } from './pageTitle.js';
 
 /** The menu: who you are and how the game looks. */
 
@@ -202,6 +203,7 @@ export function tournamentExits(isPublic: boolean): TournamentExits {
  */
 export function showMenu(notice: string | null = null, findGame = false): void {
   audio.music('music_menu');
+  showTitle(null);
   app!.innerHTML = `
     <div class="menu home">
       <section class="home-main">
