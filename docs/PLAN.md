@@ -600,8 +600,8 @@ first sweep, so it cannot stutter it.
 
 **Around a match** (11.18): "Preparing the board" stands over the screen while a match's
 looks are built, painted before that work starts. Paused, the overlay is the match's menu —
-Resume, Graphics, Motion, Sound, the music and sounds volumes, and Leave match, which asks once
-more. A player knocked out sees "You're out — watching" with Back to menu. The menu's Options and
+Resume, Options (the menu's own window, its settings in three tabs, ARCHIVE 16k), Looks, How to
+play, Invite back for a player away, and Leave match, which asks once more. A player knocked out sees "You're out — watching" with Back to menu. The menu's Options and
 the pause menu carry two volume sliders, music and sounds, over the manifest's mix (the corner
 switch stays the mute), and a bot seat in the lobby shows its level as ten pips. At the end
 the summary names up to **three awards** (`awards.ts`) — from Wrecker, Landlord, Castle

@@ -3,9 +3,8 @@ import { settingsRows } from './settingsRows.js';
 import type { VolumeTarget } from './volume.js';
 
 /**
- * The menu's Options (2026-10-24, the user's): the settings that are not about a match —
- * the language, the Graphics, the Motion, the two volumes and how often the styles' own music
- * plays — in a panel over the menu, so
+ * The Options (2026-10-24, the user's): the settings, in their tabs (`settingsRows.ts`), in a
+ * panel over the menu — or over the pause menu, which opens it too (2026-11-16) — so
  * the menu itself keeps the looks, one of the game's highlights, and the ways into a match.
  * The overlay and panel of How to play and the Credits, so the three read as one family; the
  * rows the pause menu's too (`settingsRows.ts`).
@@ -17,7 +16,11 @@ export interface OptionsActions {
   languageChanged(): void;
 }
 
-export function openOptions(actions: OptionsActions): void {
+/**
+ * Opens the panel, returning its closing without a sound, for the pause menu to take it away
+ * with itself as the match resumes.
+ */
+export function openOptions(actions: OptionsActions): () => void {
   const root = document.createElement('div');
   root.className = 'how-to-play options';
   const click = (): void => actions.audio.play('select');
@@ -52,4 +55,5 @@ export function openOptions(actions: OptionsActions): void {
   root.addEventListener('click', (event) => {
     if (event.target === root) close();
   });
+  return () => root.remove();
 }

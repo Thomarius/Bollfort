@@ -10,7 +10,7 @@ const LEAVE_PAD: Partial<Record<TextKey, TextKey>> = {
   'tournament.leaveConfirm': 'tournament.leaveConfirmPad',
 };
 import { withIcon } from './icons.js';
-import { refreshSettingsRows, settingsRows } from './settingsRows.js';
+import { openOptions } from './options.js';
 import type { VolumeTarget } from './volume.js';
 
 /**
@@ -20,8 +20,10 @@ import type { VolumeTarget } from './volume.js';
  * controls, being what games use for this; everything it does also has something on
  * screen to click.
  *
- * The overlay is the match's menu (PLAN 11.18 Y2): Resume, the settings as the menu's Options has
- * them (`settingsRows.ts`), the looks, How to play, and Leave match, in the warning colour, which
+ * The overlay is the match's menu (PLAN 11.18 Y2): Resume, the Options — the menu's own window
+ * with its tabs, opened over this one (`options.ts`, 2026-11-16: the settings in one column had
+ * grown taller than the Deck's screen, and a player away to invite back made it taller still) —
+ * the looks, How to play, a player away invited back, and Leave match, in the warning colour, which
  * asks once more before it goes — one stray click should not end somebody's match. No Sound
  * button of its own: the corner's is beside it, and the volumes' speakers silence each.
  */
@@ -88,8 +90,7 @@ export class PauseControls {
   private readonly overlay: HTMLDivElement;
   private line!: HTMLParagraphElement;
   private leaving!: HTMLButtonElement;
-  private settings!: HTMLElement;
-  /** How to play, while it is open over this menu: it goes as the match resumes. */
+  /** How to play or the Options, while open over this menu: it goes as the match resumes. */
   private closeHowTo: (() => void) | null = null;
   /** What the line says, so the DOM is touched only when it changes. */
   private shown: string | null = null;
@@ -147,6 +148,7 @@ export class PauseControls {
       // The buttons in a row of their own under the settings and volumes, which are a column
       // as the menu's Options lays them out: in one long row they nearly filled the screen.
       `<div class="actions">` +
+      `<button class="options-open quiet">${t('menu.options')}</button>` +
       (actions.looks === undefined
         ? ''
         : `<button class="looks quiet">${t('pause.looks')}</button>`) +
@@ -172,14 +174,6 @@ export class PauseControls {
       this.writeInvites();
     });
     this.writeHints();
-    // The language, mid-match, is written into this menu by `onLanguageChange`, the HUD's at
-    // the next frame.
-    this.settings = settingsRows({
-      click: () => actions.click(),
-      volumes: actions.volumes,
-      languageChanged: () => undefined,
-    });
-    this.overlay.querySelector('.resume')?.after(this.settings);
 
     this.overlay.querySelector('.resume')?.addEventListener('click', () => {
       actions.click();
@@ -188,6 +182,16 @@ export class PauseControls {
     this.overlay.querySelector('.looks')?.addEventListener('click', () => {
       actions.click();
       actions.looks?.();
+    });
+    this.overlay.querySelector('.options-open')?.addEventListener('click', () => {
+      actions.click();
+      this.hideHowTo();
+      // The language, mid-match, is written into this menu by `onLanguageChange`, the HUD's at
+      // the next frame, and into the Options by themselves.
+      this.closeHowTo = openOptions({
+        audio: actions.volumes,
+        languageChanged: () => undefined,
+      });
     });
     this.overlay.querySelector('.how-to')?.addEventListener('click', () => {
       actions.click();
@@ -248,8 +252,7 @@ export class PauseControls {
     if (text === null) this.hideHowTo();
     this.line.textContent = text ?? '';
     if (opening) {
-      // As the menu opens: the settings as they stand, and the leave asked for afresh.
-      refreshSettingsRows(this.settings, this.actions.volumes);
+      // As the menu opens: the leave asked for afresh.
       this.leaving.classList.remove('confirm');
       this.leaving.textContent = t('pause.leave');
     }

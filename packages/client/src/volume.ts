@@ -100,20 +100,3 @@ export function volumeSliders(target: VolumeTarget): HTMLElement {
   }
   return node;
 }
-
-/** Brings sliders up to date with the volumes as they stand, as a menu reopens. */
-export function refreshVolumeSliders(node: HTMLElement, target: VolumeTarget): void {
-  for (const slider of node.querySelectorAll<HTMLInputElement>('input[type=range]')) {
-    const kind = slider.dataset.kind as VolumeKind;
-    const value = target.volume(kind);
-    slider.value = String(Math.round(value * 100));
-    const row = slider.closest('.volume');
-    const percent = row?.querySelector('.percent');
-    if (percent) percent.textContent = volumePercent(value);
-    const speaker = row?.querySelector<HTMLElement>('.speaker');
-    if (speaker) {
-      speaker.innerHTML = value > 0 ? ICONS.sound : ICONS.mute;
-      speaker.classList.toggle('off', value === 0);
-    }
-  }
-}

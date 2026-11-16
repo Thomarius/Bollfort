@@ -12400,3 +12400,35 @@ than doing nothing (`wheelZooms`). How to play's mouse and zoom captions follow 
 The extra row made the pause menu 804 px tall on the Deck's 800; under 860 px of height its
 padding and gaps are tighter, 763 px. Checked in the page: wheel up 1 → 2.7× at eight players,
 down back to 1.
+
+## 16k. The settings in tabs, and the pause menu's Options (2026-11-16)
+
+**Why**: with the Mouse wheel row the settings were ten rows in one column, and the pause menu,
+which carried them under Resume, was 804 px tall on the Deck's 800 (a tighter padding below 860
+px got it to 763). A player away to invite back adds a row of buttons beneath, so a dropped
+player would have pushed it off the Deck's screen again. Asked whether to make tabs, I advised
+tabs for the settings only, and a short pause menu of the match's own things that opens them;
+the user agreed, the volumes in a tab too.
+
+**Built**:
+
+- **The settings in three tabs** (`settingsRows.ts`), the same for the menu's Options and the pause
+  menu: **Display** (Language, Graphics, Motion), **Sound** (the two volumes, Style music) and
+  **Controls** (Island zoom, Mouse wheel, Tower emblems, Controller). Tower emblems is about the
+  cursor more than the controls, but a fourth tab for one row was not worth it. The pages share
+  one grid cell, the others only unseen (the lobby's `.tab-panels`), so the panel keeps the tallest
+  tab's height, 367 px at 1280×800, and Close does not move as the tabs change. A hidden page
+  must stay a flex column, or it measures shorter without its gaps and the panel jumps.
+- **The tab last shown opens again**, for the session: someone who keeps changing the volume lands
+  on Sound. A tab is shown as soon as it is focused, so a controller walking along the tabs sees
+  each without pressing it, and the tab shown is the window's main control (`data-main`), where a
+  controller's focus starts — the first in reading order would otherwise reset it to Display.
+- **The pause menu** is Resume, then Options, Looks and How to play in a row, Invite back, Leave
+  match: 341 px tall. Options opens the menu's own window over it (`openOptions`, now returning
+  its closing), which goes as the match resumes, as How to play does. Since the window is built
+  fresh each time, the pause menu's refresh of its rows went, and with it `refreshSettingsRows`,
+  `refreshVolumeSliders` and `syncChoices`; and the tighter padding for short screens.
+
+Checked by screenshot at 1280×800, in German and English: each tab, the pause menu, Options
+over it, Esc closing both, a language change keeping the panel open on its tab, the tab
+remembered on reopening. Not checked: a real controller walking the tabs.

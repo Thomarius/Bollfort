@@ -5,7 +5,7 @@
  *
  * The select stays, hidden, and is still the choice: a click sets it and fires its `change`, so
  * everything that reads or listens to it is as it was, the room's messages and the tests among
- * it. A select set by a script (the pause menu as it opens) is shown afresh by `syncChoices`.
+ * it.
  * A step shows the option's `data-short` where it has one, as the bots' levels show their
  * number beside their pips rather than "Level 5".
  */
@@ -26,16 +26,6 @@ export function enhanceChoices(root: ParentNode): void {
     build(select, control, kind);
     show(select, control, kind);
     select.addEventListener('change', () => show(select, control, kind));
-  }
-}
-
-/** Shows every control under `root` as its select now stands. */
-export function syncChoices(root: ParentNode): void {
-  for (const select of root.querySelectorAll<HTMLSelectElement>('select[data-enhanced="1"]')) {
-    const control = select.nextElementSibling;
-    if (control instanceof HTMLElement && control.classList.contains('ui-choice')) {
-      show(select, control, select.dataset.ui as 'seg' | 'step' | 'switch');
-    }
   }
 }
 
