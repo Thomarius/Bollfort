@@ -3194,6 +3194,14 @@ body.reduced-motion .connection-overlay .blocks i {
   margin: 0.2rem 0 0.4rem;
 }
 
+/* The Deck's 800 px: with the Mouse wheel row (2026-11-16) the menu was 804 px tall there. */
+@media (max-height: 860px) {
+  .pause-overlay .panel {
+    padding-block: 1rem;
+    gap: 0.5rem;
+  }
+}
+
 /* The settings under Resume, ruled off from it. */
 .pause-overlay .settings-rows {
   margin-top: 0.4rem;

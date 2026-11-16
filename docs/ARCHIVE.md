@@ -12389,3 +12389,14 @@ Building shows the magnifier at work. The pause menu, one row longer, is 759 px 
 and 1.3× at two, where the islands are already large; on the Deck's 1280×800 at eight the island
 fits whole (by screenshot). Display only: the sim,
 the protocol and recordings are untouched. Not yet played by the users.
+
+**The mouse wheel as the zoom** (the user's, the same day): a setting, Mouse wheel, beside the
+island zoom's in Options and the pause menu — **Turns piece** (the default, as before) or
+**Zooms**: up zooms in, down out, as games do, wherever the magnifier would; the right button
+still turns the piece. The wheel sets a direction rather than toggling (`IslandZoom.zoomTo`), so a
+run of a wheel's or a touchpad's events makes one move and one sound, with no threshold to tune;
+a sideways scroll does nothing. With the island zoom Off the wheel turns the piece again rather
+than doing nothing (`wheelZooms`). How to play's mouse and zoom captions follow the setting.
+The extra row made the pause menu 804 px tall on the Deck's 800; under 860 px of height its
+padding and gaps are tighter, 763 px. Checked in the page: wheel up 1 → 2.7× at eight players,
+down back to 1.

@@ -149,6 +149,20 @@ describe('what the island zoom shows', () => {
     expect(step(BUILD, 150, 'in')).toBeCloseTo(0.5);
   });
 
+  it('zooms by the wheel towards one side only, once for a run of its events', () => {
+    const zoom = new IslandZoom();
+    expect(zoom.zoomTo(true)).toBe(false);
+    frame(zoom, BUILD, 'out');
+    expect(zoom.zoomTo(false)).toBe(false);
+    expect(zoom.zoomTo(true)).toBe(true);
+    expect(zoom.zoomTo(true)).toBe(false);
+    expect(frame(zoom, BUILD, 'out')).toBe(1);
+    expect(zoom.zoomTo(false)).toBe(true);
+    expect(frame(zoom, BUILD, 'out')).toBe(0);
+    frame(zoom, COMBAT, 'out');
+    expect(zoom.zoomTo(true)).toBe(false);
+  });
+
   it('takes over a calm move at the quick pace when the player asks mid-way', () => {
     const zoom = new IslandZoom();
     zoom.update(board(BUILD), 0, 'in', 0, 0, PACE, false);

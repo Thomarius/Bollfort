@@ -207,7 +207,8 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
   12ze–12zr), a demo behind the menu (15m, never recorded), How to play (14zq), the end screen
   (15k), achievements' detector (16a), the island zoom (16j: the player's own island fitted to the
   screen in the build and cannon phases, by a magnifier on its corner or a pad's RB; a setting
-  Off / Start out / Start in, applied as each build phase opens; never in combat).
+  Off / Start out / Start in, applied as each build phase opens; never in combat; the wheel may
+  zoom instead, a setting).
 - **Bots** (ARCHIVE 12x–13zi, 16d): build phases played out in advance (13zf), misses as people
   miss (13r), people's building pace (13v). Thomas plays at about Level 6, Mausica at 2–3 — the
   yardstick bots are tuned against. The learning work is closed (13zg).
@@ -264,7 +265,8 @@ questions are asked before coding. Commits and pushes are theirs to approve, eac
 **Mouse, or a controller through the same actions** (their rule, amended 2026-11-02 for
 the Steam Deck, STEAM.md §8): everything is played with the two mouse buttons and the
 wheel — the right button or the wheel turns the piece — and every other action has
-something on screen to click (the island zoom its magnifier, since the wheel was taken); a controller only ever does what the mouse already can. No
+something on screen to click (the island zoom its magnifier; the wheel may zoom instead of
+turning, a setting, the right button still turning); a controller only ever does what the mouse already can. No
 keyboard shortcuts; Esc for pause is the one agreed exception, beside its button.
 
 ## Making a release

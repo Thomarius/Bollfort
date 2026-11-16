@@ -13,6 +13,16 @@ import { escape } from './html.js';
 import { t } from './i18n.js';
 import { padText, pads } from './pads.js';
 
+/** The captions that speak of the wheel, and theirs where it zooms (`mouseWheelSetting.ts`). */
+const WHEEL_ZOOM_CAPTIONS: Partial<Record<TextKey, TextKey>> = {
+  'howTo.mouse': 'howTo.mouseWheelZoom',
+  'howTo.zoom': 'howTo.zoomWheel',
+};
+
+function mouseCaption(key: TextKey): TextKey {
+  return (wheelZooms() ? WHEEL_ZOOM_CAPTIONS[key] : undefined) ?? key;
+}
+
 /** The captions that speak of the mouse, and theirs for a controller (STEAM.md §8, C4). */
 const PAD_CAPTIONS: Partial<Record<TextKey, TextKey>> = {
   'howTo.mouse': 'howTo.padMouse',
@@ -21,6 +31,7 @@ const PAD_CAPTIONS: Partial<Record<TextKey, TextKey>> = {
   'howTo.zoom': 'howTo.padZoom',
 };
 import { motionReduced } from './motion.js';
+import { wheelZooms } from './mouseWheelSetting.js';
 import { store, stored } from './storage.js';
 import { EMBLEMS } from './towerIcons.js';
 import { howToPageShown } from './steam/achievements.js';
@@ -1503,7 +1514,7 @@ export function openHowToPlay(
     const { page } = pages[at]!;
     const padKey = PAD_CAPTIONS[page.caption];
     const html = padKey === undefined ? null : padText((marks) => t(padKey, marks));
-    if (html === null) caption.textContent = t(page.caption);
+    if (html === null) caption.textContent = t(mouseCaption(page.caption));
     else caption.innerHTML = html;
   };
   const show = (to: number): void => {

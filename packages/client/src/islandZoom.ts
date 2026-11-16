@@ -169,6 +169,18 @@ export class IslandZoom {
     return smoothstep(this.shown);
   }
 
+  /**
+   * The mouse wheel, where it zooms (`mouseWheelSetting.ts`): in or out, whichever it is
+   * turned towards. True only where that changed something, so a run of a wheel's or a
+   * touchpad's events makes one move and one sound.
+   */
+  zoomTo(zoomIn: boolean): boolean {
+    if (!this.open || this.wanted === zoomIn) return false;
+    this.wanted = zoomIn;
+    this.asked = true;
+    return true;
+  }
+
   /** The magnifier or a controller's Zoom: in or out, where the zoom is open. */
   toggle(): boolean {
     if (!this.open) return false;

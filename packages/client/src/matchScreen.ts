@@ -45,6 +45,7 @@ import { CURSOR_SPEEDS, storedCursorSpeed } from './padSettings.js';
 import { howToSectionFor, openHowToPlay } from './howToPlay.js';
 import { openingShot, peekTowards, winnerShot, type CameraShot } from './camera.js';
 import { storedBuildZoom } from './buildZoomSetting.js';
+import { wheelZooms } from './mouseWheelSetting.js';
 import {
   IslandZoom,
   buttonSpot,
@@ -969,6 +970,10 @@ export async function runSession(
     if (islandZoom.toggle()) audio.play('select');
   };
   const zoomButton = new ZoomButton(app!, toggleZoom);
+  controls.wheelZooms = wheelZooms;
+  controls.zoomWheel = (zoomIn) => {
+    if (islandZoom.zoomTo(zoomIn)) audio.play('select');
+  };
 
   /** How far Show the board has pulled the camera out, 0 to 1, and when it last moved. */
   let peek = 0;

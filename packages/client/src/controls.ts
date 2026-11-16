@@ -254,7 +254,8 @@ type InputCue = 'piece_rotate' | 'piece_invalid';
  *
  * Every phase uses the same two gestures — move to aim, click to commit — so the
  * player never has to learn a new control scheme mid-match. Rotation is the only
- * extra verb, and only the build phase uses it: the right button or the wheel. In the
+ * extra verb, and only the build phase uses it: the right button or the wheel, unless the
+ * player has the wheel work the island zoom instead (the user's, 2026-11-16). In the
  * cannon phase the right button switches between a cannon and the player's special tower,
  * where they may buy one (docs/SPECIAL_TOWERS.md §2.1). Mouse
  * only — R and E turned the piece once, and went with the hint line that listed them
@@ -275,6 +276,12 @@ export class Controls {
   /** The territory as the board stands, kept with the board's sum it was computed for. */
   private standing: { sum: number; territory: Uint8Array } | null = null;
   private detachers: (() => void)[] = [];
+  /**
+   * Whether the wheel works the island zoom rather than turning the piece, asked at each turn
+   * of it, and the zoom it then works (`mouseWheelSetting.ts`, `matchScreen.ts`).
+   */
+  wheelZooms: () => boolean = () => false;
+  zoomWheel: (zoomIn: boolean) => void = () => {};
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -305,8 +312,13 @@ export class Controls {
       this.accept();
     };
     const wheel = (event: WheelEvent): void => {
-      this.rotate(event.deltaY > 0 ? 1 : -1);
       event.preventDefault();
+      // Up in, down out, where the player has the wheel zoom; a sideways scroll does neither.
+      if (this.wheelZooms()) {
+        if (event.deltaY !== 0) this.zoomWheel(event.deltaY < 0);
+        return;
+      }
+      this.rotate(event.deltaY > 0 ? 1 : -1);
     };
     const contextMenu = (event: Event): void => event.preventDefault();
 
