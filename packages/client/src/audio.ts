@@ -175,6 +175,8 @@ export class Audio {
   private pendingMusic: MusicTrack | null = null;
   private loading: Promise<void> | null = null;
   private muted = false;
+  /** Whether the window is behind another with Mute in background on (`app.ts`). */
+  private away = false;
   private readonly lastStarted = new Map<string, number>();
 
   constructor(private readonly manifest: AudioManifest) {
@@ -207,7 +209,7 @@ export class Audio {
       if (!Ctor) return null;
       this.ctx = new Ctor();
       this.master = this.ctx.createGain();
-      this.master.gain.value = this.muted ? 0 : this.manifest.masterVolume;
+      this.master.gain.value = this.silent ? 0 : this.manifest.masterVolume;
       this.master.connect(this.ctx.destination);
       const bus = (kind: VolumeKind): GainNode => {
         const node = this.ctx!.createGain();
@@ -249,9 +251,24 @@ export class Audio {
   setMuted(muted: boolean): void {
     this.muted = muted;
     store(MUTE_KEY, muted ? '1' : '0');
+    this.applyMaster();
+  }
+
+  /** Silences the game while its window is behind another, without touching the mute. */
+  setAway(away: boolean): void {
+    if (away === this.away) return;
+    this.away = away;
+    this.applyMaster();
+  }
+
+  private get silent(): boolean {
+    return this.muted || this.away;
+  }
+
+  private applyMaster(): void {
     if (this.master && this.ctx) {
       this.master.gain.setTargetAtTime(
-        muted ? 0 : this.manifest.masterVolume,
+        this.silent ? 0 : this.manifest.masterVolume,
         this.ctx.currentTime,
         0.05,
       );

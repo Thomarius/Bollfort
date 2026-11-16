@@ -6,6 +6,7 @@ import { onLanguageChange, setLanguage, startingLanguage, t } from './i18n.js';
 import { gameHost } from './host.js';
 import { withIcon } from './icons.js';
 import { installBackdrop } from './decor.js';
+import { backgroundMuteSetting } from './displaySettings.js';
 import { applyMotion } from './motion.js';
 import { perf } from './perf.js';
 
@@ -71,6 +72,20 @@ globalThis.addEventListener('pointerdown', unlock, { capture: true });
 globalThis.addEventListener('keydown', unlock, { capture: true });
 
 unlock();
+
+/**
+ * Mute in background (`displaySettings.ts`): silent while the window is hidden or another has
+ * the focus, asked again as either changes. Not as the setting changes: it is changed with a
+ * click in this window, which is in front then.
+ */
+function followBackground(): void {
+  const behind = document.hidden || !document.hasFocus();
+  audio.setAway(backgroundMuteSetting.get() === 'on' && behind);
+}
+
+globalThis.addEventListener('blur', followBackground);
+globalThis.addEventListener('focus', followBackground);
+document.addEventListener('visibilitychange', followBackground);
 
 /**
  * A sound switch on every screen, showing whether sound is on. Mute is remembered by the

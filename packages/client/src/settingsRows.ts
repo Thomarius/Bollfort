@@ -10,6 +10,7 @@ import {
   saveMouseWheel,
   storedMouseWheel,
 } from './mouseWheelSetting.js';
+import { backgroundMuteSetting, frameLimitSetting, shakeSetting } from './displaySettings.js';
 import { graphicsOptions, parseGraphics, saveGraphics, storedGraphics } from './graphics.js';
 import { openController } from './controllerWindow.js';
 import { escape } from './html.js';
@@ -31,8 +32,8 @@ import {
 import { volumeSliders, type VolumeTarget } from './volume.js';
 
 /**
- * The player's settings — the language, the Graphics, the Motion, the two volumes, how
- * often the styles' own music plays, the towers' emblems by the cursor, the island zoom, the mouse
+ * The player's settings — the language, the Graphics, the Motion, the screen's shake, the frame
+ * rate's cap, the two volumes, how often the styles' own music plays, the mute in background, the towers' emblems by the cursor, the island zoom, the mouse
  * wheel and the controller — in three tabs, built here for the menu's Options, which the pause
  * menu opens too, so the two look and order them the same (2026-10-28: the pause menu's had been
  * smaller, dimmer and in another order). Tabs since 2026-11-16 (the user's): one column of ten
@@ -45,6 +46,8 @@ export interface SettingsActions {
   volumes: VolumeTarget;
   /** Called once a new language is in use, for whatever holds the rows to be written afresh. */
   languageChanged(): void;
+  /** Called after Reset to defaults, for the rows to be written afresh as the settings now stand. */
+  rewrite(): void;
 }
 
 /** The tabs, in order: what is seen, what is heard, how it is played. */
@@ -74,13 +77,32 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
         `<select class="graphics" data-ui="seg">${graphicsOptions()}</select>`,
         t('settings.graphicsTitle'),
       ) +
-      row(t('settings.motion'), `<select class="motion" data-ui="seg">${motionOptions()}</select>`),
+      row(
+        t('settings.motion'),
+        `<select class="motion" data-ui="seg">${motionOptions()}</select>`,
+      ) +
+      row(
+        t('settings.shake'),
+        `<select class="shake" data-ui="seg">${shakeSetting.options()}</select>`,
+        t('settings.shakeTitle'),
+      ) +
+      row(
+        t('settings.frameLimit'),
+        `<select class="frame-limit" data-ui="seg">${frameLimitSetting.options()}</select>`,
+        t('settings.frameLimitTitle'),
+      ),
     // The volumes' sliders first, put in below.
-    sound: row(
-      t('settings.styleMusic'),
-      `<select class="style-music" data-ui="seg">${styleMusicOptions()}</select>`,
-      t('settings.styleMusicTitle'),
-    ),
+    sound:
+      row(
+        t('settings.styleMusic'),
+        `<select class="style-music" data-ui="seg">${styleMusicOptions()}</select>`,
+        t('settings.styleMusicTitle'),
+      ) +
+      row(
+        t('settings.backgroundMute'),
+        `<select class="background-mute" data-ui="seg">${backgroundMuteSetting.options()}</select>`,
+        t('settings.backgroundMuteTitle'),
+      ),
     controls:
       row(
         t('settings.buildZoom'),
@@ -115,7 +137,9 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
     `<div class="tab-panels">${SETTINGS_TABS.map(
       (tab) =>
         `<div class="tab-panel settings-page" role="tabpanel" data-panel="${tab}">${pages[tab]}</div>`,
-    ).join('')}</div>`;
+    ).join('')}</div>` +
+    // Under every tab, as it resets them all; asked once more, as Leave match is.
+    `<button type="button" class="settings-reset quiet" data-tip="${escape(t('settings.resetTitle'))}">${t('settings.reset')}</button>`;
   node.querySelector('[data-panel="sound"]')?.prepend(volumeSliders(actions.volumes));
 
   const tabs = [...node.querySelectorAll<HTMLButtonElement>('.settings-tabs .tab')];
@@ -191,6 +215,37 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
     actions.click();
     saveMouseWheel(parseMouseWheel(wheel.value) ?? 'turn');
   });
+  // Taken at the next shake.
+  const shake = node.querySelector<HTMLSelectElement>('.shake')!;
+  shake.addEventListener('change', () => {
+    actions.click();
+    shakeSetting.save(shakeSetting.parse(shake.value) ?? shakeSetting.fallback);
+  });
+  // Taken at the next frame of a match.
+  const frames = node.querySelector<HTMLSelectElement>('.frame-limit')!;
+  frames.addEventListener('change', () => {
+    actions.click();
+    frameLimitSetting.save(frameLimitSetting.parse(frames.value) ?? frameLimitSetting.fallback);
+  });
+  // Taken as the window next goes behind another (`app.ts`).
+  const background = node.querySelector<HTMLSelectElement>('.background-mute')!;
+  background.addEventListener('change', () => {
+    actions.click();
+    backgroundMuteSetting.save(
+      backgroundMuteSetting.parse(background.value) ?? backgroundMuteSetting.fallback,
+    );
+  });
+  const reset = node.querySelector<HTMLButtonElement>('.settings-reset')!;
+  reset.addEventListener('click', () => {
+    actions.click();
+    if (!reset.classList.contains('confirm')) {
+      reset.classList.add('confirm');
+      reset.textContent = t('settings.resetConfirm');
+      return;
+    }
+    resetSettings(actions.volumes);
+    actions.rewrite();
+  });
   node.querySelector('.controller-open')?.addEventListener('click', (event) => {
     // Not the label's: a click inside a label goes to its first control too.
     event.preventDefault();
@@ -210,4 +265,26 @@ function showStored(node: HTMLElement): void {
   node.querySelector<HTMLSelectElement>('.tower-badges')!.value = storedTowerBadges();
   node.querySelector<HTMLSelectElement>('.build-zoom')!.value = storedBuildZoom();
   node.querySelector<HTMLSelectElement>('.mouse-wheel')!.value = storedMouseWheel();
+  node.querySelector<HTMLSelectElement>('.shake')!.value = shakeSetting.get();
+  node.querySelector<HTMLSelectElement>('.frame-limit')!.value = frameLimitSetting.get();
+  node.querySelector<HTMLSelectElement>('.background-mute')!.value = backgroundMuteSetting.get();
+}
+
+/**
+ * Reset to defaults (the user's, 2026-11-16): every setting in the tabs as the game comes, but
+ * the language — someone who reset into a language they cannot read could not find it again —
+ * and the controller's buttons, which have their own Restore in their window.
+ */
+export function resetSettings(volumes: VolumeTarget): void {
+  saveGraphics('medium');
+  saveMotion('full');
+  shakeSetting.save(shakeSetting.fallback);
+  frameLimitSetting.save(frameLimitSetting.fallback);
+  volumes.setVolume('music', 1);
+  volumes.setVolume('sounds', 1);
+  saveStyleMusic('always');
+  backgroundMuteSetting.save(backgroundMuteSetting.fallback);
+  saveBuildZoom('out');
+  saveMouseWheel('turn');
+  saveTowerBadges('next');
 }

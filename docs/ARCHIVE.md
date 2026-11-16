@@ -12432,3 +12432,25 @@ the user agreed, the volumes in a tab too.
 Checked by screenshot at 1280×800, in German and English: each tab, the pause menu, Options
 over it, Esc closing both, a language change keeping the panel open on its tab, the tab
 remembered on reopening. Not checked: a real controller walking the tabs.
+
+## 16l. Screen shake, a frame rate cap, mute in background, Reset to defaults (2026-11-16)
+
+Asked which options a game usually has that Bollfort lacked, I listed some; the user chose four:
+
+- **Screen shake** (Display): Off / Low / Full, half the reach at Low (`displaySettings.ts`).
+  Motion: Reduced still stops it with every other movement; this is for someone who wants the
+  rest of the motion. The trailer's `&shake=` stands over the setting where given.
+- **Frame rate** (Display): Unlimited / 60 / 30, a match's frames only (the menus' are few and
+  cheap), for a laptop's or the Deck's battery. A frame not yet due is skipped whole; the match
+  keeps time by the clock, so the next plays the time missed. The next frame falls due an interval
+  after the last was, so a 144 Hz screen averages the cap rather than 48 (`frameDue`). Measured in
+  the page: 59 frames a second, then 30 under the 30 cap.
+- **Mute in background** (Sound): Off by default, as the game was — online a match plays on behind
+  another window. On, the master gain goes to nothing while the window is hidden or another has
+  the focus, without touching the corner's mute (`Audio.setAway`, `app.ts`). Not tried live.
+- **Reset to defaults**, under every tab, asking once more as Leave match does: every setting in
+  the tabs as the game comes, but the language (reset into one they cannot read, a player could
+  not find their way back) and the controller's buttons, which have their own Restore.
+
+The three settings are made by one helper, `storedChoice`, rather than written out by hand as
+each older setting is. Display is now five rows, so the panel is 471 px tall at 1280×800.

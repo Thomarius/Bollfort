@@ -31,6 +31,7 @@ import {
   type ThemeLayers,
   type ViewTransform,
 } from './theme.js';
+import { shakeScale } from '../displaySettings.js';
 
 export type { Ghost, Theme, ViewTransform } from './theme.js';
 
@@ -169,14 +170,17 @@ export interface LookFrame {
 
 /**
  * `&shake=` (dev only): the screen's shake as a share of its reach, for the trailer's versions
- * (STEAM.md §9.2) — `0` none, `0.5` half as far over the same time, absent or invalid the full one.
- * Motion: Reduced would also stop the trailer camera's moves, so it is not used for this.
+ * (STEAM.md §9.2) — `0` none, `0.5` half as far over the same time — over the player's Screen
+ * shake; absent or invalid, the setting's. Motion: Reduced would also stop the trailer camera's
+ * moves, so it is not used for this.
  */
-const SHAKE_SCALE = ((): number => {
+const SHAKE_PARAM = ((): number | null => {
   const raw = new URLSearchParams(globalThis.location?.search ?? '').get('shake');
   const value = raw === null || raw === '' ? Number.NaN : Number(raw);
-  return Number.isFinite(value) && value >= 0 && value <= 1 ? value : 1;
+  return Number.isFinite(value) && value >= 0 && value <= 1 ? value : null;
 })();
+
+const shakeReach = (): number => SHAKE_PARAM ?? shakeScale();
 
 export class Scene {
   readonly app = new Application();
@@ -739,7 +743,7 @@ export class Scene {
 
   /** Shakes the board, for a hit on the player's own wall. */
   shake(): void {
-    if (SHAKE_SCALE === 0) return;
+    if (shakeReach() === 0) return;
     this.shaking = this.art.generators.fx.shakeMs;
   }
 
@@ -748,7 +752,7 @@ export class Scene {
     const amount =
       (this.shaking / this.art.generators.fx.shakeMs) *
       this.art.generators.fx.shakePx *
-      SHAKE_SCALE;
+      shakeReach();
     // Whole pixels: the pixel style is drawn on the pixel grid, and a fractional offset
     // blurs every sprite on the board for the length of the shake.
     this.app.stage.x = Math.round((Math.random() * 2 - 1) * amount);

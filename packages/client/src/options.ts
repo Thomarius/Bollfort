@@ -44,6 +44,7 @@ export function openOptions(actions: OptionsActions): () => void {
           // This panel too, in the new language.
           fill();
         },
+        rewrite: fill,
       }),
     );
     root.querySelector('.close')?.addEventListener('click', close);

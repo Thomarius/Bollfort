@@ -46,6 +46,7 @@ import { howToSectionFor, openHowToPlay } from './howToPlay.js';
 import { openingShot, peekTowards, winnerShot, type CameraShot } from './camera.js';
 import { storedBuildZoom } from './buildZoomSetting.js';
 import { wheelZooms } from './mouseWheelSetting.js';
+import { frameDue, frameIntervalMs } from './displaySettings.js';
 import {
   IslandZoom,
   buttonSpot,
@@ -1086,7 +1087,17 @@ export async function runSession(
     motion: storedMotion(),
   }));
   let last = performance.now();
+  /** When the next frame falls due under the Frame rate's cap (`displaySettings.ts`). */
+  let due = 0;
   const loop = (now: number): void => {
+    // Under the cap, a frame not yet due is skipped whole: the match keeps time by the clock,
+    // so the next frame plays the time it missed.
+    const capped = frameDue(now, due, frameIntervalMs());
+    due = capped.due;
+    if (!capped.draw) {
+      frame = requestAnimationFrame(loop);
+      return;
+    }
     const delta = now - last;
     last = now;
     // The board is ready: the first frame takes the screen over it down, and draws the

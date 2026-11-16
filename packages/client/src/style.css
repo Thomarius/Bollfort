@@ -3382,6 +3382,20 @@ body.demo #hud .hud-rest {
   gap: 0.6rem;
 }
 
+/* Reset to defaults, under every tab: small and quiet, in the warning colour once it asks again. */
+.settings-rows .settings-reset {
+  align-self: center;
+  margin-top: 0.3rem;
+  font-size: 13px;
+}
+
+.settings-rows .settings-reset.confirm,
+.settings-rows .settings-reset.confirm:hover {
+  border-color: #ff5a62;
+  background: rgb(255 90 98 / 18%);
+  color: #ffc2c5;
+}
+
 .settings-page > label {
   display: flex;
   gap: 1rem;
