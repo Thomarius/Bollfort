@@ -582,7 +582,8 @@ export class AnimeTheme extends ShapeTheme implements Theme {
     const wall = wallGeometry(cells, joins, view, this.faceFraction());
     for (const b of wall.blocks) {
       if (joins(b.x, b.y + 1)) continue;
-      g.rect(b.left + t * 0.12, b.top + t + (b.faced ? wall.face : 0), t, t * 0.2);
+      // A face stands inside its tile (`wallGeometry`): the shadow starts at the tile's foot.
+      g.rect(b.left + t * 0.12, b.top + t, t, t * 0.2);
     }
     g.fill({ color: hex(this.art.palette.shadow), alpha: 0.3 });
     for (const r of wall.tops) g.rect(r.x, r.y, r.w, r.h);
@@ -594,8 +595,9 @@ export class AnimeTheme extends ShapeTheme implements Theme {
     // The face cut into blocks, a joint every tile.
     for (const b of wall.blocks) {
       if (!b.faced) continue;
-      g.moveTo(b.left + t * (b.x % 2 === 0 ? 0.5 : 0), b.top + t);
-      g.lineTo(b.left + t * (b.x % 2 === 0 ? 0.5 : 0), b.top + t + wall.face);
+      // From the lip down to the tile's foot, where the face stands (`wallGeometry`).
+      g.moveTo(b.left + t * (b.x % 2 === 0 ? 0.5 : 0), b.lip);
+      g.lineTo(b.left + t * (b.x % 2 === 0 ? 0.5 : 0), b.top + t);
     }
     g.stroke({ width: Math.max(1, t * 0.04), color: INK, alpha: 0.45 });
     trace(g, wall.rim);

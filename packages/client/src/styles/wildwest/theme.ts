@@ -518,7 +518,8 @@ export class WildWestTheme extends ShapeTheme implements Theme {
     const wall = wallGeometry(cells, joins, view, this.faceFraction());
     for (const b of wall.blocks) {
       if (joins(b.x, b.y + 1)) continue;
-      g.rect(b.left + t * 0.12, b.top + t + (b.faced ? wall.face : 0), t, t * 0.18);
+      // A face stands inside its tile (`wallGeometry`): the shadow starts at the tile's foot.
+      g.rect(b.left + t * 0.12, b.top + t, t, t * 0.18);
     }
     g.fill({ color: OUTLINE, alpha: 0.22 });
     for (const r of wall.faces) g.rect(r.x, r.y, r.w, r.h);

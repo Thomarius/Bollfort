@@ -663,7 +663,8 @@ export class NoirTheme extends ShapeTheme implements Theme {
     // The shadow it casts, away from the light, hatched.
     for (const b of wall.blocks) {
       if (joins(b.x, b.y + 1)) continue;
-      g.rect(b.left + t * 0.12, b.top + t + (b.faced ? wall.face : 0) - t * 0.02, t, t * 0.28);
+      // A face stands inside its tile (`wallGeometry`): the shadow starts at the tile's foot.
+      g.rect(b.left + t * 0.12, b.top + t - t * 0.02, t, t * 0.28);
     }
     if (this.crossHatch !== null) g.fill({ fill: this.crossHatch, alpha: 0.6 });
     for (const r of wall.tops) g.rect(r.x, r.y, r.w, r.h);

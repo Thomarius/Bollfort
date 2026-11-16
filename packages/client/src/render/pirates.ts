@@ -714,7 +714,8 @@ export class PiratesTheme extends ShapeTheme implements Theme {
     const wall = wallGeometry(cells, joins, view, this.faceFraction());
     for (const b of wall.blocks) {
       if (joins(b.x, b.y + 1)) continue;
-      g.rect(b.left + t * 0.06, b.top + t + (b.faced ? wall.face : 0) - t * 0.04, t, t * 0.2);
+      // A face stands inside its tile (`wallGeometry`): the shadow starts at the tile's foot.
+      g.rect(b.left + t * 0.06, b.top + t - t * 0.04, t, t * 0.2);
     }
     g.fill({ color: 0x000000, alpha: 0.22 });
     // The stakes' points where nothing stands north of them.
