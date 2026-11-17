@@ -9,6 +9,7 @@ import {
   type StyleSoundEntry,
 } from '@bollfort/config';
 import { store, stored } from './storage.js';
+import { TrackPlaces } from './trackPlaces.js';
 
 /**
  * Sound.
@@ -147,6 +148,8 @@ const MIN_REPEAT_MS = 60;
 /** A track sounding: its element, the node feeding it into the graph, and its fade. */
 interface Playing {
   cue: MusicTrack;
+  /** The file it plays, one of its cue's variants: where a style's track was left is by file. */
+  path: string;
   element: HTMLAudioElement;
   source: MediaElementAudioSourceNode;
   gain: GainNode;
@@ -178,9 +181,16 @@ export class Audio {
   /** Whether the window is behind another with Mute in background on (`app.ts`). */
   private away = false;
   private readonly lastStarted = new Map<string, number>();
+  /** Where each style's track was left in this match, so a look coming back resumes it. */
+  private readonly places = new TrackPlaces();
 
   constructor(private readonly manifest: AudioManifest) {
     this.muted = stored(MUTE_KEY) === '1';
+  }
+
+  /** A new match: every style's track starts from the top again (the user's, 2026-11-17). */
+  restartStyleTracks(): void {
+    this.places.clear();
   }
 
   get isMuted(): boolean {
@@ -354,6 +364,8 @@ export class Audio {
 
     if (this.playing !== null) {
       const old = this.playing;
+      // Where it was as it began to fade, so it comes back where it was last heard in full.
+      this.places.leave(old.cue, old.path, old.element.currentTime);
       old.gain.gain.setTargetAtTime(0, ctx.currentTime, CROSSFADE_MS / 3000);
       globalThis.setTimeout(() => this.release(old), CROSSFADE_MS);
       this.playing = null;
@@ -363,12 +375,16 @@ export class Audio {
     const entry = this.musicEntry(cue);
     const path = this.pick(cue);
     const url = path === null ? null : (this.tracks.get(path) ?? null);
-    if (!entry || url === null) return;
+    if (!entry || path === null || url === null) return;
 
     const element = document.createElement('audio');
     element.src = url;
     element.loop = entry.loop;
     element.preload = 'auto';
+    // Set before the file's length is known, this is the element's start position, which it
+    // seeks to as it loads; 0 for every track but a style's own taken up again in a match.
+    const from = this.places.from(cue, path);
+    if (from > 0) element.currentTime = from;
     const source = ctx.createMediaElementSource(element);
     const gain = ctx.createGain();
     gain.gain.value = 0;
@@ -377,7 +393,7 @@ export class Audio {
     gain.connect(this.buses?.music ?? this.master);
     // A track that plays once (victory, defeat) stays the one up after its end, silent, so
     // asking for it again does not start it over; the next track lets its element go.
-    const playing: Playing = { cue, element, source, gain, started: false };
+    const playing: Playing = { cue, path: path, element, source, gain, started: false };
     this.playing = playing;
     this.start(playing);
   }

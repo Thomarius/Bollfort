@@ -12495,3 +12495,18 @@ next, and a look restyled from the pause menu chooses again against the track be
 `styleTrackPauseRounds` is gone from the manifest and its schema. A choice saved before is read as
 the nearest: always and half the time as on, never as off. The setting's texts say the rule in all
 three languages.
+
+## 16o. A style's track resumes within a match (2026-11-17)
+
+The user's: a style chosen for one look played its opening bars every time that look came back,
+every round. Now **a style's own track picks up where it was left** when its look returns, and
+**every new match starts each one from the top**. Only the styles' tracks: the shared music is
+drawn afresh from its variants and does not tire (the user's). Victory and defeat are shared cues
+and start from the top as before.
+
+`TrackPlaces` (`trackPlaces.ts`, tested) keeps each style track's position by file. `Audio.music`
+notes where the outgoing track was as its crossfade begins — where it was last heard in full — and
+sets a returning track's element to it before the file loads, which Chromium takes as the start
+position (checked against an object URL as the engine plays them: set to 42.5 s, it read 44.0 s
+after 1.5 s of play). `matchScreen` calls `audio.restartStyleTracks()` as each match's audio is set
+up. Kept in memory only, never saved.

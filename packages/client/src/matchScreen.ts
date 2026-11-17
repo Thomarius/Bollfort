@@ -213,6 +213,9 @@ export async function runSession(
   // look is in place before the intermission that brings it, whose start chooses its music.
   const sounds = audioManifest;
   const demo = exits.demo === true;
+  // Within a match a style's track picks up where it was left as its look comes back; a new
+  // match starts every one from the top (the user's, 2026-11-17).
+  audio.restartStyleTracks();
   const matchAudio = demo
     ? null
     : new MatchAudio(
