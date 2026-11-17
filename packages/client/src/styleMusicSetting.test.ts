@@ -1,16 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseStyleMusic, styleTrackChance } from './styleMusicSetting.js';
+import { parseStyleMusic, styleMusicOn } from './styleMusicSetting.js';
 
 describe('the style music setting', () => {
-  it('gives the chances the user chose: always, half the time, never', () => {
-    expect(styleTrackChance('always')).toBe(1);
-    expect(styleTrackChance('half')).toBe(0.5);
-    expect(styleTrackChance('never')).toBe(0);
+  it('is on or off, nothing between (the user’s, 2026-11-17)', () => {
+    expect(styleMusicOn('on')).toBe(true);
+    expect(styleMusicOn('off')).toBe(false);
   });
 
-  it('reads only its own three values back', () => {
-    expect(parseStyleMusic('half')).toBe('half');
+  it('reads its own two values back, and the three saved before as the nearest', () => {
+    expect(parseStyleMusic('on')).toBe('on');
+    expect(parseStyleMusic('off')).toBe('off');
+    expect(parseStyleMusic('always')).toBe('on');
+    expect(parseStyleMusic('half')).toBe('on');
+    expect(parseStyleMusic('never')).toBe('off');
     expect(parseStyleMusic('sometimes')).toBeNull();
     expect(parseStyleMusic(null)).toBeNull();
   });

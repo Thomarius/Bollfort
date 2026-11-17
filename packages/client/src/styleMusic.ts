@@ -1,44 +1,32 @@
-import type { ArtStyle } from '@bollfort/config';
+import { styleTrack, type ArtStyle, type MusicCue, type MusicTrack } from '@bollfort/config';
 
 /**
- * Whether a style's own track plays as its look starts (ARCHIVE 14za).
+ * Which track a look plays as it starts (ARCHIVE 14za, reworked 2026-11-17 by the user's rule).
  *
- * Kept pure, as `banners.ts` and `scores.ts` are, so the rules can be tested without a
- * browser: the roll is handed in, and the pauses are given and returned rather than kept.
+ * Kept pure, as `banners.ts` and `scores.ts` are, so the rule can be tested without a browser.
  */
 
-/** The player's chance, the manifest's pause, and which styles have a track at all. */
+/** The player's choice, and which styles have a track at all. */
 export interface StyleTrackRules {
-  /** 0 to 1, from the player's choice in Options (`styleMusicSetting.ts`). */
-  chance: number;
-  /** `styleTrackPauseRounds`: the rounds after the one it played in that a track is held back. */
-  pauseRounds: number;
+  /** On: a style's own track wherever the rule allows (`styleMusicSetting.ts`); off: never. */
+  on: boolean;
   hasTrack: (style: ArtStyle) => boolean;
 }
 
-/** The round each style's track last played in; a style never heard is absent. */
-export type StylePauses = ReadonlyMap<ArtStyle, number>;
-
 /**
- * As a look starts in `style` in `round` — the round as it stands once the look's phase has
- * begun — with `roll` drawn from [0, 1): whether the style's own track plays in place of
- * the shared one, and the pauses after.
- *
- * Rolled at every start, even of a style that has not changed. A track that played in round
- * r is held back through round r + `pauseRounds`, its own round included: so a style that
- * won as building began, and is the combat look too, finds its pause running at combat and
- * plays the shared battle music, as the user meant. Other styles are not held back.
+ * The track for a look starting in `style`, whose shared music is `shared`, after the look that
+ * played `previous` (null at a match's start). On, the style's own track, if it has one — but **the
+ * music must change at every change of look** (the user's, 2026-11-17): so where the style's own is
+ * the track that just played, as when building and combat are drawn in the same style, the shared
+ * music plays instead. Off, always the shared music, which alternates by itself.
  */
-export function chooseStyleTrack(
+export function lookTrack(
   style: ArtStyle,
-  round: number,
-  pauses: StylePauses,
+  shared: MusicCue,
+  previous: MusicTrack | null,
   rules: StyleTrackRules,
-  roll: number,
-): { plays: boolean; pauses: StylePauses } {
-  if (!rules.hasTrack(style)) return { plays: false, pauses };
-  const last = pauses.get(style);
-  if (last !== undefined && round <= last + rules.pauseRounds) return { plays: false, pauses };
-  if (roll >= rules.chance) return { plays: false, pauses };
-  return { plays: true, pauses: new Map(pauses).set(style, round) };
+): MusicTrack {
+  if (!rules.on || !rules.hasTrack(style)) return shared;
+  const own = styleTrack(style);
+  return own === previous ? shared : own;
 }

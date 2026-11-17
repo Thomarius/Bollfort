@@ -35,7 +35,7 @@ import { timerSpot } from './timerSpot.js';
 import { hereSpot } from './hereSpot.js';
 import { MatchLog } from './summary.js';
 import { motionReduced, storedMotion } from './motion.js';
-import { styleTrackChance } from './styleMusicSetting.js';
+import { styleMusicOn } from './styleMusicSetting.js';
 import { PauseControls, pausesOnBlur } from './pause.js';
 import { Autopilot } from './autopilot.js';
 import { PadMatch } from './padMatch.js';
@@ -222,15 +222,12 @@ export async function runSession(
           rules: {
             // The player's choice in Options or the pause menu, read at every look's start, so a
             // change mid-match decides the next track and leaves the one playing alone (2026-10-27).
-            get chance() {
-              return styleTrackChance();
+            get on() {
+              return styleMusicOn();
             },
-            pauseRounds: sounds.styleTrackPauseRounds,
             hasTrack: (style) => sounds.styleMusic[style] !== undefined,
           },
           styleOf: (look) => scene.styles[look],
-          // The page's own roll: music is no part of the simulation (ARCHIVE 14za).
-          roll: () => Math.random(),
         },
         // The board is seen whole, so a column's place across it is its place on screen.
         { width: session.state.width, spread: sounds.panWidth },

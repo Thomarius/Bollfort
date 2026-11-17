@@ -1,6 +1,5 @@
 import {
   defaultRuleset,
-  styleTrack,
   type ArtStyle,
   type MusicCue,
   type MusicTrack,
@@ -10,7 +9,7 @@ import {
 import type { MatchEvent, MatchState, Phase } from '@bollfort/sim';
 
 import { COUNTDOWN_FROM, countdownGain, showsClock } from './clock.js';
-import { chooseStyleTrack, type StylePauses, type StyleTrackRules } from './styleMusic.js';
+import { lookTrack, type StyleTrackRules } from './styleMusic.js';
 import { lookOf, type Look } from './transition.js';
 
 /**
@@ -35,25 +34,24 @@ export interface Cues {
 }
 
 /**
- * The styles' own tracks (ARCHIVE 14za): the rules, the style each look is drawn
- * in as it comes on screen, and the roll — the page's own, `Math.random`, since music is no
- * part of the simulation and two players at one table may hear different tracks.
+ * The styles' own tracks (ARCHIVE 14za, 16n): the rules, and the style each look is drawn in as
+ * it comes on screen. Music is no part of the simulation: two players at one table may hear
+ * different tracks.
  */
 export interface StyleMusic {
   rules: StyleTrackRules;
   styleOf: (look: Look) => ArtStyle;
-  roll: () => number;
 }
 
 /** The shared track a look's span plays, which a style's own may stand in for. */
 const LOOK_TRACK: Record<Look, MusicCue> = { build: 'music_admin', combat: 'music_battle' };
 
-/** A span of one look's music: its look, its round and its style, and what it chose. */
+/** A span of one look's music: its look and its style, what it chose, and what played before it. */
 interface Span {
   look: Look;
-  round: number;
   style: ArtStyle;
   track: MusicTrack;
+  after: MusicTrack | null;
 }
 
 /**
@@ -108,8 +106,8 @@ export class MatchAudio {
   private wooferTick = -Infinity;
   /** The look whose music is playing, or null for the menu's, victory's or defeat's. */
   private span: Span | null = null;
-  /** When each style's track last played, for its pause; afresh every match. */
-  private pauses: StylePauses = new Map();
+  /** The track the last look played, which the next must differ from; afresh every match. */
+  private lastLook: MusicTrack | null = null;
 
   constructor(
     private readonly audio: Cues,
@@ -135,7 +133,7 @@ export class MatchAudio {
     for (const event of events) {
       switch (event.kind) {
         case 'phase_changed':
-          this.phaseChanged(event.phase, event.pendingPhase, event.round);
+          this.phaseChanged(event.phase, event.pendingPhase);
           break;
 
         case 'shot_fired':
@@ -245,7 +243,7 @@ export class MatchAudio {
     }
   }
 
-  private phaseChanged(phase: Phase, pending: Phase | null, round: number): void {
+  private phaseChanged(phase: Phase, pending: Phase | null): void {
     const previous = this.phase;
     this.phase = phase;
     this.countedAt = -1;
@@ -254,7 +252,7 @@ export class MatchAudio {
     // into the announcement rather than arriving after it.
     const early = phase === 'intermission' && pending !== null;
     const track = early ? trackFor(pending) : trackFor(phase);
-    if (track !== null) this.audio.music(this.lookMusic(track, round, early));
+    if (track !== null) this.audio.music(this.lookMusic(track));
 
     if (phase === 'combat') this.audio.play('voice_fire');
     // Combat ends by stepping into the intermission: the shots already in the air
@@ -265,50 +263,38 @@ export class MatchAudio {
   /**
    * The track for a phase's shared one: a look's span goes on with what it chose as its
    * phases follow one another (castle selection, building and the cannons are one build
-   * look), and a span starting rolls for its style's own track.
-   *
-   * A span is in the round as it stands once its phase has begun: combat is where the sim
-   * counts a round up, and its music is chosen `early`, in the intermission before.
+   * look), and a span starting chooses afresh (`lookTrack`), differing from the last look's.
    */
-  private lookMusic(track: MusicCue, round: number, early: boolean): MusicTrack {
+  private lookMusic(track: MusicCue): MusicTrack {
     const look = (['build', 'combat'] as const).find((l) => LOOK_TRACK[l] === track);
     if (look === undefined) {
       this.span = null;
       return track;
     }
     if (this.span?.look === look) return this.span.track;
-    return this.startSpan(look, look === 'combat' && early ? round + 1 : round).track;
+    return this.startSpan(look, this.lastLook).track;
   }
 
-  private startSpan(look: Look, round: number): Span {
+  private startSpan(look: Look, after: MusicTrack | null): Span {
     const shared = LOOK_TRACK[look];
-    if (this.styles === null) {
-      this.span = { look, round, style: 'flat', track: shared };
-      return this.span;
-    }
-    const style = this.styles.styleOf(look);
-    const chosen = chooseStyleTrack(
-      style,
-      round,
-      this.pauses,
-      this.styles.rules,
-      this.styles.roll(),
-    );
-    this.pauses = chosen.pauses;
-    this.span = { look, round, style, track: chosen.plays ? styleTrack(style) : shared };
+    const style = this.styles === null ? 'flat' : this.styles.styleOf(look);
+    const track =
+      this.styles === null ? shared : lookTrack(style, shared, after, this.styles.rules);
+    this.span = { look, style, track, after };
+    this.lastLook = track;
     return this.span;
   }
 
   /**
-   * The looks changed from the pause menu: the span under way rolls again as its look would
-   * have, if that look's style changed — one changed to while its pause runs plays the
-   * shared music (ARCHIVE 14za).
+   * The looks changed from the pause menu: the span under way chooses again as its look would
+   * have, if that look's style changed — against the track before it, as it did.
    */
   restyled(): void {
     const span = this.span;
     if (span === null || this.styles === null) return;
     if (this.styles.styleOf(span.look) === span.style) return;
-    this.audio.music(this.startSpan(span.look, span.round).track);
+    const track = this.startSpan(span.look, span.after).track;
+    if (track !== span.track) this.audio.music(track);
   }
 
   /**

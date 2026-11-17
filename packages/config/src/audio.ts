@@ -183,12 +183,6 @@ export const AudioManifestSchema = z.strictObject({
   /** The styles' own sounds, by style and sound (`STYLE_SOUNDS`); a style left out has none. */
   styleSounds: z.record(ArtStyleSchema, z.partialRecord(z.enum(STYLE_SOUNDS), SfxEntrySchema)),
   /**
-   * Once a style's track has played, the rounds after that one in which it may not play
-   * again; the rest of its own round is held back too. Other styles' tracks are not. How often a
-   * track plays otherwise is the player's choice in Options, not the manifest's.
-   */
-  styleTrackPauseRounds: z.number().int().min(0),
-  /**
    * Credits by path under `basePath`: a file's own — variants each have their own, since
    * they may come from different authors — or, for a key ending in `/`, one for every file
    * in that folder without its own. The sound effects are all CC0, which asks for no

@@ -3,34 +3,37 @@ import { t } from './i18n.js';
 import { store, stored } from './storage.js';
 
 /**
- * How often a style's own track plays as its look starts (2026-10-27, the user's): always,
- * half the time, or never — the shared music only. The pause of `styleTrackPauseRounds` after
- * a track has played holds at either of the first two (`chooseStyleTrack`). Always is the
- * default, the chance the game had before the choice (ARCHIVE 14za).
+ * Whether a style's own track plays (the user's, 2026-11-17, in place of always, half the time
+ * and never): on, wherever the rule of `lookTrack` allows — every change of look still changes the
+ * music; off, the shared music only. On is the default.
  */
-export type StyleMusicSetting = 'always' | 'half' | 'never';
+export type StyleMusicSetting = 'on' | 'off';
 
 const KEY = 'bollfort.styleMusic';
 
-export const STYLE_MUSIC_SETTINGS: readonly StyleMusicSetting[] = ['always', 'half', 'never'];
+export const STYLE_MUSIC_SETTINGS: readonly StyleMusicSetting[] = ['on', 'off'];
 
-const CHANCES: Readonly<Record<StyleMusicSetting, number>> = { always: 1, half: 0.5, never: 0 };
-
+/**
+ * The setting as saved, or null for anything else. The three choices saved before are read as
+ * the nearest of the two: always and half the time as on, never as off.
+ */
 export function parseStyleMusic(saved: string | null | undefined): StyleMusicSetting | null {
+  if (saved === 'always' || saved === 'half') return 'on';
+  if (saved === 'never') return 'off';
   return STYLE_MUSIC_SETTINGS.find((setting) => setting === saved) ?? null;
 }
 
 export function storedStyleMusic(): StyleMusicSetting {
-  return parseStyleMusic(stored(KEY)) ?? 'always';
+  return parseStyleMusic(stored(KEY)) ?? 'on';
 }
 
 export function saveStyleMusic(chosen: StyleMusicSetting): void {
   store(KEY, chosen);
 }
 
-/** The chance, 0 to 1, that `chooseStyleTrack` is given. */
-export function styleTrackChance(setting: StyleMusicSetting = storedStyleMusic()): number {
-  return CHANCES[setting];
+/** Whether the styles' own tracks play, as `lookTrack` takes it. */
+export function styleMusicOn(setting: StyleMusicSetting = storedStyleMusic()): boolean {
+  return setting === 'on';
 }
 
 /** The choices as the menu offers them, for a `<select>`. */

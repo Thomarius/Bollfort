@@ -313,9 +313,8 @@ describe('match audio', () => {
       },
     });
     const match = new MatchAudio(own, HUMAN, {
-      rules: { chance: 0, pauseRounds: 0, hasTrack: () => false },
+      rules: { on: false, hasTrack: () => false },
       styleOf: (look) => (look === 'build' ? 'opera' : 'noir'),
-      roll: () => 0.99,
     });
     match.handle([phase('build')]);
     for (let tick = 90; tick < 300; tick++) match.frame(clock('build', tick, 300));
@@ -468,17 +467,15 @@ describe('special towers in the sound', () => {
 });
 
 describe('the styles’ own tracks', () => {
-  /** A match whose looks are `looks`, with the rolls given in turn (0 wins at any chance). */
+  /** A match whose looks are `looks`, the setting on unless said. */
   function styled(
     looks: Record<Look, ArtStyle>,
-    rolls: number[],
-    chance = 0.5,
+    on = true,
   ): { audio: Recorder; match: MatchAudio; looks: Record<Look, ArtStyle> } {
     const audio = new Recorder();
     const match = new MatchAudio(audio, HUMAN, {
-      rules: { chance, pauseRounds: 3, hasTrack: (style) => style !== 'pixel' },
+      rules: { on, hasTrack: (style) => style !== 'pixel' },
       styleOf: (look) => looks[look],
-      roll: () => rolls.shift() ?? 0.99,
     });
     return { audio, match, looks };
   }
@@ -493,96 +490,90 @@ describe('the styles’ own tracks', () => {
     phase('combat', null, r + 1),
   ];
 
-  it('plays a style’s track for the whole build look, cannons included', () => {
-    const { audio, match } = styled({ build: 'opera', combat: 'noir' }, [0, 0.99]);
+  /** The track each look started with, in order. */
+  const starts = (tracks: readonly (MusicTrack | null)[]): (MusicTrack | null)[] =>
+    tracks.filter((track, k) => k === 0 || track !== tracks[k - 1]);
+
+  it('plays each look’s style’s track, for the whole look, cannons included', () => {
+    const { audio, match } = styled({ build: 'opera', combat: 'noir' });
     match.handle(round(1));
     expect(audio.tracks).toEqual([
       'style:opera',
       'style:opera',
       'style:opera',
       'style:opera',
-      'music_battle',
-      'music_battle',
+      'style:noir',
+      'style:noir',
     ]);
   });
 
-  it('rolls once a look, not at every phase within it', () => {
-    const rolls = [0.99, 0];
-    const { audio, match } = styled({ build: 'opera', combat: 'opera' }, rolls);
-    match.handle(round(1));
-    // The build look lost its roll; the cannon phase does not roll again, combat does.
-    expect(audio.tracks.slice(0, 4)).toEqual(Array(4).fill('music_admin'));
-    expect(audio.tracks.slice(4)).toEqual(['style:opera', 'style:opera']);
+  it('plays them every round, the music changing at every look', () => {
+    const { audio, match } = styled({ build: 'opera', combat: 'noir' });
+    for (let r = 1; r <= 4; r++) match.handle(round(r));
+    expect(starts(audio.tracks)).toEqual(Array(4).fill(['style:opera', 'style:noir']).flat());
   });
 
-  it('leaves combat the shared music when the same style won as building began', () => {
-    const { audio, match } = styled({ build: 'opera', combat: 'opera' }, [], 1);
-    match.handle(round(1));
-    expect(audio.tracks.at(0)).toBe('style:opera');
-    expect(audio.tracks.at(-1)).toBe('music_battle');
-  });
-
-  it('holds a style back for three rounds after it played', () => {
-    const { audio, match } = styled({ build: 'opera', combat: 'pixel' }, [], 1);
-    const builds: (MusicTrack | null)[] = [];
-    for (let r = 1; r <= 6; r++) {
-      const at = audio.tracks.length;
-      match.handle(round(r));
-      builds.push(audio.tracks[at] ?? null);
-    }
-    expect(builds).toEqual([
+  it('gives a look in the style whose track just played the shared music', () => {
+    // The user's rule (2026-11-17): the same style for both looks still changes the music.
+    const { audio, match } = styled({ build: 'opera', combat: 'opera' });
+    for (let r = 1; r <= 3; r++) match.handle(round(r));
+    expect(starts(audio.tracks)).toEqual([
       'style:opera',
-      'music_admin',
-      'music_admin',
-      'music_admin',
+      'music_battle',
       'style:opera',
-      'music_admin',
+      'music_battle',
+      'style:opera',
+      'music_battle',
     ]);
   });
 
   it('never plays one for a style without its own', () => {
-    const { audio, match } = styled({ build: 'pixel', combat: 'pixel' }, [], 1);
+    const { audio, match } = styled({ build: 'pixel', combat: 'pixel' });
     match.handle(round(1));
     expect(audio.tracks).not.toContainEqual(expect.stringMatching(/^style:/));
   });
 
-  it('rolls again when the pause menu changes the look under way', () => {
-    const { audio, match, looks } = styled({ build: 'opera', combat: 'noir' }, [0.99, 0], 0.5);
+  it('plays only the shared music when off', () => {
+    const { audio, match } = styled({ build: 'opera', combat: 'noir' }, false);
+    match.handle(round(1));
+    expect(starts(audio.tracks)).toEqual(['music_admin', 'music_battle']);
+  });
+
+  it('chooses again when the pause menu changes the look under way', () => {
+    const { audio, match, looks } = styled({ build: 'opera', combat: 'noir' });
     match.handle([phase('build', null, 1)]);
-    expect(audio.tracks).toEqual(['music_admin']);
+    expect(audio.tracks).toEqual(['style:opera']);
     looks.build = 'anime';
     match.restyled();
-    expect(audio.tracks).toEqual(['music_admin', 'style:anime']);
+    expect(audio.tracks).toEqual(['style:opera', 'style:anime']);
     // A change to the other look leaves this one's music alone.
     looks.combat = 'sakura';
     match.restyled();
     expect(audio.tracks).toHaveLength(2);
   });
 
-  it('takes a chance changed mid-match at the next look, the track playing left alone', () => {
+  it('takes the setting changed mid-match at the next look, the track playing left alone', () => {
     const audio = new Recorder();
-    let chance = 1;
+    let on = true;
     const match = new MatchAudio(audio, HUMAN, {
       rules: {
-        get chance() {
-          return chance;
+        get on() {
+          return on;
         },
-        pauseRounds: 3,
         hasTrack: (style) => style !== 'pixel',
       },
       styleOf: (look) => (look === 'build' ? 'opera' : 'noir'),
-      roll: () => 0,
     });
     match.handle([phase('build', null, 1)]);
-    // Never, chosen in the pause menu: building's track plays on, combat's is the shared one.
-    chance = 0;
+    // Off, chosen in the pause menu: building's track plays on, combat's is the shared one.
+    on = false;
     match.handle([phase('cannon_place', null, 1)]);
     match.handle([phase('combat', null, 2)]);
     expect(audio.tracks).toEqual(['style:opera', 'style:opera', 'music_battle']);
   });
 
-  it('gives way to victory’s music, and starts a look afresh after', () => {
-    const { audio, match } = styled({ build: 'opera', combat: 'noir' }, [], 1);
+  it('gives way to victory’s music', () => {
+    const { audio, match } = styled({ build: 'opera', combat: 'noir' });
     match.handle([phase('combat', null, 1)]);
     match.handle([
       { kind: 'game_over', tick: 9, winners: [HUMAN], draw: false, endedBy: 'elimination' },

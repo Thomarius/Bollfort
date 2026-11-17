@@ -12479,3 +12479,19 @@ previews for shared room links, whose picture needs the server's own address.
 Checked in pages: the titles on the menu, in a match, paused, and in a room on a server of its own
 before and after a guest joined; the question asked as a match's tab closes and not on the menu.
 Not tried in the desktop app.
+
+## 16n. Style music: on or off (2026-11-17)
+
+The user's rule, in place of the three choices of 2026-10-27 (always, half the time, never) and the
+pause of `styleTrackPauseRounds` after a track had played: **on**, a style's own track plays at
+every look that has one; **off**, the shared music only. And whatever the setting, **the music
+changes at every change of look**: where the look starting is in the style whose own track just
+played — building and combat in one style — the shared music plays instead, so the same track is
+never heard across a change. No roll, no pause.
+
+The rule is `lookTrack` (`styleMusic.ts`), pure and tested: the style, the look's shared music, the
+track the last look played, and the setting. `MatchAudio` keeps the last look's track for the
+next, and a look restyled from the pause menu chooses again against the track before it.
+`styleTrackPauseRounds` is gone from the manifest and its schema. A choice saved before is read as
+the nearest: always and half the time as on, never as off. The setting's texts say the rule in all
+three languages.

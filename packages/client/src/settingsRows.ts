@@ -195,7 +195,7 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
   const styleMusic = node.querySelector<HTMLSelectElement>('.style-music')!;
   styleMusic.addEventListener('change', () => {
     actions.click();
-    saveStyleMusic(parseStyleMusic(styleMusic.value) ?? 'always');
+    saveStyleMusic(parseStyleMusic(styleMusic.value) ?? 'on');
   });
   // Taken at the next frame the cursor is drawn.
   const badges = node.querySelector<HTMLSelectElement>('.tower-badges')!;
@@ -282,7 +282,7 @@ export function resetSettings(volumes: VolumeTarget): void {
   frameLimitSetting.save(frameLimitSetting.fallback);
   volumes.setVolume('music', 1);
   volumes.setVolume('sounds', 1);
-  saveStyleMusic('always');
+  saveStyleMusic('on');
   backgroundMuteSetting.save(backgroundMuteSetting.fallback);
   saveBuildZoom('out');
   saveMouseWheel('turn');
