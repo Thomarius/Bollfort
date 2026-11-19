@@ -1,6 +1,6 @@
 import type { ArtConfig, CartoonStyleConfig } from '@bollfort/config';
 import { Structure, type MatchState, type Shot } from '@bollfort/sim';
-import { Graphics, Sprite, Texture, type Container } from 'pixi.js';
+import { Graphics, Sprite, Texture, type Container, type GraphicsContext } from 'pixi.js';
 
 import { motionReduced } from '../motion.js';
 import { perf } from '../perf.js';
@@ -120,6 +120,21 @@ interface Scratch {
   life: number;
 }
 
+/**
+ * A castle or a gun, queued to be stamped: the figures stand on their feet and rise into the
+ * rows above, so they are stamped by where they stand, the farther first.
+ */
+interface Figure {
+  context: GraphicsContext;
+  x: number;
+  y: number;
+  /** The row its foot stands on, in tiles: the stamping order. */
+  foot: number;
+  scale: number;
+  scaleY: number;
+  rotation: number;
+}
+
 /** How a castle feels: dancing while sealed, worried while not, panicking as it is breached. */
 type Mood = 'happy' | 'blink' | 'worried' | 'panic' | 'out';
 /** How a gun feels: awake and bouncing, firing, blinking, or asleep while silenced. */
@@ -194,8 +209,15 @@ export class CartoonTheme extends ShapeTheme implements Theme {
   private readonly book = new StampBook();
   /** On the ground, under the figures: the seal's flood, smoke, shadows. */
   private readonly underGfx = new Graphics();
-  private readonly castleStamps = new Stamps();
-  private readonly cannonStamps = new Stamps();
+  /**
+   * The castles and guns, in one layer, by the row they stand on: a castle rises over two
+   * tiles above its keep, and with the castles in a layer under the guns', a gun standing
+   * behind one was drawn over its head (the user's, 2026-11-19).
+   */
+  private readonly figureStamps = new Stamps();
+  /** This frame's figures, reused from frame to frame; `figureCount` of them are in use. */
+  private readonly figures: Figure[] = [];
+  private figureCount = 0;
   /** Over the figures: the crown, where a shot will land. */
   /**
    * The main castles' crowns, redrawn only when one changes: under the shots, the first thing
@@ -273,8 +295,7 @@ export class CartoonTheme extends ShapeTheme implements Theme {
     layers.structures.addChild(this.structures.container);
     layers.effects.addChild(
       this.underGfx,
-      this.castleStamps.container,
-      this.cannonStamps.container,
+      this.figureStamps.container,
       this.crowns.gfx,
       this.effectGfx,
       this.bombStamps.container,
@@ -298,8 +319,7 @@ export class CartoonTheme extends ShapeTheme implements Theme {
     for (const s of [
       this.waveStamps,
       this.standingStamps,
-      this.castleStamps,
-      this.cannonStamps,
+      this.figureStamps,
       this.bombStamps,
       this.puffStamps,
       this.dropStamps,
@@ -876,9 +896,11 @@ export class CartoonTheme extends ShapeTheme implements Theme {
     this.ruins.draw(under, view, state, 0x4a4a4a, null, frame.deltaMs);
     drawChoices(under, view, frame.choices, this.art);
     this.puffStamps.begin();
+    this.figureCount = 0;
     this.drawCastles(state, view, frame);
     this.crowns.draw(view, state, this.art, frame.castleSealed);
     this.drawCannons(state, view, frame.deltaMs);
+    this.placeFigures();
     this.drawShots(state, view, frame);
     this.drawBursts(view, frame.deltaMs);
     this.drawPuffs(view, frame.deltaMs);
@@ -902,7 +924,6 @@ export class CartoonTheme extends ShapeTheme implements Theme {
   private drawCastles(state: MatchState, view: ViewTransform, frame: EffectFrame): void {
     const t = view.tile;
     const still = motionReduced();
-    this.castleStamps.begin();
     for (const castle of state.castles) {
       const player = castle.islandId - 1;
       const out = state.players[player]?.eliminated !== false;
@@ -951,7 +972,7 @@ export class CartoonTheme extends ShapeTheme implements Theme {
       } else if (mood === 'worried' && !still) {
         sy = 1 + 0.02 * Math.sin((this.shownBeats / 2) * Math.PI);
       }
-      this.castleStamps.place(figure, x, y, { scale: sx, scaleY: sy, rotation });
+      this.queueFigure(figure, x, y, castle.y + castle.h, sx, sy, rotation);
       if (mood === 'out') this.dizzyOver(view, x, y - t * 2.75, castle.id);
       if ((mood === 'happy' || mood === 'blink') && !still) {
         const until =
@@ -970,7 +991,51 @@ export class CartoonTheme extends ShapeTheme implements Theme {
         );
       }
     }
-    this.castleStamps.end();
+  }
+
+  /** A castle or gun, to be stamped once every figure is known (`placeFigures`). */
+  private queueFigure(
+    context: GraphicsContext,
+    x: number,
+    y: number,
+    foot: number,
+    scale: number,
+    scaleY: number,
+    rotation: number,
+  ): void {
+    let f = this.figures[this.figureCount];
+    if (f === undefined) {
+      f = { context, x, y, foot, scale, scaleY, rotation };
+      this.figures.push(f);
+    } else {
+      f.context = context;
+      f.x = x;
+      f.y = y;
+      f.foot = foot;
+      f.scale = scale;
+      f.scaleY = scaleY;
+      f.rotation = rotation;
+    }
+    this.figureCount++;
+  }
+
+  /**
+   * This frame's castles and guns, the farther back first, so each stands in front of what is
+   * behind it; on one row, a castle before a gun, as the layers had them.
+   */
+  private placeFigures(): void {
+    const used = this.figures.slice(0, this.figureCount);
+    // Stable: on one row, the castles (queued first) stay under the guns.
+    used.sort((a, b) => a.foot - b.foot);
+    this.figureStamps.begin();
+    for (const f of used) {
+      this.figureStamps.place(f.context, f.x, f.y, {
+        scale: f.scale,
+        scaleY: f.scaleY,
+        rotation: f.rotation,
+      });
+    }
+    this.figureStamps.end();
   }
 
   /** Stars circling over the head of a castle whose player is out. */
@@ -1013,7 +1078,6 @@ export class CartoonTheme extends ShapeTheme implements Theme {
       k.moveTo(-z, -z).lineTo(z, -z).lineTo(-z, z).lineTo(z, z);
       k.stroke({ width: Math.max(1.5, t * 0.07), color: INK, join: 'miter', cap: 'round' });
     });
-    this.cannonStamps.begin();
     for (const cannon of state.cannons) {
       const aim = this.aims.of(state, cannon.id);
       if (aim === null) continue;
@@ -1043,7 +1107,7 @@ export class CartoonTheme extends ShapeTheme implements Theme {
         sx = 1 + 0.06 * squash;
         sy = 1 - 0.08 * squash + 0.04 * hop;
       }
-      this.cannonStamps.place(figure, x, y, { scale: dir * sx, scaleY: sy });
+      this.queueFigure(figure, x, y, cannon.y + cannon.h, dir * sx, sy, 0);
       if (fresh && cannon.active && !still) {
         const mx = PIVOT.x + Math.cos(ELEVATION) * MUZZLE;
         const my = PIVOT.y - Math.sin(ELEVATION) * MUZZLE;
@@ -1067,7 +1131,6 @@ export class CartoonTheme extends ShapeTheme implements Theme {
         }
       }
     }
-    this.cannonStamps.end();
     this.aims.prune(state);
   }
 
