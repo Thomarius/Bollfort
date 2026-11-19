@@ -12521,3 +12521,20 @@ Anime's `lastHitBy`, which names the attacker in a castle's cut-in, was keyed on
 player its reader asks for. Each now reads the player as given; their helpers already took a
 negative owner as no one's. Found building a supporter style, whose package had the same slip in
 nine styles and is put right in its own repository.
+
+## 16q. A filtered layer cut true by the wipe's scissor (2026-11-19)
+
+The user saw Petri Dish (a supporter style) break up in every change of look to or from it, worst
+with the island zoom on. Its fluid is a displacement filter over its board's layers, and a wipe is
+cut by the GL scissor (13o), a box in the canvas's pixels. A filter first renders its layer into a
+texture of its own, which WebGL draws flipped (Pixi's `RenderTargetSystem`: inverted for a target
+not the root), so the box cut the wrong part of it and cleared a pooled texture only in part:
+above the banner's line Petri Dish's fluid, tissue and walls were gone, its cells floating on the
+backdrop, and under the zoom, which moves the layers' bounds every frame, it broke up.
+
+For the wipe's two passes `Scene.render` now wraps the renderer's `renderTarget.bind`: before each
+binding, the scissor is turned on for the canvas (`isRoot`) and off for anything else, so a filter's
+offscreen pass is drawn and cleared whole and only its result on the canvas is cut. The binding is
+put back after the passes. Masks were the other way, at the cost 13o measured; the scissor is kept
+for every look. Seen in screenshots of Chess to Petri Dish and back, watched and with the island
+zoom starting in. Cyberpunk's bloom, filtered too, takes the same path.

@@ -934,6 +934,7 @@ export class Scene {
     const above = Math.max(0, Math.min(height, line));
     const to = this.slots[this.shown.to];
     const from = this.slots[this.shown.from];
+    const restore = this.scissorScreenOnly(gl);
     gl.enable(gl.SCISSOR_TEST);
     try {
       from.root.visible = false;
@@ -946,8 +947,40 @@ export class Scene {
     } finally {
       to.root.visible = true;
       from.root.visible = true;
+      restore();
       gl.disable(gl.SCISSOR_TEST);
     }
+  }
+
+  /**
+   * Keeps the wipe's scissor to the canvas, off while a filter draws a layer offscreen (2026-11-19).
+   * The scissor's box is in the canvas's pixels, but a filter first renders its layer into a texture
+   * of its own, which WebGL draws flipped: cut by the same box, the wrong part of the layer was
+   * drawn and the texture, pooled, only partly cleared. Petri Dish's fluid, a filter over its whole
+   * board, vanished above the banner's line and broke up under the island zoom. So for the wipe's
+   * passes every binding of a render target first sets the scissor — on for the canvas, off for
+   * anything else — before Pixi binds, and so before it clears. Pixi never sets the scissor itself.
+   * Returns what puts the binding back.
+   */
+  private scissorScreenOnly(gl: WebGL2RenderingContext): () => void {
+    const targets = this.app.renderer.renderTarget as unknown as {
+      bind: (...args: unknown[]) => unknown;
+      getRenderTarget: (surface: unknown) => { isRoot?: boolean };
+    };
+    const bind = targets.bind;
+    targets.bind = function (this: typeof targets, ...args: unknown[]): unknown {
+      const options = args[0];
+      const surface =
+        typeof options === 'object' && options !== null && 'target' in options
+          ? (options as { target: unknown }).target
+          : options;
+      if (this.getRenderTarget(surface).isRoot === true) gl.enable(gl.SCISSOR_TEST);
+      else gl.disable(gl.SCISSOR_TEST);
+      return bind.apply(this, args);
+    };
+    return () => {
+      targets.bind = bind;
+    };
   }
 
   /**
