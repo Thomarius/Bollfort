@@ -709,8 +709,7 @@ export class ChristmasTheme extends ShapeTheme implements Theme {
     }
     for (const block of debris) {
       this.puff(block.x + 0.5, block.y + 0.4, 0.4);
-      for (let k = 0; k < 7; k++)
-        this.throwScrap(block.x + 0.5, block.y + 0.4, block.owner - 1, k < 2);
+      for (let k = 0; k < 7; k++) this.throwScrap(block.x + 0.5, block.y + 0.4, block.owner, k < 2);
     }
   }
 
@@ -749,8 +748,7 @@ export class ChristmasTheme extends ShapeTheme implements Theme {
   /** The sweep: a lone present bursts in a puff of snow and a few scraps. */
   noteCrumble(block: Debris): void {
     this.puff(block.x + 0.5, block.y + 0.5, 0.3);
-    for (let k = 0; k < 3; k++)
-      this.throwScrap(block.x + 0.5, block.y + 0.5, block.owner - 1, k === 0);
+    for (let k = 0; k < 3; k++) this.throwScrap(block.x + 0.5, block.y + 0.5, block.owner, k === 0);
   }
 
   /** A piece set down settles into the snow, a puff of it thrown up round it. */

@@ -12510,3 +12510,14 @@ sets a returning track's element to it before the file loads, which Chromium tak
 position (checked against an object URL as the engine plays them: set to 42.5 s, it read 44.0 s
 after 1.5 s of play). `matchScreen` calls `audio.restartStyleTracks()` as each match's audio is set
 up. Kept in memory only, never saved.
+
+## 16p. A wall hit's chips in their owner's colour (2026-11-19)
+
+A destroyed block's `owner` (`Debris`) is its player, from 0, or −1 for no one's — `matchScreen`
+makes it from the island's number less one. Eight styles read it as from 1, as the board numbers
+walls: Anime, Cartoon, Christmas, Mythology, Noir, Pirates, Sports and the Wild West threw the chips
+of a wall hit and of a swept block in the **next player's colour**, and the first player's grey.
+Anime's `lastHitBy`, which names the attacker in a castle's cut-in, was keyed one player off the
+player its reader asks for. Each now reads the player as given; their helpers already took a
+negative owner as no one's. Found building a supporter style, whose package had the same slip in
+nine styles and is put right in its own repository.

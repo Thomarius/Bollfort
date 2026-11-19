@@ -809,7 +809,7 @@ export class CartoonTheme extends ShapeTheme implements Theme {
       this.puff(block.x + 0.5, block.y + 0.4, 0.42, 0);
       this.puff(block.x + 0.2, block.y + 0.6, 0.26, -0.5);
       this.puff(block.x + 0.8, block.y + 0.6, 0.26, 0.5);
-      for (let k = 0; k < 3; k++) this.throwBrick(block.x + 0.5, block.y + 0.4, block.owner - 1);
+      for (let k = 0; k < 3; k++) this.throwBrick(block.x + 0.5, block.y + 0.4, block.owner);
       this.dizzy.push({ x: block.x, y: block.y, age: 0 });
     }
   }
@@ -837,7 +837,7 @@ export class CartoonTheme extends ShapeTheme implements Theme {
   /** The sweep: a block left standing alone pops in a puff, a brick tumbling off. */
   noteCrumble(block: Debris): void {
     this.puff(block.x + 0.5, block.y + 0.5, 0.3, 0);
-    this.throwBrick(block.x + 0.5, block.y + 0.5, block.owner - 1);
+    this.throwBrick(block.x + 0.5, block.y + 0.5, block.owner);
   }
 
   /** A piece set down lands with a thump: it settles, and dust puffs out from under it. */

@@ -787,7 +787,7 @@ export class PiratesTheme extends ShapeTheme implements Theme {
       return;
     }
     for (const block of debris) {
-      const colour = this.timber(block.owner - 1);
+      const colour = this.timber(block.owner);
       for (let k = 0; k < 6; k++) this.splinter(block.x + 0.5, block.y + 0.4, colour);
       if (motionReduced() || Math.random() >= this.style.coinOdds) continue;
       const a = -Math.PI / 2 + (Math.random() - 0.5) * 1.4;
@@ -848,7 +848,7 @@ export class PiratesTheme extends ShapeTheme implements Theme {
   /** The sweep: a lone stretch of stockade toppling in a puff of sand. */
   noteCrumble(block: Debris): void {
     this.puff(block.x + 0.5, block.y + 0.5, 1, hex(this.art.palette.sand));
-    const colour = this.timber(block.owner - 1);
+    const colour = this.timber(block.owner);
     for (let k = 0; k < 3; k++) this.splinter(block.x + 0.5, block.y + 0.5, colour);
   }
 

@@ -561,7 +561,7 @@ export class WildWestTheme extends ShapeTheme implements Theme {
       return;
     }
     for (const block of debris) {
-      const tint = block.owner > 0 ? this.colour(block.owner - 1, 'light') : DEAD;
+      const tint = block.owner >= 0 ? this.colour(block.owner, 'light') : DEAD;
       for (let k = 0; k < 5; k++) this.throw(block.x + 0.5, block.y + 0.4, 'chip', tint);
     }
     if (Math.random() < this.style.wordChance && this.words.length < WORDS_AT_ONCE) {
@@ -596,7 +596,7 @@ export class WildWestTheme extends ShapeTheme implements Theme {
 
   noteCrumble(block: Debris): void {
     this.throw(block.x + 0.5, block.y + 0.5, 'dust', 0xf4ecdc);
-    const tint = block.owner > 0 ? this.colour(block.owner - 1, 'light') : DEAD;
+    const tint = block.owner >= 0 ? this.colour(block.owner, 'light') : DEAD;
     for (let k = 0; k < 2; k++) this.throw(block.x + 0.5, block.y + 0.5, 'chip', tint);
   }
 

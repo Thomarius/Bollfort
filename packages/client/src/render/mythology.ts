@@ -505,7 +505,7 @@ export class MythologyTheme extends ShapeTheme implements Theme {
       return;
     }
     for (const block of debris) {
-      const tint = block.owner > 0 ? this.colour(block.owner - 1, 'base') : DEAD;
+      const tint = block.owner >= 0 ? this.colour(block.owner, 'base') : DEAD;
       for (let k = 0; k < 5; k++) this.throw(block.x + 0.5, block.y + 0.4, 'sherd', tint);
     }
   }
@@ -530,7 +530,7 @@ export class MythologyTheme extends ShapeTheme implements Theme {
 
   noteCrumble(block: Debris): void {
     this.throw(block.x + 0.5, block.y + 0.5, 'dust', CLAY_LIGHT);
-    const tint = block.owner > 0 ? this.colour(block.owner - 1, 'base') : DEAD;
+    const tint = block.owner >= 0 ? this.colour(block.owner, 'base') : DEAD;
     for (let k = 0; k < 2; k++) this.throw(block.x + 0.5, block.y + 0.5, 'sherd', tint);
   }
 

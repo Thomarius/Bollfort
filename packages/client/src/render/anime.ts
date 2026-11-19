@@ -618,7 +618,7 @@ export class AnimeTheme extends ShapeTheme implements Theme {
     this.shotsAt.delete(key);
     const state = this.state;
     for (const block of debris) {
-      if (shot !== undefined && block.owner > 0) this.lastHitBy.set(block.owner - 1, shot.owner);
+      if (shot !== undefined && block.owner >= 0) this.lastHitBy.set(block.owner, shot.owner);
     }
     if (
       shot !== undefined &&
@@ -639,7 +639,7 @@ export class AnimeTheme extends ShapeTheme implements Theme {
     }
     for (const block of debris) {
       for (let k = 0; k < 5; k++) {
-        this.throwChunk(block.x + 0.5, block.y + 0.4, block.owner - 1);
+        this.throwChunk(block.x + 0.5, block.y + 0.4, block.owner);
       }
     }
     if (Math.random() < this.style.wordChance) this.letter(x + 0.5, y);
@@ -714,7 +714,7 @@ export class AnimeTheme extends ShapeTheme implements Theme {
   /** The sweep: a lone block of wall knocked over in a puff. */
   noteCrumble(block: Debris): void {
     this.puffs(block.x + 0.5, block.y + 0.5, 1);
-    for (let k = 0; k < 2; k++) this.throwChunk(block.x + 0.5, block.y + 0.5, block.owner - 1);
+    for (let k = 0; k < 2; k++) this.throwChunk(block.x + 0.5, block.y + 0.5, block.owner);
   }
 
   noteLanding(cells: readonly Cell[], owner: number): void {

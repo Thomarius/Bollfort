@@ -655,7 +655,7 @@ export class SportsTheme extends ShapeTheme implements Theme {
       return;
     }
     for (const block of debris) {
-      for (let k = 0; k < 5; k++) this.throwPad(block.x + 0.5, block.y + 0.4, block.owner - 1);
+      for (let k = 0; k < 5; k++) this.throwPad(block.x + 0.5, block.y + 0.4, block.owner);
     }
   }
 
@@ -698,7 +698,7 @@ export class SportsTheme extends ShapeTheme implements Theme {
   /** The sweep: a lone stretch of barrier knocked over in a puff of chalk. */
   noteCrumble(block: Debris): void {
     this.dust(block.x + 0.5, block.y + 0.5, 1);
-    for (let k = 0; k < 2; k++) this.throwPad(block.x + 0.5, block.y + 0.5, block.owner - 1);
+    for (let k = 0; k < 2; k++) this.throwPad(block.x + 0.5, block.y + 0.5, block.owner);
   }
 
   noteLanding(cells: readonly Cell[], owner: number): void {

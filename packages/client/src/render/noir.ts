@@ -710,7 +710,7 @@ export class NoirTheme extends ShapeTheme implements Theme {
       return;
     }
     for (const block of debris) {
-      for (let k = 0; k < 6; k++) this.throwBrick(block.x + 0.5, block.y + 0.4, block.owner - 1);
+      for (let k = 0; k < 6; k++) this.throwBrick(block.x + 0.5, block.y + 0.4, block.owner);
     }
     // A heavy hit now and then: a sound word.
     if (Math.random() < this.style.wordChance) this.bigMoment(x + 0.5, y);
@@ -772,7 +772,7 @@ export class NoirTheme extends ShapeTheme implements Theme {
   /** The sweep: a lone stretch of brick knocked down in a puff of smoke. */
   noteCrumble(block: Debris): void {
     this.smoke(block.x + 0.5, block.y + 0.5, 1);
-    for (let k = 0; k < 2; k++) this.throwBrick(block.x + 0.5, block.y + 0.5, block.owner - 1);
+    for (let k = 0; k < 2; k++) this.throwBrick(block.x + 0.5, block.y + 0.5, block.owner);
   }
 
   /** A piece set down: grit puffing out from under it. */
