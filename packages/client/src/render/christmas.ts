@@ -988,7 +988,25 @@ export class ChristmasTheme extends ShapeTheme implements Theme {
         this.glow.disc(sx, sy, t * 0.25, light, 0.25 * (1 - k * 0.25));
       }
       const [x, y] = at(p);
-      this.ballStamps.place(ball, x, y, { scale: (1 + 0.25 * high) * shotScale(shot, this.art) });
+      const scale = (1 + 0.25 * high) * shotScale(shot, this.art);
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // Both Berthas lob a wrapped present, the Allerdickste's only bigger (the user's,
+        // 2026-11-19: a Bertha projectile in every style but Minimal, Medieval and Night),
+        // in the owner's paper, turning over as it flies.
+        const present = this.book.get(`present|${shot.owner}`, t, (k) =>
+          drawPresent(
+            k,
+            t * 0.42,
+            this.colour(shot.owner, 'base'),
+            this.colour(shot.owner, 'dark'),
+          ),
+        );
+        const turn = shot.toX >= shot.fromX ? 1 : -1;
+        const rotation = motionReduced() ? 0 : (p - 0.5) * Math.PI * 2 * turn;
+        this.ballStamps.place(present, x, y, { rotation, scale });
+      } else {
+        this.ballStamps.place(ball, x, y, { scale });
+      }
       drawShotTarget(this.effectGfx, view, shot, p, this.art, frame.humanPlayer);
     }
     this.ballStamps.end();
@@ -1642,4 +1660,26 @@ function drawChristmasScenery(
 function centreIn(g: Graphics, size: number): void {
   const b = g.getLocalBounds();
   g.position.set(size / 2 - (b.x + b.width / 2), size / 2 - (b.y + b.height / 2));
+}
+
+/**
+ * A wrapped present, `w` across its box, its middle at the origin: the box in the owner's
+ * paper, a gold ribbon round it both ways, and a gold bow on top.
+ */
+function drawPresent(g: Graphics, w: number, colour: number, dark: number): void {
+  const h = w / 2;
+  const line = Math.max(1, w * 0.07);
+  g.rect(-h, -h * 0.8, w, w * 0.9);
+  g.fill({ color: colour });
+  // The paper's shade down its right side.
+  g.rect(h * 0.45, -h * 0.8, h * 0.55, w * 0.9);
+  g.fill({ color: dark, alpha: 0.35 });
+  // The ribbon, both ways.
+  const r = w * 0.1;
+  g.rect(-r, -h * 0.8, r * 2, w * 0.9);
+  g.rect(-h, -r + h * 0.1, w, r * 2);
+  g.fill({ color: GOLD });
+  g.rect(-h, -h * 0.8, w, w * 0.9);
+  g.stroke({ width: line, color: NIGHT, join: 'round' });
+  drawBow(g, 0, -h * 0.85, w * 0.28, GOLD);
 }

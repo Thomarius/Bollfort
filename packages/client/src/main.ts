@@ -81,6 +81,11 @@ if (params.get('icons') === 'sheet') {
   void import('./gapPreview.js')
     .then(({ showGapPreview }) => showGapPreview())
     .catch((e: unknown) => showError('gaps', e));
+} else if (params.get('shots') === 'preview') {
+  // Every style's shots, the cannon's and both Berthas', side by side (`shotPreview.ts`).
+  void import('./shotPreview.js')
+    .then(({ showShotPreview }) => showShotPreview())
+    .catch((e: unknown) => showError('shots', e));
 } else if (supporterAdmin() && params.get('page') !== null) {
   // A developer's page the private supporter package brings, a style's sketch while it is
   // designed (`styles/supporter.ts`); without the package there are none.

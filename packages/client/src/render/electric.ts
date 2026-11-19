@@ -1334,22 +1334,47 @@ export class ElectricTheme extends ShapeTheme implements Theme {
       g.fill({ color: 0x000000, alpha: 0.3 - 0.1 * high });
       this.glowGfx.circle(gx, gy, t * 0.35);
       this.glowGfx.fill({ color: this.colour(shot.owner, 'base'), alpha: 0.12 });
-      const ball = this.book.get(`ball|${shot.owner}`, t, (k) =>
-        drawBall(k, t * 0.19, this.colour(shot.owner, 'base'), this.colour(shot.owner, 'light')),
-      );
-      const pulse = still ? 1 : 0.9 + 0.2 * Math.random();
-      this.ballStamps.place(ball, x, y, {
-        scale: (1 + 0.25 * high) * pulse * shotScale(shot, this.art),
-      });
+      const heavy = shot.kind === 'bertha' || shot.kind === 'biggest';
+      const scale = (1 + 0.25 * high) * shotScale(shot, this.art);
+      // Where the tendrils leap from: the ball's middle, or a battery's two terminals.
+      let ends: readonly { x: number; y: number }[] = [{ x, y }];
+      if (heavy) {
+        // Both Berthas hurl a battery, the Allerdickste's only bigger (the user's, 2026-11-19:
+        // a Bertha projectile in every style but Minimal, Medieval and Night), tumbling end
+        // over end and crackling from its terminals.
+        const battery = this.book.get(`battery|${shot.owner}`, t, (k) =>
+          drawBattery(
+            k,
+            t * 0.62,
+            this.colour(shot.owner, 'base'),
+            this.colour(shot.owner, 'light'),
+          ),
+        );
+        const turn = shot.toX >= shot.fromX ? 1 : -1;
+        const rotation = still ? -0.3 : ((p - 0.5) * Math.PI * 2 - 0.3) * turn;
+        this.ballStamps.place(battery, x, y, { rotation, scale });
+        const half = t * 0.31 * scale;
+        ends = [
+          { x: x + Math.cos(rotation) * half, y: y + Math.sin(rotation) * half },
+          { x: x - Math.cos(rotation) * half, y: y - Math.sin(rotation) * half },
+        ];
+      } else {
+        const ball = this.book.get(`ball|${shot.owner}`, t, (k) =>
+          drawBall(k, t * 0.19, this.colour(shot.owner, 'base'), this.colour(shot.owner, 'light')),
+        );
+        const pulse = still ? 1 : 0.9 + 0.2 * Math.random();
+        this.ballStamps.place(ball, x, y, { scale: scale * pulse });
+      }
       if (!still) {
         // Tendrils licking off it, fresh every frame.
         for (let k = 0; k < 2; k++) {
+          const from = ends[k % ends.length]!;
           const a = Math.random() * Math.PI * 2;
           const r = t * (0.3 + Math.random() * 0.25);
           drawArc(
             this.lateGfx,
             null,
-            jag(x, y, x + Math.cos(a) * r, y + Math.sin(a) * r, 3, r * 0.35),
+            jag(from.x, from.y, from.x + Math.cos(a) * r, from.y + Math.sin(a) * r, 3, r * 0.35),
             this.colour(shot.owner, 'light'),
             Math.max(1, t * 0.035),
             0.9,
@@ -1935,4 +1960,40 @@ function drawElectricScenery(
       g.stroke({ width: 1, color: hex(art.palette.rockDark), alpha: 0.8 });
     }
   }
+}
+
+/**
+ * A battery side on, `len` long, its middle at the origin, the + end to the right: a body in
+ * the owner's colour lit along its top, a dark band at the − end, the + terminal's brass nub,
+ * a + and a − marked on it, and a glow round it in the owner's light.
+ */
+function drawBattery(g: Graphics, len: number, colour: number, light: number): void {
+  const h = len / 2;
+  const r = len * 0.2;
+  const w = Math.max(1, len * 0.035);
+  g.roundRect(-h - r * 0.6, -r * 1.6, len + r * 1.2, r * 3.2, r * 1.4);
+  g.fill({ color: light, alpha: 0.18 });
+  // The + terminal's nub.
+  g.rect(h - r * 0.1, -r * 0.4, r * 0.45, r * 0.8);
+  g.fill({ color: BRASS });
+  g.stroke({ width: w, color: GLASS_DARK });
+  // The body, and the dark band at the − end.
+  g.roundRect(-h, -r, len, r * 2, r * 0.35);
+  g.fill({ color: colour });
+  g.rect(-h, -r, len * 0.3, r * 2);
+  g.fill({ color: GLASS_DARK, alpha: 0.85 });
+  g.roundRect(-h, -r, len, r * 2, r * 0.35);
+  g.stroke({ width: w, color: GLASS_DARK });
+  // Its shine along the top.
+  g.moveTo(-h * 0.35, -r * 0.55).lineTo(h * 0.85, -r * 0.55);
+  g.stroke({ width: Math.max(1, r * 0.3), color: ARC_WHITE, alpha: 0.55, cap: 'round' });
+  // A + on the body near its terminal, a − on the band.
+  const s = r * 0.42;
+  const px = h * 0.45;
+  g.moveTo(px - s, r * 0.15).lineTo(px + s, r * 0.15);
+  g.moveTo(px, r * 0.15 - s).lineTo(px, r * 0.15 + s);
+  g.stroke({ width: Math.max(1, r * 0.22), color: ARC_WHITE, cap: 'round' });
+  const mx = -h + len * 0.15;
+  g.moveTo(mx - s * 0.8, 0).lineTo(mx + s * 0.8, 0);
+  g.stroke({ width: Math.max(1, r * 0.22), color: ARC_WHITE, cap: 'round' });
 }

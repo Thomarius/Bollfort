@@ -1170,6 +1170,21 @@ export class PiratesTheme extends ShapeTheme implements Theme {
     const now = state.tick + frame.tickFraction;
     const still = motionReduced();
     const chain = this.book.get('chain', t, (k) => drawChainShot(k, t));
+    // Both Berthas lob a powder keg, its fuse burning (the user's, 2026-11-19: a Bertha shot
+    // of its own in every style but the plainest three, both Berthas one shape, by size).
+    const keg = this.book.get('keg', t, (k) => drawPowderKeg(k, t));
+    const spark = this.book.get('kegSpark', t, (k) => {
+      const points: number[] = [];
+      for (let n = 0; n < 10; n++) {
+        const a = (n / 10) * Math.PI * 2;
+        const d = n % 2 === 0 ? t * 0.1 : t * 0.04;
+        points.push(Math.cos(a) * d, Math.sin(a) * d);
+      }
+      k.poly(points);
+      k.fill({ color: FLAME });
+      k.circle(0, 0, t * 0.035);
+      k.fill({ color: FLAME_HOT });
+    });
     const shadow = this.book.get('shadow', t, (k) => {
       k.ellipse(0, 0, t * 0.26, t * 0.08);
       k.fill({ color: 0x000000 });
@@ -1183,8 +1198,25 @@ export class PiratesTheme extends ShapeTheme implements Theme {
       const scale = (1 + 0.25 * high) * shotScale(shot, this.art);
       this.shadowStamps.place(shadow, gx, gy, { scale: 1 - 0.3 * high, alpha: 0.3 - 0.1 * high });
       const along = Math.atan2(shot.toY - shot.fromY, shot.toX - shot.fromX);
-      const turn = still ? along + Math.PI / 2 : now * 0.45 + shot.id;
-      this.shotStamps.place(chain, gx, gy - lift * t, { rotation: turn, scale });
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // Tumbling end over end, slower than the chain whirls: a keg is heavy.
+        const roll = still ? 0.3 : now * 0.12 + shot.id;
+        const y = gy - lift * t;
+        this.shotStamps.place(keg, gx, y, { rotation: roll, scale });
+        // The fuse's end, turned with the keg, its spark flickering.
+        const fx = KEG_FUSE.x * t * scale;
+        const fy = KEG_FUSE.y * t * scale;
+        const cos = Math.cos(roll);
+        const sin = Math.sin(roll);
+        const flicker = still ? 1 : 0.8 + 0.2 * ((Math.floor(now) + shot.id) % 3);
+        this.shotStamps.place(spark, gx + fx * cos - fy * sin, y + fx * sin + fy * cos, {
+          rotation: now * 0.7,
+          scale: scale * flicker,
+        });
+      } else {
+        const turn = still ? along + Math.PI / 2 : now * 0.45 + shot.id;
+        this.shotStamps.place(chain, gx, gy - lift * t, { rotation: turn, scale });
+      }
       drawShotTarget(this.effectGfx, view, shot, p, this.art, frame.humanPlayer);
     }
   }
@@ -1878,6 +1910,50 @@ function drawFortFlag(g: Graphics, t: number, colour: number, wave: number): voi
 }
 
 /** Chain shot, its middle at the origin: two iron balls joined by a short chain of links. */
+/** Where a powder keg's fuse ends, in tiles from the keg's middle (`drawPowderKeg`). */
+const KEG_FUSE = { x: 0.13, y: -0.37 } as const;
+
+/**
+ * A powder keg standing up, its middle at the origin, `t` a tile: oak staves bulging between
+ * iron hoops, the lid on top, a fuse curling up from it to `KEG_FUSE`, where its spark is
+ * stamped on its own so it can flicker.
+ */
+function drawPowderKeg(g: Graphics, t: number): void {
+  const w = t * 0.17;
+  const h = t * 0.22;
+  const line = Math.max(1, t * 0.03);
+  g.moveTo(0, -h).quadraticCurveTo(t * 0.06, -h - t * 0.1, KEG_FUSE.x * t, KEG_FUSE.y * t);
+  g.stroke({ width: Math.max(1, t * 0.03), color: HAT, cap: 'round' });
+  const body = (): void => {
+    g.moveTo(-w * 0.82, -h)
+      .lineTo(w * 0.82, -h)
+      .quadraticCurveTo(w * 1.2, 0, w * 0.82, h)
+      .lineTo(-w * 0.82, h)
+      .quadraticCurveTo(-w * 1.2, 0, -w * 0.82, -h)
+      .closePath();
+  };
+  body();
+  g.fill({ color: WOOD_FACE });
+  // The staves' joins.
+  for (const k of [-0.45, 0, 0.45]) {
+    g.moveTo(w * k * 0.82, -h).quadraticCurveTo(w * k * 1.2, 0, w * k * 0.82, h);
+  }
+  g.stroke({ width: Math.max(1, t * 0.018), color: WOOD_DARK });
+  // The light down its left side.
+  g.moveTo(-w * 0.55, -h * 0.8).quadraticCurveTo(-w * 0.85, 0, -w * 0.55, h * 0.8);
+  g.stroke({ width: Math.max(1, t * 0.035), color: WOOD_TOP, alpha: 0.8 });
+  // Iron hoops near either end.
+  for (const y of [-h * 0.62, h * 0.62]) {
+    g.moveTo(-w * 1.02, y).quadraticCurveTo(0, y + t * 0.025, w * 1.02, y);
+  }
+  g.stroke({ width: Math.max(1.5, t * 0.04), color: IRON });
+  body();
+  g.stroke({ width: line, color: 0x000000 });
+  g.ellipse(0, -h, w * 0.82, t * 0.035);
+  g.fill({ color: WOOD_TOP });
+  g.stroke({ width: line, color: 0x000000 });
+}
+
 function drawChainShot(g: Graphics, t: number): void {
   const r = t * 0.1;
   const half = t * 0.2;

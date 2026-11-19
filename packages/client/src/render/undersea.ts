@@ -150,6 +150,9 @@ const RING_MS = 1100;
 const WOOD = 0x5c4a36;
 const WOOD_LIGHT = 0x7a6448;
 const BRASS = 0xb08a4a;
+/** The Berthas' ship's wheel: varnished wood, lighter than the wreck's so it carries on the sea. */
+const WHEEL_WOOD = 0xa87a48;
+const WHEEL_WOOD_LIGHT = 0xe0b67a;
 const KELP = 0x6a7a3a;
 /** The gun nests' sandstone, before the owner's cast. */
 const SANDSTONE = 0xc8a878;
@@ -1364,6 +1367,21 @@ export class UnderseaTheme extends ShapeTheme implements Theme {
         const back = at(shot, Math.max(0, p - k * 0.035));
         this.bubble(view, back.x, back.y, t * (0.1 - k * 0.015), 0.8 - k * 0.15);
       }
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // Both Berthas hurl a ship's wheel off a wreck, the Allerdickste's only bigger (the
+        // user's, 2026-11-19: a Bertha projectile in every style but Minimal, Medieval and
+        // Night). A puffed-up pufferfish was tried first and looked too like the guns, which
+        // are pufferfish too; the wheel turns as it flies, its hub in the owner's colour.
+        const wheel = this.book.get(`wheel|${shot.owner}`, t, (k) =>
+          drawShipWheel(k, t * 0.23, this.colour(shot.owner, 'base'), this.dark),
+        );
+        this.urchinStamps.place(wheel, here.x, here.y, {
+          rotation: motionReduced() ? 0 : this.clock / 260 + shot.id,
+          scale: (1 + 0.25 * high) * shotScale(shot, this.art),
+        });
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
       const urchin = this.book.get(`urchin|${shot.owner}`, t, (k) =>
         drawUrchin(k, t * 0.17, this.colour(shot.owner, 'base'), this.colour(shot.owner, 'dark')),
       );
@@ -2034,4 +2052,42 @@ function drawUnderseaScenery(
       g.fill({ color: 0xe0d0c0 });
     }
   }
+}
+
+/**
+ * A ship's wheel, its middle at the origin, `r` the rim's radius: a rim of varnished wood, eight
+ * spokes running out past it into turned handles, and a brass hub with the owner's colour at
+ * its heart, all inked round.
+ */
+function drawShipWheel(g: Graphics, r: number, colour: number, ink: number): void {
+  const w = Math.max(1, r * 0.12);
+  // The spokes and their handles, under the rim.
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2;
+    const c = Math.cos(a);
+    const s = Math.sin(a);
+    g.moveTo(c * r * 0.2, s * r * 0.2).lineTo(c * r * 1.3, s * r * 1.3);
+  }
+  g.stroke({ width: r * 0.26, color: ink, cap: 'round' });
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2;
+    g.moveTo(Math.cos(a) * r * 0.2, Math.sin(a) * r * 0.2).lineTo(
+      Math.cos(a) * r * 1.27,
+      Math.sin(a) * r * 1.27,
+    );
+  }
+  g.stroke({ width: r * 0.14, color: WHEEL_WOOD_LIGHT, cap: 'round' });
+  // The rim: dark wood between two inked edges, a lighter grain along it.
+  g.circle(0, 0, r);
+  g.stroke({ width: r * 0.34, color: ink });
+  g.circle(0, 0, r);
+  g.stroke({ width: r * 0.22, color: WHEEL_WOOD });
+  g.arc(0, 0, r * 1.02, -2.6, -1.2);
+  g.stroke({ width: Math.max(1, r * 0.06), color: WHEEL_WOOD_LIGHT, alpha: 0.9 });
+  // The hub.
+  g.circle(0, 0, r * 0.32);
+  g.fill({ color: BRASS });
+  g.stroke({ width: w, color: ink });
+  g.circle(0, 0, r * 0.16);
+  g.fill({ color: colour });
 }

@@ -49,6 +49,36 @@ export function drawQuaver(
   g.stroke({ width: Math.max(1, size * 0.1), color: colour, alpha, cap: 'round' });
 }
 
+/**
+ * A treble clef, its middle at (x, y), `size` its height in pixels: the curl at its head,
+ * the stem falling through the spiral round the G line, and the hook and dot at its foot —
+ * one stroke, as an engraver's hand would draw it.
+ */
+export function drawTrebleClef(
+  g: Graphics,
+  x: number,
+  y: number,
+  size: number,
+  colour: number,
+  alpha = 1,
+): void {
+  const h = size;
+  const at = (u: number, v: number): [number, number] => [x + u * h, y + v * h];
+  // The spiral round the G line, out from its eye, then up and over into the head's curl.
+  g.moveTo(...at(0.03, 0.12));
+  g.bezierCurveTo(...at(0.2, 0.11), ...at(0.2, -0.1), ...at(0.01, -0.1));
+  g.bezierCurveTo(...at(-0.24, -0.1), ...at(-0.26, 0.25), ...at(0.03, 0.25));
+  g.bezierCurveTo(...at(0.3, 0.25), ...at(0.3, -0.06), ...at(0.08, -0.17));
+  g.bezierCurveTo(...at(-0.1, -0.27), ...at(-0.1, -0.42), ...at(0.0, -0.48));
+  g.bezierCurveTo(...at(0.08, -0.53), ...at(0.13, -0.45), ...at(0.06, -0.37));
+  // The stem, down through the spiral to the foot's hook.
+  g.lineTo(...at(-0.01, 0.38));
+  g.bezierCurveTo(...at(-0.02, 0.5), ...at(-0.17, 0.5), ...at(-0.16, 0.41));
+  g.stroke({ width: Math.max(1, h * 0.07), color: colour, alpha, cap: 'round', join: 'round' });
+  g.circle(...at(-0.12, 0.41), h * 0.055);
+  g.fill({ color: colour, alpha });
+}
+
 /** A crotchet rest: the zigzag of silence. (x, y) its middle, `size` its height. */
 export function drawRest(
   g: Graphics,

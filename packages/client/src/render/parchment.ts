@@ -1607,8 +1607,17 @@ export class ParchmentTheme implements Theme {
       g.circle(gx, gy, t * 0.14 * (1 - 0.4 * height));
       g.fill({ color: hex(this.art.palette.shadow), alpha: 0.25 - 0.1 * height });
       const head = at(p);
-      g.circle(head.x, head.y, t * (0.15 + 0.07 * height) * shotScale(shot, this.art));
-      g.fill({ color: ink });
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        const ahead = at(Math.min(1, p + 0.02));
+        const behind = at(Math.max(0, p - 0.02));
+        const heading = Math.atan2(ahead.y - behind.y, ahead.x - behind.x);
+        const spin = motionReduced() ? 0 : p * 7 + shot.id;
+        const size = t * (0.3 + 0.07 * height) * shotScale(shot, this.art);
+        drawWaxSeal(g, head.x, head.y, size, heading, spin, this.colour(shot.owner, 'base'));
+      } else {
+        g.circle(head.x, head.y, t * (0.15 + 0.07 * height) * shotScale(shot, this.art));
+        g.fill({ color: ink });
+      }
       drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
     }
   }
@@ -1801,4 +1810,63 @@ function galeStroke(
     points.push(ccx + Math.cos(phi) * r, ccy + Math.sin(phi) * r);
   }
   return points;
+}
+
+/** Sealing wax: its body, its shadowed rim, and the light catching it. */
+const WAX = 0xa3221b;
+const WAX_DARK = 0x67110c;
+const WAX_LIGHT = 0xd9564a;
+
+/**
+ * A Bertha's shot as a red wax seal (the user's, 2026-11-19: a projectile of its own in every
+ * style but the plainest three, both Berthas one shape told apart by size), tumbling as it
+ * flies, two ribbon tails in the firer's colour streaming behind it along its course: a blob
+ * of wax with a lumpy rim, a pressed ring, and a cross pressed into it. A score of vertices,
+ * drawn each frame with the other shots; there are never more than a few Berthas in the air.
+ */
+function drawWaxSeal(
+  g: Graphics,
+  x: number,
+  y: number,
+  r: number,
+  heading: number,
+  spin: number,
+  ribbon: number,
+): void {
+  // The ribbon's two tails, behind the seal, forked at their ends.
+  for (const side of [-1, 1]) {
+    const a = heading + Math.PI + side * 0.32;
+    const b = heading + Math.PI + side * 0.18;
+    const ex = x + Math.cos(a) * r * 2.1;
+    const ey = y + Math.sin(a) * r * 2.1;
+    const fx = x + Math.cos(b) * r * 1.75;
+    const fy = y + Math.sin(b) * r * 1.75;
+    const nx = -Math.sin(a) * r * 0.22;
+    const ny = Math.cos(a) * r * 0.22;
+    g.poly([x - nx, y - ny, ex - nx, ey - ny, fx, fy, ex + nx, ey + ny, x + nx, y + ny]);
+  }
+  g.fill({ color: ribbon });
+  g.stroke({ width: Math.max(1, r * 0.08), color: WAX_DARK, alpha: 0.6 });
+  // The blob: a ring of lumps, each its own size, turning with the seal.
+  const lumps: number[] = [];
+  const n = 14;
+  for (let k = 0; k < n; k++) {
+    const a = spin + (k / n) * Math.PI * 2;
+    const rr = r * (k % 2 === 0 ? 1 : 0.9 + 0.06 * ((k * 7) % 3));
+    lumps.push(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  g.poly(lumps);
+  g.fill({ color: WAX });
+  g.stroke({ width: Math.max(1, r * 0.1), color: WAX_DARK, join: 'round' });
+  // The pressed ring, and the light on its upper left.
+  g.circle(x, y, r * 0.62);
+  g.stroke({ width: Math.max(1, r * 0.12), color: WAX_DARK, alpha: 0.85 });
+  g.circle(x - r * 0.35, y - r * 0.38, r * 0.16);
+  g.fill({ color: WAX_LIGHT, alpha: 0.8 });
+  // The cross pressed into it, turning with it.
+  const c = Math.cos(spin) * r * 0.36;
+  const s = Math.sin(spin) * r * 0.36;
+  g.moveTo(x - c, y - s).lineTo(x + c, y + s);
+  g.moveTo(x + s, y - c).lineTo(x - s, y + c);
+  g.stroke({ width: Math.max(1, r * 0.14), color: WAX_DARK, cap: 'round' });
 }

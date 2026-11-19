@@ -168,6 +168,43 @@ export function drawDynamite(g: Graphics, t: number): void {
   g.fill({ color: 0xffd040 });
 }
 
+/**
+ * A bundle of three dynamite sticks tied with twine, its middle at the origin, `t` a tile: the
+ * Berthas' shot (the user's, 2026-11-19: a Bertha shot of its own in every style but the
+ * plainest three, both Berthas one shape, by size). One fuse, from the middle stick, its spark
+ * bigger than a single stick's.
+ */
+export function drawDynamiteBundle(g: Graphics, t: number): void {
+  const u = (v: number): number => v * t;
+  const ink = inkWidth(t) * 0.55;
+  // Longer than a single stick, so the bundle reads as sticks and not a block.
+  for (const y of [-0.11, 0.11, 0]) {
+    g.roundRect(-u(0.27), u(y - 0.06), u(0.48), u(0.12), u(0.03));
+    g.fill({ color: 0xc8302a });
+    g.stroke({ width: ink, color: OUTLINE });
+    g.rect(-u(0.24), u(y - 0.035), u(0.42), u(0.025));
+    g.fill({ color: 0xe8604a });
+  }
+  // The twine, round the bundle near either end.
+  for (const x of [-0.15, 0.09]) {
+    g.rect(u(x - 0.018), -u(0.18), u(0.036), u(0.36));
+    g.fill({ color: 0xf2e6c8 });
+    g.stroke({ width: Math.max(1, ink * 0.7), color: OUTLINE });
+  }
+  g.moveTo(u(0.21), 0).quadraticCurveTo(u(0.3), -u(0.1), u(0.36), -u(0.07));
+  g.stroke({ width: Math.max(1, u(0.03)), color: OUTLINE });
+  const rays: number[] = [];
+  for (let n = 0; n < 12; n++) {
+    const a = (n / 12) * Math.PI * 2;
+    const d = n % 2 === 0 ? u(0.1) : u(0.045);
+    rays.push(u(0.37) + Math.cos(a) * d, -u(0.08) + Math.sin(a) * d);
+  }
+  g.poly(rays);
+  g.fill({ color: 0xffd040 });
+  g.circle(u(0.37), -u(0.08), u(0.03));
+  g.fill({ color: 0xfff6c8 });
+}
+
 // ---------------------------------------------------------------------------------------------
 // Buildings and windpumps (docs §2)
 

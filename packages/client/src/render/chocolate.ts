@@ -1713,6 +1713,23 @@ export class ChocolateTheme extends ShapeTheme implements Theme {
       stamps.place(shade, gx, gy, { alpha: 0.28 - 0.14 * high });
       const hy = tileY(view, shot.fromY + (shot.toY - shot.fromY) * p + 0.5 - lift);
       const r = t * (0.2 + 0.1 * high) * shotScale(shot, this.art);
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // A Bertha's shot is a cupcake (the user's, 2026-11-19: a projectile of its own in
+        // every style but the three plainest, both Berthas one shape told apart by size). One
+        // drawing an owner, at the bonbon's size, scaled by the shot's; it tumbles slowly,
+        // being heavy, where the bonbon spins.
+        // Drawn at a Big Bertha's size at its height, so it is mostly shrunk, never blown up.
+        const drawn = t * 0.45;
+        const cupcake = this.book.get(`cupcake|${shot.owner}`, t, (k) =>
+          this.drawCupcake(k, drawn, shot.owner),
+        );
+        stamps.place(cupcake, gx, hy, {
+          rotation: motionReduced() ? 0 : Math.sin(p * Math.PI * 3 + shot.id) * 0.5,
+          scale: r / drawn,
+        });
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
       const spin = p * Math.PI * 5 + shot.id;
       const ux = Math.cos(spin);
       const uy = Math.sin(spin) * 0.6;
@@ -1745,6 +1762,69 @@ export class ChocolateTheme extends ShapeTheme implements Theme {
       drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
     }
     stamps.end();
+  }
+
+  /**
+   * A cupcake, its middle at the origin, `r` the bonbon's radius it stands in for: a pleated
+   * case in the owner's colour, a swirl of the icing their ground wears, sprinkles, and a
+   * cherry on top, inked round as everything here is.
+   */
+  private drawCupcake(k: Graphics, r: number, owner: number): void {
+    const line = hex(this.art.palette.shadow);
+    // The ink by the cupcake's size, not the board's: the board's ink drowned it.
+    const ink = Math.max(1, r * 0.09);
+    const icing = mixed(this.colour(owner, 'light'), 0xffffff, this.style.icingWhite);
+    // The case, wider at its rim, pleated.
+    const top = r * 0.1;
+    const bottom = r * 1.15;
+    k.poly([-r * 1.05, top, r * 1.05, top, r * 0.75, bottom, -r * 0.75, bottom]);
+    k.fill({ color: this.colour(owner, 'base') });
+    k.stroke({ width: ink, color: line, alpha: 0.85 });
+    for (let n = -2; n <= 2; n++) {
+      k.moveTo(n * r * 0.4, top + ink).lineTo(n * r * 0.29, bottom - ink);
+    }
+    k.stroke({ width: Math.max(1, ink * 0.8), color: this.colour(owner, 'dark'), alpha: 0.8 });
+    // The icing, three tiers of a swirl.
+    const tiers: readonly [number, number, number][] = [
+      [0, r * 0.98, r * 0.42],
+      [-r * 0.42, r * 0.74, r * 0.34],
+      [-r * 0.75, r * 0.46, r * 0.28],
+    ];
+    for (const [y, rx, ry] of tiers) {
+      k.ellipse(0, y, rx, ry);
+      k.fill({ color: icing });
+      k.stroke({ width: ink, color: line, alpha: 0.7 });
+    }
+    k.ellipse(-r * 0.3, -r * 0.5, r * 0.22, r * 0.09);
+    k.fill({ color: 0xffffff, alpha: 0.8 });
+    // Sprinkles in the shop's colours, fixed, so every cupcake of an owner is one stamp.
+    const bits: readonly [number, number, number][] = [
+      [-r * 0.6, r * 0.05, 0.4],
+      [r * 0.5, -r * 0.05, -0.6],
+      [r * 0.15, -r * 0.4, 1.2],
+      [-r * 0.25, r * 0.15, -1.1],
+      [r * 0.7, r * 0.12, 0.9],
+    ];
+    for (const [n, [x, y, a]] of bits.entries()) {
+      const d = r * 0.13;
+      k.moveTo(x - Math.cos(a) * d, y - Math.sin(a) * d).lineTo(
+        x + Math.cos(a) * d,
+        y + Math.sin(a) * d,
+      );
+      k.stroke({
+        width: Math.max(1.5, r * 0.11),
+        color: SPRINKLES[(n + 1) % SPRINKLES.length]!,
+        cap: 'round',
+      });
+    }
+    // The cherry and its stalk.
+    k.moveTo(r * 0.05, -r * 1.2).quadraticCurveTo(r * 0.15, -r * 1.55, r * 0.45, -r * 1.6);
+    k.stroke({ width: Math.max(1, r * 0.1), color: 0x4a2a12, cap: 'round' });
+    k.circle(0, -r * 1.05, r * 0.3);
+    k.fill({ color: 0xd0182a });
+    k.stroke({ width: ink, color: line, alpha: 0.85 });
+    k.circle(-r * 0.1, -r * 1.14, r * 0.09);
+    k.fill({ color: 0xffffff, alpha: 0.85 });
   }
 
   private drawRings(view: ViewTransform, deltaMs: number): void {

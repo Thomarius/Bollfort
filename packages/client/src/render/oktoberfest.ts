@@ -1241,6 +1241,21 @@ export class OktoberfestTheme extends ShapeTheme implements Theme {
       }
       g.fill({ color: this.colour(shot.owner, 'light'), alpha: 0.7 });
       const size = t * (0.3 + 0.1 * high) * shotScale(shot, this.art);
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // A Bertha's shot is a beer barrel (the user's, 2026-11-19: a projectile of its own in
+        // every style but the three plainest, both Berthas one shape told apart by size), in
+        // the ring of its owner's colour every shot here wears; one drawing an owner, scaled,
+        // tumbling end over end, slower than a pretzel spins.
+        const barrel = this.book.get(`barrel-shot|${shot.owner}`, t, (k) =>
+          this.drawBarrelShot(k, t * 0.3, shot.owner),
+        );
+        stamps.place(barrel, here.x, here.y, {
+          rotation: motionReduced() ? 0.3 : this.clock / 240 + shot.id,
+          scale: size / (t * 0.3),
+        });
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
       // Drawn for a few heights between low and high, and scaled the rest of the way; a stamp
       // an owner, since each is salted in its owner's colour inside a ring of it. The ring was
       // a faint wash and the salt white, which read as a brown blob in flight (S9).
@@ -1259,6 +1274,45 @@ export class OktoberfestTheme extends ShapeTheme implements Theme {
       drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
     }
     stamps.end();
+  }
+
+  /**
+   * A beer barrel standing, its middle at the origin, `r` the pretzel's size it stands in
+   * for, inside a ring of the owner's colour: bellied staves of the kegs' wood, two dark iron
+   * hoops, a band of the owner's colour round its middle, and a brass tap.
+   */
+  private drawBarrelShot(k: Graphics, r: number, owner: number): void {
+    const base = this.colour(owner, 'base');
+    k.circle(0, 0, r * 1.2);
+    k.fill({ color: base, alpha: 0.35 });
+    k.stroke({ width: Math.max(1.5, r * 0.14), color: base });
+    const w = r * 0.62;
+    const h = r * 0.85;
+    // The staves, bellied: narrower at the ends than in the middle.
+    k.moveTo(-w * 0.8, -h)
+      .quadraticCurveTo(-w * 1.25, 0, -w * 0.8, h)
+      .lineTo(w * 0.8, h)
+      .quadraticCurveTo(w * 1.25, 0, w * 0.8, -h)
+      .closePath();
+    k.fill({ color: KEG });
+    k.stroke({ width: Math.max(1, r * 0.08), color: WOOD_DARK });
+    for (const x of [-0.4, 0, 0.4]) {
+      k.moveTo(x * w * 0.85, -h + r * 0.05).quadraticCurveTo(x * w * 1.3, 0, x * w * 0.85, h);
+    }
+    k.stroke({ width: Math.max(1, r * 0.05), color: WOOD_DARK, alpha: 0.6 });
+    // The hoops and the owner's band.
+    for (const y of [-0.62, 0.62]) {
+      k.moveTo(-w * 1.02, y * h).lineTo(w * 1.02, y * h);
+    }
+    k.stroke({ width: Math.max(1.5, r * 0.13), color: 0x3a3430 });
+    k.moveTo(-w * 1.1, 0).lineTo(w * 1.1, 0);
+    k.stroke({ width: Math.max(2, r * 0.2), color: base });
+    // The lid's rim, and the tap.
+    k.ellipse(0, -h, w * 0.8, r * 0.12);
+    k.fill({ color: WOOD });
+    k.stroke({ width: Math.max(1, r * 0.06), color: WOOD_DARK });
+    k.rect(-r * 0.08, h * 0.3, r * 0.16, r * 0.22);
+    k.fill({ color: BRASS });
   }
 
   private drawRings(view: ViewTransform, deltaMs: number): void {

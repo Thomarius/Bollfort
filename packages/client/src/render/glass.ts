@@ -132,6 +132,9 @@ interface GlassOptions {
   paint?: { kind: 'waves' | 'veins'; colour: number; alpha: number };
 }
 
+/** The light a Bertha's prism splits, red to violet. */
+const RAINBOW = [0xff4040, 0xff9a30, 0xffe040, 0x50d060, 0x4090ff, 0x9a60e0] as const;
+
 /**
  * The stained glass look (PLAN 11.18 Y7): the board as a church window. Land and sea cut
  * into irregular panes of a few tiles each (`panes.ts`) — one a tile read as a mosaic —
@@ -1457,6 +1460,11 @@ export class GlassTheme implements Theme {
       g.fill({ color: 0x000000, alpha: 0.3 - 0.15 * high });
       const hy = tileY(view, shot.fromY + (shot.toY - shot.fromY) * p + 0.5 - lift);
       const r = t * (0.24 + 0.12 * high) * shotScale(shot, this.art);
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        this.drawPrism(g, view, shot, p, r, gx, hy);
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
       g.circle(gx, hy, r * 1.6);
       g.fill({ color: this.colour(shot.owner, 'light'), alpha: 0.25 });
       g.circle(gx, hy, r);
@@ -1466,6 +1474,67 @@ export class GlassTheme implements Theme {
       g.fill({ color: 0xffffff, alpha: 0.8 });
       drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
     }
+  }
+
+  /**
+   * A Bertha's shot as a prism of the owner's glass (the user's, 2026-11-19: a projectile of its
+   * own in every style but the plainest three, both Berthas one shape told apart by size),
+   * turning as it flies, and behind it the light it splits: a little rainbow fanning out along
+   * its course and fading. Six short bands and a triangle, drawn each frame with the other
+   * shots; there are never more than a few Berthas in the air.
+   */
+  private drawPrism(
+    g: Graphics,
+    view: ViewTransform,
+    shot: Shot,
+    p: number,
+    r: number,
+    x: number,
+    y: number,
+  ): void {
+    const at = (q: number): { x: number; y: number } => ({
+      x: tileX(view, shot.fromX + (shot.toX - shot.fromX) * q + 0.5),
+      y: tileY(view, shot.fromY + (shot.toY - shot.fromY) * q + 0.5 - shotLift(shot, q)),
+    });
+    const range = Math.hypot(shot.toX - shot.fromX, shot.toY - shot.fromY);
+    const back = range > 0 ? Math.min(p, 1.8 / range) : 0;
+    const steps = 6;
+    const band = Math.max(1, r * 0.2);
+    for (const [c, colour] of RAINBOW.entries()) {
+      const offset = (c - (RAINBOW.length - 1) / 2) * band;
+      for (let k = 0; k <= steps; k++) {
+        const q = p - (back * k) / steps;
+        const here = at(q);
+        const ahead = at(Math.min(1, q + 0.01));
+        const len = Math.hypot(ahead.x - here.x, ahead.y - here.y) || 1;
+        // Across the course, the bands spreading as they trail away from the prism.
+        const spread = offset * (0.5 + (1.4 * k) / steps);
+        const px = here.x - ((ahead.y - here.y) / len) * spread;
+        const py = here.y + ((ahead.x - here.x) / len) * spread;
+        if (k === 0) g.moveTo(px, py);
+        else g.lineTo(px, py);
+      }
+      g.stroke({ width: band, color: colour, alpha: 0.55, cap: 'round', join: 'round' });
+    }
+    const turn = motionReduced() ? 0 : p * 4 + shot.id;
+    const corners: number[] = [];
+    for (let k = 0; k < 3; k++) {
+      const a = turn + (k / 3) * Math.PI * 2 - Math.PI / 2;
+      corners.push(x + Math.cos(a) * r * 1.3, y + Math.sin(a) * r * 1.3);
+    }
+    g.poly(corners);
+    g.fill({ color: this.colour(shot.owner, 'light'), alpha: 0.25 });
+    g.poly(corners);
+    g.fill({ color: this.colour(shot.owner, 'base') });
+    // The facets: lines from its heart to each corner, catching the light.
+    for (let k = 0; k < 3; k++) {
+      g.moveTo(x, y).lineTo(corners[k * 2] ?? x, corners[k * 2 + 1] ?? y);
+    }
+    g.stroke({ width: Math.max(1, r * 0.1), color: this.colour(shot.owner, 'light'), alpha: 0.8 });
+    g.poly(corners);
+    g.stroke({ width: this.lead(view), color: hex(this.art.palette.shadow), join: 'round' });
+    g.circle(x - r * 0.25, y - r * 0.3, r * 0.22);
+    g.fill({ color: 0xffffff, alpha: 0.8 });
   }
 
   private drawRipples(view: ViewTransform, deltaMs: number): void {

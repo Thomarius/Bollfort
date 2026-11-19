@@ -73,6 +73,7 @@ import {
   drawBarrel,
   drawBuilding,
   drawDynamite,
+  drawDynamiteBundle,
   drawHoops,
   drawLid,
   drawLocomotive,
@@ -923,17 +924,20 @@ export class WildWestTheme extends ShapeTheme implements Theme {
       g.fill({ color: 0x000000 });
     });
     const stick = this.book.get('dynamite', t, (g) => drawDynamite(g, t));
+    const bundle = this.book.get('dynamiteBundle', t, (g) => drawDynamiteBundle(g, t));
     for (const shot of state.shots) {
       const p = shotProgress(shot, now);
       const gx = shot.fromX + (shot.toX - shot.fromX) * p + 0.5;
       const gy = shot.fromY + (shot.toY - shot.fromY) * p + 0.5;
       this.shadowStamps.place(shadow, tileX(view, gx), tileY(view, gy), { alpha: 0.28 });
+      const heavy = shot.kind === 'bertha' || shot.kind === 'biggest';
       this.shotStamps.place(
-        stick,
+        heavy ? bundle : stick,
         tileX(view, gx),
         tileY(view, gy - shotLift(shot, p) - 0.5 * (1 - p)),
         {
-          rotation: still ? -0.4 : p * 14,
+          // A bundle turns slower than a stick: it is heavier.
+          rotation: still ? -0.4 : p * (heavy ? 8 : 14),
           scale: shotScale(shot, this.art) * 1.4,
         },
       );

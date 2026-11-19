@@ -1154,6 +1154,7 @@ export class CartoonTheme extends ShapeTheme implements Theme {
       k.fill({ color: PAPER, alpha: 0.85 });
     });
     const spark = this.book.get('spark', t, (k) => drawStar(k, 0, 0, t * 0.12, 0, PAPER));
+    const weight = this.book.get('weight', t, (k) => drawWeight(k, t));
     this.bombStamps.begin();
     for (const shot of state.shots) {
       const p = shotProgress(shot, now);
@@ -1164,8 +1165,17 @@ export class CartoonTheme extends ShapeTheme implements Theme {
       const high = Math.min(1, lift / 3);
       this.underGfx.ellipse(gx, gy, t * 0.2, t * 0.07);
       this.underGfx.fill({ color: INK, alpha: 0.3 - 0.1 * high });
-      const turn = still ? 0 : Math.floor(p * 8) * 0.5 * Math.sign(shot.toX - shot.fromX || 1);
       const scale = (1 + 0.25 * high) * shotScale(shot, this.art);
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // Both Berthas drop a sixteen-ton weight, the old gag, the Allerdickste's only bigger
+        // (the user's, 2026-11-19: a Bertha projectile in every style but Minimal, Medieval and
+        // Night). A weight falls flat, so it only rocks a little on the film's steps.
+        const tilt = still ? 0 : (this.step % 4 < 2 ? 1 : -1) * 0.06;
+        this.bombStamps.place(weight, gx, y, { rotation: tilt, scale });
+        drawShotTarget(this.effectGfx, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
+      const turn = still ? 0 : Math.floor(p * 8) * 0.5 * Math.sign(shot.toX - shot.fromX || 1);
       this.bombStamps.place(bomb, gx, y, { rotation: turn, scale });
       const fx = gx + Math.sin(turn) * t * 0.42 * scale + Math.cos(turn) * t * 0.05 * scale;
       const fy = y - Math.cos(turn) * t * 0.42 * scale + Math.sin(turn) * t * 0.05 * scale;
@@ -2010,4 +2020,47 @@ function drawCartoonScenery(g: Graphics, view: ViewTransform, items: readonly Sc
 function centreIn(g: Graphics, size: number): void {
   const b = g.getLocalBounds();
   g.position.set(size / 2 - (b.x + b.width / 2), size / 2 - (b.y + b.height / 2));
+}
+
+/**
+ * The cartoon's sixteen-ton weight, its middle at the origin, `t` a tile: a squat trapezoid in
+ * ink-black, a ring on top, "16 T" lettered on it in paper white, a shine down its left side.
+ */
+function drawWeight(g: Graphics, t: number): void {
+  const w = inkWidth(t);
+  const top = -t * 0.14;
+  const bottom = t * 0.24;
+  // The ring it hangs by.
+  g.circle(0, top - t * 0.09, t * 0.08);
+  g.stroke({ width: Math.max(1.5, t * 0.05), color: INK });
+  // The body.
+  g.poly([-t * 0.2, top, t * 0.2, top, t * 0.32, bottom, -t * 0.32, bottom]);
+  g.fill({ color: 0x4a4a4a });
+  g.stroke({ width: w, color: INK, join: 'round' });
+  g.moveTo(-t * 0.17, top + t * 0.05).lineTo(-t * 0.25, bottom - t * 0.05);
+  g.stroke({ width: Math.max(1, t * 0.035), color: PAPER, alpha: 0.6, cap: 'round' });
+  // "16 T", stroked, so it needs no font.
+  const h = t * 0.16;
+  const y0 = t * 0.0;
+  const y1 = y0 + h;
+  const ym = y0 + h / 2;
+  const stroke = {
+    width: Math.max(1, t * 0.04),
+    color: PAPER,
+    cap: 'round',
+    join: 'round',
+  } as const;
+  // 1
+  g.moveTo(-t * 0.17, y0 + h * 0.2)
+    .lineTo(-t * 0.13, y0)
+    .lineTo(-t * 0.13, y1);
+  // 6
+  g.moveTo(-t * 0.01, y0).quadraticCurveTo(-t * 0.08, y0 + h * 0.2, -t * 0.08, ym + h * 0.2);
+  g.stroke(stroke);
+  g.circle(-t * 0.04, ym + h * 0.22, h * 0.27);
+  g.stroke(stroke);
+  // T
+  g.moveTo(t * 0.06, y0).lineTo(t * 0.18, y0);
+  g.moveTo(t * 0.12, y0).lineTo(t * 0.12, y1);
+  g.stroke(stroke);
 }

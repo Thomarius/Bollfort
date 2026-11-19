@@ -244,6 +244,8 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
   private readonly bubbleStamps = new Stamps();
   private readonly fogStamps = new Stamps();
   private readonly book = new StampBook();
+  /** Big Bertha's jack-o'-lanterns in flight, over the shots' wisps and glow (`lateGfx`). */
+  private readonly lanternShotStamps = new Stamps();
   /** Where the fog drifts, in tiles: the board and its margins. */
   private fogSpan = { x0: 0, x1: 0, y0: 0, y1: 0 };
   private moon: TimerSpot | null = null;
@@ -296,6 +298,7 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
       this.fogStamps.container,
       this.brewStamps.container,
       this.lateGfx,
+      this.lanternShotStamps.container,
     );
     layers.overlay.addChild(this.overlayGfx);
     return Promise.resolve();
@@ -303,6 +306,7 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
 
   destroy(): void {
     this.bubbleStamps.destroy();
+    this.lanternShotStamps.destroy();
     this.fogStamps.destroy();
     this.lanternMemos.destroy();
     this.smokeStamps.destroy();
@@ -1514,6 +1518,7 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
     const g = this.lateGfx;
     const t = view.tile;
     const now = state.tick + frame.tickFraction;
+    this.lanternShotStamps.begin();
     for (const shot of state.shots) {
       const span = shot.impactTick - shot.launchTick;
       const at = (q: number): { x: number; y: number; lift: number } => {
@@ -1545,12 +1550,28 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
       const r = t * (0.2 + 0.08 * high) * shotScale(shot, this.art);
       g.circle(here.x, here.y, r * 1.9);
       g.fill({ color: this.colour(shot.owner, 'base'), alpha: 0.3 });
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // A Bertha's shot is a jack-o'-lantern, fire in its eyes (the user's, 2026-11-19: a
+        // projectile of its own in every style but the three plainest, both Berthas one shape
+        // told apart by size), in the owner's glow and trailing their wisps as the fireball
+        // does. One drawing, scaled; it rocks as it flies rather than tumbling, so its face
+        // is always seen.
+        const drawn = t * 0.4;
+        const lantern = this.book.get('jack-o-lantern', t, (k) => drawJackOLantern(k, drawn));
+        this.lanternShotStamps.place(lantern, here.x, here.y, {
+          rotation: motionReduced() ? 0 : Math.sin(this.clock / 160 + shot.id) * 0.4,
+          scale: r / drawn,
+        });
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
       g.circle(here.x, here.y, r);
       g.fill({ color: this.colour(shot.owner, 'light') });
       g.circle(here.x, here.y, r * 0.45);
       g.fill({ color: 0xffffff, alpha: 0.9 });
       drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
     }
+    this.lanternShotStamps.end();
   }
 
   private drawRings(view: ViewTransform, deltaMs: number): void {
@@ -1933,4 +1954,77 @@ function cryptStones(
   }
   const pale = Math.floor(hash(b.x, b.y, 258) * stones.length) % stones.length;
   return { stones, joints, pale, shaded: (pale + 1) % stones.length };
+}
+
+/**
+ * A jack-o'-lantern, its middle at the origin, `r` the fireball's radius it stands in for:
+ * a ribbed pumpkin, its stalk, and a carved face lit from inside — the eyes and the grin
+ * yellow fire, white at its hottest.
+ */
+function drawJackOLantern(k: Graphics, r: number): void {
+  const ink = 0x2a1206;
+  const line = Math.max(1, r * 0.1);
+  // The lobes, the outer ones first, so the middle one sits in front.
+  for (const [x, rx] of [
+    [-r * 0.55, r * 0.6],
+    [r * 0.55, r * 0.6],
+    [0, r * 0.62],
+  ] as const) {
+    k.ellipse(x, 0, rx, r * 0.95);
+    k.fill({ color: x === 0 ? 0xf28a1e : 0xe0731a });
+    k.stroke({ width: line, color: ink, alpha: 0.75 });
+  }
+  // The stalk.
+  k.poly([-r * 0.14, -r * 0.88, r * 0.14, -r * 0.88, r * 0.24, -r * 1.3, r * 0.02, -r * 1.25]);
+  k.fill({ color: 0x4a6a24 });
+  k.stroke({ width: line, color: ink, alpha: 0.75 });
+  // The face, carved: fire behind it, then its hotter heart.
+  const face = (grow: number): void => {
+    for (const side of [-1, 1]) {
+      const x = side * r * 0.42;
+      k.poly([
+        x - r * 0.24 * grow,
+        -r * 0.08,
+        x + r * 0.24 * grow,
+        -r * 0.08,
+        x,
+        -r * (0.08 + 0.36 * grow),
+      ]);
+    }
+    k.poly([-r * 0.12 * grow, r * 0.12, r * 0.12 * grow, r * 0.12, 0, r * (0.12 - 0.2 * grow)]);
+  };
+  // The cut's dark rim, the fire inside it, and its white-hot heart.
+  face(1.25);
+  k.fill({ color: 0x3a1204 });
+  face(1);
+  k.fill({ color: 0xffc22a });
+  face(0.5);
+  k.fill({ color: 0xfff6c0 });
+  // The grin, a row of teeth cut into it.
+  k.poly([
+    -r * 0.7,
+    r * 0.3,
+    -r * 0.45,
+    r * 0.42,
+    -r * 0.3,
+    r * 0.32,
+    -r * 0.1,
+    r * 0.46,
+    r * 0.1,
+    r * 0.32,
+    r * 0.3,
+    r * 0.46,
+    r * 0.45,
+    r * 0.32,
+    r * 0.7,
+    r * 0.3,
+    r * 0.45,
+    r * 0.7,
+    -r * 0.45,
+    r * 0.7,
+  ]);
+  k.fill({ color: 0xffc22a });
+  k.stroke({ width: Math.max(1, r * 0.08), color: 0x3a1204 });
+  k.ellipse(0, r * 0.55, r * 0.34, r * 0.08);
+  k.fill({ color: 0xfff6c0, alpha: 0.9 });
 }

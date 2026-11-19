@@ -273,6 +273,53 @@ export class BricksTheme implements Theme {
     g.stroke({ width: Math.max(1, t * 0.05), color: 0xffffff, alpha: 0.55 * alpha });
   }
 
+  /**
+   * A Bertha's shot as a 2x2 brick tumbling end over end (the user's, 2026-11-19: a projectile
+   * of its own in every style but the plainest three, both Berthas one shape told apart by
+   * size): its side showing under its top as it turns, four studs on top. `h` is half its side.
+   * A dozen shapes, drawn each frame with the other shots; there are never more than a few
+   * Berthas in the air.
+   */
+  private heavyBrick(
+    g: Graphics,
+    cx: number,
+    cy: number,
+    h: number,
+    spin: number,
+    owner: number,
+  ): void {
+    const cos = Math.cos(spin);
+    const sin = Math.sin(spin);
+    const corner = (u: number, v: number, dy = 0): [number, number] => [
+      cx + u * cos - v * sin,
+      cy + u * sin + v * cos + dy,
+    ];
+    const square = (dy: number): number[] => [
+      ...corner(-h, -h, dy),
+      ...corner(h, -h, dy),
+      ...corner(h, h, dy),
+      ...corner(-h, h, dy),
+    ];
+    const dark = this.colour(owner, 'dark');
+    // Its side, the brick's depth showing below the top.
+    g.poly(square(h * 0.55));
+    g.fill({ color: dark });
+    g.stroke({ width: 1, color: dark });
+    g.poly(square(0));
+    g.fill({ color: this.colour(owner, 'base') });
+    g.stroke({ width: 1, color: dark });
+    const light = this.colour(owner, 'light');
+    for (const [u, v] of [
+      [-0.5, -0.5],
+      [0.5, -0.5],
+      [-0.5, 0.5],
+      [0.5, 0.5],
+    ] as const) {
+      const [x, y] = corner(u * h, v * h);
+      this.stud(g, x, y, h * 1.4, light);
+    }
+  }
+
   // ------------------------------------------------------------------ terrain
 
   drawTerrain(state: MatchState, view: ViewTransform): void {
@@ -1428,6 +1475,12 @@ export class BricksTheme implements Theme {
       g.fill({ color: 0x000000, alpha: 0.3 - 0.15 * high });
       const hy = tileY(view, shot.fromY + (shot.toY - shot.fromY) * p + 0.5 - lift);
       const r = t * (0.26 + 0.12 * high) * shotScale(shot, this.art);
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        const spin = motionReduced() ? 0.3 : p * 6 + shot.id;
+        this.heavyBrick(g, gx, hy, r * 0.95, spin, shot.owner);
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
       g.circle(gx, hy, r);
       g.fill({ color: this.colour(shot.owner, 'base') });
       g.stroke({ width: 1, color: this.colour(shot.owner, 'dark') });

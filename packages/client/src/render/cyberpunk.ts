@@ -2011,6 +2011,12 @@ export class CyberpunkTheme implements Theme {
       g.circle(gx, gy, view.tile * 0.12 * (1 - 0.5 * height));
       g.fill({ color: colour, alpha: 0.4 - 0.25 * height });
 
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        this.drawRocket(view, shot, t, at, colour);
+        drawShotTarget(g, view, shot, t, this.art, frame.humanPlayer);
+        continue;
+      }
+
       // The tracer: the last stretch of its arc, in a few straight pieces.
       const distance = Math.hypot(shot.toX - shot.fromX, shot.toY - shot.fromY);
       const back = distance > 0 ? Math.min(t, 1.6 / distance) : 0;
@@ -2046,6 +2052,88 @@ export class CyberpunkTheme implements Theme {
 
       drawShotTarget(g, view, shot, t, this.art, frame.humanPlayer);
     }
+  }
+
+  /**
+   * A Bertha's shot as a neon rocket (the user's, 2026-11-19: a projectile of its own in every
+   * style but the plainest three, both Berthas one shape told apart by size): a dark hull outlined
+   * in the firer's light colour, nose along its flight, an exhaust flame in the bloom, and behind
+   * it a trail of pixel glitches — squares of the firer's colour and the city's two neons, each
+   * flickering on its own beat and torn sideways off the path. A handful of polygons a shot,
+   * drawn with the tracers each frame; there are never more than a few Berthas in the air.
+   */
+  private drawRocket(
+    view: ViewTransform,
+    shot: Shot,
+    t: number,
+    at: (tk: number) => { x: number; y: number },
+    colour: number,
+  ): void {
+    const glow = this.effectGlow;
+    const core = this.effectCore;
+    const still = motionReduced();
+    const s = view.tile * 0.3 * shotScale(shot, this.art);
+    const head = at(t);
+    const ahead = at(Math.min(1, t + 0.02));
+    const behind = at(Math.max(0, t - 0.02));
+    const angle = Math.atan2(ahead.y - behind.y, ahead.x - behind.x);
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    // A point along the rocket (u, forward) and across it (v), in sizes, to the screen.
+    const pt = (u: number, v: number): [number, number] => [
+      head.x + (u * cos - v * sin) * s,
+      head.y + (u * sin + v * cos) * s,
+    ];
+    const light = this.colour(shot.owner, 'light');
+
+    // The glitch trail: squares strewn back along the arc, a few lit at a time.
+    const distance = Math.hypot(shot.toX - shot.fromX, shot.toY - shot.fromY);
+    const back = distance > 0 ? Math.min(t, 2 / distance) : 0;
+    const beat = still ? 0 : Math.floor(this.clock / 60);
+    const neons = [colour, hex(this.art.palette.emberMid), hex(this.art.palette.waterFoam)];
+    for (let k = 1; k <= 9; k++) {
+      const q = t - (back * k) / 9;
+      if (q <= 0) break;
+      const on = still || hash(beat, shot.id * 16 + k, 9301) < 0.75;
+      if (!on) continue;
+      const p = at(q);
+      const across = (hash(beat, shot.id * 16 + k, 9302) - 0.5) * s * (0.4 + k * 0.12);
+      const side = s * (0.6 - k * 0.04) * (0.6 + 0.6 * hash(beat, shot.id * 16 + k, 9303));
+      const x = p.x - sin * across;
+      const y = p.y + cos * across;
+      const tint = neons[Math.floor(hash(beat, shot.id * 16 + k, 9304) * 3)] ?? colour;
+      core.rect(x - side / 2, y - side / 2, side, side);
+      core.fill({ color: tint, alpha: 0.9 - k * 0.08 });
+    }
+
+    // The exhaust, in the bloom: a flame flickering out of the tail.
+    const flicker = still ? 1 : 0.8 + 0.4 * hash(beat, shot.id, 9305);
+    glow.poly([...pt(-0.9, -0.32), ...pt(-0.9 - 1.1 * flicker, 0), ...pt(-0.9, 0.32)]);
+    glow.fill({ color: colour, alpha: 0.85 });
+    glow.circle(head.x, head.y, s * 1.2);
+    glow.fill({ color: colour, alpha: 0.22 });
+
+    // The hull: a dark body with a pointed nose, two swept fins, outlined in neon.
+    const ink = hex(this.art.palette.uiInk);
+    core.poly([...pt(-0.95, -0.55), ...pt(-0.55, -0.28), ...pt(-0.55, 0.28), ...pt(-0.95, 0.55)]);
+    core.fill({ color: 0x0a0a14 });
+    core.stroke({ width: Math.max(1, s * 0.12), color: light, join: 'round' });
+    core.poly([
+      ...pt(1.05, 0),
+      ...pt(0.45, -0.3),
+      ...pt(-0.9, -0.3),
+      ...pt(-0.9, 0.3),
+      ...pt(0.45, 0.3),
+    ]);
+    core.fill({ color: 0x0a0a14 });
+    core.stroke({ width: Math.max(1, s * 0.14), color: light, join: 'round' });
+    // A window of light across its nose, and the tail's white-hot nozzle.
+    const [wx, wy] = pt(0.35, 0);
+    core.circle(wx, wy, s * 0.13);
+    core.fill({ color: ink });
+    const [nx, ny] = pt(-0.95, 0);
+    core.circle(nx, ny, s * 0.16);
+    core.fill({ color: ink });
   }
 
   /** Where a shot comes down: a flash, a ring of light, and a moment of glitch. */

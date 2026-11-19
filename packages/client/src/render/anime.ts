@@ -1039,6 +1039,25 @@ export class AnimeTheme extends ShapeTheme implements Theme {
       const turned = clan !== 'maid' && clan !== 'idol' && clan !== 'karate';
       // Half again as big as drawn: a teacup or a paper plane at its true size was a speck.
       const grow = shotScale(shot, this.art) * 1.5;
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // The Berthas' shot is still the clan's own — the style's gimmick — but charged: an
+        // aura in the owner's light flaring back from it and speed lines streaming behind
+        // (the user's, 2026-11-19: a Bertha shot of its own in every style but the plainest
+        // three, both Berthas one shape, by size). Two auras in turn make it flare.
+        const flare = motionReduced() ? 0 : Math.floor(now / 2) % 2;
+        const aura = this.book.get(`aura|${flare}`, t, (g) => drawChargedAura(g, t, flare));
+        const lines = this.book.get('speedLines', t, (g) => drawSpeedLines(g, t));
+        const heading = Math.atan2(vy, vx);
+        this.shotStamps.place(lines, tileX(view, bx), tileY(view, by), {
+          rotation: heading,
+          scale: grow,
+        });
+        this.shotStamps.place(aura, tileX(view, bx), tileY(view, by), {
+          rotation: heading,
+          scale: grow,
+          tint: this.colour(shot.owner, 'light'),
+        });
+      }
       this.shotStamps.place(context, tileX(view, bx), tileY(view, by), {
         rotation: turned ? rotation : 0,
         scale: (left ? -1 : 1) * grow,
@@ -1661,4 +1680,40 @@ function drawAnimeScenery(g: Graphics, view: ViewTransform, items: readonly Scen
       g.stroke({ width: Math.max(1, t * 0.05), color: 0xeef0f8, cap: 'round' });
     }
   }
+}
+
+/**
+ * A charged shot's aura, in white for its stamp's tint, flying along +x with its middle at the
+ * origin, `t` a tile: spikes of light flaring back round a bright core. `flare` 0 or 1 swaps
+ * the spikes' lengths, so two in turn flare.
+ */
+function drawChargedAura(g: Graphics, t: number, flare: number): void {
+  const spikes = 14;
+  const points: number[] = [];
+  for (let n = 0; n < spikes * 2; n++) {
+    const a = (n / (spikes * 2)) * Math.PI * 2;
+    // Longest straight behind (a = pi), shortest ahead, as a flame streams back.
+    const back = 0.5 - 0.5 * Math.cos(a);
+    const tip = n % 2 === 0;
+    const long = (n / 2 + flare) % 2 === 0 ? 1 : 0.8;
+    const d = tip ? t * (0.2 + 0.28 * back * long) : t * (0.15 + 0.05 * back);
+    points.push(Math.cos(a) * d, Math.sin(a) * d);
+  }
+  g.poly(points);
+  g.fill({ color: WHITE, alpha: 0.45 });
+  g.circle(0, 0, t * 0.17);
+  g.fill({ color: WHITE, alpha: 0.6 });
+}
+
+/** Speed lines streaming back along -x from a shot at the origin, `t` a tile: manga's ink. */
+function drawSpeedLines(g: Graphics, t: number): void {
+  for (const [side, from, to] of [
+    [-0.2, 0.4, 0.9],
+    [-0.08, 0.5, 1.15],
+    [0.06, 0.45, 1.0],
+    [0.19, 0.38, 0.8],
+  ] as const) {
+    g.moveTo(-t * from, t * side).lineTo(-t * to, t * side);
+  }
+  g.stroke({ width: Math.max(1, t * 0.035), color: INK, cap: 'round' });
 }

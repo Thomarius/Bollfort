@@ -7,7 +7,7 @@ import { perf } from '../perf.js';
 import { timerSpot, type TimerSpot } from '../timerSpot.js';
 
 import { hash } from './noise.js';
-import { GOLD, drawLyre, drawQuaver, drawRest } from './music.js';
+import { GOLD, drawLyre, drawQuaver, drawRest, drawTrebleClef } from './music.js';
 import { climaxLevel, roseSpot } from './corner.js';
 import { IslandParts } from './islandParts.js';
 import { release } from './release.js';
@@ -1458,6 +1458,22 @@ export class OperaTheme extends ShapeTheme implements Theme {
       g.circle(x, y - t * 0.2, t * 0.42);
       g.fill({ color: this.colour(shot.owner, 'light'), alpha: 0.35 });
       const size = t * (0.7 + 0.2 * high) * shotScale(shot, this.art);
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // A Bertha's shot is a treble clef, spinning (the user's, 2026-11-19: a projectile of
+        // its own in every style but the three plainest, both Berthas one shape told apart by
+        // size), its shadow under it as the notes have; one drawing an owner, scaled.
+        const drawn = t * 0.7;
+        const clef = this.book.get(`clef|${shot.owner}`, t, (k) => {
+          drawTrebleClef(k, drawn * 0.05, drawn * 0.05, drawn, this.dark, 0.7);
+          drawTrebleClef(k, 0, 0, drawn, this.colour(shot.owner, 'base'));
+        });
+        this.noteStamps.place(clef, x, y - t * 0.2, {
+          rotation: motionReduced() ? 0 : this.clock / 180 + shot.id,
+          scale: size / drawn,
+        });
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
       const rock = motionReduced() ? 0 : Math.sin(this.clock / 140 + shot.id) * 0.35;
       // The note and its shadow, drawn for a few heights and scaled the rest of the way.
       const flags = 1 + (shot.id % 2);

@@ -1354,6 +1354,22 @@ export class OfficeTheme extends ShapeTheme implements Theme {
       g.ellipse(here.gx, here.gy, t * 0.24, t * 0.08);
       g.fill({ color: 0x000000, alpha: 0.25 - 0.1 * high });
       const size = t * (0.85 + 0.25 * high) * shotScale(shot, this.art);
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // Both Berthas throw a stapler, the Allerdickste's only bigger (the user's, 2026-11-19:
+        // a Bertha projectile in every style but Minimal, Medieval and Night). It flies as
+        // nothing aerodynamic does, tumbling end over end, upright at the top of its arc.
+        const stapler = this.book.get(`stapler|${shot.owner}`, t, (k) =>
+          drawStapler(k, t * 0.85, this.colour(shot.owner, 'base'), this.dark),
+        );
+        const turn = shot.toX >= shot.fromX ? 1 : -1;
+        const tumble = motionReduced() ? 0 : (p - 0.5) * Math.PI * 2 * turn;
+        this.planeStamps.place(stapler, here.x, here.y, {
+          rotation: tumble,
+          scale: size / (t * 0.85),
+        });
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
       const plane = this.book.get(`plane|${shot.owner}`, t, (k) =>
         drawPlane(k, 0, 0, t * 0.85, 0, this.colour(shot.owner, 'base'), this.dark),
       );
@@ -1951,4 +1967,47 @@ function weave(): FillPattern {
     }
   }
   return new FillPattern({ texture: Texture.from(canvas), repetition: 'repeat' });
+}
+
+/**
+ * A stapler side on, `len` long, its middle at the origin, nose to the right: a steel base, the
+ * arm over it in the owner's colour, hinged at the back and a little open, a staple showing.
+ */
+function drawStapler(g: Graphics, len: number, colour: number, dark: number): void {
+  const h = len * 0.5;
+  const w = Math.max(1, len * 0.045);
+  // The base: a long steel plate, its nose rounded up.
+  g.roundRect(-h, len * 0.1, len, len * 0.13, len * 0.05);
+  g.fill({ color: STEEL_DARK });
+  g.stroke({ width: w, color: dark });
+  // The anvil plate at the nose.
+  g.rect(h * 0.5, len * 0.07, h * 0.42, len * 0.05);
+  g.fill({ color: STEEL });
+  g.stroke({ width: w * 0.8, color: dark });
+  // The arm: thick at the back, tapering a little to the nose, raised a few degrees.
+  g.poly([
+    -h,
+    len * 0.08,
+    -h,
+    -len * 0.12,
+    -h * 0.7,
+    -len * 0.2,
+    h * 0.9,
+    -len * 0.12,
+    h,
+    -len * 0.04,
+    h * 0.9,
+    0,
+  ]);
+  g.fill({ color: colour });
+  g.stroke({ width: w, color: dark, join: 'round' });
+  // A shine along the arm's top.
+  g.moveTo(-h * 0.6, -len * 0.14).lineTo(h * 0.7, -len * 0.09);
+  g.stroke({ width: w, color: 0xffffff, alpha: 0.55, cap: 'round' });
+  // The hinge, and a staple hanging from the head.
+  g.circle(-h * 0.82, len * 0.06, len * 0.06);
+  g.fill({ color: STEEL });
+  g.stroke({ width: w * 0.8, color: dark });
+  g.moveTo(h * 0.72, 0).lineTo(h * 0.72, len * 0.05);
+  g.stroke({ width: w * 0.8, color: STEEL_DARK });
 }

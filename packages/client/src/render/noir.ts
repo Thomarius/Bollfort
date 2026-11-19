@@ -68,6 +68,10 @@ const STONE_LIT = 0x9a9aa0;
 const FACADE = 0x1e1e24;
 const FACADE_LIT = 0x4a4a52;
 const DEAD = 0x55555b;
+/** The Berthas' whiskey bottle: its glass, the whiskey and the cork. */
+const GLASS = 0xc9d2cc;
+const WHISKEY = 0xc8862a;
+const CORK = 0x9a7a52;
 
 /** Something with a place and an age: a blast, a splash, a crater. */
 interface Aged {
@@ -977,6 +981,12 @@ export class NoirTheme extends ShapeTheme implements Theme {
       k.ellipse(0, 0, t * 0.2, t * 0.14);
       k.stroke({ width: Math.max(1, t * 0.05), color: NOIR_INK });
     });
+    // Both Berthas lob a whiskey bottle, the private eye's desk drawer (the user's, 2026-11-19:
+    // a Bertha shot of its own in every style but the plainest three, both Berthas one shape, by
+    // size). A black violin case was tried first and was lost on the night; pale glass and the
+    // amber in it carry, the one warm colour in the film but the players'.
+    const bottle = this.book.get('whiskey', t, (k) => drawWhiskeyBottle(k, t));
+    const still = motionReduced();
     const g = this.effectGfx;
     this.shellStamps.begin();
     for (const shot of state.shots) {
@@ -1005,8 +1015,11 @@ export class NoirTheme extends ShapeTheme implements Theme {
         g.moveTo(sx, sy).lineTo(sx - ux * t * back, sy - uy * t * back);
       }
       g.stroke({ width: Math.max(1, t * 0.045), color: NOIR_PAPER, alpha: 0.85 });
-      this.shellStamps.place(shell, x, y, {
-        rotation: Math.atan2(uy, ux),
+      const heavy = shot.kind === 'bertha' || shot.kind === 'biggest';
+      const along = Math.atan2(uy, ux);
+      this.shellStamps.place(heavy ? bottle : shell, x, y, {
+        // The bottle tumbles end over end, as a thing thrown does; the shell flies point first.
+        rotation: heavy && !still ? along + p * Math.PI * 3 + shot.id : along,
         scale: shotScale(shot, this.art),
       });
       drawShotTarget(this.effectGfx, view, shot, p, this.art, frame.humanPlayer);
@@ -1769,4 +1782,43 @@ function drawNoirScenery(
 function centreIn(g: Graphics, size: number): void {
   const b = g.getLocalBounds();
   g.position.set(size / 2 - (b.x + b.width / 2), size / 2 - (b.y + b.height / 2));
+}
+
+/**
+ * A whiskey bottle along +x, its neck ahead, `t` a tile: pale glass, the whiskey amber in its
+ * lower part, a paper label with a ruled line, a cork, a glint down its side, inked round.
+ */
+function drawWhiskeyBottle(k: Graphics, t: number): void {
+  const outline = (): void => {
+    k.moveTo(-t * 0.36, -t * 0.12)
+      .quadraticCurveTo(-t * 0.38, -t * 0.15, -t * 0.32, -t * 0.15)
+      .lineTo(t * 0.06, -t * 0.15)
+      .quadraticCurveTo(t * 0.16, -t * 0.15, t * 0.2, -t * 0.06)
+      .lineTo(t * 0.34, -t * 0.055)
+      .lineTo(t * 0.34, t * 0.055)
+      .lineTo(t * 0.2, t * 0.06)
+      .quadraticCurveTo(t * 0.16, t * 0.15, t * 0.06, t * 0.15)
+      .lineTo(-t * 0.32, t * 0.15)
+      .quadraticCurveTo(-t * 0.38, t * 0.15, -t * 0.36, t * 0.12)
+      .closePath();
+  };
+  outline();
+  k.fill({ color: GLASS });
+  // The whiskey, in the lower half of the body.
+  k.rect(-t * 0.34, -t * 0.01, t * 0.42, t * 0.15);
+  k.fill({ color: WHISKEY });
+  // The label, paper with a ruled line.
+  k.rect(-t * 0.24, -t * 0.12, t * 0.2, t * 0.24);
+  k.fill({ color: NOIR_PAPER });
+  k.moveTo(-t * 0.21, t * 0.02).lineTo(-t * 0.07, t * 0.02);
+  k.stroke({ width: Math.max(1, t * 0.025), color: NOIR_INK });
+  // A glint down the glass.
+  k.moveTo(-t * 0.02, -t * 0.1).lineTo(t * 0.1, -t * 0.1);
+  k.stroke({ width: Math.max(1, t * 0.03), color: 0xffffff, alpha: 0.85, cap: 'round' });
+  // The cork.
+  k.rect(t * 0.34, -t * 0.045, t * 0.07, t * 0.09);
+  k.fill({ color: CORK });
+  k.stroke({ width: Math.max(1, t * 0.03), color: NOIR_INK });
+  outline();
+  k.stroke({ width: Math.max(1, t * 0.045), color: NOIR_INK });
 }

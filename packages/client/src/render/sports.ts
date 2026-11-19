@@ -1020,6 +1020,18 @@ export class SportsTheme extends ShapeTheme implements Theme {
       const turn = inFlight(launch.sport, nx - bx, ny - by, still ? 0 : p);
       const grow = (1 + 0.25 * high) * shotScale(shot, this.art);
       const ball = this.book.get(`ball|${launch.sport}`, t, (k) => drawBall(k, t, launch.sport));
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // The Berthas' ball is still the gun's own sport's — the style's gimmick — but on
+        // fire, a flame and speed lines streaming behind it (the user's, 2026-11-19: a Bertha
+        // shot of its own in every style but the plainest three, both Berthas one shape, by
+        // size). Two flames in turn make it flicker; one, still, under reduced motion.
+        const flicker = still ? 0 : Math.floor(now / 2) % 2;
+        const fire = this.book.get(`fireTail|${flicker}`, t, (k) => drawFireTail(k, t, flicker));
+        this.ballStamps.place(fire, tileX(view, bx), tileY(view, by), {
+          rotation: Math.atan2(ny - by, nx - bx),
+          scale: grow,
+        });
+      }
       this.ballStamps.place(ball, tileX(view, bx), tileY(view, by), {
         rotation: still && turn.scaleY === 1 ? 0 : turn.rotation,
         scale: turn.scaleX * grow,
@@ -1502,4 +1514,44 @@ function drawSportsScenery(g: Graphics, view: ViewTransform, items: readonly Sce
       g.stroke({ width: ink, color: INK });
     }
   }
+}
+
+/**
+ * A ball's fire, streaming back along -x from its middle at the origin, `t` a tile: a flame in
+ * orange round yellow, and three speed lines past its tail. `flicker` 0 or 1 lengthens one
+ * tongue and shortens the other, so two in turn flicker.
+ */
+function drawFireTail(k: Graphics, t: number, flicker: number): void {
+  const a = flicker === 0 ? 1 : 0.8;
+  const b = flicker === 0 ? 0.8 : 1;
+  const flame = (len: number, wide: number): void => {
+    k.moveTo(t * 0.05, -t * wide)
+      .bezierCurveTo(
+        -t * len * 0.3,
+        -t * wide * 1.3,
+        -t * len * 0.6,
+        -t * wide * 0.6 * a,
+        -t * len * a,
+        -t * wide * 0.5,
+      )
+      .quadraticCurveTo(-t * len * 0.55, 0, -t * len * 0.85 * b, t * wide * 0.5)
+      .bezierCurveTo(
+        -t * len * 0.6,
+        t * wide * 0.6 * b,
+        -t * len * 0.3,
+        t * wide * 1.3,
+        t * 0.05,
+        t * wide,
+      )
+      .closePath();
+  };
+  for (const side of [-0.17, 0.17]) {
+    k.moveTo(-t * 0.55, t * side).lineTo(-t * 0.95, t * side);
+  }
+  k.moveTo(-t * 0.75, 0).lineTo(-t * 1.1, 0);
+  k.stroke({ width: Math.max(1, t * 0.04), color: 0xffffff, alpha: 0.85, cap: 'round' });
+  flame(0.75, 0.2);
+  k.fill({ color: 0xff6a1a, alpha: 0.9 });
+  flame(0.5, 0.13);
+  k.fill({ color: 0xffd23a });
 }

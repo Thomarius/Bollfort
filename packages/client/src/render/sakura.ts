@@ -1456,8 +1456,8 @@ export class SakuraTheme extends ShapeTheme implements Theme {
     this.drawCarp(state, view, frame);
     this.drawBarrels(state, view, frame.deltaMs);
     this.drawMist(view, frame.deltaMs);
-    this.drawShots(state, view, frame);
     this.lateStamps.begin();
+    this.drawShots(state, view, frame);
     this.drawRings(view, frame.deltaMs);
     this.drawBits(view, frame.deltaMs);
     this.drawPuffs(view, frame.deltaMs);
@@ -1727,6 +1727,26 @@ export class SakuraTheme extends ShapeTheme implements Theme {
       if (step > 0) {
         g.poly([...upper, ...lower]);
         g.fill({ color: this.colour(shot.owner, 'base'), alpha: 0.6 });
+      }
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // A Bertha's shot is a paper lantern, glowing (the user's, 2026-11-19: a projectile
+        // of its own in every style but the three plainest, both Berthas one shape told
+        // apart by size): its light a wide wash under it, the lantern stamped over the
+        // stroke it trails, one drawing an owner, swaying as it flies rather than turning.
+        // Warm and saturated: a pale yellow wash over the indigo sea read grey.
+        g.circle(here.x, here.y, r * 2.3);
+        g.fill({ color: 0xff9a30, alpha: 0.18 });
+        g.circle(here.x, here.y, r * 1.6);
+        g.fill({ color: 0xffb850, alpha: 0.3 });
+        const lantern = this.book.get(`lantern-shot|${shot.owner}`, t, (k) =>
+          drawPaperLantern(k, t * 0.18, this.colour(shot.owner, 'base'), this.sumi),
+        );
+        this.lateStamps.place(lantern, here.x, here.y, {
+          rotation: motionReduced() ? 0 : Math.sin(this.clock / 260 + shot.id) * 0.25,
+          scale: r / (t * 0.18),
+        });
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
       }
       g.circle(here.x, here.y, r * 1.7);
       g.fill({ color: this.colour(shot.owner, 'light'), alpha: 0.3 });
@@ -2203,4 +2223,37 @@ function drawSakuraScenery(
       g.stroke({ width: 1, color: hex(palette.rockMid), alpha: 0.9 });
     }
   }
+}
+
+/**
+ * A paper lantern, its middle at the origin, `r` the ball's radius it stands in for: a round
+ * of paper in the owner's colour lit from inside — paler at its heart — its ribs and its
+ * black lacquered caps in sumi, and a tassel hanging under it.
+ */
+function drawPaperLantern(k: Graphics, r: number, paper: number, sumi: number): void {
+  const rx = r * 1.05;
+  const ry = r * 1.2;
+  const line = Math.max(1, r * 0.08);
+  // The tassel, then the paper over its top.
+  k.moveTo(0, ry).lineTo(0, ry + r * 0.55);
+  k.stroke({ width: Math.max(1, r * 0.12), color: sumi, alpha: 0.85 });
+  k.ellipse(0, 0, rx, ry);
+  k.fill({ color: paper });
+  // The light inside, showing through the paper.
+  k.ellipse(0, r * 0.05, rx * 0.68, ry * 0.7);
+  k.fill({ color: 0xffe2a0, alpha: 0.55 });
+  k.ellipse(0, r * 0.1, rx * 0.34, ry * 0.4);
+  k.fill({ color: 0xfff6dc, alpha: 0.7 });
+  // The ribs, bowed with the paper.
+  for (const y of [-0.55, 0, 0.55]) {
+    const w = rx * Math.sqrt(1 - y * y * 0.85);
+    k.moveTo(-w, y * ry).quadraticCurveTo(0, y * ry + r * 0.18, w, y * ry);
+  }
+  k.stroke({ width: line, color: sumi, alpha: 0.45 });
+  k.ellipse(0, 0, rx, ry);
+  k.stroke({ width: line, color: sumi, alpha: 0.8 });
+  // The caps.
+  k.roundRect(-r * 0.55, -ry - r * 0.12, r * 1.1, r * 0.3, r * 0.08);
+  k.roundRect(-r * 0.55, ry - r * 0.18, r * 1.1, r * 0.3, r * 0.08);
+  k.fill({ color: sumi });
 }

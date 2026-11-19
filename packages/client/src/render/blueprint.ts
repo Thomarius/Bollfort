@@ -1333,6 +1333,22 @@ export class BlueprintTheme implements Theme {
       g.moveTo(gx - s, gy + s).lineTo(gx + s, gy - s);
       g.stroke({ width: 1, color: colour, alpha: 0.5 });
       const head = at(p);
+      if (shot.kind === 'bertha' || shot.kind === 'biggest') {
+        // A Bertha's shot drawn as a shell in section (the user's, 2026-11-19: a projectile of
+        // its own in every style but the plainest three, both Berthas one shape told apart by
+        // size): stamped once per colour and tile size, turned along its flight.
+        const ahead = at(Math.min(1, p + 0.02));
+        const behind = at(Math.max(0, p - 0.02));
+        const shell = this.headBook.get(`shell|${colour}`, t, (h) =>
+          drawSectionShell(h, t * 0.34, colour, hex(this.art.palette.shadow)),
+        );
+        this.heads.place(shell, head.x, head.y, {
+          rotation: Math.atan2(ahead.y - behind.y, ahead.x - behind.x),
+          scale: (1 + 0.2 * Math.min(1, shotLift(shot, p) / 3)) * shotScale(shot, this.art),
+        });
+        drawShotTarget(g, view, shot, p, this.art, frame.humanPlayer);
+        continue;
+      }
       // The projectile stamped, by its colour and its radius to an eighth of a pixel: a
       // ring is a hundred vertices, and redrawn for every shot in the air each frame the
       // heads were most of what this style rebuilt (about 1,800 vertices at eight players).
@@ -1642,4 +1658,60 @@ function landDepth(state: MatchState): Uint16Array {
     }
   }
   return depth;
+}
+
+/**
+ * A shell as a drafting sheet draws one, nose along +x, `l` its half-length: the outline of an
+ * ogive nose on a straight body, its upper half cut away in section and hatched at 45 degrees,
+ * the shell's wall and its charge's cavity showing; a centre line in dash and dot along its
+ * axis; and below it a dimension line, arrow to arrow between two extension ticks.
+ */
+function drawSectionShell(g: Graphics, l: number, ink: number, paper: number): void {
+  const w = l * 0.42;
+  const tail = -l * 0.85;
+  const shoulder = l * 0.1;
+  const line = Math.max(1, l * 0.08);
+  // The outline: body, then the nose curving to its point.
+  g.moveTo(tail, -w)
+    .lineTo(shoulder, -w)
+    .quadraticCurveTo(l * 0.75, -w * 0.85, l, 0)
+    .quadraticCurveTo(l * 0.75, w * 0.85, shoulder, w)
+    .lineTo(tail, w)
+    .closePath();
+  g.fill({ color: paper });
+  g.stroke({ width: line * 1.4, color: ink, join: 'round' });
+  // The section: the upper half's wall hatched, the cavity inside it left bare.
+  const wall = w * 0.38;
+  const left = tail + wall;
+  const right = shoulder + l * 0.12;
+  const hatch = l * 0.22;
+  for (let c = tail - w; c < right; c += hatch) {
+    // A 45-degree line x - y = c, clipped to the rectangle [tail, right] x [-w, 0].
+    const x0 = Math.max(tail, c - 0);
+    const x1 = Math.min(right, c + w);
+    if (x1 <= x0) continue;
+    g.moveTo(x0, x0 - c).lineTo(x1, x1 - c);
+  }
+  g.stroke({ width: Math.max(0.75, line * 0.6), color: ink, alpha: 0.7 });
+  g.rect(left, -w + wall, right - left - wall * 0.5, w - wall);
+  g.fill({ color: paper });
+  g.stroke({ width: line, color: ink });
+  // The cut's edge along the axis, and the centre line out past both ends.
+  g.moveTo(tail, 0).lineTo(right, 0);
+  g.stroke({ width: line, color: ink });
+  for (let x = tail - l * 0.25; x < l * 1.25; x += l * 0.4) {
+    g.moveTo(x, 0).lineTo(Math.min(l * 1.25, x + l * 0.24), 0);
+    g.moveTo(x + l * 0.31, 0).lineTo(x + l * 0.34, 0);
+  }
+  g.stroke({ width: Math.max(0.5, line * 0.5), color: ink, alpha: 0.8 });
+  // The dimension: extension ticks down from tail and point, a line between, arrowheads in.
+  const dy = w + l * 0.38;
+  const head = l * 0.16;
+  g.moveTo(tail, w + l * 0.08).lineTo(tail, dy + l * 0.1);
+  g.moveTo(l, l * 0.12).lineTo(l, dy + l * 0.1);
+  g.moveTo(tail, dy).lineTo(l, dy);
+  g.stroke({ width: Math.max(0.75, line * 0.6), color: ink, alpha: 0.85 });
+  g.poly([tail, dy, tail + head, dy - head * 0.4, tail + head, dy + head * 0.4]);
+  g.poly([l, dy, l - head, dy - head * 0.4, l - head, dy + head * 0.4]);
+  g.fill({ color: ink, alpha: 0.85 });
 }
