@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { TITLE_AT_REST, titleGlide, titleTurn, type TitleFrame } from './decor.js';
+import {
+  TITLE_AT_REST,
+  lineShows,
+  titleGlide,
+  titleReach,
+  titleTurn,
+  widerReach,
+  type TitleFrame,
+} from './decor.js';
 import { TITLE_LETTERS_PX, neonTubes, titleLayout, type Title, type Tube } from './titles.js';
 
 const diagonal = (t: Tube): boolean => t.x1 !== t.x2 && t.y1 !== t.y2;
@@ -52,31 +60,42 @@ describe('title layout', () => {
 
 describe('the title gliding', () => {
   const pass = 6000;
-  const timing = { passMs: pass, pauseMs: 700 };
+  const timing = { passMs: pass, pauseMs: 700, ease: 3 };
   const cycle = timing.passMs + timing.pauseMs;
   /** Which look a row of the letters shows, 0 at their top and 1 at their foot. */
   const lookAt = (frame: TitleFrame, row: number): string =>
     row < frame.split ? frame.upper : frame.upper === 'build' ? 'combat' : 'build';
   const rows = Array.from({ length: 41 }, (_, k) => k / 40);
 
-  it('starts where the title rests, split through the middle with building above', () => {
-    expect(titleGlide(0, timing)).toEqual(TITLE_AT_REST);
+  it('starts with the word all building and the line out of sight, waiting', () => {
+    for (let ms = 0; ms < timing.pauseMs; ms += 50) {
+      const frame = titleGlide(ms, timing);
+      expect(frame.split).toBeLessThan(0);
+      expect(rows.every((row) => lookAt(frame, row) === 'build')).toBe(true);
+    }
+    // At rest, with no glide, the title is still split through the middle.
     expect(TITLE_AT_REST).toEqual({ split: 0.5, upper: 'build' });
   });
 
   it('speeds up and slows down across the letters, and waits out of sight between', () => {
     // A whole pass, from its line entering above the letters.
-    const from = (1 - 0.62 / 1.24) * pass + timing.pauseMs;
+    const from = timing.pauseMs;
     const step = (ms: number): number =>
       titleGlide(from + ms + 10, timing).split - titleGlide(from + ms, timing).split;
     expect(titleGlide(from, timing).split).toBeLessThan(0);
     // Slow in, fast through the middle, slow out.
     expect(step(0)).toBeLessThan(step(pass / 2) / 10);
     expect(step(pass - 20)).toBeLessThan(step(pass / 2) / 10);
-    // Then still below the letters, the line out of sight, for the pause.
-    for (let ms = pass; ms < cycle; ms += 50) {
-      expect(titleGlide(from + ms, timing).split).toBeGreaterThan(1);
-      expect(step(ms)).toBe(0);
+    // And visibly so on the letters, not only out of sight: a tenth of the way down them the
+    // line moves at under half its speed through their middle.
+    let ms = 0;
+    while (titleGlide(from + ms, timing).split < 0.1) ms += 5;
+    expect(step(ms)).toBeLessThan(step(pass / 2) / 2);
+    // Then the pause, the line out of sight and the word all the look it brought.
+    for (let ms = pass; ms < cycle - 10; ms += 50) {
+      const frame = titleGlide(from + ms, timing);
+      expect(frame.split < 0 || frame.split > 1).toBe(true);
+      expect(rows.every((row) => lookAt(frame, row) === 'combat')).toBe(true);
     }
   });
 
@@ -102,6 +121,39 @@ describe('the title gliding', () => {
     }
   });
 
+  it('changes the picture round the letters with them, never all at once', () => {
+    // A ribbon or a sheet round one title's letters, a tail under the other's: the line
+    // must cross all of both, or what it leaves out changes in one go as the pause begins.
+    const drawn: Title = {
+      src: '',
+      cellPx: 10,
+      padPx: 16,
+      tailPx: 0,
+      smooth: true,
+      flicker: false,
+    };
+    const stone: Title = { src: '', cellPx: 4, padPx: 0, tailPx: 2, smooth: false, flicker: false };
+    const reach = widerReach(titleReach(drawn), titleReach(stone));
+    expect(reach.above).toBeCloseTo(16 / 70);
+    expect(reach.below).toBeCloseTo(16 / 70);
+    const picture = Array.from(
+      { length: 81 },
+      (_, k) => -reach.above + ((1 + reach.above + reach.below) * k) / 80,
+    );
+    for (let ms = 0; ms < 3 * cycle; ms += 5) {
+      const a = titleGlide(ms, timing, reach);
+      const b = titleGlide(ms + 5, timing, reach);
+      for (const row of picture) {
+        if (lookAt(a, row) === lookAt(b, row)) continue;
+        expect(b.split).toBeGreaterThanOrEqual(row);
+        expect(a.split).toBeLessThanOrEqual(row);
+      }
+      // The line is shown wherever it cuts the picture, and only there.
+      const inside = a.split >= picture[0]! && a.split <= picture[picture.length - 1]!;
+      expect(lineShows(a, reach)).toBe(inside);
+    }
+  });
+
   it('shows the whole word in each look by turns', () => {
     const whole = (look: string): boolean =>
       Array.from({ length: (2 * cycle) / 10 }, (_, k) => titleGlide(k * 10, timing)).some((frame) =>
@@ -114,9 +166,9 @@ describe('the title gliding', () => {
 
 describe('the title rotating its random halves', () => {
   const pass = 1000;
-  const timing = { passMs: pass, pauseMs: 200 };
+  const timing = { passMs: pass, pauseMs: 200, ease: 3 };
 
-  it('turns a half at the start of every pass, while it is out of sight, by turns', () => {
+  it('turns a half as every pause begins, while it is out of sight, by turns', () => {
     const turns: string[] = [];
     let before = 0;
     for (let ms = 1; ms <= 4 * (pass + timing.pauseMs); ms++) {
@@ -130,7 +182,8 @@ describe('the title rotating its random halves', () => {
       }
       before = ms;
     }
-    expect(turns).toEqual(['combat', 'build', 'combat', 'build']);
+    // The first pass brings the combat look the menu opened with; then building, by turns.
+    expect(turns).toEqual(['build', 'combat', 'build', 'combat']);
   });
 
   it('turns a half even when a frame skips past the moment', () => {

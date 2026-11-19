@@ -4,7 +4,7 @@ import { Pixels } from './render/pixel/canvas.js';
 import { water } from './render/pixel/generators.js';
 import { motionReduced } from './motion.js';
 import { styleTitle } from './styles/registry.js';
-import { GAME_TITLE, TITLE_LETTERS_PX, titleLayout, titleWidth } from './titles.js';
+import { GAME_TITLE, TITLE_LETTERS_PX, titleLayout, titleWidth, type Title } from './titles.js';
 
 /**
  * The menu and lobby's dressing: the title in both chosen looks at once, split by a
@@ -20,69 +20,122 @@ export interface TitleFrame {
   upper: ArtLook;
 }
 
-/** At rest the title is split through the middle, building above and combat below. */
+/**
+ * How far a title's picture reaches past its letters, above and below, as fractions of their
+ * height: a ribbon, a sheet, a halo or a glow round them, a tail under a stone one.
+ */
+export interface TitleReach {
+  above: number;
+  below: number;
+}
+
+/** A title drawn only on its letters. */
+export const LETTERS_ONLY: TitleReach = { above: 0, below: 0 };
+
+/** How far a title's picture reaches past its letters (`titleLayout` lays it so). */
+export function titleReach(title: Title): TitleReach {
+  const letters = 7 * title.cellPx;
+  return { above: title.padPx / letters, below: (title.padPx + title.tailPx) / letters };
+}
+
+/** The farther reach of two titles, each way: what a line must cross to change all of both. */
+export function widerReach(a: TitleReach, b: TitleReach): TitleReach {
+  return { above: Math.max(a.above, b.above), below: Math.max(a.below, b.below) };
+}
+
+/** Whether the line cuts the pictures, rather than being past them, out of sight. */
+export function lineShows(frame: TitleFrame, reach: TitleReach): boolean {
+  return frame.split >= -reach.above && frame.split <= 1 + reach.below;
+}
+
+/**
+ * At rest — motion unwelcome, so no glide — the title is split through the middle, building
+ * above and combat below, both looks shown still.
+ */
 export const TITLE_AT_REST: TitleFrame = { split: 0.5, upper: 'build' };
 
-/** Just past the letters, so the line enters and leaves out of sight of them. */
-const BEYOND = 0.12;
+/**
+ * Just past the pictures, so the line enters and leaves out of sight of them — barely, so
+ * its speeding up and slowing down happen where they show: at 0.12 most of the ease was
+ * spent out of sight, and the line read as crossing at one even speed (2026-11-19).
+ */
+const BEYOND = 0.03;
 
-/** How far through a pass the line is at the middle of the letters. */
-const MIDDLE = (0.5 + BEYOND) / (1 + 2 * BEYOND);
-
-/** A pass's timing: the line's sweep across the letters, then the wait before the next. */
+/**
+ * A pass's timing: the line's sweep across the letters, then the wait before the next, and
+ * how sharply it speeds up and slows down (`ease`).
+ */
 export interface TitleTiming {
   passMs: number;
   pauseMs: number;
-}
-
-/** From 0 to 1, starting and ending at rest. */
-function ease(t: number): number {
-  return 0.5 - 0.5 * Math.cos(Math.PI * t);
+  ease: number;
 }
 
 /**
- * Where the glide is `ms` in: the pass, counted from 1, and how far its line has come, 0
- * entering above the letters and 1 gone below. The first pass is the lower half of one, the
- * line setting off from the middle where the title rests; each pass then waits out of sight.
+ * From 0 to 1, starting and ending at rest: `t^k / (t^k + (1 - t)^k)`, an even speed at
+ * `k` 1, and at higher `k` slower at the ends and faster through the middle, where it moves
+ * `k` times the pass's mean speed.
  */
-function where(ms: number, { passMs, pauseMs }: TitleTiming): { pass: number; at: number } {
-  const lead = (1 - MIDDLE) * passMs;
-  if (ms < lead) return { pass: 1, at: MIDDLE + (1 - MIDDLE) * ease(ms / lead) };
-  if (ms < lead + pauseMs) return { pass: 1, at: 1 };
-  const since = ms - lead - pauseMs;
-  const cycle = passMs + pauseMs;
-  const into = since % cycle;
-  return { pass: 2 + Math.floor(since / cycle), at: into < passMs ? ease(into / passMs) : 1 };
+function ease(t: number, k: number): number {
+  const a = t ** k;
+  const b = (1 - t) ** k;
+  return a + b === 0 ? t : a / (a + b);
 }
 
 /**
- * The title's line, `ms` into its glide: down across the letters, speeding up and slowing
- * down, out of sight below them for a short wait, and in again from above, each pass a
+ * Where the glide is `ms` in: the pass, counted from 0, and how far its line has come, 0
+ * above the letters and 1 gone below. Each pass opens with its pause, the line waiting out of
+ * sight above the word, which is all the look the last pass brought; so does the first, the
+ * word all building, rather than a line setting off from the middle (2026-11-19).
+ */
+function where(ms: number, timing: TitleTiming): { pass: number; at: number } {
+  const { passMs, pauseMs, ease: k } = timing;
+  const cycle = passMs + pauseMs;
+  const pass = Math.floor(ms / cycle);
+  const into = ms - pass * cycle;
+  return { pass, at: into < pauseMs ? 0 : ease((into - pauseMs) / passMs, k) };
+}
+
+/** The look a pass brings down over the word: combat first, then building, by turns. */
+function brings(pass: number): ArtLook {
+  return pass % 2 === 0 ? 'combat' : 'build';
+}
+
+/**
+ * The title's line, `ms` into its glide: a short wait out of sight, then down across the
+ * letters, speeding up and slowing down, and out of sight again below them, each pass a
  * banner bringing the other look over the whole word — combat, then building, as a round's
  * banners do. At one even speed and never still (the test session of 2026-10-08, after a line
  * that stopped at the middle) it read as mechanical; the session of 2026-10-12 asked for it
- * eased with a pause between, the pause off the letters. Leaving at the foot and entering at
- * the head, the line is out of sight both times, so nothing on the word jumps.
+ * eased with a pause between, the pause off the letters; that ease, a cosine mostly spent out
+ * of sight, still read as one even speed, so it is sharper and on the letters (2026-11-19,
+ * `titleEase`). The line crosses the whole of both pictures, `reach` past the letters: crossing
+ * only the letters, it left what the titles draw round them — a ribbon, a sheet, a halo, a
+ * tail — to change all at once as the pause began (2026-11-19). Leaving at the foot and
+ * entering at the head, the line is out of sight both times, so nothing on the word jumps.
  */
-export function titleGlide(ms: number, timing: TitleTiming): TitleFrame {
+export function titleGlide(
+  ms: number,
+  timing: TitleTiming,
+  reach: TitleReach = LETTERS_ONLY,
+): TitleFrame {
   const { pass, at } = where(ms, timing);
-  return {
-    split: -BEYOND + (1 + 2 * BEYOND) * at,
-    upper: pass % 2 === 0 ? 'combat' : 'build',
-  };
+  const top = -reach.above - BEYOND;
+  const foot = 1 + reach.below + BEYOND;
+  return { split: top + (foot - top) * at, upper: brings(pass) };
 }
 
 /**
  * The half of the title that may take a new style between `before` and `ms` into the glide,
- * or null: at the start of each pass, the half that pass brings — wholly out of sight then,
- * since the word is all the other look — as a banner on the board changes a look it is about
- * to reveal (PLAN 11.23). A frame that skips past the moment still turns it.
+ * or null: as each pause begins, the line just gone below the letters, the half the coming
+ * pass brings — wholly out of sight then, since the word is all the other look — as a banner
+ * on the board changes a look it is about to reveal (PLAN 11.23). Not at the glide's start:
+ * the opening styles are just shown. A frame that skips past the moment still turns it.
  */
 export function titleTurn(before: number, ms: number, timing: TitleTiming): ArtLook | null {
   const was = where(before, timing).pass;
   const now = where(ms, timing).pass;
-  if (now === was) return null;
-  return now % 2 === 0 ? 'combat' : 'build';
+  return now === was ? null : brings(now);
 }
 
 /** Where the title's looks come from: `LookRotation`, the match's own. */
@@ -103,6 +156,7 @@ export class SplitTitle {
   private readonly layers: Record<ArtLook, HTMLElement>;
   private readonly line: HTMLElement;
   private shown: Partial<Record<ArtLook, ArtStyle>> = {};
+  private reaches: Record<ArtLook, TitleReach> = { build: LETTERS_ONLY, combat: LETTERS_ONLY };
   private same = false;
   /** When the glide began, or null while the title rests. */
   private glideStart: number | null = null;
@@ -155,6 +209,7 @@ export class SplitTitle {
     img.style.imageRendering = title.smooth ? 'auto' : 'pixelated';
     img.classList.toggle('flicker', title.flicker);
     this.shown = { ...this.shown, [look]: style };
+    this.reaches = { ...this.reaches, [look]: titleReach(title) };
     this.same = this.shown.build === this.shown.combat;
   }
 
@@ -166,6 +221,8 @@ export class SplitTitle {
     if (this.glideStart !== null || this.same || motionReduced()) return;
     this.glideStart = performance.now();
     this.glidedTo = 0;
+    // Its first frame at once, so the title is never seen at rest, split through the middle.
+    this.frame(titleGlide(0, this.timing(), this.reach()));
     requestAnimationFrame(this.tick);
   }
 
@@ -177,7 +234,7 @@ export class SplitTitle {
       this.frame(TITLE_AT_REST);
       return;
     }
-    const timing = { passMs: this.art.menu.titlePassMs, pauseMs: this.art.menu.titlePauseMs };
+    const timing = this.timing();
     const ms = now - this.glideStart;
     const turn = titleTurn(this.glidedTo, ms, timing);
     this.glidedTo = ms;
@@ -185,9 +242,19 @@ export class SplitTitle {
       const other = turn === 'build' ? 'combat' : 'build';
       this.dress(turn, this.rotation.next(turn, this.shown[other] ?? null));
     }
-    this.frame(titleGlide(ms, timing));
+    // The reach after the turn: a half dressed afresh may reach farther than the one it was.
+    this.frame(titleGlide(ms, timing, this.reach()));
     requestAnimationFrame(this.tick);
   };
+
+  private reach(): TitleReach {
+    return widerReach(this.reaches.build, this.reaches.combat);
+  }
+
+  private timing(): TitleTiming {
+    const { titlePassMs, titlePauseMs, titleEase } = this.art.menu;
+    return { passMs: titlePassMs, pauseMs: titlePauseMs, ease: titleEase };
+  }
 
   private frame(frame: TitleFrame): void {
     const lower: ArtLook = frame.upper === 'build' ? 'combat' : 'build';
@@ -201,7 +268,7 @@ export class SplitTitle {
     this.layers[frame.upper].dataset.side = 'above';
     this.layers[lower].dataset.side = 'below';
     this.root.style.setProperty('--split', `${frame.split * TITLE_LETTERS_PX}px`);
-    this.line.hidden = frame.split < 0 || frame.split > 1;
+    this.line.hidden = !lineShows(frame, this.reach());
   }
 }
 

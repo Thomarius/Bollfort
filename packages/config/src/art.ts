@@ -1289,6 +1289,11 @@ export const ArtConfigSchema = z
       titlePassMs: z.number().int().positive(),
       /** The wait between passes, the line out of sight and the word in one look. */
       titlePauseMs: z.number().int().nonnegative(),
+      /**
+       * How sharply a pass speeds up and slows down: 1 an even speed; at k the line crosses
+       * the letters' middle at k times its mean speed and lingers at their head and foot.
+       */
+      titleEase: z.number().min(1),
       /** One breath of the surf round the lobby map's coasts, each tile a little out of step. */
       mapSurfMs: z.number().int().positive(),
       /** One breath of the castles on the lobby map. */

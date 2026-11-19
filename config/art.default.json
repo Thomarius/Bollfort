@@ -1583,8 +1583,9 @@
     }
   },
   "menu": {
-    "titlePassMs": 5500,
+    "titlePassMs": 2500,
     "titlePauseMs": 700,
+    "titleEase": 3,
     "mapSurfMs": 3200,
     "mapCastleMs": 2200
   },
