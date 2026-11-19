@@ -218,6 +218,7 @@
   "looks.heartAll": "All",
   "looks.heartNone": "None",
   "looks.done": "Done",
+  "looks.dlc": "DLC",
   "looks.randomHint": "A new style every round, from your favourites if you have any",
   "plan.sheet": "SHEET {round} OF {cap}",
   "plan.sheetOpen": "SHEET {round}",

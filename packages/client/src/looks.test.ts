@@ -192,6 +192,22 @@ describe('the gallery', () => {
     expect(html).toContain('<b>Halloween</b>');
   });
 
+  it("tags a supporter style's card DLC, and no other", () => {
+    const html = galleryMarkup(
+      { build: 'pixel', combat: 'random' },
+      'build',
+      [],
+      (c) => c === 'noir',
+    );
+    const card = (choice: string): string => {
+      const at = html.indexOf(`data-choice="${choice}"`);
+      return html.slice(at, html.indexOf('</button>', at));
+    };
+    expect(card('noir')).toContain('<i class="dlc">DLC</i>');
+    expect(card('pixel')).not.toContain('class="dlc"');
+    expect(card('random')).not.toContain('class="dlc"');
+  });
+
   it('badges one card twice when both looks are the same style', () => {
     const html = galleryMarkup({ build: 'random', combat: 'random' }, 'build');
     const card = html.slice(html.indexOf('data-choice="random"'), html.indexOf('class="done"'));

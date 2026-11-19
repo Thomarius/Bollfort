@@ -6058,6 +6058,22 @@ body.reduced-motion .look-gallery .card img:not(.ready) {
   color: #ff5a7a;
 }
 
+/* A supporter style's tag, under the heart: what a build with the supporter package adds. */
+.look-gallery .dlc {
+  position: absolute;
+  top: 2.15rem;
+  left: 0.35rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: #b48cff;
+  color: #0a0a12;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  z-index: 1;
+}
+
 /* Which look a card is chosen for: corner badges, building's above combat's. */
 .look-gallery .badge {
   position: absolute;

@@ -6,6 +6,7 @@ import { escape } from './html.js';
 import { store, stored } from './storage.js';
 import { stylePreview } from './stylePreview.js';
 import { STYLE_IDS, isStyle, styleDefinition, styleServes, stylesFor } from './styles/registry.js';
+import { SUPPORTER_STYLES } from './styles/supporter.js';
 
 /**
  * Choosing the two looks (ARCHIVE 12b): a style each for building and for combat, or
@@ -208,11 +209,20 @@ function heart(on: boolean): string {
   );
 }
 
+/**
+ * Whether a style is one of the supporter package's, marked DLC on its card: none in a build
+ * without the package, whose stub lists none (`styles/supporter.ts`).
+ */
+export function supporterStyle(style: LookChoice): boolean {
+  return SUPPORTER_STYLES.some((s) => s.id === style);
+}
+
 /** The gallery's inside, apart so a test can read it without a page. */
 export function galleryMarkup(
   choices: LookChoices,
   active: ArtLook,
   favourites: readonly ArtStyle[] = [],
+  dlc: (choice: LookChoice) => boolean = supporterStyle,
 ): string {
   const tab = (look: ArtLook, label: string): string =>
     `<button class="tab${look === active ? ' active' : ''}" data-look="${look}">` +
@@ -235,11 +245,13 @@ export function galleryMarkup(
         choice === RANDOM
           ? ''
           : `<span class="heart${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" tabindex="0" data-tip="${escape(t('looks.favourite'))}">${heart(on)}</span>`;
+      // A supporter style's tag, under the heart, in the corner opposite the badges.
+      const tag = dlc(choice) ? `<i class="dlc">${t('looks.dlc')}</i>` : '';
       return (
         // The chosen one is where a controller's focus starts (`padMenus.ts`).
         `<button class="card${chosen}" data-choice="${choice}"${hint}${chosen === '' ? '' : ' data-main'}>` +
         `<img alt="" data-preview="${choice}" />` +
-        `<span class="name">${escape(lookName(choice))}</span>${badges}${mark}</button>`
+        `<span class="name">${escape(lookName(choice))}</span>${badges}${mark}${tag}</button>`
       );
     })
     .join('');
