@@ -145,7 +145,13 @@ export class MatchAudio {
           if (event.shot.kind === 'subwoofer') break;
           if (event.shot.kind === 'bertha') this.heavy.set(event.shot.id, 'tower_impact');
           if (event.shot.kind === 'biggest') this.heavy.set(event.shot.id, 'tower_biggest_impact');
-          this.audio.play('cannon_fire', 1, 0, this.pan(event.shot.fromX));
+          // A Drone Tower's missile has its own launch; it lands as any shot.
+          this.audio.play(
+            event.shot.kind === 'drone' ? 'drone_launch' : 'cannon_fire',
+            1,
+            0,
+            this.pan(event.shot.fromX),
+          );
           break;
 
         case 'shot_impact':

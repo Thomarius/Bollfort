@@ -1264,16 +1264,19 @@ describe('special towers in a room', () => {
     r.join(guest, 'Bo');
     r.handle(host, { type: 'configure', settings: { specials: true } });
     r.handle(host, { type: 'special', special: 'bertha3' });
+    // A retired tower is taken as none (the Rapid Cannon, 2026-11-20): no lobby can describe it.
     r.handle(guest, { type: 'special', special: 'rapid2' });
+    expect(lastRoom(guest).seats.map((s) => s.special)).toEqual(['bertha3', null]);
+    r.handle(guest, { type: 'special', special: 'drone2' });
     expect(lastRoom(guest).settings.specials).toBe(true);
-    expect(lastRoom(guest).seats.map((s) => s.special)).toEqual(['bertha3', 'rapid2']);
+    expect(lastRoom(guest).seats.map((s) => s.special)).toEqual(['bertha3', 'drone2']);
 
     r.start();
     run(r, 5);
     const state = host.state!;
     expect(state.ruleset.specials.enabled).toBe(true);
     expect(state.players[host.playerId]!.special).toBe('bertha3');
-    expect(state.players[guest.playerId]!.special).toBe('rapid2');
+    expect(state.players[guest.playerId]!.special).toBe('drone2');
     const bot = state.players.find((p) => p.isBot)!;
     expect(bot.special).not.toBeNull();
 

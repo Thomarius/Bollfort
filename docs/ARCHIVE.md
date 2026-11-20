@@ -12538,3 +12538,43 @@ offscreen pass is drawn and cleared whole and only its result on the canvas is c
 put back after the passes. Masks were the other way, at the cost 13o measured; the scissor is kept
 for every look. Seen in screenshots of Chess to Petri Dish and back, watched and with the island
 zoom starting in. Cyberpunk's bloom, filtered too, takes the same path.
+
+## 16r. The Drone Tower, in the Rapid Cannon's place (2026-11-20)
+
+The user's design, to replace the Rapid Cannon, the plainest tower (docs/SPECIAL_TOWERS.md §2.10,
+§5 DR): a tower **no click fires**. A barrel for each cannon it cost, as the Rapid's, each launching
+by itself whenever loaded, at least 250 ms after the last, at a wall drawn at random within 4 tiles
+of its owner's **last shot** — the anchor, a player's (`droneAnchor`), kept from phase to phase,
+none until the first shot, and then it holds fire, as it does with no wall in reach. Sending the
+cursor was weighed and dropped: a new action, longer recordings, and every client told where a
+rival aims; the last click is already in the log. Its missile flies as a cannon's shot from the
+tower, and a Lullaby's sleep shuts it down for its length (the user's). Built in the sim
+(`drone.ts`, `launchDrones` after each tick's actions), the anchor hashed only once a player has
+one, so every older match hashes as before; protocol 37.
+
+**Why it pays** (the user's point, measured): a bot fires at most one shot every `fireIntervalMs`
+and a person as fast as they click, so guns stand loaded and unfired — 26% of the time at Level 5
+and 36% at Level 3 in bot tables, 16–22% for people in the recordings. The drone fires beside that
+limit. **Balance**, Level 5, 96 matches a pairing: at a cannon's flight it won 77 / 84 against no
+tower, far too strong. **A wider radius made it stronger, not weaker** (2.5: 67 / 76; 6: 76 / 91):
+a small circle runs out of walls and holds fire, and every wall scores, breach or none — the
+radius sets how often it fires. The flight is the lever: **×1.6** gave 61 / 67, head to head 55,
+and against every other tower at its cost a mean of 48 and 55 — inside the evened-out towers'
+44–56, level with the Rapid Cannon (51 / 51), whose own 54 / 67 the same seeds reproduced. At
+Level 3 it gains more, 68 / 74, as its worth predicts.
+
+**Seen** (`render/drones.ts`): a drone per barrel circling the tower in the towers' layer, one shape
+for every style, its frame dark and rotors in the owner's colour (all in that colour, it was lost on
+its own ground); parked on the tower asleep, inert or out of combat; one shared missile from where
+its drone was, smoke and flame behind, the styles drawing none (`withoutInstantShots`), the ring
+where one lands drawn for its owner. The area round the anchor outlined for its owner in combat,
+for the user's tests. The menu's preview has a cannon beside it fire the aiming shot. Heard: the
+user's `tower_drone.mp3`.
+
+**Decided** (the users played and approved it): it **takes the Rapid Cannon's place**. The Rapid
+Cannon is out of the default ruleset (`RETIRED_KINDS`), so never offered or drawn; a choice of it
+remembered by a table, a tournament's save or sent by a room's guest becomes the draw or none
+(`botSpecial`, `seatTowers`, the room). Its rules stay for the recordings. Tower of Babel asks for
+the nine played (`PLAYED_KINDS`). Rapid fire became **Look, no hands!** (`HANDS_FREE`, medium): a
+drone missile opens a rival's sealed castle — in bot play in 8 of 8 matches at Level 5 with cost 3,
+4 of 8 with cost 2; a count of missiles or walls was routine at cost 3 or out of reach at cost 2.

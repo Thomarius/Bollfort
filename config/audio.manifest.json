@@ -91,6 +91,10 @@
       "file": "sfx/tower_subwoofer.mp3",
       "volume": 0.6
     },
+    "drone_launch": {
+      "file": "sfx/tower_drone.mp3",
+      "volume": 0.6
+    },
     "walls_repaired": {
       "file": "sfx/tower_architect.mp3",
       "volume": 0.6

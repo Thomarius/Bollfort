@@ -31,6 +31,7 @@ const NAME_KEY = {
   frost: 'tower.frost',
   lullaby: 'tower.lullaby',
   subwoofer: 'tower.subwoofer',
+  drone: 'tower.drone',
 } as const;
 
 /** A tower's name, without its cost. */
@@ -122,6 +123,14 @@ export function towerWhat(variant: TowerVariant, ruleset: Ruleset = defaultRules
       if (!('waveWidth' in config)) return '';
       return t(config.flightFactor > 1 ? 'tower.subwooferSlowWhat' : 'tower.subwooferWhat', {
         w: config.waveWidth,
+      });
+    case 'drone':
+      // Its missiles are its barrels, one a cannon it cost, as the Rapid Cannon's; its reload told
+      // against a cannon's where it is slower, as Big Bertha's is.
+      if (!('radius' in config)) return '';
+      return t(config.flightFactor > 1 ? 'tower.droneSlowWhat' : 'tower.droneWhat', {
+        n: cost,
+        r: config.radius,
       });
   }
 }

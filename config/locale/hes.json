@@ -657,6 +657,7 @@
   "tower.frost": "Frostkanon",
   "tower.lullaby": "Schlafturm",
   "tower.subwoofer": "Subwoofer",
+  "tower.drone": "Drohneturm",
   "tower.berthaWhat": "Reißt e Kreuz aus fünf Mauerblöck raus unn feuert zuerst, sobald se parat is. Ihr Granat fliegt so schnell wie e Kanonekugel.",
   "tower.berthaFastWhat": "Reißt e Kreuz aus fünf Mauerblöck raus unn feuert zuerst, sobald se parat is. Ihr Granat fliegt schneller wie e Kanonekugel, also lädt se früher nach.",
   "tower.berthaSlowWhat": "Reißt e Kreuz aus fünf Mauerblöck raus unn feuert zuerst, sobald se parat is. Ihr Granat fliegt langsamer wie e Kanonekugel, also lädt se später nach.",
@@ -676,6 +677,8 @@
   "tower.lullabyAnyWhat": "Sein Schuss singt die {n} gegnerische Kanone in de Schlaf, die em getroffene Feld am nächste stehe: E Kanon schläft sofort {s} Sekunde, en Spezialturm nach {t} Lieder; en Baumaaster wie e Kanon; die Allerdickste Berta schläft nie — feuert zuerst, sobald er parat is.",
   "tower.subwooferWhat": "Schickt e {w} Blöck breit Well in Richtung vum aageklickte Feld bis zum Karterand; jed vun ihre {w} Bahne reißt de erste Mauerblock weg, den se erreischt, egal wie weit — feuert zuerst, sobald er parat is.",
   "tower.subwooferSlowWhat": "Schickt e {w} Blöck breit Well in Richtung vum aageklickte Feld bis zum Karterand; jed vun ihre {w} Bahne reißt de erste Mauerblock weg, den se erreischt, egal wie weit — feuert zuerst, sobald er parat is. Er lädt langsamer nach wie e Kanon.",
+  "tower.droneWhat": "E Drohn mit {n} Rakete, die vun selbst feuert, nie per Klick, uff en zufällische Mauerblock bis {r} Blöck um dein eigene letzte Schuss — dei eigene Schüss ziele also für die.",
+  "tower.droneSlowWhat": "E Drohn mit {n} Rakete, die vun selbst feuert, nie per Klick, uff en zufällische Mauerblock bis {r} Blöck um dein eigene letzte Schuss — dei eigene Schüss ziele also für die. Ihr Rakete fliege langsamer wie e Kanonekugel, also lädt se später nach.",
   "tower.cost": {
     "one": "{n} Kanon",
     "other": "{n} Kanone"
@@ -818,8 +821,8 @@
   "achievement.HEAVYWEIGHT.desc": "Mach mit de Granat vun de Allerdickste Berta {walls} Mauerblöck kabutt.",
   "achievement.ARCHITECT_ZONING.name": "Bebauungsplan",
   "achievement.ARCHITECT_ZONING.desc": "Hab {towers} Baumaaster uff aamol, kaa Feld in de Reichweit vun zwaa.",
-  "achievement.RAPID_FIRE.name": "Schnellfeuer",
-  "achievement.RAPID_FIRE.desc": "Baller mit aaner Schnellfeuerkanon {shots} Schüss in aaner Kampfphas.",
+  "achievement.HANDS_FREE.name": "Guck emol, ohne Händ!",
+  "achievement.HANDS_FREE.desc": "Mach mit aaner Rakete vun deim Drohneturm die eigeschlosse Burch vun em Geschner uff.",
   "achievement.CHAIN_REACTION.name": "Kettereaktion",
   "achievement.CHAIN_REACTION.desc": "Mach mit aam Schlach vum Blitzturm {walls} Mauerblöck kabutt.",
   "achievement.STRAIGHT_THROUGH.name": "Voller Durchblick",

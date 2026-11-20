@@ -16,7 +16,11 @@ with the evened-out towers (ARCHIVE 15t); nothing is open — the team soaks and
 the cap of three dropped (ARCHIVE 15u, 14zm); the towers' own sounds, TS, are
 in (ARCHIVE 13zx). The sixth tower, the Laser Tower (§2.6, 2026-10-21), is built, balanced and
 played by the user; the seventh and eighth, the Frost Cannon (§2.7) and the Lullaby Tower (§2.8),
-built, balanced and played by the user (2026-10-23). Like PLAN.md it says what is configurable and why and leaves the
+built, balanced and played by the user (2026-10-23). **The Drone Tower** (§2.10, the user's
+design, 2026-11-20) is built, balanced and play-tested, and **replaces the Rapid Cannon** (§5 DR,
+ARCHIVE 16r): nine towers still. The Rapid Cannon is retired — not offered, never drawn, asked
+for by no achievement — its rules kept for the recordings that played it. Open: whether the drone's
+area outline stays, the user testing it further. Like PLAN.md it says what is configurable and why and leaves the
 values to `config/*.json`; when a package is done its summary moves to ARCHIVE.md and this file
 keeps only what is open.
 
@@ -190,7 +194,9 @@ apart by levers of their own — the thing that defines the tower stays the same
   smaller reach without the ring's corners, which are what a breach takes, and a cap on walls
   rebuilt, a rule not seen, were weighed and dropped.
 
-**Rapid Cannon** — more guns in less room (redesigned by the user, 2026-10-16).
+**Rapid Cannon** — more guns in less room (redesigned by the user, 2026-10-16). **Retired
+2026-11-20** for the Drone Tower (§2.10, §5 DR): no longer offered, its rules kept for the
+recordings that played it.
 
 - Cost 2 or 3, footprint 2×2. Not an impact tower: it fires with the ordinary guns.
 - **As many cannons stacked on one footprint as it cost**: a barrel for each, each with its own
@@ -424,6 +430,74 @@ user's, weighed against Shockwave, Tsunami and the Jericho Horn.
   nearest enemy wall, two lanes wide and then four. The cooldown did not move it; four lanes
   balanced it at two players; but against the other towers it was the weakest at both costs (§5
   SW, BS), and the user chose to aim it instead.
+
+### 2.10 The Drone Tower (a trial)
+
+The user's design (2026-11-20), meant to replace the Rapid Cannon, the plainest tower, if it
+proves itself; else a tenth, or dropped (§5 DR). Convenience for chaos: it fires **by itself**,
+never by a click, at a wall chosen at random near where its owner is shooting. A drone circles the
+tower and each shot is a small missile from it.
+
+- **A third sort of tower**, neither an impact tower nor an ordinary gun: a click never fires it
+  (`findReadyCannon` passes it over), and the sim fires it on its own whenever a barrel is loaded
+  and it has a target.
+- **Barrels as the Rapid Cannon's**: one a cannon it cost, 2 or 3, each with its own shot in
+  flight and so its own reload (`shotIds`, `barrelsOf`) — its cost, not a lever of its own. Between two launches of one tower at
+  least `launchGapMs` (250 to start), so a full tower ripples rather than firing at once; through
+  a phase the barrels spread out on their own.
+- **Its anchor is its owner's last shot** (option B, the user's, 2026-11-20): the tile of the last
+  `fire` the rules accepted from that player, by any gun. The cursor is never known to the sim,
+  and sending it would be a new action, a longer recording and every client told where a rival
+  aims; the last click is already in the log, and a player clicks often enough that it follows
+  their aim. **Kept from phase to phase** (the user's), and through a continue; none until the
+  player's first shot of the match, and while there is none it holds fire. The menu's text must
+  say it plainly: your own shots aim it.
+- **Its target**, chosen as a barrel launches: at random among the walls within `radius` (**4** to
+  start, the user's, 2026-11-20: 2.5 seemed too small; a circle from the anchor tile's centre, as the Architect's reach) that its owner may
+  strike (`strikable`: a live opponent's, never its own, a teammate's or rubble), less the tiles
+  its owner's shots are already flying to. **None, it holds fire** (the user's) and tries again
+  next tick. The draw from `streamFor(seed, 'drone:' + shot id)`, as the Lightning Tower's.
+- **It flies as a cannon's shot from the tower**, `flightTicks` times `flightFactor` (**1.6**
+  at both costs, set by the soaks, §5 DR; 1 at first, far too strong), whatever the drone's drawn place; the flight is the reload. A shot beaten to its tile
+  lands on nothing, as any.
+- **A gun in every other way**: inert outside sealed ground, scoring as the cannons it cost, under
+  the cap of three, 2×2. **Asleep, it is shut down** for the sleep's whole length (the user's,
+  2026-11-20): a Lullaby lulls it as any tower, asleep at the second lullaby (`towerLulls`), its
+  reload paused as every gun's, and no barrel launches before it wakes.
+- **Levers by cost** (`ruleset.specials.drone`): `flightFactor`, `radius` (wider is more chaos
+  and less worth) and `launchGapMs`; the barrels are its cost.
+- **Determinism**: the anchor is a player's (`PlayerState.droneAnchor`, a tile or null), hashed
+  only while a Drone Tower stands, as the Subwoofer's waves are, so every older match hashes as
+  before; the kind and its variants appended to the hash's codes; carried in the snapshot. The
+  sim fires its drones in seat order after the tick's actions, so a click and a launch on one tick
+  see the new anchor.
+- **Why it should pay, for bots and people alike** (the user's point, measured 2026-11-20 with
+  `shotStats.ts`): a bot fires at most one shot every `fireIntervalMs` (420 ms at Level 1, 210 at
+  5), a person as fast as they click, while a gun reloads in 1.6 s and 45 ms a tile, some 2.8 s.
+  So a Level 5 bot serves about thirteen guns and a Level 1 bot about seven, and a gun beyond that
+  adds nothing. Active guns stood loaded and unfired **26% of the time at Level 5 and 36% at
+  Level 3** in bot tables (four matches of two each); in the recordings, **16–22% for people**
+  and 13–24% for the bots they played. A drone's barrels fire beside that limit, not within it.
+  The first Subwoofer, also unaimed, was the weakest tower — but its walls were the nearest on two
+  fixed rows, where the drone's follow the owner's aim (§2.9).
+- **Seen and heard** (DR3, the user's choices, 2026-11-20; `render/drones.ts`): a drone from above
+  for its emblem, four rotors on crossed arms. **A drone per barrel**, 2 or 3, circling the tower
+  in the towers' layer over every style, one shape for all — its frame dark and its rotors in the
+  owner's colour, since a drone all in that colour was lost on its own ground; parked on the
+  tower's corners while asleep, inert or out of combat. **One shared missile** (per-style ones only
+  if the tower is kept): from where its drone was as it launched to the tile, on a low arc, a
+  smoke trail and a flame behind; the styles never draw these shots (`withoutInstantShots`), so the
+  ring where one will land is drawn there for its owner, as for every shot. Everything moves by
+  the match's clock, so a pause holds it still. **The area** outlined faintly round the anchor for
+  its owner in combat, in their colour (`drawDroneArea`), whether the game keeps it to decide.
+  Its launch, the user's `tower_drone.mp3` (`drone_launch`), in place of a cannon's; it lands as
+  any shot. **The tower menu** two rows of six for the eleven choices; its **preview** a cannon
+  beside the tower firing at the rival's wall, which sets the area, then one volley into it; How
+  to play's tower round takes it in.
+- **Bots** need no aim: their own shots anchor it, and they shoot the weakest wall. The `Gunner`
+  must not count its barrels as guns ready to fire, or it would spend its turns on clicks that
+  fire none. Bought and sited as an ordinary gun goes; for `minGuns` its barrels count, as the
+  Rapid Cannon's do.
 
 ---
 
@@ -885,6 +959,73 @@ every other at its cost, on the same seeds, the pairings neither side of which c
 Every tower now averages 44–56 against the others at its cost. Against no tower the changed ones:
 Architect 2 64 (69 before), Lightning 3 74 (69), Frost 2 58 (59), Frost 3 74 (70), the Subwoofer
 61 / 67 — Lightning 3 and Frost 3 at the goal's edge, within the noise of their old figures.
+
+### DR — The Drone Tower (a trial, 2026-11-20)
+
+The user's three steps: design (§2.10), then build and measure, then decide whether it stays, and
+how. Each step's work is ended by the user's go-ahead.
+
+1. **DR1, the rules**: the kind `drone` and its variants in the sim and config, the anchor, the
+   automatic launch, the targets; tests as ASCII pictures in `drone.test.ts` (the anchor set by a
+   shot and kept into the next phase, none before the first shot, the radius, a teammate's wall
+   and rubble passed over, the tiles of its owner's own shots left out, holding fire with no wall
+   in reach, the gap between launches, a click never firing it, inert and lulled as any gun, a
+   replay exact). The Gunner passes its barrels over.
+2. **DR2, the balance**, at Level 5 as every tower since the Lightning Tower (§1): each variant
+   against no tower and the two head to head, 96 matches a pairing, then against every other
+   tower at its cost on the seeds of §5 BS — beside the Rapid Cannon most of all, which it would
+   replace. Since its worth is the guns a player cannot fire in time, which Level 3 leaves more of
+   (36% against 26%), a look at Level 3 as well.
+
+   **Measured** (2026-11-20, `soaks/drone-*`, the drone's own commit, the seeds of §5 BS; the
+   Rapid Cannon on the same reproduced its 54 / 67 exactly). Level 5, 96 matches a pairing,
+   ±4–5; cost 2 / cost 3 against no tower:
+
+   | levers                         | against none |
+   | ------------------------------ | ------------ |
+   | radius 2.5, flight 1           | 67 / 76      |
+   | **radius 4**, flight 1         | 77 / 84      |
+   | radius 6, flight 1             | 76 / 91      |
+   | radius 4, flight 1.3           | 74 / 74      |
+   | **radius 4, flight 1.6, kept** | **61 / 67**  |
+
+   **The radius works backwards**: a wider circle is stronger, not weaker. A small one runs out of
+   walls and holds fire; a wide one always has a target, and every wall destroyed scores, breach
+   or none — so the radius sets how often it fires, not how well it aims. The flight, which is
+   the reload, is the lever; the radius stays the user's 4. Head to head at 1.6, cost 3 won 55
+   (58 at flight 1). Against every other tower at its cost (fewest–most):
+
+   | rival        | drone 2 | drone 3 |
+   | ------------ | ------- | ------- |
+   | Architect    | 50      | 61      |
+   | Big Bertha   | 43      | 61      |
+   | Allerdickste | 48      | 51      |
+   | Frost        | 50      | 52      |
+   | Laser        | 49      | 61      |
+   | Lightning    | 41      | 40      |
+   | Lullaby      | 47      | 56      |
+   | Rapid Cannon | 51      | 51      |
+   | Subwoofer    | 55      | 61      |
+   | **mean**     | **48**  | **55**  |
+
+   Inside the evened-out towers' 44–56 at both costs (§5 BS), and level with the Rapid Cannon,
+   which it would replace. At Level 3 it gains more, as its worth predicts: 68 / 74 against no
+   tower, where the Rapid Cannon wins 58 / 55.
+
+3. **DR3, enough client to play it**: the emblem, the drone and its missiles, the menu's text in
+   every locale (that one's own shots aim it), the preview, the sound once the user has one. Then
+   the user's play.
+4. **DR4, the decision — done** (the users tested and approved it, 2026-11-20): **the Drone
+   Tower takes the Rapid Cannon's place.** The Rapid Cannon is out of the default ruleset
+   (`specials.rapid` optional, `RETIRED_KINDS`), so the menu, the bots' draws and a person's
+   random tower never offer it; a choice of it remembered by a table, a tournament's save or a
+   room's guest is taken as the draw, or none. Its rules stay, for the recordings. The menu keeps
+   its two rows of five. Tower of Babel asks for the nine played (`PLAYED_KINDS`), a bought Rapid
+   Cannon's bit in Steam's mask counting for nothing. Rapid fire is replaced by **Look, no hands!**
+   (`HANDS_FREE`, medium): a Drone Tower's missile opens a rival's sealed castle — in bot play in
+   8 of 8 matches at Level 5 with cost 3, 4 of 8 with cost 2, half at Levels 3 and 8; a count of
+   missiles or walls was routine at cost 3 (9 a phase, its most, in most phases) or out of reach
+   at cost 2. The area outline is kept while the user tests it further.
 
 ### After ST8 — the decisions
 

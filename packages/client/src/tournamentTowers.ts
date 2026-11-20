@@ -1,4 +1,9 @@
-import { defaultConfigBundle, type BotTower, type TowerVariant } from '@bollfort/config';
+import {
+  defaultConfigBundle,
+  offeredVariants,
+  type BotTower,
+  type TowerVariant,
+} from '@bollfort/config';
 import { drawnSpecial } from '@bollfort/ai';
 import { streamFor } from '@bollfort/sim';
 import type { MatchTable, Save } from '@bollfort/tournament';
@@ -14,7 +19,12 @@ export function seatTowers(save: Save, table: MatchTable): BotTower[] {
   const specials = save.settings.specials === true;
   return table.seats.map((seat): BotTower => {
     if (!specials || seat.level === null) return 'drawn';
-    if (seat.tower !== undefined) return seat.tower;
+    // Fixed as the tournament was made — unless the rules no longer offer it (the Rapid Cannon,
+    // retired 2026-11-20): then drawn as in a save from before.
+    const offered = offeredVariants(defaultConfigBundle.ruleset.specials);
+    if (seat.tower !== undefined && (seat.tower === null || offered.includes(seat.tower))) {
+      return seat.tower;
+    }
     const team = table.teams[seat.team] ?? 0;
     return drawnSpecial(
       streamFor(save.settings.seed, `tower:${team}`).nextU32(),

@@ -2,6 +2,8 @@ import { variantCost, variantKind, type ArtConfig, type SpecialKind } from '@bol
 import {
   FREEZE_PENDING,
   FROZEN_TO_END,
+  circleOffsets,
+  droneOf,
   inRepairReach,
   isAwake,
   isFrozen,
@@ -20,6 +22,7 @@ import { Container, Graphics } from 'pixi.js';
 import { motionReduced } from '../motion.js';
 import { EMBLEMS } from '../towerIcons.js';
 import { clearDrawn } from './clearDrawn.js';
+import { DroneMarks } from './drones.js';
 import { viewKey } from './stamps.js';
 import { drawSnowflake } from './yule.js';
 import {
@@ -508,6 +511,9 @@ export class TowerMarks {
    * Architect's circle is what it is there to show.
    */
   reachAlways = false;
+  /** The area the player's Drone Towers draw their walls from, drawn again only when it moves. */
+  private readonly droneArea = new Graphics();
+  private droneAreaKey = '';
   /** The Frost Cannons' ice, every frame while any tile is frozen, melting as it thaws. */
   private readonly ice = new Graphics();
   private iceShown = false;
@@ -522,6 +528,8 @@ export class TowerMarks {
   private wavesShown = false;
   /** The towers' emblems, drawn again only when one changes. */
   private readonly emblems = new Graphics();
+  /** The Drone Towers' drones and missiles, every frame while any tower or missile is. */
+  private readonly drones = new DroneMarks();
   /** The ghost's emblem, every frame while there is one. */
   private readonly ghost = new Graphics();
   /** The effects, every frame while any plays. */
@@ -536,8 +544,10 @@ export class TowerMarks {
   constructor() {
     this.root.addChild(
       this.reach,
+      this.droneArea,
       this.ice,
       this.emblems,
+      this.drones.root,
       this.waves,
       this.sleep,
       this.effects,
@@ -548,6 +558,7 @@ export class TowerMarks {
   /** Every tower's emblem: its owner's light colour while it fires, stone grey while inert. */
   draw(state: MatchState, view: ViewTransform, art: ArtConfig, humanPlayer: number): void {
     this.drawReach(state, view, art, humanPlayer);
+    this.drawDroneArea(state, view, art, humanPlayer);
     this.drawIce(state, view);
     this.drawSleep(state, view);
     let key = `${viewKey(view)}|${art.players.map((p) => p.light).join(',')}`;
@@ -645,6 +656,17 @@ export class TowerMarks {
    * glide. Read from the match, where the waves are, so nothing is kept here; cleared once, then
    * left alone, while there are none.
    */
+  /** The Drone Towers' drones and missiles (`drones.ts`), between ticks by `tickFraction`. */
+  drawDrones(
+    state: MatchState,
+    view: ViewTransform,
+    art: ArtConfig,
+    humanPlayer: number,
+    tickFraction: number,
+  ): void {
+    this.drones.draw(state, view, art, humanPlayer, tickFraction);
+  }
+
   drawWaves(state: MatchState, view: ViewTransform, art: ArtConfig, tickFraction: number): void {
     if (state.waves.length === 0) {
       if (this.wavesShown) clearDrawn(this.waves);
@@ -753,6 +775,47 @@ export class TowerMarks {
       }
     }
     drawZs(g, zs, t);
+  }
+
+  /**
+   * The area the player's own Drone Towers draw their walls from, in combat (the user's, for the
+   * trial, 2026-11-20): every tile within the widest of their radii round the tile of the
+   * player's last shot, outlined faintly in their colour, so the rule — your shots aim it — is
+   * seen. Only their own, as the Architect's reach is; whether the game keeps it is to decide.
+   */
+  private drawDroneArea(
+    state: MatchState,
+    view: ViewTransform,
+    art: ArtConfig,
+    human: number,
+  ): void {
+    const player = state.players[human];
+    const anchor = player?.droneAnchor;
+    let radius = 0;
+    if (player !== undefined && !player.eliminated && state.phase === 'combat') {
+      for (const c of state.cannons) {
+        if (c.owner === human && c.kind === 'drone') {
+          radius = Math.max(radius, droneOf(state, c.cost).radius);
+        }
+      }
+    }
+    const shown = anchor !== undefined && radius > 0;
+    const colour = playerColour(art, human, 'light');
+    const key = shown ? `${viewKey(view)}|${colour}|${anchor}|${radius}` : '';
+    if (key === this.droneAreaKey) return;
+    this.droneAreaKey = key;
+    clearDrawn(this.droneArea);
+    if (!shown) return;
+    const ax = anchor % state.width;
+    const ay = (anchor - ax) / state.width;
+    const tiles = new Set<number>();
+    for (const [dx, dy] of circleOffsets(radius)) {
+      const x = ax + dx;
+      const y = ay + dy;
+      if (x >= 0 && y >= 0 && x < state.width && y < state.height) tiles.add(y * state.width + x);
+    }
+    outlineTiles(this.droneArea, view, tiles, state.width);
+    this.droneArea.stroke({ width: Math.max(1, view.tile / 12), color: colour, alpha: 0.55 });
   }
 
   /**

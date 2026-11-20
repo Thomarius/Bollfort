@@ -89,14 +89,21 @@ export function botTowerOf(towers: readonly BotTower[] | undefined, seat: number
   return tower === undefined ? 'drawn' : tower;
 }
 
-/** The tower a bot in this seat brings: the host's choice, or its draw. */
+/**
+ * The tower a bot in this seat brings: the host's choice, or its draw — its draw too where the
+ * host chose a tower the rules no longer offer (the Rapid Cannon, retired 2026-11-20), remembered
+ * by a table or a tournament's save from before.
+ */
 export function botSpecial(
   seed: number,
   seat: number,
   tower: BotTower,
   specials: Specials,
 ): TowerVariant | null {
-  return tower === 'drawn' ? drawnSpecial(seed, seat, specials) : tower;
+  if (tower === 'drawn' || (tower !== null && !offeredVariants(specials).includes(tower))) {
+    return drawnSpecial(seed, seat, specials);
+  }
+  return tower;
 }
 
 export function dealSeats(

@@ -21,8 +21,9 @@ import { SnapshotSchema } from './snapshot.js';
  * its variants, its ruleset key and the snapshot's waves (2026-10-30). 35: the host's Remove, a
  * browser's ID on joining, and the games browser's listing with towers and without rounds
  * (STEAM.md K and B, 2026-11-03). 36: a seat's Steam ID, for its avatar (STEAM.md §7.3, S3).
+ * 37: the Drone Tower, its variants, its ruleset key and a player's anchor (2026-11-20).
  */
-export const PROTOCOL_VERSION = 36;
+export const PROTOCOL_VERSION = 37;
 
 /**
  * A player's intent. The server overwrites `player` with the sender's own seat before

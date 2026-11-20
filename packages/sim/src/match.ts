@@ -21,6 +21,7 @@ import { fire, resolveImpacts } from './shots.js';
 import { startFreezes, thawExpired } from './frost.js';
 import { wakeAll } from './lullaby.js';
 import { advanceWaves, inFlight } from './subwoofer.js';
+import { launchDrones } from './drone.js';
 import { repairWalls } from './specials.js';
 import { denseTeams, tableTeamSize, teamScore } from './teams.js';
 import { generateTerrain } from './terrain.js';
@@ -735,6 +736,9 @@ export function step(state: MatchState): void {
   resolveImpacts(state);
   // The Subwoofers' waves travel on, landing in the intermission too, which waits for them.
   advanceWaves(state);
+  // The Drone Towers launch on their own — after the barrels this tick freed, and before the
+  // phase may end, as a click on this tick would have been.
+  launchDrones(state);
   advancePhase(state);
 }
 
@@ -866,6 +870,7 @@ const CANNON_KIND_CODES: readonly string[] = [
   'frost',
   'lullaby',
   'subwoofer',
+  'drone',
 ];
 /** The same for loadouts; a variant added goes at the end. */
 const VARIANT_CODES: readonly TowerVariant[] = [
@@ -887,6 +892,8 @@ const VARIANT_CODES: readonly TowerVariant[] = [
   'lullaby3',
   'subwoofer2',
   'subwoofer3',
+  'drone2',
+  'drone3',
 ];
 
 export function hashMatchState(state: MatchState, version = HASH_VERSION): string {
@@ -1005,6 +1012,11 @@ export function hashMatchState(state: MatchState, version = HASH_VERSION): strin
       h.u32(w.lanes.length);
       for (const l of w.lanes) h.i32(l.ax).i32(l.ay).i32(l.dx).i32(l.dy).bool(l.done);
     }
+  }
+  // The Drone Towers' anchors, only once a player has one: a match without them hashes as it
+  // always did.
+  if (state.players.some((p) => p.droneAnchor !== undefined)) {
+    for (const p of state.players) h.nullable(p.droneAnchor);
   }
   return h.hex;
 }

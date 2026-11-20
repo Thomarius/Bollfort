@@ -212,6 +212,9 @@ SCENES=(
   # The Subwoofer's cooldown ring on its badge, and a wave on its way: its first goes three
   # seconds into the barrage, so caught a moment after (real time, so nudged on a slower machine).
   "towers-waves|$BASE/?autostart=1&players=2&seed=5&specials=1&tower=subwoofer3&snapshot=combat&round=3&style=flat|7300"
+  # The Drone Tower's area round the player's last shot (the trial, 2026-11-20): the autopilot
+  # plays the person's seat, so its shots set the anchor and the drones launch on their own.
+  "towers-drone|$BASE/?autostart=1&players=2&seed=5&specials=1&tower=drone3&autopilot=1&snapshot=combat&round=3&style=flat|5000"
   # Night's sea: the moon's path, lighthouses and their beams.
   "night-sea|$BASE/?autostart=1&players=3&seed=5&snapshot=combat&round=3&style=night|3000"
 )

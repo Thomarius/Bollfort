@@ -70,6 +70,12 @@ export interface PlayerState {
    * no longer tells the two apart.
    */
   openingPlacement: boolean;
+  /**
+   * The tile of this player's last shot fired by a click, which aims their Drone Towers
+   * (docs/SPECIAL_TOWERS.md §2.10): kept from phase to phase and through a continue. Noted only
+   * for a player who brings the tower, so no other match's state, or its hash, is changed.
+   */
+  droneAnchor?: number;
 }
 
 /**

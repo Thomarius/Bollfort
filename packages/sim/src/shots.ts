@@ -1,4 +1,4 @@
-import type { CraterPattern } from '@bollfort/config';
+import { variantKind, type CraterPattern } from '@bollfort/config';
 
 import { distanceFixed, distanceSquared } from './math.js';
 import { playerOf, type Rejection } from './placement.js';
@@ -9,6 +9,7 @@ import { strikeLightning } from './lightning.js';
 import { sendWave, subwooferOf, waveRays, waveTargets } from './subwoofer.js';
 import {
   craterTilesOf,
+  firesItself,
   fixedFlightMsOf,
   flightFactorOf,
   isImpactTower,
@@ -47,11 +48,11 @@ export function craterOffsets(pattern: CraterPattern): readonly (readonly [numbe
   }
 }
 
-function cannonCentreX(cannon: Cannon): number {
+export function cannonCentreX(cannon: Cannon): number {
   return cannon.x + (cannon.w - 1) / 2;
 }
 
-function cannonCentreY(cannon: Cannon): number {
+export function cannonCentreY(cannon: Cannon): number {
   return cannon.y + (cannon.h - 1) / 2;
 }
 
@@ -73,6 +74,8 @@ export function findReadyCannon(state: MatchState, playerId: number, tx: number,
     if (cannon.owner !== playerId || !cannon.active || !isLoaded(cannon)) continue;
     // Asleep, a Lullaby Tower's doing: it fires nothing yet.
     if (!isAwake(state, cannon)) continue;
+    // A Drone Tower fires on its own (`launchDrones`), never by a click.
+    if (firesItself(cannon.kind)) continue;
     const impact = isImpactTower(cannon.kind);
     if (bestImpact && !impact) continue;
     const d = distanceSquared(cannonCentreX(cannon), cannonCentreY(cannon), tx, ty);
@@ -114,7 +117,7 @@ export function flightTicks(
  * A shot's flight from this gun, in ticks: by distance, times the gun's factor — or the
  * Allerdickste Bertha's, fixed whatever the distance.
  */
-function shotFlightTicks(
+export function shotFlightTicks(
   state: MatchState,
   cannon: Cannon,
   fromX: number,
@@ -164,19 +167,7 @@ export function fire(
     return { rejection: 'out_of_range' };
   }
 
-  const shot: Shot = {
-    id: state.nextShotId++,
-    cannonId: cannon.id,
-    owner: playerId,
-    kind: cannon.kind,
-    cost: cannon.cost,
-    fromX,
-    fromY,
-    toX: tx,
-    toY: ty,
-    launchTick: state.tick,
-    impactTick: state.tick + shotFlightTicks(state, cannon, fromX, fromY, tx, ty),
-  };
+  const shot = newShot(state, cannon, tx, ty);
   // The Laser Tower's beam is traced before it is fired, since its reload is the flight to the
   // first wall it clears — not to the tile clicked, which only sets the direction: aimed so,
   // a click by the tower's own shore would reload in no time (the user's).
@@ -201,10 +192,36 @@ export function fire(
   cannon.shotIds.push(shot.id);
   state.shots.push(shot);
   state.events.push({ kind: 'shot_fired', tick: state.tick, shot });
+  // A player who brings a Drone Tower aims it by their own shots (§2.10): the last one's tile.
+  if (player.special !== null && variantKind(player.special) === 'drone') {
+    player.droneAnchor = ty * state.width + tx;
+  }
   if (shot.kind === 'lightning') strikeLightning(state, shot);
   if (beam !== null) fireLaser(state, shot, beam);
   if (rays !== null) sendWave(state, shot, rays);
   return { shot };
+}
+
+/**
+ * A shot from this gun at (tx, ty), launched now, its id taken: from the gun's centre, landing
+ * after its flight (`shotFlightTicks`). Not yet in the air — the caller puts it there.
+ */
+export function newShot(state: MatchState, cannon: Cannon, tx: number, ty: number): Shot {
+  const fromX = cannonCentreX(cannon);
+  const fromY = cannonCentreY(cannon);
+  return {
+    id: state.nextShotId++,
+    cannonId: cannon.id,
+    owner: cannon.owner,
+    kind: cannon.kind,
+    cost: cannon.cost,
+    fromX,
+    fromY,
+    toX: tx,
+    toY: ty,
+    launchTick: state.tick,
+    impactTick: state.tick + shotFlightTicks(state, cannon, fromX, fromY, tx, ty),
+  };
 }
 
 /**

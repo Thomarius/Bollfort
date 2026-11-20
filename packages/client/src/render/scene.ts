@@ -1,5 +1,5 @@
 import { defaultArtConfig, type ArtConfig, type ArtStyle } from '@bollfort/config';
-import { strikesOnFiring, type MatchState, type Shot } from '@bollfort/sim';
+import { firesItself, strikesOnFiring, type MatchState, type Shot } from '@bollfort/sim';
 import { Application, BigPool, Container, Graphics, Rectangle, RenderTexture } from 'pixi.js';
 // The text pipe, registered before any renderer starts: Pixi registers it as `Text` is first
 // imported, which is now as a style using it is fetched (`StyleDefinition.theme`), after the renderer
@@ -710,6 +710,7 @@ export class Scene {
     const art = this.slots[this.shown.to].art;
     this.towers.draw(state, this.view, art, humanPlayer);
     this.towers.drawWaves(state, this.view, art, tickFraction);
+    this.towers.drawDrones(state, this.view, art, humanPlayer, tickFraction);
     this.towers.drawEffects(this.view, deltaMs);
     const shown = withoutInstantShots(state);
     for (const slot of this.visible()) {
@@ -1099,9 +1100,12 @@ export class Scene {
 /**
  * The match as the styles are to draw it: a Lightning Tower's or Laser Tower's shot struck as
  * it was fired, and what stays in the air after is only its reload (`strikesOnFiring`), so no
- * style draws it flying. The state itself where there is none, as there nearly always is.
+ * style draws it flying; and a Drone Tower's missile is drawn over every style by the towers'
+ * layer (`drones.ts`), from its drone. The state itself where there is none, as there nearly
+ * always is.
  */
 function withoutInstantShots(state: MatchState): MatchState {
-  if (!state.shots.some((s) => strikesOnFiring(s.kind))) return state;
-  return { ...state, shots: state.shots.filter((s) => !strikesOnFiring(s.kind)) };
+  const drawnElsewhere = (s: Shot): boolean => strikesOnFiring(s.kind) || firesItself(s.kind);
+  if (!state.shots.some(drawnElsewhere)) return state;
+  return { ...state, shots: state.shots.filter((s) => !drawnElsewhere(s)) };
 }

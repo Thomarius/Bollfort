@@ -5,6 +5,7 @@ import {
   createMatch,
   fastRuleset,
   legalCannonPlacements,
+  Structure,
   step,
   withSpecials,
   type Action,
@@ -24,7 +25,7 @@ describe('a recording with special towers', () => {
   it('names each player’s tower in its header and replays exactly', () => {
     const ruleset = withSpecials(fastRuleset());
     const players = [
-      { name: 'Ada', isBot: false, team: 0, special: 'rapid2' as const },
+      { name: 'Ada', isBot: false, team: 0, special: 'drone2' as const },
       { name: 'Bo', isBot: false, team: 1, special: null },
     ];
     const lines: RecordingLine[] = [];
@@ -63,18 +64,29 @@ describe('a recording with special towers', () => {
     while (!(phase() === 'cannon_place' && state.round === 1)) play([]);
     const spot = legalCannonPlacements(state, 0)[0]!;
     play([{ kind: 'place_cannon', player: 0, ...spot, special: true }]);
-    expect(state.cannons.some((c) => c.kind === 'rapid')).toBe(true);
+    expect(state.cannons.some((c) => c.kind === 'drone')).toBe(true);
+    // One click at Bo's wall in the barrage aims the drone, which then launches on its own.
+    while (phase() !== 'combat') play([]);
+    const wall = state.structure.findIndex(
+      (s, i) => s === Structure.Wall && state.owner[i] === state.players[1]!.islandId,
+    );
+    play([{ kind: 'fire', player: 0, x: wall % state.width, y: Math.floor(wall / state.width) }]);
     for (let i = 0; i < 300; i++) play([]);
 
     const header = lines[0]!;
     expect(header.kind === 'header' && header.players.map((p) => p.special)).toEqual([
-      'rapid2',
+      'drone2',
       null,
     ]);
-    const replay = replayRecording(lines);
+    let launched = 0;
+    const replay = replayRecording(lines, (_, events) => {
+      for (const e of events) if (e.kind === 'shot_fired' && e.shot.kind === 'drone') launched++;
+    });
     expect(replay.mismatches).toEqual([]);
     expect(replay.refused).toBe(0);
-    expect(replay.state.cannons.some((c) => c.kind === 'rapid')).toBe(true);
+    expect(replay.state.cannons.some((c) => c.kind === 'drone')).toBe(true);
+    // Its missiles launched on their own, no action of their own in the log, replayed exactly.
+    expect(launched).toBeGreaterThan(0);
   });
 
   it('refuses format 3, the towers at one cost, never released', () => {

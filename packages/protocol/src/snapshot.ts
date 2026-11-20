@@ -58,6 +58,8 @@ const PlayerSchema = z.strictObject({
   special: TowerVariantSchema.nullable(),
   specialsBought: z.number().int().nonnegative(),
   openingPlacement: z.boolean(),
+  /** The tile of the player's last shot, which aims their Drone Towers; absent until there is one. */
+  droneAnchor: z.number().int().nonnegative().optional(),
 });
 
 const CannonKindSchema = z.enum(['cannon', ...SPECIAL_KINDS]);
@@ -223,7 +225,11 @@ export function applySnapshot(state: MatchState, snapshot: Snapshot): void {
   state.pendingPhase = snapshot.pendingPhase;
   state.phaseEndTick = snapshot.phaseEndTick;
   state.overtime = snapshot.overtime;
-  state.players = snapshot.players.map((p) => ({ ...p }));
+  // A player with no anchor carries no `droneAnchor` at all, as the match makes it.
+  state.players = snapshot.players.map(({ droneAnchor, ...p }) => ({
+    ...p,
+    ...(droneAnchor === undefined ? {} : { droneAnchor }),
+  }));
   state.teams = snapshot.teams.map((t) => ({ ...t }));
   state.teamNames = snapshot.teamNames === null ? null : [...snapshot.teamNames];
   state.structure = decodeRle(snapshot.structure, size);

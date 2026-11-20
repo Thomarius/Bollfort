@@ -2,7 +2,9 @@ import {
   BotTowerSchema,
   MAX_LEVEL,
   MIN_LEVEL,
+  defaultRuleset,
   defaultTeams,
+  offeredVariants,
   reshapeTable,
   type BotTower,
   type MatchSettings,
@@ -100,7 +102,12 @@ export function readTable(
     ),
     botTowers: Array.from({ length: limits.max }, (_, seat): BotTower => {
       const tower = BotTowerSchema.safeParse(towers[seat]);
-      return tower.success ? tower.data : 'drawn';
+      // A tower the rules no longer offer (the Rapid Cannon, retired 2026-11-20) is left to the draw.
+      if (!tower.success) return 'drawn';
+      const offered = offeredVariants(defaultRuleset.specials);
+      return tower.data === null || tower.data === 'drawn' || offered.includes(tower.data)
+        ? tower.data
+        : 'drawn';
     }),
     hostSeat: within(saved.hostSeat, { min: 0, max: table.playerCount - 1 }, 0),
   };

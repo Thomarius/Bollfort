@@ -215,7 +215,9 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 - **Balance** (ARCHIVE 12h): the weekend soak found the points game on target. **Change no rule
   without a very good reason**; `npm run soak` reruns it.
 - **Special towers** (ARCHIVE 13zk–15u, `docs/SPECIAL_TOWERS.md`): nine, **off by default for
-  good** — a wacky addition, not the base game. A new tower is balanced at Level 5 only, its
+  good** — a wacky addition, not the base game. The Drone Tower, firing by itself near its owner's
+  last shot, replaced the Rapid Cannon (16r, 2026-11-20); the Rapid's rules stay for old
+  recordings, never offered (`RETIRED_KINDS`). A new tower is balanced at Level 5 only, its
   variants against each other and against no tower (the user's).
 - **The looks** (ARCHIVE 11zy–14y, 16g): 24 styles, each with its own corner piece, climax,
   banner, HUD skin, title, finish, cannon icon and (all but Minimal, Medieval, Night) music

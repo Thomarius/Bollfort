@@ -185,7 +185,7 @@ describe('the lobby with special towers', () => {
     playerCount: 3,
     hostId: 0,
     humanPlayer: 0,
-    seats: [seat(0, 'Ada', 'architect2'), seat(1, 'Bo', 'rapid3')],
+    seats: [seat(0, 'Ada', 'architect2'), seat(1, 'Bo', 'drone3')],
     bots: [5, 5, 5],
     settings: { maxRounds: 10, teamSize: 1, continues: 2, specials },
     settingBounds: {
@@ -203,7 +203,7 @@ describe('the lobby with special towers', () => {
     const off = lobbyMarkup(view(false));
     expect(off).toContain('id="specials"');
     expect(off).not.toContain('id="my-special"');
-    expect(off).not.toContain(towerName('rapid'));
+    expect(off).not.toContain(towerName('drone'));
   });
 
   it('lets each person choose their own, and shows everyone else’s and the bots’ draws', () => {
@@ -211,7 +211,7 @@ describe('the lobby with special towers', () => {
     const html = lobbyMarkup({ ...view(true), humanPlayer: 1 });
     // The person's own a button opening the tower menu, showing what they chose.
     expect(html).toContain('id="my-special"');
-    expect(html).toContain('data-variant="rapid3"');
+    expect(html).toContain('data-variant="drone3"');
     expect(html).not.toContain('<select id="my-special"');
     expect(html).not.toContain('bot-tower');
     // Everyone else's a small icon before the name, a dot a cannon under it, its name and what
@@ -281,7 +281,7 @@ describe('the lobby with special towers', () => {
     // The reach told as blocks across: twice the radius.
     expect(towerWhat('architect2', ruleset)).toContain('8');
     expect(towerWhat('architect3', ruleset)).toContain('14');
-    expect(towerWhat('rapid3')).toContain('3');
+    expect(towerWhat('drone3')).toContain('3');
     // Her two costs as the rules have them differ by the shell, and the text says how.
     expect(towerWhat('bertha2')).not.toBe(towerWhat('bertha3'));
     // A Bertha whose shell flies slower than a gun's says so.
@@ -327,13 +327,13 @@ describe('the tower menu', () => {
     expect(offeredTowers()).toEqual([
       { kind: 'bertha', costs: [2, 3] },
       { kind: 'architect', costs: [2, 3] },
-      { kind: 'rapid', costs: [2, 3] },
       { kind: 'lightning', costs: [2, 3] },
       { kind: 'biggest', costs: [2, 3] },
       { kind: 'laser', costs: [2, 3] },
       { kind: 'frost', costs: [2, 3] },
       { kind: 'lullaby', costs: [2, 3] },
       { kind: 'subwoofer', costs: [2, 3] },
+      { kind: 'drone', costs: [2, 3] },
     ]);
     const html = towerMenuMarkup('bertha2');
     expect(html.match(/data-kind="\w+"/)?.[0]).toBe('data-kind="none"');
@@ -372,11 +372,11 @@ describe('the tower menu', () => {
         'biggest',
         'architect',
         'bertha',
+        'drone',
         'frost',
         'laser',
         'lightning',
         'lullaby',
-        'rapid',
         'subwoofer',
       ]);
       setLanguage('de');
@@ -386,10 +386,10 @@ describe('the tower menu', () => {
         'architect',
         'lightning',
         'bertha',
+        'drone',
         'frost',
         'laser',
         'lullaby',
-        'rapid',
         'subwoofer',
       ]);
     } finally {
@@ -447,9 +447,11 @@ describe('the tower menu', () => {
   it('keeps the cost chosen when the tower changes, else takes the cheapest', () => {
     expect(variantForCard('bertha', null)).toBe('bertha2');
     expect(variantForCard('bertha', 3)).toBe('bertha3');
-    expect(variantForCard('rapid', 3)).toBe('rapid3');
+    expect(variantForCard('drone', 3)).toBe('drone3');
     expect(variantForCard('lightning', 2)).toBe('lightning2');
     // A cost the rules do not offer falls back to the cheapest.
-    expect(variantForCard('rapid', 5)).toBe('rapid2');
+    expect(variantForCard('drone', 5)).toBe('drone2');
+    // A retired tower is no card's: the Rapid Cannon (2026-11-20).
+    expect(variantForCard('rapid', 3)).toBeNull();
   });
 });

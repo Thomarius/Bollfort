@@ -116,11 +116,12 @@ describe('Steam’s stats after a match', () => {
       { castles_sealed: 10, walls_destroyed: 100, towers_bought: 0b101, towers_bought_count: 2 },
       { castles_sealed: 5, walls_destroyed: 30, towers_bought: 0b110 },
     );
+    // The third bit is the Rapid Cannon's, retired (2026-11-20): kept in the mask, not counted.
     expect(totals).toEqual({
       castles_sealed: 15,
       walls_destroyed: 130,
       towers_bought: 0b111,
-      towers_bought_count: 3,
+      towers_bought_count: 2,
     });
   });
 

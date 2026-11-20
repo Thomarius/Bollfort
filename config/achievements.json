@@ -26,7 +26,7 @@
   "BIG_BANG": { "walls": 4 },
   "HEAVYWEIGHT": { "walls": 10 },
   "ARCHITECT_ZONING": { "towers": 3 },
-  "RAPID_FIRE": { "shots": 12 },
+  "HANDS_FREE": {},
   "CHAIN_REACTION": { "walls": 3 },
   "STRAIGHT_THROUGH": { "walls": 3 },
   "COLD_SHOULDER": {},

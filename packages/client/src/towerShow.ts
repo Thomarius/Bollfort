@@ -5,6 +5,7 @@ import {
   drainEvents,
   fire,
   inFlight,
+  launchDrones,
   repairWalls,
   resolveImpacts,
   stateFromAscii,
@@ -19,7 +20,7 @@ import {
  * or an ordinary cannon, for none — and a rival's on the right, and a loop of shots fired
  * with the sim's own `fire`, landed by `resolveImpacts` and, for the Architect, rebuilt by
  * `repairWalls`. So every number is the chosen variant's own: Bertha's cross and her flight,
- * the Architect's reach, the Rapid's barrels, the Laser's walls pierced, the Subwoofer's waves
+ * the Architect's reach, the Drone Tower's volley, the Laser's walls pierced, the Subwoofer's waves
  * and its cooldown between them. No Pixi here; `towerPreview.ts` draws it.
  */
 
@@ -88,18 +89,21 @@ const GLYPH: Record<TowerVariant, string> = {
   lullaby3: 'Z',
   subwoofer2: 'w',
   subwoofer3: 'W',
+  drone2: 'd',
+  drone3: 'D',
 };
 
 /** Before the first shot of a loop, after its last lands, and before the repair. */
 const AIM_MS = 700;
 const AFTER_MS = 1400;
 const REPAIR_MS = 600;
-/** Between the Rapid Cannon's barrels, so they are seen firing in turn. */
-const BARREL_MS = 260;
 
 /** The board for a variant: both rings sealed, every gun active, towers played. */
 export function showState(variant: TowerVariant | null): MatchState {
-  const art = BOARD.replaceAll('X', variant === null ? '*' : GLYPH[variant]);
+  let art = BOARD.replaceAll('X', variant === null ? '*' : GLYPH[variant]);
+  // No click fires a Drone Tower: a cannon of the chooser's beside it, between it and the castle,
+  // fires the shot that aims it.
+  if (variant !== null && variantKind(variant) === 'drone') art = art.replaceAll('@@,,', '@@**');
   const islands = art
     .split('\n')
     .map((row) =>
@@ -150,6 +154,11 @@ export class TowerShow {
   private repairAt: number | null = null;
   /** When the loop's last shot landed (and its repair ran); null while it is going on. */
   private doneAt: number | null = null;
+  /**
+   * A Drone Tower's missiles still to launch this loop, one a barrel: it fires by itself round the
+   * anchor the cannon beside it sets with its shot, and is stopped after one volley.
+   */
+  private dronesLeft = 0;
 
   constructor(readonly variant: TowerVariant | null) {
     this.state = showState(variant);
@@ -168,6 +177,11 @@ export class TowerShow {
       state.tick++;
       resolveImpacts(state);
       advanceWaves(state);
+      if (this.dronesLeft > 0) {
+        const before = state.nextShotId;
+        launchDrones(state);
+        this.dronesLeft -= state.nextShotId - before;
+      }
     }
     // A gun fires once it is loaded: a plan waits on its barrel, as a click would.
     while (this.plan.length > 0 && this.ms >= (this.plan[0] as Planned).at) {
@@ -175,7 +189,7 @@ export class TowerShow {
       if ('rejection' in fire(state, next.player, next.x, next.y)) break;
       this.plan.shift();
     }
-    const quiet = this.plan.length === 0 && !inFlight(state);
+    const quiet = this.plan.length === 0 && this.dronesLeft <= 0 && !inFlight(state);
     if (quiet && this.repairAt === null && this.doneAt === null) {
       if (this.isArchitect()) this.repairAt = this.ms + REPAIR_MS;
       else this.doneAt = this.ms;
@@ -210,12 +224,11 @@ export class TowerShow {
     const variant = this.variant;
     if (variant !== null && variantKind(variant) === 'architect') {
       this.plan = ON_ARCHITECT.map((t) => ({ player: 1, ...t, at: AIM_MS }));
-    } else if (variant !== null && variantKind(variant) === 'rapid') {
-      this.plan = FACING.slice(0, variantCost(variant)).map((t, k) => ({
-        player: 0,
-        ...t,
-        at: AIM_MS + k * BARREL_MS,
-      }));
+    } else if (variant !== null && variantKind(variant) === 'drone') {
+      // The cannon beside it fires at the rival's wall, which aims it; then it launches a volley
+      // into the area round that shot by itself, its area outlined there for the loop.
+      this.plan = [{ player: 0, ...FACING[0], at: AIM_MS }];
+      this.dronesLeft = variantCost(variant);
     } else if (variant !== null && variantKind(variant) === 'laser') {
       this.plan = [{ player: 0, ...ALONG_TOP, at: AIM_MS }];
     } else if (variant !== null && variantKind(variant) === 'subwoofer') {
@@ -236,6 +249,8 @@ export class TowerShow {
     state.waves = [];
     state.lostWalls = [];
     state.frozen = [];
+    // The Drone Tower's aim with them: the next loop's shot sets it again.
+    for (const player of state.players) delete player.droneAnchor;
     for (const cannon of state.cannons) {
       cannon.shotIds = [];
       delete cannon.asleepUntil;

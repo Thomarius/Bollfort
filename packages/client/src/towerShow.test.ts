@@ -1,4 +1,4 @@
-import { TOWER_VARIANTS, type TowerVariant } from '@bollfort/config';
+import { defaultRuleset, offeredVariants, type TowerVariant } from '@bollfort/config';
 import { Structure, type MatchEvent } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
@@ -34,12 +34,23 @@ describe('the tower menu’s preview, played by the rules', () => {
     expect(landed('bertha2')).toBeGreaterThan(landed('bertha3'));
   });
 
-  it('fires each of a Rapid Cannon’s barrels before the first shot lands', () => {
-    for (const variant of ['rapid2', 'rapid3'] as const) {
-      const { events } = play(variant, 3500);
-      const shots = fired(events);
-      const firstImpact = impacts(events)[0]!.tick;
-      expect(shots.filter((e) => e.tick < firstImpact)).toHaveLength(variant === 'rapid2' ? 2 : 3);
+  it('aims a Drone Tower by the cannon beside it, then launches a volley round that shot', () => {
+    for (const variant of ['drone2', 'drone3'] as const) {
+      const { show, events } = play(variant, 3000);
+      const shots = fired(events).flatMap((e) => (e.kind === 'shot_fired' ? [e.shot] : []));
+      // The cannon's click first, then one missile a barrel and no more, each a wall within
+      // the area round the click — and never the wall the cannon's own shot is flying to.
+      expect(shots[0]?.kind).toBe('cannon');
+      const missiles = shots.slice(1);
+      expect(missiles.map((s) => s.kind)).toEqual(
+        Array(variant === 'drone2' ? 2 : 3).fill('drone'),
+      );
+      const [ax, ay] = [shots[0]!.toX, shots[0]!.toY];
+      for (const m of missiles) {
+        expect(Math.hypot(m.toX - ax, m.toY - ay)).toBeLessThanOrEqual(4);
+        expect(`${m.toX},${m.toY}`).not.toBe(`${ax},${ay}`);
+      }
+      expect(show.state.players[0]?.droneAnchor).toBe(ay * show.state.width + ax);
     }
   });
 
@@ -142,7 +153,7 @@ describe('the tower menu’s preview, played by the rules', () => {
   });
 
   it('loops: the walls come back and it plays again', () => {
-    for (const variant of [null, ...TOWER_VARIANTS]) {
+    for (const variant of [null, ...offeredVariants(defaultRuleset.specials)]) {
       const show = new TowerShow(variant);
       const walls = show.state.structure.filter((s) => s === Structure.Wall).length;
       let resets = 0;

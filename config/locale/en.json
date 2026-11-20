@@ -660,6 +660,7 @@
   "tower.frost": "Frost Cannon",
   "tower.lullaby": "Lullaby Tower",
   "tower.subwoofer": "Subwoofer",
+  "tower.drone": "Drone Tower",
   "tower.berthaWhat": "Clears a cross of five wall blocks, and fires first whenever it is ready. Its shell flies as fast as a cannon's.",
   "tower.berthaFastWhat": "Clears a cross of five wall blocks, and fires first whenever it is ready. Its shell flies faster than a cannon's, so it reloads sooner.",
   "tower.berthaSlowWhat": "Clears a cross of five wall blocks, and fires first whenever it is ready. Its shell flies slower than a cannon's, so it reloads later.",
@@ -679,6 +680,8 @@
   "tower.lullabyAnyWhat": "Its shot lulls the {n} enemy guns nearest the tile it hits: a cannon falls asleep for {s} seconds at once, a special tower after {t} lullabies; an Architect as a cannon; the Allerdickste Bertha never sleeps — fires first whenever it is ready.",
   "tower.subwooferWhat": "Sends a wave {w} blocks wide towards the tile clicked and on to the map's edge; each of its {w} lanes clears the first wall block it reaches, however far — fires first whenever it is ready.",
   "tower.subwooferSlowWhat": "Sends a wave {w} blocks wide towards the tile clicked and on to the map's edge; each of its {w} lanes clears the first wall block it reaches, however far — fires first whenever it is ready. Its wave reloads slower than a cannon's shot.",
+  "tower.droneWhat": "A drone with {n} missiles that fires by itself, never by a click, at a wall block drawn at random within {r} blocks of your own last shot — so your own shots aim it.",
+  "tower.droneSlowWhat": "A drone with {n} missiles that fires by itself, never by a click, at a wall block drawn at random within {r} blocks of your own last shot — so your own shots aim it. Its missiles fly slower than a cannonball, so it reloads later.",
   "tower.cost": {
     "one": "{n} cannon",
     "other": "{n} cannons"
@@ -821,8 +824,8 @@
   "achievement.HEAVYWEIGHT.desc": "Destroy {walls} walls with the Allerdickste Bertha's shell.",
   "achievement.ARCHITECT_ZONING.name": "Zoning laws",
   "achievement.ARCHITECT_ZONING.desc": "Own {towers} Architects at once, no tile within reach of two of them.",
-  "achievement.RAPID_FIRE.name": "Rapid fire",
-  "achievement.RAPID_FIRE.desc": "Fire {shots} shots from one Rapid Cannon in one combat phase.",
+  "achievement.HANDS_FREE.name": "Look, no hands!",
+  "achievement.HANDS_FREE.desc": "Open a rival's sealed castle with a missile from your Drone Tower.",
   "achievement.CHAIN_REACTION.name": "Chain reaction",
   "achievement.CHAIN_REACTION.desc": "Destroy {walls} walls with one Lightning Tower strike.",
   "achievement.STRAIGHT_THROUGH.name": "Straight through",

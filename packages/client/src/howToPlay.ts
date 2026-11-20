@@ -1090,13 +1090,13 @@ function drawTower(
 const TOWER_ROUND: readonly { kind: SpecialKind; cost: number }[] = [
   { kind: 'bertha', cost: 3 },
   { kind: 'architect', cost: 2 },
-  { kind: 'rapid', cost: 3 },
   { kind: 'lightning', cost: 2 },
   { kind: 'biggest', cost: 3 },
   { kind: 'laser', cost: 2 },
   { kind: 'frost', cost: 3 },
   { kind: 'lullaby', cost: 2 },
   { kind: 'subwoofer', cost: 3 },
+  { kind: 'drone', cost: 2 },
 ];
 const TOWER_MS = 3000;
 

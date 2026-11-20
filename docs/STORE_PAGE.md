@@ -85,7 +85,7 @@ Checked against the code and the locales on 2026-11-06. German names are the gam
   | ------------------- | ------------------ |
   | Big Bertha          | Dicke Berta        |
   | Architect           | Baumeister         |
-  | Rapid Cannon        | Schnellfeuerkanone |
+  | Drone Tower         | Drohnenturm        |
   | Lightning Tower     | Blitzturm          |
   | Allerdickste Bertha | Allerdickste Berta |
   | Laser Tower         | Laserturm          |

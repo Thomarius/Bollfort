@@ -17,7 +17,10 @@ import { Structure, type MatchState } from './types.js';
  */
 const SPECIALS: Ruleset = (() => {
   const ruleset = withSpecials(defaultRuleset);
-  const { architect, rapid } = ruleset.specials;
+  const { architect } = ruleset.specials;
+  // The Rapid Cannon is retired (2026-11-20), out of the default ruleset; its rules are kept for
+  // the recordings that played it, so tested on levers of their own.
+  const rapid = { footprint: [2, 2] as [number, number], flightFactor: 1 };
   return {
     ...ruleset,
     specials: {
@@ -26,7 +29,7 @@ const SPECIALS: Ruleset = (() => {
         '2': { ...architect['2']!, repairRadius: 3 },
         '3': { ...architect['3']!, repairRadius: 4 },
       },
-      rapid: { '2': { ...rapid['2']!, flightFactor: 1 }, '3': { ...rapid['3']!, flightFactor: 1 } },
+      rapid: { '2': rapid, '3': rapid },
     },
   };
 })();
@@ -186,7 +189,7 @@ describe('buying in a match', () => {
         ruleset,
         terrainConfig: defaultTerrainConfig,
         players: [
-          { name: 'a', isBot: true, special: 'rapid2' },
+          { name: 'a', isBot: true, special: 'drone2' },
           { name: 'b', isBot: true },
         ],
       }),
@@ -209,13 +212,13 @@ describe('buying in a match', () => {
 
   it('gives each player the tower they bring, only when towers are played', () => {
     const state = started();
-    expect(state.players.map((p) => p.special)).toEqual(['rapid2', null]);
+    expect(state.players.map((p) => p.special)).toEqual(['drone2', null]);
     const classic = createMatch({
       seed: 7,
       ruleset: fastRuleset(),
       terrainConfig: defaultTerrainConfig,
       players: [
-        { name: 'a', isBot: true, special: 'rapid2' },
+        { name: 'a', isBot: true, special: 'drone2' },
         { name: 'b', isBot: true },
       ],
     });
@@ -224,18 +227,18 @@ describe('buying in a match', () => {
 
   it('gives none for a variant the ruleset does not offer', () => {
     const ruleset = withSpecials(fastRuleset());
-    const { rapid } = ruleset.specials;
-    const offered = { ...ruleset, specials: { ...ruleset.specials, rapid: { '3': rapid['3'] } } };
+    const { drone } = ruleset.specials;
+    const offered = { ...ruleset, specials: { ...ruleset.specials, drone: { '3': drone?.['3'] } } };
     const state = createMatch({
       seed: 7,
       ruleset: offered,
       terrainConfig: defaultTerrainConfig,
       players: [
-        { name: 'a', isBot: true, special: 'rapid2' },
-        { name: 'b', isBot: true, special: 'rapid3' },
+        { name: 'a', isBot: true, special: 'drone2' },
+        { name: 'b', isBot: true, special: 'drone3' },
       ],
     });
-    expect(state.players.map((p) => p.special)).toEqual([null, 'rapid3']);
+    expect(state.players.map((p) => p.special)).toEqual([null, 'drone3']);
   });
 
   it('refuses the tower at the opening, then sells it in the next cannon phase', () => {

@@ -13,6 +13,7 @@ import {
   craterTilesOf,
   heldValue,
   isAwake,
+  firesItself,
   isImpactTower,
   isLoaded,
   lullTargets,
@@ -58,11 +59,14 @@ export class Gunner {
     const delay = Math.round((this.profile.readyDelayMs * state.ruleset.tickRateHz) / 1000);
     let ready = false;
     for (const cannon of state.cannons) {
+      // A Drone Tower fires on its own: counted ready, it would have the bot spend its turns
+      // on clicks that fire nothing.
       if (
         cannon.owner !== this.playerId ||
         !cannon.active ||
         !isLoaded(cannon) ||
-        !isAwake(state, cannon)
+        !isAwake(state, cannon) ||
+        firesItself(cannon.kind)
       ) {
         this.readySince.delete(cannon.id);
         continue;

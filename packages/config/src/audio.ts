@@ -45,6 +45,8 @@ export const SFX_CUES = [
   'lullaby',
   /** A Subwoofer's wave, once a tick however many fire, and not again within a second. */
   'subwoofer',
+  /** A Drone Tower's missile launching, in place of a cannon's shot. */
+  'drone_launch',
   /** The player's own Architect rebuilding their walls as a barrage ends, twice a tower. */
   'walls_repaired',
 ] as const;

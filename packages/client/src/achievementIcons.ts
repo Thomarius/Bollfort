@@ -43,7 +43,7 @@ export const ACHIEVEMENT_TIERS: Record<AchievementId, Tier> = {
   BIG_BANG: 'medium',
   HEAVYWEIGHT: 'medium',
   ARCHITECT_ZONING: 'medium',
-  RAPID_FIRE: 'medium',
+  HANDS_FREE: 'medium',
   CHAIN_REACTION: 'medium',
   STRAIGHT_THROUGH: 'medium',
   COLD_SHOULDER: 'medium',
@@ -432,20 +432,22 @@ const PICTURES: Record<AchievementId, Picture> = {
       )
       .join(''),
 
-  // Rapid fire: the Rapid Cannon's chevrons, shots streaming from them.
-  RAPID_FIRE: () =>
-    emblem('rapid', 6.6, 11.4, 10.8) +
+  // Look, no hands: the Drone Tower's drone, its missile diving through the wall it breaks open.
+  HANDS_FREE: () =>
+    bricks(1.6, 12.8, 3, 3, ['0:1']) +
+    burst(12, 14.2, 2.4, 5, 7, FIRE) +
+    emblem('drone', 1, 0.8, 8.6) +
     [
-      [12, 8.4, 1.5],
-      [12, 4.8, 1.25],
-      [12, 1.6, 1],
-      [7, 7.4, 1.25],
-      [4.8, 4, 1],
-      [17, 7.4, 1.25],
-      [19.2, 4, 1],
+      [8.6, 8.2, 0.55],
+      [9.6, 9.1, 0.7],
+      [10.6, 10, 0.85],
     ]
-      .map(([x, y, r]) => circle(x!, y!, r!, FIRE))
-      .join(''),
+      .map(([x, y, r]) => circle(x!, y!, r!, SHADE))
+      .join('') +
+    `<g transform="translate(13.6 12.2) rotate(42)">` +
+    shape('M-4.4 -2L-2.6 -0.8V0.8L-4.4 2z', SHADE) +
+    shape('M-3.4 -0.95H1.4L3.6 0L1.4 0.95H-3.4z', INK) +
+    `</g>`,
 
   // Chain reaction: the strike jumping from wall to wall.
   CHAIN_REACTION: () =>

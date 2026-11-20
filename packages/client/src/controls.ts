@@ -9,6 +9,7 @@ import {
   craterTilesOf,
   findReadyCannon,
   footprintOf,
+  firesItself,
   isImpactTower,
   isAwake,
   isLoaded,
@@ -82,6 +83,8 @@ export function readyCannons(state: MatchState, playerId: number): number {
   for (const cannon of state.cannons) {
     // A gun asleep (a Lullaby Tower's doing) fires nothing, so a click would do nothing on it
     // alone (the test session, 2026-11-14): the sim skips it as findReadyCannon does.
+    // A Drone Tower fires on its own: no click is ever its shot.
+    if (firesItself(cannon.kind)) continue;
     if (cannon.owner === playerId && cannon.active && isAwake(state, cannon)) {
       ready += barrelsOf(cannon) - cannon.shotIds.length;
     }
@@ -113,6 +116,8 @@ export function nextReload(state: MatchState, playerId: number, tickFraction = 0
   for (const cannon of state.cannons) {
     // A gun asleep (a Lullaby Tower's doing) is neither ready nor coming round.
     if (cannon.owner !== playerId || !cannon.active || !isAwake(state, cannon)) continue;
+    // A Drone Tower's reload is no click's: the cursor's ring tells only the guns a click fires.
+    if (firesItself(cannon.kind)) continue;
     if (isLoaded(cannon)) return null;
     const shot = landingFirst(state, cannon);
     if (shot !== null && (soonest === null || shot.impactTick < soonest.impactTick)) {

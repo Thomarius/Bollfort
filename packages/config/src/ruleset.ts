@@ -17,9 +17,22 @@ export const SPECIAL_KINDS = [
   'frost',
   'lullaby',
   'subwoofer',
+  'drone',
 ] as const;
 export const SpecialKindSchema = z.enum(SPECIAL_KINDS);
 export type SpecialKind = z.infer<typeof SpecialKindSchema>;
+
+/**
+ * Towers no longer played, kept in the code so the recordings of matches that played them replay:
+ * the Rapid Cannon, replaced by the Drone Tower (the user's, 2026-11-20; docs/SPECIAL_TOWERS.md
+ * §5 DR). The default ruleset offers none of them, and no achievement asks for one.
+ */
+export const RETIRED_KINDS: readonly SpecialKind[] = ['rapid'];
+
+/** The towers the game plays: every kind but the retired — nine, which Tower of Babel asks for. */
+export const PLAYED_KINDS: readonly SpecialKind[] = SPECIAL_KINDS.filter(
+  (kind) => !RETIRED_KINDS.includes(kind),
+);
 
 /**
  * What a tower may cost in cannons (the user's, 2026-10-16): every tower comes at two
@@ -51,6 +64,8 @@ export const TOWER_VARIANTS = [
   'lullaby3',
   'subwoofer2',
   'subwoofer3',
+  'drone2',
+  'drone3',
 ] as const satisfies readonly `${SpecialKind}${TowerCost}`[];
 export const TowerVariantSchema = z.enum(TOWER_VARIANTS);
 export type TowerVariant = z.infer<typeof TowerVariantSchema>;
@@ -221,6 +236,27 @@ const SubwooferSchema = z.strictObject({
 });
 
 /**
+ * The Drone Tower (2026-11-20, the user's, a trial): never fired by a click. A barrel for each
+ * cannon it cost, as the Rapid Cannon's, each launching on its own whenever loaded at a wall drawn
+ * at random within `radius` of its owner's last shot (`launchDrones`). Its reload an ordinary
+ * shot's flight from the tower, times `flightFactor`.
+ */
+const DroneSchema = z.strictObject({
+  ...towerFields,
+  /**
+   * How far from the tile of its owner's last shot a wall may be drawn, in tiles from that tile's
+   * centre to the wall's, a circle; a lever — wider is more chaos and less worth.
+   */
+  radius: z.number().positive(),
+  /**
+   * The least time between two launches of one tower, so a full tower ripples rather than firing
+   * every barrel on one tick. Counted from the last launch still in the air, so it must stay below
+   * the shortest flight (`baseFlightMs` times `flightFactor`), which it is by far.
+   */
+  launchGapMs: ms,
+});
+
+/**
  * Special towers (docs/SPECIAL_TOWERS.md): a cannon with an ability of its own, bought in
  * the cannon phase for several ordinary ones. Whether they are played at all is `enabled`,
  * which a match's settings write; the rest is each variant's balance.
@@ -238,8 +274,12 @@ export const SpecialsSchema = z.strictObject({
   bertha: byCost(BerthaSchema),
   /** Defence: rebuilds its owner's walls lost to shots nearby once a barrage is over. */
   architect: byCost(ArchitectSchema),
-  /** More guns in less room: its cost in cannons, stacked. */
-  rapid: byCost(RapidSchema),
+  /**
+   * More guns in less room: its cost in cannons, stacked. Retired (2026-11-20) for the Drone
+   * Tower: absent from the default ruleset, and so not offered; kept for the rulesets of old
+   * recordings, which carry it.
+   */
+  rapid: byCost(RapidSchema).optional(),
   /**
    * Strikes at once and jumps from wall to wall (2026-10-17). Absent from rulesets written
    * before it — v0.9.7's recordings — and then not offered.
@@ -270,6 +310,11 @@ export const SpecialsSchema = z.strictObject({
    * written before it, and then not offered.
    */
   subwoofer: byCost(SubwooferSchema).optional(),
+  /**
+   * Fires on its own near its owner's last shot (2026-11-20, a trial). Absent from rulesets
+   * written before it, and then not offered.
+   */
+  drone: byCost(DroneSchema).optional(),
 });
 export type Specials = z.infer<typeof SpecialsSchema>;
 export type BerthaVariant = z.infer<typeof BerthaSchema>;
@@ -281,6 +326,7 @@ export type LaserVariant = z.infer<typeof LaserSchema>;
 export type FrostVariant = z.infer<typeof FrostSchema>;
 export type LullabyVariant = z.infer<typeof LullabySchema>;
 export type SubwooferVariant = z.infer<typeof SubwooferSchema>;
+export type DroneVariant = z.infer<typeof DroneSchema>;
 export type VariantConfig =
   | BerthaVariant
   | ArchitectVariant
@@ -290,7 +336,8 @@ export type VariantConfig =
   | LaserVariant
   | FrostVariant
   | LullabyVariant
-  | SubwooferVariant;
+  | SubwooferVariant
+  | DroneVariant;
 
 /** The variants the ruleset offers, in their order everywhere. */
 export function offeredVariants(specials: Specials): TowerVariant[] {

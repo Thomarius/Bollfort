@@ -17,8 +17,8 @@ import {
  *
  * `.` water   `,` empty land   `#` wall   `@` castle   `*` cannon
  * `B` Big Bertha   `A` Architect   `R` Rapid Cannon   `L` Lightning Tower, `G` Allerdickste
- *   Bertha, `X` Laser Tower, `F` Frost Cannon, `Z` Lullaby Tower, `W` Subwoofer — special towers at cost 3;
- *   `b` `a` `r` `l` `g` `x` `f` `z` `w` the same at cost 2
+ *   Bertha, `X` Laser Tower, `F` Frost Cannon, `Z` Lullaby Tower, `W` Subwoofer, `D` Drone Tower — special towers
+ *   at cost 3; `b` `a` `r` `l` `g` `x` `f` `z` `w` `d` the same at cost 2
  * `1`-`4` empty land belonging to that island (default is island 1)
  *
  * Adjacent `@`, `*` or tower glyphs are grouped into one structure by bounding box.
@@ -51,6 +51,8 @@ const GUN_GLYPHS: Readonly<Record<string, { kind: CannonKind; cost: number }>> =
   z: { kind: 'lullaby', cost: 2 },
   W: { kind: 'subwoofer', cost: 3 },
   w: { kind: 'subwoofer', cost: 2 },
+  D: { kind: 'drone', cost: 3 },
+  d: { kind: 'drone', cost: 2 },
 };
 
 export function stateFromAscii(

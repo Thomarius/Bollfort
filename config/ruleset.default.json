@@ -42,10 +42,6 @@
       "2": { "footprint": [2, 2], "flightFactor": 2, "repairRadius": 2.2 },
       "3": { "footprint": [2, 2], "flightFactor": 1, "repairRadius": 2.6 }
     },
-    "rapid": {
-      "2": { "footprint": [2, 2], "flightFactor": 1 },
-      "3": { "footprint": [2, 2], "flightFactor": 1.15 }
-    },
     "lightning": {
       "2": {
         "footprint": [2, 2],
@@ -104,6 +100,10 @@
     "subwoofer": {
       "2": { "footprint": [2, 2], "flightFactor": 1, "waveTilesPerSecond": 20, "waveWidth": 2 },
       "3": { "footprint": [2, 2], "flightFactor": 1.15, "waveTilesPerSecond": 20, "waveWidth": 3 }
+    },
+    "drone": {
+      "2": { "footprint": [2, 2], "flightFactor": 1.6, "radius": 4, "launchGapMs": 250 },
+      "3": { "footprint": [2, 2], "flightFactor": 1.6, "radius": 4, "launchGapMs": 250 }
     }
   },
   "build": {

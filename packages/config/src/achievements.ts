@@ -52,8 +52,11 @@ export const AchievementsConfigSchema = z.strictObject({
   HEAVYWEIGHT: z.strictObject({ walls: Count }),
   /** Architects owned at once, no tile within the reach of two of them. */
   ARCHITECT_ZONING: z.strictObject({ towers: Count }),
-  /** Shots one Rapid Cannon fires in one combat phase. */
-  RAPID_FIRE: z.strictObject({ shots: Count }),
+  /**
+   * A Drone Tower's missile opens a rival's sealed castle (2026-11-20, the user's), in the place of
+   * Rapid fire, retired with the Rapid Cannon.
+   */
+  HANDS_FREE: None,
   /** Walls one Lightning strike destroys, the first tile and its jumps. */
   CHAIN_REACTION: z.strictObject({ walls: Count }),
   /** Walls one Laser beam clears. */

@@ -1,5 +1,6 @@
 import { pocketCount } from '@bollfort/ai';
 import {
+  PLAYED_KINDS,
   SPECIAL_KINDS,
   type AchievementId,
   type AchievementsConfig,
@@ -59,7 +60,6 @@ export class AchievementWatcher {
   private barrage: number[][] = [];
   private lastBarrage: number[][] = [];
   private barrageWalls = 0;
-  private readonly rapidShots = new Map<number, number>();
   private readonly lulled = new Map<number, number>();
   private readonly waveWalls = new Map<number, number>();
   /** Rivals the seat's Frost Cannon froze a tile of in this barrage, and in the last one. */
@@ -115,6 +115,8 @@ export class AchievementWatcher {
     const mine = present;
     let wallsFell = false;
     const struck = new Set<number>();
+    /** Rivals a missile of the seat's Drone Towers took a wall of in this step (Look, no hands). */
+    const byDrone = new Set<number>();
 
     const destroyed = (shooter: number, tiles: readonly number[]): void => {
       if (tiles.length === 0) return;
@@ -136,9 +138,10 @@ export class AchievementWatcher {
           if (e.phase === 'combat') {
             this.barrage = blank(state.players.length);
             this.barrageWalls = 0;
-            this.rapidShots.clear();
             this.frozeNow = new Set();
-            if (this.wants('FIRST_BREACH')) this.sealed = sealedCounts(state);
+            if (this.wants('FIRST_BREACH') || this.wants('HANDS_FREE')) {
+              this.sealed = sealedCounts(state);
+            }
           } else if (e.phase === 'build') {
             this.lastBarrage = this.barrage;
             this.frozeLast = this.frozeNow;
@@ -147,11 +150,6 @@ export class AchievementWatcher {
           break;
         case 'shot_fired':
           this.shots.set(e.shot.id, e.shot);
-          if (e.shot.owner === me && mine && e.shot.kind === 'rapid') {
-            const n = (this.rapidShots.get(e.shot.cannonId) ?? 0) + 1;
-            this.rapidShots.set(e.shot.cannonId, n);
-            if (n >= this.config.RAPID_FIRE.shots) this.earn('RAPID_FIRE');
-          }
           break;
         case 'shot_impact': {
           const shot = this.shots.get(e.shotId);
@@ -159,6 +157,12 @@ export class AchievementWatcher {
           if (shot === undefined) break;
           destroyed(shot.owner, e.destroyed);
           if (shot.owner !== me || !mine) break;
+          if (shot.kind === 'drone' && e.destroyed.length > 0) {
+            for (const tile of e.destroyed) {
+              const victim = this.playerOfIsland.get(state.islandId[tile] ?? 0);
+              if (victim !== undefined) byDrone.add(victim);
+            }
+          }
           if (shot.kind === 'bertha' && e.destroyed.length >= this.config.BIG_BANG.walls) {
             this.earn('BIG_BANG');
           }
@@ -235,9 +239,15 @@ export class AchievementWatcher {
 
     // A breach is seen by counting afresh after the walls fell: `enclosedCastles` is not
     // refreshed by shots. Once a step, and only until the achievement is held.
-    if (wallsFell && this.wants('FIRST_BREACH') && this.sealed.length > 0) {
+    // Look, no hands is the same breach, with a Drone Tower's missile among the walls that fell.
+    const breaches = this.wants('FIRST_BREACH') || this.wants('HANDS_FREE');
+    if (wallsFell && breaches && this.sealed.length > 0) {
       const now = sealedCounts(state);
-      if (mine) for (const v of struck) if (now[v]! < this.sealed[v]!) this.earn('FIRST_BREACH');
+      for (const v of mine ? struck : []) {
+        if (now[v]! >= this.sealed[v]!) continue;
+        this.earn('FIRST_BREACH');
+        if (byDrone.has(v)) this.earn('HANDS_FREE');
+      }
       this.sealed = now;
     }
     this.sealedBefore = state.players[me]?.enclosedCastles ?? 0;
@@ -373,14 +383,18 @@ export function statAchievements(config: AchievementsConfig, totals: StatTotals)
   const met: AchievementId[] = [];
   if (totals.castles_sealed >= config.SEAL_OF_APPROVAL.castles) met.push('SEAL_OF_APPROVAL');
   if (totals.walls_destroyed >= config.DEMOLITION_CREW.walls) met.push('DEMOLITION_CREW');
-  if (towersBoughtCount(totals.towers_bought) >= SPECIAL_KINDS.length) met.push('ALL_TOWERS');
+  if (towersBoughtCount(totals.towers_bought) >= PLAYED_KINDS.length) met.push('ALL_TOWERS');
   return met;
 }
 
-/** The kinds set in a `towers_bought` mask: Steam's `towers_bought_count`, its progress. */
+/**
+ * The kinds set in a `towers_bought` mask: Steam's `towers_bought_count`, its progress. Only the
+ * towers the game plays: a retired one's bit (the Rapid Cannon's, 2026-11-20), set by a match
+ * from before, counts for nothing, so Tower of Babel asks for the nine whatever was bought.
+ */
 export function towersBoughtCount(mask: number): number {
   let count = 0;
-  for (let bit = 0; bit < SPECIAL_KINDS.length; bit++) if ((mask >> bit) & 1) count++;
+  for (const kind of PLAYED_KINDS) if ((mask >> SPECIAL_KINDS.indexOf(kind)) & 1) count++;
   return count;
 }
 

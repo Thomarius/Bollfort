@@ -1,4 +1,4 @@
-import { TOWER_VARIANTS, defaultRuleset, defaultTerrainConfig } from '@bollfort/config';
+import { defaultRuleset, defaultTerrainConfig, offeredVariants } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { dealSeats, drawnSpecial } from './seating.js';
@@ -11,12 +11,14 @@ describe('special towers at the table', () => {
     for (let seed = 0; seed < 40; seed++) {
       for (let seat = 0; seat < 8; seat++) {
         const special = drawnSpecial(seed, seat, specials);
-        expect(TOWER_VARIANTS).toContain(special);
+        expect(offeredVariants(specials)).toContain(special);
         expect(drawnSpecial(seed, seat, specials)).toBe(special);
         drawn.add(special);
       }
     }
-    expect(drawn.size).toBe(TOWER_VARIANTS.length);
+    // Every variant offered, and none of a retired tower's (the Rapid Cannon's, 2026-11-20).
+    expect(drawn.size).toBe(offeredVariants(specials).length);
+    expect([...drawn].some((v) => v.startsWith('rapid'))).toBe(false);
   });
 
   it('draws only among the variants the ruleset offers', () => {

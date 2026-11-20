@@ -1,8 +1,10 @@
 import {
+  PLAYED_KINDS,
   SPECIAL_KINDS,
   defaultAchievements,
   defaultRuleset,
   type AchievementsConfig,
+  type SpecialKind,
 } from '@bollfort/config';
 import {
   Structure,
@@ -146,6 +148,28 @@ describe('a castle broken open', () => {
     watcher.observe(state, [phase('combat')]);
     hit(watcher, state, shot(0), [at(state, 11, 1)]);
     expect(watcher.unlocked).toEqual([]);
+  });
+  it('is Look, no hands as well when a Drone Tower’s missile does it, and only then', () => {
+    const byDrone = rings();
+    const watcher = new AchievementWatcher(defaultAchievements, { seat: 0, levels: [null, 5] });
+    watcher.observe(byDrone, [phase('combat')]);
+    hit(watcher, byDrone, shot(0, 'drone'), [at(byDrone, 11, 1)]);
+    expect(watcher.drain()).toEqual(['FIRST_BREACH', 'HANDS_FREE']);
+
+    // A click's shot breaching is Knock knock alone.
+    const byClick = rings();
+    const clicked = new AchievementWatcher(defaultAchievements, { seat: 0, levels: [null, 5] });
+    clicked.observe(byClick, [phase('combat')]);
+    hit(clicked, byClick, shot(0), [at(byClick, 11, 1)]);
+    expect(clicked.drain()).toEqual(['FIRST_BREACH']);
+
+    // A missile into a castle already open opens nothing.
+    const open = rings();
+    open.structure[at(open, 11, 5)] = Structure.Empty;
+    const late = new AchievementWatcher(defaultAchievements, { seat: 0, levels: [null, 5] });
+    late.observe(open, [phase('combat')]);
+    hit(late, open, shot(0, 'drone'), [at(open, 11, 1)]);
+    expect(late.unlocked).toEqual([]);
   });
 });
 
@@ -380,21 +404,6 @@ describe('the special towers', () => {
     expect(watcher.unlocked).toEqual(['BASS_DROP', 'SWEET_DREAMS']);
   });
 
-  it('count a Rapid Cannon’s shots in one combat phase, by the cannon', () => {
-    const state = stateFromAscii(THREE);
-    const watcher = new AchievementWatcher(config({ RAPID_FIRE: { shots: 3 } }), seat);
-    const fire = (cannonId: number): MatchEvent => ({
-      kind: 'shot_fired',
-      tick: 0,
-      shot: shot(0, 'rapid', cannonId),
-    });
-    watcher.observe(state, [phase('combat'), fire(1), fire(1), fire(2)]);
-    watcher.observe(state, [phase('build'), phase('combat'), fire(1)]);
-    expect(watcher.unlocked).toEqual([]);
-    watcher.observe(state, [fire(1), fire(1)]);
-    expect(watcher.unlocked).toEqual(['RAPID_FIRE']);
-  });
-
   it('mark each kind bought, once, and a win with three bought', () => {
     const state = stateFromAscii(THREE);
     const watcher = new AchievementWatcher(defaultAchievements, seat);
@@ -559,6 +568,21 @@ describe('the match’s end', () => {
 });
 
 describe('across matches', () => {
+  it('asks Tower of Babel for the nine towers played, never the retired Rapid Cannon', () => {
+    const bit = (kind: SpecialKind): number => 1 << SPECIAL_KINDS.indexOf(kind);
+    const nine = PLAYED_KINDS.reduce((mask, kind) => mask | bit(kind), 0);
+    expect(PLAYED_KINDS).toHaveLength(9);
+    expect(PLAYED_KINDS).not.toContain('rapid');
+    const totals = { castles_sealed: 0, walls_destroyed: 0 };
+    expect(statAchievements(defaultAchievements, { ...totals, towers_bought: nine })).toEqual([
+      'ALL_TOWERS',
+    ]);
+    // Eight played and the Rapid Cannon, bought before it was retired, are not the nine.
+    const eight = (nine & ~bit('drone')) | bit('rapid');
+    expect(towersBoughtCount(eight)).toBe(8);
+    expect(statAchievements(defaultAchievements, { ...totals, towers_bought: eight })).toEqual([]);
+  });
+
   it('reads the stats’ achievements from Steam’s totals', () => {
     const all = (1 << SPECIAL_KINDS.length) - 1;
     expect(

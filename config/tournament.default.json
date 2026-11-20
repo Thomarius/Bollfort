@@ -1023,6 +1023,16 @@
         "Thump",
         "Decibel",
         "Reverb"
+      ],
+      "drone": [
+        "Swarm",
+        "Hornets",
+        "Rotors",
+        "Autopilot",
+        "Buzz",
+        "Payload",
+        "Skyline",
+        "Propellers"
       ]
     }
   }

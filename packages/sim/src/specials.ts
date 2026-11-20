@@ -55,6 +55,14 @@ export function strikesOnFiring(kind: CannonKind): boolean {
   return kind === 'lightning' || kind === 'laser' || kind === 'subwoofer';
 }
 
+/**
+ * Whether a kind fires on its own, never by a click (the Drone Tower, §2.10): `findReadyCannon`
+ * passes it over, and nothing that counts the guns a click could fire may count it.
+ */
+export function firesItself(kind: CannonKind): boolean {
+  return kind === 'drone';
+}
+
 /** The variant a tower of this kind and cost is; null for an ordinary cannon. */
 function variantFor(kind: CannonKind, cost: number): TowerVariant | null {
   return kind === 'cannon' ? null : variantOf(kind, cost as TowerCost);
@@ -165,10 +173,11 @@ export function inRepairReach(
 /**
  * Shots a gun may have in the air at once. A Rapid Cannon is as many cannons stacked on
  * one footprint as it cost (the user's design, 2026-10-16), a barrel each with its own
- * flight and so its own reload; every other gun has one.
+ * flight and so its own reload, and a Drone Tower's missiles the same (§2.10); every other
+ * gun has one.
  */
 export function barrelsOf(cannon: Pick<Cannon, 'kind' | 'cost'>): number {
-  return cannon.kind === 'rapid' ? cannon.cost : 1;
+  return cannon.kind === 'rapid' || cannon.kind === 'drone' ? cannon.cost : 1;
 }
 
 /** Whether a gun has a barrel free to fire — it may still be inert. */

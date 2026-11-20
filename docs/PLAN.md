@@ -1749,7 +1749,8 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
 (the user's decision, 2026-10-06). Still open:
 
 2. **Special towers — done** (the user's idea, 2026-10-11): each player may bring one special tower,
-   bought in the cannon phase for two or three cannons — Big Bertha, Architect, Rapid Cannon,
+   bought in the cannon phase for two or three cannons — Big Bertha, Architect, the Drone Tower
+   (in the Rapid Cannon's place since 2026-11-20, ARCHIVE 16r),
    the Lightning Tower (ARCHIVE 13zs), the Allerdickste Bertha (13zz), the Laser Tower (14k), the Frost Cannon (14l) and the Lullaby Tower (14m),
    each at both costs — chosen in the tower menu, with an on/off switch among the match settings
    (off by default, for good: a wacky addition, not the base game — the user's, ARCHIVE 13zw).

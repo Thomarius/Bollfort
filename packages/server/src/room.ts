@@ -3,6 +3,7 @@ import {
   defaultSettings,
   defaultTeams,
   mergeSettings,
+  offeredVariants,
   reshapeTable,
   teamsBalanced,
   type AiConfig,
@@ -133,6 +134,14 @@ export class Room {
   private readonly botLevels: number[];
   /** The tower of the bot in each seat, which the host may choose; drawn until they do. */
   private readonly botTowers: BotTower[];
+  /** Whether a seat's tower is one the rules offer: none and the draw always are. */
+  private offered(tower: BotTower | null): boolean {
+    return (
+      tower === null ||
+      tower === 'drawn' ||
+      offeredVariants(this.options.ruleset.specials).includes(tower)
+    );
+  }
   /** Settings the host may change before the match starts, within the server's bounds. */
   private settings: MatchSettings;
   /** Seats at the table, which the host may change while the table is being set. */
@@ -409,7 +418,9 @@ export class Room {
         // Each person their own, while the table is being set; kept whether or not the
         // match plays towers, so switching them on does not lose the choice.
         if (this.match !== null) return;
-        seat.special = message.special;
+        // A tower the rules do not offer (the Rapid Cannon, retired 2026-11-20) is none: every
+        // lobby would fail to describe it.
+        seat.special = this.offered(message.special) ? message.special : null;
         this.broadcastRoom();
         return;
       case 'start':
@@ -463,7 +474,7 @@ export class Room {
           const wanted = message.bots?.[i];
           if (wanted !== undefined) this.botLevels[i] = wanted;
           const tower = message.botTowers?.[i];
-          if (tower !== undefined) this.botTowers[i] = tower;
+          if (tower !== undefined) this.botTowers[i] = this.offered(tower) ? tower : 'drawn';
         }
         let settings = this.settings;
         if (message.settings !== undefined) {
@@ -590,7 +601,9 @@ export class Room {
     // A tournament's bots bring the towers it fixed for them, the same in every match of it.
     this.botTowers.length = 0;
     for (const seat of table.seats)
-      this.botTowers.push(seat.tower === undefined ? 'drawn' : seat.tower);
+      this.botTowers.push(
+        seat.tower === undefined || !this.offered(seat.tower) ? 'drawn' : seat.tower,
+      );
     // The host first, then everyone else into the open seats, keeping theirs where it is.
     const host = this.seats.find((s) => s.playerId === this.hostId);
     const guests = this.seats.filter((s) => s !== host);
