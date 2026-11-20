@@ -80,6 +80,15 @@ const ease = (t: number): number => t * t * (3 - 2 * t);
 // ------------------------------------------------------------------------ boards
 
 /** A board for a page: its state, its enclosure, and the order sealed ground floods in. */
+/**
+ * Where in its loop a page is, `now` a frame's timestamp and `since` when the page was shown.
+ * A frame's timestamp is when the frame began, which may be before a click in it set `since`:
+ * negative, the towers page looked up the tower before the first and threw.
+ */
+export function loopTime(now: number, since: number, loopMs: number): number {
+  return Math.max(0, now - since) % loopMs;
+}
+
 export interface Board {
   state: MatchState;
   enclosure: EnclosureResult;
@@ -1537,7 +1546,7 @@ export function openHowToPlay(
   };
   const draw = (now: number): void => {
     const { page } = pages[at]!;
-    const ms = motionReduced() ? page.stillMs : (now - since) % page.loopMs;
+    const ms = motionReduced() ? page.stillMs : loopTime(now, since, page.loopMs);
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.fillStyle = pal.waterDeep;
     ctx.fillRect(0, 0, cssW, cssH);

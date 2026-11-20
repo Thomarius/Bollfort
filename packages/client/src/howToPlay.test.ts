@@ -21,10 +21,16 @@ import {
   TEAM_GAP,
   TEAM_OPEN,
   howToSectionFor,
+  loopTime,
   span,
 } from './howToPlay.js';
 
 describe('how to play', () => {
+  it('starts a page at the beginning of its loop when the frame began before it was shown', () => {
+    expect(loopTime(1000, 1004, 27000)).toBe(0);
+    expect(loopTime(1000 + 27000 + 5, 1000, 27000)).toBe(5);
+  });
+
   it('is fourteen pages of ten words or fewer, each standing still inside its own loop', () => {
     const pages = HOW_TO_PLAY.flatMap((chapter) => chapter.pages);
     expect(pages).toHaveLength(14);
