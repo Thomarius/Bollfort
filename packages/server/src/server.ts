@@ -243,7 +243,11 @@ export async function startServer(options: ServerOptions): Promise<StartResult> 
       'content-type': MIME[extname(file)] ?? 'application/octet-stream',
       'content-length': stat.size,
     });
-    createReadStream(file).pipe(res);
+    // Exactly the bytes announced: read to its end, a file rewritten longer while it was being
+    // sent put its new tail on the connection after the response, where the next one on it
+    // failed to parse (CI, 2026-11-20).
+    if (stat.size === 0) res.end();
+    else createReadStream(file, { start: 0, end: stat.size - 1 }).pipe(res);
   };
 
   const http = createServer((req, res) => {
