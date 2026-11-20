@@ -60,6 +60,7 @@ import { cannonBase } from './cannonBase.js';
 import { hueNearness } from './hue.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** A mark where a shot landed: rings for a moment, and on a wall a demolition cross. */
 interface Mark {
@@ -117,6 +118,8 @@ const FINISH: FinishLook = { spark: 'mark', flag: 'pennant' };
  */
 export class BlueprintTheme implements Theme {
   readonly id = 'blueprint' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.blueprint;
 
   private art!: ArtConfig;
   /** Life on the outer ocean (`seaLife.ts`). */

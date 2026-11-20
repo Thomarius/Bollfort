@@ -58,6 +58,7 @@ import {
   type ViewTransform,
 } from './theme.js';
 import { hatch, outline, trace, wallGeometry } from './walls.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** The stockade's timber, its stake tops and its shaded face, before the owner's stain. */
 const WOOD_TOP = 0xd09a5e;
@@ -289,6 +290,8 @@ function muzzlePoint(): { x: number; y: number } {
  */
 export class PiratesTheme extends ShapeTheme implements Theme {
   readonly id = 'pirates' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.pirates;
 
   private style!: PiratesStyleConfig;
   private readonly seaLife = new PiratesSeaLife();

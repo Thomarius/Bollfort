@@ -64,6 +64,7 @@ import { outline, strokePieceEdge, trace, wallGeometry } from './walls.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** A brick knocked loose by a shot or the sweep, tumbling as it falls. */
 interface Loose {
@@ -128,6 +129,8 @@ const FINISH: FinishLook = { spark: 'brick', flag: 'brick' };
  */
 export class BricksTheme implements Theme {
   readonly id = 'bricks' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.bricks;
 
   private art!: ArtConfig;
   /** Life on the outer ocean (`seaLife.ts`). */

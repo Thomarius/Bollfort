@@ -70,6 +70,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { bloom } from './bloom.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** Something with a place and an age: a flash, a fizz, a short, a puff of smoke. */
 interface Aged {
@@ -194,6 +195,8 @@ const FINISH: FinishLook = { spark: 'bolts', flag: 'rod' };
  */
 export class ElectricTheme extends ShapeTheme implements Theme {
   readonly id = 'electric' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.electric;
 
   private style!: ElectricStyleConfig;
   private weather: Weather = 'clear';

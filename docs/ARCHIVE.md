@@ -12614,3 +12614,29 @@ blocks of your wall" (`awardCandidates`' `humanPlayer`).
 taken from its size as the request came: a file rewritten longer while being sent put its new tail
 on the kept-alive connection after the response, and the next response on it failed to parse — the
 server's ETag test, failing once in CI (2026-11-20). Exactly the bytes announced are read now.
+
+## 16t. The drones by style (2026-11-20)
+
+The user's: the Drone Tower's quadcopter (16r) looked wrong in most styles. **Each style draws its
+own drone now** (`Theme.drone`, a `DroneLook`; `render/droneLooks.ts`, the Wild West's in its
+folder), the user taking the first suggestion for every style but Sports: plain discs in Minimal
+(kept simple, the user's), one pixel-art falcon for Medieval and Night (the same model, the user's:
+the two differ only in the time of day), the quadcopter lit in neon in Cyberpunk and drawn as a
+drawing in Blueprint, a carrier pigeon, a toy-brick quadcopter, a stained-glass butterfly, a spinning
+bonbon, a bat in a halo, a paper crane, a spinning beer mat, a winged quaver, a beige office gadget
+with a sticky note, a squid, ball lightning, a biplane, a robin, a moth fluttering off its course, a
+camera drone in Sports (the user's), a gull in a bandana, a mascot familiar, a black-figure owl and,
+in the Wild West, vultures. The missile stays one for every style (the user's).
+
+Where they fly and park is shared as before; the drone of the look in front is drawn, as the
+towers' colours are. A drone is three stamps a pose — a body in the style's colours, a mark in white
+tinted the owner's colour (grey while inert), ink over both — so a robin stays brown with a breast
+in its owner's colour; a beat of a few frames on the match's clock (still under Reduced motion);
+facing its course, turned in quarter turns to keep pixel art square, mirrored for a drone in
+profile, spinning or fluttering as the look says; a soft shadow while it flies, but where a style
+has none to give. **Outlines at half the quadcopter's width** (`droneLine`): at a tile's fourteenth
+they filled a pigeon's body to its middle, seen at once on the overview page, `?drones=preview` —
+each style's drone enlarged in every pose, then a tower of three on its own island, parked and in
+orbit, and one style live. Looking there also broadened the crane's, owl's and butterfly's wings,
+swept the moth's back, and gave the squid four thick arms and two tentacles, its arms before a
+pink block on the reef. A test draws every pose of every look at two tile sizes.

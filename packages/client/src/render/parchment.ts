@@ -67,6 +67,7 @@ import { along, loops, rounded, wavered, type Point } from './inkline.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** An ink stain where a shot came down on land, fading over the rounds after. */
 interface Stain {
@@ -141,6 +142,8 @@ interface Anchored {
  */
 export class ParchmentTheme implements Theme {
   readonly id = 'parchment' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.parchment;
 
   private art!: ArtConfig;
   /** Life on the outer ocean (`seaLife.ts`). */

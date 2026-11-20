@@ -77,6 +77,7 @@ import {
   type ViewTransform,
 } from './theme.js';
 import { outline, trace, wallGeometry } from './walls.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 const DEAD = 0x7a6a5e;
 const DEAD_DARK = 0x4a3e36;
@@ -127,6 +128,8 @@ interface Figure {
  */
 export class MythologyTheme extends ShapeTheme implements Theme {
   readonly id = 'mythology' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.mythology;
 
   private style!: MythologyStyleConfig;
   private readonly seaLife = new MythologySeaLife();

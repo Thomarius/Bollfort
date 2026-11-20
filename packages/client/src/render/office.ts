@@ -56,6 +56,7 @@ import { ShapeTheme } from './shapeTheme.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** Something with a place and an age: a crashed plane, shreds, a flat-pack unfolding. */
 interface Aged {
@@ -170,6 +171,8 @@ const FINISH: FinishLook = { spark: 'memo', flag: 'necktie' };
  */
 export class OfficeTheme extends ShapeTheme implements Theme {
   readonly id = 'office' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.office;
 
   private style!: OfficeStyleConfig;
   private weather: Weather = 'clear';

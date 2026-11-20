@@ -59,6 +59,7 @@ import { hueNearness } from './hue.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** Something with a place and an age: a ghost set free, a ring on the bog, a sinking block. */
 interface Aged {
@@ -186,6 +187,8 @@ const FINISH: FinishLook = { spark: 'spirits', flag: 'tattered' };
  */
 export class HalloweenTheme extends ShapeTheme implements Theme {
   readonly id = 'halloween' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.halloween;
 
   private style!: HalloweenStyleConfig;
   /** Life on the outer sea (`seaLife.ts`). */

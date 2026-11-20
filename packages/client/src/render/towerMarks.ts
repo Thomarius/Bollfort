@@ -22,7 +22,7 @@ import { Container, Graphics } from 'pixi.js';
 import { motionReduced } from '../motion.js';
 import { EMBLEMS } from '../towerIcons.js';
 import { clearDrawn } from './clearDrawn.js';
-import { DroneMarks } from './drones.js';
+import { DroneMarks, type DroneLook } from './drones.js';
 import { viewKey } from './stamps.js';
 import { drawSnowflake } from './yule.js';
 import {
@@ -663,8 +663,9 @@ export class TowerMarks {
     art: ArtConfig,
     humanPlayer: number,
     tickFraction: number,
+    look?: DroneLook,
   ): void {
-    this.drones.draw(state, view, art, humanPlayer, tickFraction);
+    this.drones.draw(state, view, art, humanPlayer, tickFraction, look);
   }
 
   drawWaves(state: MatchState, view: ViewTransform, art: ArtConfig, tickFraction: number): void {

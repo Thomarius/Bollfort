@@ -59,6 +59,7 @@ import { GOLD, NIGHT, SNOW, SNOW_SHADE, WARM, drawBow } from './yule.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** Something with a place and an age: a burst of snow, a splash. */
 interface Aged {
@@ -196,6 +197,8 @@ const FINISH: FinishLook = { spark: 'flakes', flag: 'stocking' };
  */
 export class ChristmasTheme extends ShapeTheme implements Theme {
   readonly id = 'christmas' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.christmas;
 
   private style!: ChristmasStyleConfig;
   private weather: Weather = 'clear';

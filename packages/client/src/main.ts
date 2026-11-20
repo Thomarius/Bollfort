@@ -86,6 +86,11 @@ if (params.get('icons') === 'sheet') {
   void import('./shotPreview.js')
     .then(({ showShotPreview }) => showShotPreview())
     .catch((e: unknown) => showError('shots', e));
+} else if (params.get('drones') === 'preview') {
+  // Every style's drones, parked and in orbit (`dronePreview.ts`).
+  void import('./dronePreview.js')
+    .then(({ showDronePreview }) => showDronePreview())
+    .catch((e: unknown) => showError('drones', e));
 } else if (supporterAdmin() && params.get('page') !== null) {
   // A developer's page the private supporter package brings, a style's sketch while it is
   // designed (`styles/supporter.ts`); without the package there are none.

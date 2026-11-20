@@ -87,6 +87,8 @@ import {
 import { WILDWEST, WILDWEST_WORDS, type WildWestStyleConfig } from './data.js';
 import { WildWestSeaLife } from './seaLife.js';
 
+import { VULTURE_DRONE } from './drone.js';
+
 const DEAD = 0x9a948a;
 const DEAD_DARK = 0x6a645a;
 const CLAIM = 0xd8a462;
@@ -159,6 +161,8 @@ interface Figure {
  */
 export class WildWestTheme extends ShapeTheme implements Theme {
   readonly id = 'wildwest' as const;
+  /** Its drones, vultures (`drone.ts`). */
+  readonly drone = VULTURE_DRONE;
 
   private style!: WildWestStyleConfig;
   private readonly seaLife = new WildWestSeaLife();

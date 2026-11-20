@@ -58,6 +58,7 @@ import { cannonBase } from './cannonBase.js';
 import { release } from './release.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** How long the hourglass takes to turn over as a phase begins. */
 const TURN_MS = 700;
@@ -148,6 +149,8 @@ const RAINBOW = [0xff4040, 0xff9a30, 0xffe040, 0x50d060, 0x4090ff, 0x9a60e0] as 
  */
 export class GlassTheme implements Theme {
   readonly id = 'glass' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.glass;
 
   private art!: ArtConfig;
   private style!: GlassStyleConfig;

@@ -70,6 +70,7 @@ import { SceneryLayer } from './sceneryLayer.js';
 import { cannonBase } from './cannonBase.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** A circuit trace on the sea floor, as tile centres in board coordinates. */
 export interface Trace {
@@ -240,6 +241,8 @@ const FINISH: FinishLook = { spark: 'neon', flag: 'hologram' };
  */
 export class CyberpunkTheme implements Theme {
   readonly id = 'cyberpunk' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.cyberpunk;
 
   private art!: ArtConfig;
   /** Life on the outer ocean (`seaLife.ts`). */

@@ -48,6 +48,7 @@ import { SceneryLayer } from './sceneryLayer.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 interface Impact {
   x: number;
@@ -79,6 +80,8 @@ interface Crumble {
  */
 export class FlatTheme implements Theme {
   readonly id = 'flat' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.flat;
 
   private art!: ArtConfig;
   /** Life on the outer ocean (`seaLife.ts`). */

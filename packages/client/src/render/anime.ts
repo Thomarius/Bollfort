@@ -82,6 +82,7 @@ import {
   type ViewTransform,
 } from './theme.js';
 import { outline, trace, wallGeometry } from './walls.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 const WHITE = 0xffffff;
 const DEAD = 0x9c9aa6;
@@ -176,6 +177,8 @@ interface CutInShown {
  */
 export class AnimeTheme extends ShapeTheme implements Theme {
   readonly id = 'anime' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.anime;
 
   private style!: AnimeStyleConfig;
   private readonly seaLife = new AnimeSeaLife();

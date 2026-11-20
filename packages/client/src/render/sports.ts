@@ -69,6 +69,7 @@ import {
   type ViewTransform,
 } from './theme.js';
 import { outline, trace, wallGeometry } from './walls.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** Chalk: the lines on the pitch, the guns' boxes, the dust a ball raises. */
 export const CHALK = 0xf4f4ee;
@@ -196,6 +197,8 @@ function standsPattern(tile: number, standing: boolean): FillPattern {
  */
 export class SportsTheme extends ShapeTheme implements Theme {
   readonly id = 'sports' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.sports;
 
   private style!: SportsStyleConfig;
   private readonly seaLife = new SportsSeaLife();

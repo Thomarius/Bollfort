@@ -71,6 +71,7 @@ import {
 import { clearDrawn } from './clearDrawn.js';
 import { outline, strokePieceEdge } from './walls.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
+import { FALCON_DRONE } from './droneLooks.js';
 
 interface Blast {
   x: number;
@@ -219,6 +220,8 @@ const FINISH: FinishLook = { spark: 'streak', flag: 'swallowtail' };
  */
 export class PixelTheme implements Theme {
   readonly id: ArtStyle;
+  /** Its drones, one falcon for Medieval and Night alike (`droneLooks.ts`). */
+  readonly drone = FALCON_DRONE;
 
   private art!: ArtConfig;
   private textures = new Map<string, Texture>();

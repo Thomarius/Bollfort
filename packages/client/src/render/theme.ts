@@ -8,6 +8,7 @@ import { storedTowerBadges } from '../towerBadgesSetting.js';
 import { EMBLEMS } from '../towerIcons.js';
 import type { DrainWash, SealGlow } from '../seal.js';
 
+import type { DroneLook } from './drones.js';
 import { viewKey } from './stamps.js';
 import { PETALS, drawPetal } from './ukiyo.js';
 import { drawLyre, drawRose } from './music.js';
@@ -73,6 +74,11 @@ export interface Theme {
    * fixed picture — Sports' is the round's sport — so it is drawn again when this changes.
    */
   iconKey?(): string;
+  /**
+   * How it draws the Drone Towers' drones (`drones.ts`), drawn by the shared towers' layer in the
+   * look in front; the first quadcopter where it brings none.
+   */
+  readonly drone?: DroneLook;
 
   /** Releases textures and display objects. */
   destroy(): void;

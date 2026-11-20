@@ -67,6 +67,7 @@ import { ShapeTheme } from './shapeTheme.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** Something with a place and an age: a ring on the beer, a burst of foam, a coin, a clink. */
 interface Aged {
@@ -175,6 +176,8 @@ const KEG_ICON_FILL = 1.4;
 
 export class OktoberfestTheme extends ShapeTheme implements Theme {
   readonly id = 'oktoberfest' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.oktoberfest;
 
   private style!: OktoberfestStyleConfig;
   /** Life on the outer sea (`seaLife.ts`). */

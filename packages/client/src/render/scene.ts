@@ -706,11 +706,13 @@ export class Scene {
       choices,
       drain,
     };
-    // The towers' marks in the colours of the look in front, as its banner brings it.
-    const art = this.slots[this.shown.to].art;
+    // The towers' marks in the colours of the look in front, as its banner brings it, and its
+    // drones.
+    const front = this.slots[this.shown.to];
+    const art = front.art;
     this.towers.draw(state, this.view, art, humanPlayer);
     this.towers.drawWaves(state, this.view, art, tickFraction);
-    this.towers.drawDrones(state, this.view, art, humanPlayer, tickFraction);
+    this.towers.drawDrones(state, this.view, art, humanPlayer, tickFraction, front.theme.drone);
     this.towers.drawEffects(this.view, deltaMs);
     const shown = withoutInstantShots(state);
     for (const slot of this.visible()) {

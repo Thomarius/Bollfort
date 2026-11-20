@@ -482,9 +482,14 @@ tower and each shot is a small missile from it.
   fixed rows, where the drone's follow the owner's aim (§2.9).
 - **Seen and heard** (DR3, the user's choices, 2026-11-20; `render/drones.ts`): a drone from above
   for its emblem, four rotors on crossed arms. **A drone per barrel**, 2 or 3, circling the tower
-  in the towers' layer over every style, one shape for all — its frame dark and its rotors in the
-  owner's colour, since a drone all in that colour was lost on its own ground; parked on the
-  tower's corners while asleep, inert or out of combat. **One shared missile** (per-style ones only
+  in the towers' layer over every style — its frame dark and its rotors in the owner's colour,
+  since a drone all in that colour was lost on its own ground; parked on the tower's corners while
+  asleep, inert or out of combat. **Each style's own drone** since 2026-11-20 (the user's: the
+  quadcopter looked wrong in most styles; `Theme.drone`, `render/droneLooks.ts`, a style in a
+  folder of its own bringing its own): plain discs in Minimal, one pixel falcon for Medieval
+  and Night, a bat, a paper crane, a beer mat, a camera drone in Sports, vultures in the Wild West
+  and so on, each a body in the style's colours, a mark taking the owner's and ink over both, with
+  a beat of a few frames; every one parked and flying on `?drones=preview`. **One shared missile** (per-style ones only
   if the tower is kept): from where its drone was as it launched to the tile, on a low arc, a
   smoke trail and a flame behind; the styles never draw these shots (`withoutInstantShots`), so the
   ring where one will land is drawn there for its owner, as for every shot. Everything moves by

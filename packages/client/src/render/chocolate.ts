@@ -58,6 +58,7 @@ import { ShapeTheme } from './shapeTheme.js';
 import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
+import { BASE_DRONES } from './droneLooks.js';
 
 /** A swirl on the river, carried along by the current, melting back in as it ages. */
 interface Swirl {
@@ -230,6 +231,8 @@ const FINISH: FinishLook = { spark: 'sprinkle', flag: 'candy' };
  */
 export class ChocolateTheme extends ShapeTheme implements Theme {
   readonly id = 'chocolate' as const;
+  /** Its drones (`droneLooks.ts`). */
+  readonly drone = BASE_DRONES.chocolate;
 
   private style!: ChocolateStyleConfig;
   /** Life on the outer river (`seaLife.ts`). */
