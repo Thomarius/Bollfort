@@ -12578,3 +12578,39 @@ remembered by a table, a tournament's save or sent by a room's guest becomes the
 the nine played (`PLAYED_KINDS`). Rapid fire became **Look, no hands!** (`HANDS_FREE`, medium): a
 drone missile opens a rival's sealed castle — in bot play in 8 of 8 matches at Level 5 with cost 3,
 4 of 8 with cost 2; a count of missiles or walls was routine at cost 3 or out of reach at cost 2.
+
+## 16s. The end screen's walls, accuracy and points; the push onto the winner from the zoom (2026-11-20)
+
+The user's, after a match with the Drone Tower. **The standings' columns**: the most castles held
+at once went (good players all held four), and the wall column, ambiguous, became two under one
+heading — **walls destroyed** on opponents' islands and **walls lost** of one's own — each figure
+broken down by player on hover, from the awards' own count (`MatchLog.brokeOf`; a team's walls
+broken by a teammate count as neither). **Accuracy**, the share of shots fired by a click that
+knocked down a wall (a wave or a Lightning chain once however many fell; a Drone Tower's missiles,
+not aimed, left out), and **points** broken down on hover into ground, guns and walls, summed from
+each resolution's result — together the score, which a whole match's test checks. Tooltips of
+several lines (`data-tip-lines`). Seen at three, eight and in teams of two in German: the panel
+holds them at its width.
+
+**The wall count missed three towers**: it counted only shots landing, so a Lightning strike's, a
+Laser beam's and a Subwoofer wave's walls were in neither the column nor the awards (Wrecker,
+nemesis). They are counted as they fall now (`lightning_struck`, `laser_fired`, `wave_ended`).
+
+**The push onto the winner** started from the whole map, so a player zoomed in on their island for
+the last build saw the view snap out and push back in. It now starts from the camera as the match
+ended (`winnerShot`'s `from`): the winners' middle glides from where that camera showed it to where
+the whole map does as the zoom goes from it to `winnerZoom`, the same view at the end as ever, and
+the same push as ever from the whole map — tested so: the first frame is the camera as it stood.
+
+A dev fast-forward kept no summary — its events dropped, the end screen showed the points alone —
+so `&snapshot=game_over` now notes them into a `MatchLog` the match screen takes up
+(`LocalMatch.fastForwardLog`): the whole results screen without playing a match.
+
+**The nemesis said "You's nemesis"**: the award put the victim's name into "{name}'s nemesis", and a
+local match names the viewer's seat "You". The viewer as victim reads "Your nemesis" now, "{n}
+blocks of your wall" (`awardCandidates`' `humanPlayer`).
+
+**A static file was read to its end, however long it was by then**, behind a `Content-Length`
+taken from its size as the request came: a file rewritten longer while being sent put its new tail
+on the kept-alive connection after the response, and the next response on it failed to parse — the
+server's ETag test, failing once in CI (2026-11-20). Exactly the bytes announced are read now.

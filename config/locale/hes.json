@@ -306,6 +306,11 @@
     "other": "{n} Staa vun de Mauer vun {name}"
   },
   "award.nemesis.rival": "irschendwem",
+  "award.nemesisYou": "Dei Erzfeind",
+  "award.nemesisYou.detail": {
+    "one": "{n} Staa vun deiner Mauer",
+    "other": "{n} Staa vun deiner Mauer"
+  },
   "award.mason": "Maurermaaster",
   "award.mason.detail": {
     "one": "{n} Teil gesetzt",
@@ -380,13 +385,20 @@
     "other": "Such dir e Burch aus — dann {n} Kanone uffstelle"
   },
   "hud.colPoints": "Punkte",
-  "hud.colWall": "Mauer",
-  "hud.colCastles": "Burche",
   "hud.colLives": "Lewe iwwrisch",
-  "hud.colPointsTitle": "Erzielte Punkte: aan Punkt fer jedes eigeschlossene Feld am End vun jeder Rund, dezu Punkte fer jed Kanon, die dann schießt",
-  "hud.colWallTitle": "Mauerblöck, die uff de Insele vun de Gegner kaputtgeschosse worn sinn",
-  "hud.colCastlesTitle": "Die meiste Burche, die uff aamol eigeschlosse warn",
   "hud.colLivesTitle": "Lewe am End, es laufende mitgezählt",
+  "hud.colWalls": "Mauern",
+  "hud.colDestroyed": "kaputt gemacht",
+  "hud.colLost": "verlorn",
+  "hud.colAccuracy": "Treffer",
+  "hud.colPointsTitle": "Erzielte Punkte: aan Punkt fer jedes eigeschlossene Feld am End vun jeder Rund, dezu Punkte fer jed Kanon, die dann schießt, unn fer jeden kaputte Mauerblock. Fahr iwwer e Punktzahl, dann siehste, wo se herkimmt",
+  "hud.colWallsTitle": "Mauerblöck: die uff de Insele vun de Gegner kaputtgeschosse, unn die eigene, die die Gegner kaputtgeschosse hawwe",
+  "hud.colDestroyedTitle": "Mauerblöck, die uff de Insele vun de Gegner kaputtgeschosse worn sinn, vun jedem Schuss unn Turm. Fahr iwwer e Zahl, dann siehste, wem sei",
+  "hud.colLostTitle": "Mauerblöck vun de eigene Insel, die die Gegner kaputtgeschosse hawwe. Fahr iwwer e Zahl, dann siehste, wer",
+  "hud.colAccuracyTitle": "Wie viel vun de per Klick abgefeuerte Schüss en Mauerblock kaputtgemacht hawwe; die Rakete vum Drohneturm zielt mer net, die zähle net mit",
+  "hud.tipLine": "{name}: {n}",
+  "hud.pointsFromTip": "Land: {ground}\nKanone: {guns}\nMauern: {walls}",
+  "hud.accuracyTip": "{hits} vun {shots} Schüss getroffe",
   "hud.next": "Glei: {label}",
   "hud.seconds": "{seconds} s",
   "error.uncaught": "En Fehler, mit dem kaaner gerechnet hot",

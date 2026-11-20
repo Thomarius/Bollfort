@@ -306,6 +306,11 @@
     "other": "{n} Steine der Mauer von {name}"
   },
   "award.nemesis.rival": "jemandem",
+  "award.nemesisYou": "Dein Erzfeind",
+  "award.nemesisYou.detail": {
+    "one": "{n} Stein deiner Mauer",
+    "other": "{n} Steine deiner Mauer"
+  },
   "award.mason": "Maurermeister",
   "award.mason.detail": {
     "one": "{n} Teil gesetzt",
@@ -380,13 +385,20 @@
     "other": "Wähle eine Burg — dann {n} Kanonen aufstellen"
   },
   "hud.colPoints": "Punkte",
-  "hud.colWall": "Mauer",
-  "hud.colCastles": "Burgen",
   "hud.colLives": "Leben übrig",
-  "hud.colPointsTitle": "Erzielte Punkte: ein Punkt für jedes umschlossene Feld am Ende jeder Runde, dazu Punkte für jede Kanone, die dann schießt",
-  "hud.colWallTitle": "Mauerblöcke, die auf gegnerischen Inseln zerschossen wurden",
-  "hud.colCastlesTitle": "Die meisten Burgen, die zugleich umschlossen waren",
   "hud.colLivesTitle": "Leben am Ende, das laufende mitgezählt",
+  "hud.colWalls": "Mauern",
+  "hud.colDestroyed": "zerstört",
+  "hud.colLost": "verloren",
+  "hud.colAccuracy": "Treffer",
+  "hud.colPointsTitle": "Erzielte Punkte: ein Punkt für jedes umschlossene Feld am Ende jeder Runde, dazu Punkte für jede Kanone, die dann schießt, und jeden zerstörten Mauerblock. Fahre über eine Punktzahl, um zu sehen, woher sie kommt",
+  "hud.colWallsTitle": "Mauerblöcke: die auf gegnerischen Inseln zerstörten und die eigenen, die Gegner zerstört haben",
+  "hud.colDestroyedTitle": "Mauerblöcke, die auf gegnerischen Inseln zerstört wurden, von jedem Schuss und Turm. Fahre über eine Zahl, um zu sehen, wessen",
+  "hud.colLostTitle": "Mauerblöcke der eigenen Insel, die Gegner zerstört haben. Fahre über eine Zahl, um zu sehen, wer",
+  "hud.colAccuracyTitle": "Der Anteil der per Klick abgefeuerten Schüsse, die einen Mauerblock zerstört haben; die Raketen eines Drohnenturms zielt man nicht, sie zählen nicht mit",
+  "hud.tipLine": "{name}: {n}",
+  "hud.pointsFromTip": "Land: {ground}\nKanonen: {guns}\nMauern: {walls}",
+  "hud.accuracyTip": "{hits} von {shots} Schüssen getroffen",
   "hud.next": "Gleich: {label}",
   "hud.seconds": "{seconds} s",
   "error.uncaught": "Unerwarteter Fehler",

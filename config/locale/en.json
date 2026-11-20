@@ -309,6 +309,11 @@
     "other": "{n} blocks of {name}'s wall"
   },
   "award.nemesis.rival": "a rival",
+  "award.nemesisYou": "Your nemesis",
+  "award.nemesisYou.detail": {
+    "one": "{n} block of your wall",
+    "other": "{n} blocks of your wall"
+  },
   "award.mason": "Mason",
   "award.mason.detail": {
     "one": "{n} piece laid",
@@ -383,13 +388,20 @@
     "other": "Choose a castle — then {n} cannons to place"
   },
   "hud.colPoints": "points",
-  "hud.colWall": "wall",
-  "hud.colCastles": "castles",
   "hud.colLives": "lives left",
-  "hud.colPointsTitle": "Points banked: a point for every tile of ground sealed at each round’s end, and points for every gun firing then",
-  "hud.colWallTitle": "Wall blocks knocked down on opponents’ islands",
-  "hud.colCastlesTitle": "The most castles held sealed at once",
   "hud.colLivesTitle": "Lives left at the end, the one being played among them",
+  "hud.colWalls": "walls",
+  "hud.colDestroyed": "destroyed",
+  "hud.colLost": "lost",
+  "hud.colAccuracy": "accuracy",
+  "hud.colPointsTitle": "Points banked: a point for every tile of ground sealed at each round’s end, and points for every gun firing then and every wall block destroyed. Hover a score to see where it came from",
+  "hud.colWallsTitle": "Wall blocks: those knocked down on opponents’ islands, and those of one’s own island opponents knocked down",
+  "hud.colDestroyedTitle": "Wall blocks knocked down on opponents’ islands, by every shot and tower. Hover a number to see whose",
+  "hud.colLostTitle": "Wall blocks of one’s own island that opponents knocked down. Hover a number to see who did",
+  "hud.colAccuracyTitle": "The share of shots fired by a click that knocked down a wall block; a Drone Tower’s missiles are not aimed, and not counted",
+  "hud.tipLine": "{name}: {n}",
+  "hud.pointsFromTip": "Ground: {ground}\nGuns: {guns}\nWalls: {walls}",
+  "hud.accuracyTip": "{hits} of {shots} shots hit",
   "hud.next": "Next: {label}",
   "hud.seconds": "{seconds}s",
   "error.uncaught": "Uncaught error",

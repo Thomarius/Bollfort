@@ -9,7 +9,7 @@ import { defaultArtConfig } from '@bollfort/config';
 import { AWARD_ICONS, ICONS, withIcon } from './icons.js';
 import { motionReduced } from './motion.js';
 
-import { mostCastlesOf, scoreChart, type MatchLog } from './summary.js';
+import { scoreChart, type MatchLog } from './summary.js';
 
 import {
   countUp,
@@ -203,7 +203,7 @@ export class EndScreen {
   private awardsMarkup(state: MatchState, humanPlayer: number): string {
     const log = this.log;
     if (log === null || log.scores.length === 0) return '';
-    this.awards ??= drawAwards(awardCandidates(log, state), state.seed);
+    this.awards ??= drawAwards(awardCandidates(log, state, humanPlayer), state.seed);
     if (this.awards.length === 0) return '';
     const cards = this.awards
       .map((award, i) => {
@@ -361,11 +361,39 @@ export class EndScreen {
     const log = this.log !== null && this.log.scores.length > 0 ? this.log : null;
     const sum = (map: ReadonlyMap<number, number> | undefined, ids: readonly number[]): number =>
       ids.reduce((total, id) => total + (map?.get(id) ?? 0), 0);
-    // What each row did as well as where it finished: the wall it knocked down and the most
-    // castles it held at once, where the log saw them, and the lives it has left, as the
-    // roster's pips — the pool and the life being played, "out" once out. Lives *lost* read
-    // wrong: the failure that puts a player out spends no continue, so a player out after
-    // three failures showed two.
+    // What each row did as well as where it finished (the user's, 2026-11-20): the walls it
+    // knocked down and the walls of its own others did, each broken down by player on hover; how
+    // often its aimed shots hit; and the lives it has left, as the roster's pips — the pool and
+    // the life being played, "out" once out. Lives *lost* read wrong: the failure that puts a
+    // player out spends no continue, so a player out after three failures showed two. The most
+    // castles held at once was here, and went: good players all held four.
+    const nameOf = (id: number): string =>
+      id === humanPlayer ? t('hud.you') : (state.players[id]?.name ?? '');
+    const byPlayer = (counts: ReadonlyMap<number, number>): string =>
+      [...counts]
+        .filter(([, n]) => n > 0)
+        .sort((a, b) => b[1] - a[1] || a[0] - b[0])
+        .map(([id, n]) => t('hud.tipLine', { name: nameOf(id), n }))
+        .join('\n');
+    const tipped = (tip: string, body: string, extra = ''): string =>
+      tip === ''
+        ? `<td${extra}>${body}</td>`
+        : `<td${extra} data-tip="${escape(tip)}" data-tip-lines data-tip-side="left">${body}</td>`;
+    const total = (counts: ReadonlyMap<number, number>): number =>
+      [...counts.values()].reduce((a, b) => a + b, 0);
+    const points = (ids: readonly number[], score: number): string => {
+      const count = ` data-count="${score}"`;
+      if (log === null) return `<td${count}>${score}</td>`;
+      const from = { ground: 0, guns: 0, walls: 0 };
+      for (const id of ids) {
+        const p = log.pointsFrom.get(id);
+        if (p === undefined) continue;
+        from.ground += p.ground;
+        from.guns += p.guns;
+        from.walls += p.walls;
+      }
+      return tipped(t('hud.pointsFromTip', from), String(score), count);
+    };
     const lives = (team: number, out: boolean): string => {
       if (out) return `<td><em class="tag out">${t('hud.out')}</em></td>`;
       const pool = state.teams[team];
@@ -373,18 +401,40 @@ export class EndScreen {
       const left = (pool?.continuesRemaining ?? 0) + 1;
       return `<td><span class="lives" data-tip="${escape(t('hud.livesTitle', { left, total }))}" data-tip-side="left">${lifePips(total, left)}</span></td>`;
     };
-    const stats = (ids: readonly number[]): string =>
-      log === null ? '' : `<td>${sum(log.destroyed, ids)}</td><td>${mostCastlesOf(log, ids)}</td>`;
+    const stats = (ids: readonly number[]): string => {
+      if (log === null) return '';
+      const broke = log.brokeBy(ids);
+      const lost = log.lostTo(ids);
+      const shots = sum(log.aimed, ids);
+      const hits = sum(log.aimedHits, ids);
+      const accuracy =
+        shots === 0
+          ? `<td>–</td>`
+          : tipped(t('hud.accuracyTip', { hits, shots }), `${Math.round((100 * hits) / shots)}%`);
+      return (
+        tipped(byPlayer(broke), String(total(broke))) +
+        tipped(byPlayer(lost), String(total(lost))) +
+        accuracy
+      );
+    };
     // Each column's heading explained on hover, as the lobby's settings are.
     const heading = (key: TextKey, tip: TextKey): string =>
       `<th><span data-tip="${escape(t(tip))}">${t(key)}</span></th>`;
+    // With the log, two rows: "walls" over its two columns, every other heading down both.
+    const tall = log === null ? '' : ' rowspan="2"';
+    const span = (key: TextKey, tip: TextKey): string =>
+      `<th${tall}><span data-tip="${escape(t(tip))}">${t(key)}</span></th>`;
     const head =
-      `<tr class="head"><th></th><th></th>${heading('hud.colPoints', 'hud.colPointsTitle')}` +
-      (log === null
-        ? ''
-        : heading('hud.colWall', 'hud.colWallTitle') +
-          heading('hud.colCastles', 'hud.colCastlesTitle')) +
-      `${heading('hud.colLives', 'hud.colLivesTitle')}</tr>`;
+      log === null
+        ? `<tr class="head"><th></th><th></th>${heading('hud.colPoints', 'hud.colPointsTitle')}` +
+          `${heading('hud.colLives', 'hud.colLivesTitle')}</tr>`
+        : `<tr class="head"><th${tall}></th><th${tall}></th>` +
+          span('hud.colPoints', 'hud.colPointsTitle') +
+          `<th colspan="2" class="group"><span data-tip="${escape(t('hud.colWallsTitle'))}">${t('hud.colWalls')}</span></th>` +
+          span('hud.colAccuracy', 'hud.colAccuracyTitle') +
+          span('hud.colLives', 'hud.colLivesTitle') +
+          `</tr><tr class="head sub">${heading('hud.colDestroyed', 'hud.colDestroyedTitle')}` +
+          `${heading('hud.colLost', 'hud.colLostTitle')}</tr>`;
     // The winner's row crowned and edged in the accent; a draw has none.
     const rank = (n: number, won: boolean): string =>
       won
@@ -411,7 +461,7 @@ export class EndScreen {
               `<tr class="${classes(won, s.eliminated, mine)}">${rank(i + 1, won)}` +
               `<td class="who">${shapeSvg(playerShape(s.members[0] ?? 0), playerCssColour(s.members[0] ?? 0))}` +
               `<span class="name">${escape(teamName(state, s.team))}</span><small class="members">${members}</small></td>` +
-              `<td data-count="${s.score}">${s.score}</td>${stats(s.members)}${lives(s.team, s.eliminated)}</tr>`
+              `${points(s.members, s.score)}${stats(s.members)}${lives(s.team, s.eliminated)}</tr>`
             );
           })
           .join('')
@@ -422,7 +472,7 @@ export class EndScreen {
             return (
               `<tr class="${classes(won, s.eliminated, s.player === humanPlayer)}">${rank(i + 1, won)}` +
               `<td class="who">${shapeSvg(playerShape(s.player), playerCssColour(s.player))}${avatarImg(avatars.get(s.player))}<span class="name">${escape(name)}</span></td>` +
-              `<td data-count="${s.score}">${s.score}</td>${stats([s.player])}` +
+              `${points([s.player], s.score)}${stats([s.player])}` +
               `${lives(state.players[s.player]?.team ?? s.player, s.eliminated)}</tr>`
             );
           })

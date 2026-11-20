@@ -113,6 +113,13 @@ export function openingShot(
  * pulls back out to the whole map while the end screen's Show the board has it folded
  * (`peekTowards`): the board is shown to be looked at whole (the user's, 2026-10-30). Null
  * for a draw, or nobody to push onto.
+ *
+ * `from`, the camera as it stood as the match ended, and `view`, the board fitted to the window:
+ * the push starts there rather than from the whole map (the user's, 2026-11-20 — zoomed in on
+ * their island for the last build, the view snapped out to the whole map and then pushed in).
+ * The winners' middle glides from where that camera showed it to where the whole map does, as
+ * the zoom goes from that camera's to `winnerZoom`: the same view at the end as ever, and from the
+ * whole map, at zoom 1, the same push as ever.
  */
 export function winnerShot(
   state: MatchState,
@@ -120,14 +127,32 @@ export function winnerShot(
   winners: readonly { x: number; y: number }[],
   art: CameraArt,
   peek = 0,
+  from: CameraPlacement | null = null,
+  view: FittedView | null = null,
 ): CameraShot | null {
   if (state.phase !== 'game_over' || winners.length === 0) return null;
   const x = winners.reduce((sum, w) => sum + w.x, 0) / winners.length + 0.5;
   const y = winners.reduce((sum, w) => sum + w.y, 0) / winners.length + 0.5;
+  const t = sinceOverMs / art.winnerPushMs;
+  if (from !== null && view !== null && from.zoom > 1) {
+    // Where the whole map shows the middle, which is where the push ends (`inPlace`), and where
+    // the camera as the match ended showed it, where the push starts.
+    const home = { x: view.originX + x * view.tile, y: view.originY + y * view.tile };
+    const start = { x: from.x + home.x * from.zoom, y: from.y + home.y * from.zoom };
+    const e = smoothstep(t);
+    const pushed = between(
+      { zoom: from.zoom, focusX: x, focusY: y },
+      { zoom: art.winnerZoom, focusX: x, focusY: y },
+      t,
+    );
+    const { zoom } = between(pushed, { zoom: 1, focusX: x, focusY: y }, peek);
+    const at = { x: start.x + (home.x - start.x) * e, y: start.y + (home.y - start.y) * e };
+    return { zoom, focusX: x, focusY: y, at };
+  }
   const pushed = between(
     { zoom: 1, focusX: x, focusY: y },
     { zoom: art.winnerZoom, focusX: x, focusY: y },
-    sinceOverMs / art.winnerPushMs,
+    t,
   );
   const { zoom } = between(pushed, { zoom: 1, focusX: x, focusY: y }, peek);
   return { zoom, focusX: x, focusY: y, inPlace: true };

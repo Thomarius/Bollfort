@@ -28,6 +28,7 @@ import { botTurns } from './bots/botTurns.js';
 import { ThreadDriver, botRngSeed, type BotDriver } from './bots/driver.js';
 import { WorkerDriver, type BotTransport, type WorkerTiming } from './bots/workerDriver.js';
 import { t } from './i18n.js';
+import { MatchLog } from './summary.js';
 
 export interface LocalMatchOptions {
   seed: number;
@@ -105,6 +106,12 @@ export class LocalMatch {
   halted = false;
   /** Told after every step with that step's events: the achievements' detector (AC3). */
   onStep: ((state: MatchState, events: readonly MatchEvent[]) => void) | null = null;
+  /**
+   * What a dev fast-forward stepped through, for the end screen's summary (`MatchLog`): its
+   * events are otherwise dropped, and a summary that heard none shows no columns but the points.
+   * So `&snapshot=game_over` shows the whole results screen. Null without a fast-forward.
+   */
+  fastForwardLog: MatchLog | null = null;
   private driver: BotDriver;
   private readonly seed: number;
   private readonly tickMs: number;
@@ -369,6 +376,7 @@ export class LocalMatch {
     // A dev shortcut, not a match anyone played: nothing of it is worth keeping.
     this.recorder = null;
     const arrived = (): boolean => this.state.phase === phase && this.state.round >= fromRound;
+    const log = (this.fastForwardLog ??= new MatchLog());
     while (!arrived() && this.state.tick < maxTicks && !this.finished) {
       // Left to itself, the person's seat builds nothing and is soon knocked out, which
       // is the quickest way to put a mid-match elimination on screen.
@@ -379,7 +387,7 @@ export class LocalMatch {
         humanIdle ? this.humanPlayer : -1,
       );
       step(this.state);
-      drainEvents(this.state);
+      log.note(drainEvents(this.state), this.state);
     }
   }
 

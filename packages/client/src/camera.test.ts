@@ -1,7 +1,7 @@
 import type { MatchState } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
-import { between, openingShot, peekTowards, winnerShot } from './camera.js';
+import { between, openingShot, peekTowards, placeShot, winnerShot } from './camera.js';
 
 const art = {
   openingZoom: 2,
@@ -87,6 +87,39 @@ describe('the push onto the winner', () => {
     expect(peekTowards(0.5, true, 1000, art)).toBe(1);
     expect(peekTowards(1, false, 250, art)).toBe(0.5);
     expect(peekTowards(0.2, false, 1000, art)).toBe(0);
+  });
+
+  it('starts from the camera as the match ended, zoomed in, and ends as from the whole map', () => {
+    // The board fitted at 20 px a tile, the island zoom in at 3x on the player's island.
+    const view = { tile: 20, originX: 100, originY: 50, width: 1000, height: 600 };
+    const board = { width: 40, height: 20 };
+    const zoomedIn = placeShot(view, board, {
+      zoom: 3,
+      focusX: 30,
+      focusY: 15,
+      at: { x: 500, y: 300 },
+    });
+    const place = (ms: number) =>
+      placeShot(view, board, winnerShot(over, ms, [island], art, 0, zoomedIn, view));
+    // No snap: the first frame is the camera as it stood.
+    const first = place(0);
+    expect(first.zoom).toBeCloseTo(zoomedIn.zoom);
+    expect(first.x).toBeCloseTo(zoomedIn.x);
+    expect(first.y).toBeCloseTo(zoomedIn.y);
+    // The same view at the end as the push from the whole map gives.
+    const whole = placeShot(view, board, winnerShot(over, 1000, [island], art));
+    const last = place(1000);
+    expect(last.zoom).toBeCloseTo(whole.zoom);
+    expect(last.x).toBeCloseTo(whole.x);
+    expect(last.y).toBeCloseTo(whole.y);
+    // On the way, between the two zooms.
+    expect(place(500).zoom).toBeLessThan(3);
+    expect(place(500).zoom).toBeGreaterThan(1.5);
+    // Not zoomed in as it ended: the push as ever.
+    const out = placeShot(view, board, null);
+    expect(winnerShot(over, 300, [island], art, 0, out, view)).toEqual(
+      winnerShot(over, 300, [island], art),
+    );
   });
 
   it('frames shared winners together, and nobody for a draw', () => {

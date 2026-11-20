@@ -7037,6 +7037,13 @@ html.pad [data-tip].pad-focus::after {
   pointer-events: none;
 }
 
+/* A tip of several lines, a line a player (the end screen's counts by player), kept as written. */
+[data-tip][data-tip-lines]:hover::after,
+[data-tip][data-tip-lines]:focus-visible::after,
+html.pad [data-tip][data-tip-lines].pad-focus::after {
+  white-space: pre-line;
+}
+
 /* Near the left edge, opening rightwards, so it stays on screen. */
 [data-tip][data-tip-side='right']:hover::after,
 [data-tip][data-tip-side='right']:focus-visible::after,
@@ -7748,6 +7755,44 @@ body:has(.end-screen:not(.held, .peeking) .banner.summary) .bar {
 
 .end-screen table.final th span[data-tip] {
   border-bottom: 1px dotted color-mix(in srgb, var(--muted) 60%, transparent);
+  cursor: help;
+}
+
+/* Two rows of headings (2026-11-20): "walls" over its two columns, a line under it joining
+   them, every other heading down both rows to sit on the figures. */
+.end-screen table.final th[rowspan] {
+  vertical-align: bottom;
+}
+
+.end-screen table.final th.group {
+  padding-bottom: 0.2rem;
+  text-align: center;
+}
+
+.end-screen table.final th.group span[data-tip] {
+  border-bottom: none;
+}
+
+.end-screen table.final th.group::before {
+  content: '';
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.1rem;
+  left: 0.9rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 45%, transparent);
+}
+
+.end-screen table.final th.group {
+  position: relative;
+}
+
+.end-screen table.final tr.sub th {
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+/* A count broken down by player on hover. */
+.end-screen table.final td[data-tip] {
   cursor: help;
 }
 

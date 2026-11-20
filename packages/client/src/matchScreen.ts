@@ -207,7 +207,7 @@ export async function runSession(
   // The menu's sea stops drifting under the match's canvas (style.css, `#backdrop`).
   document.body.classList.add('in-match');
   // What the end of the match summarises, kept from the events as they come.
-  const matchLog = new MatchLog();
+  const matchLog = session.matchLog ?? new MatchLog();
   hud.endScreen.useLog(matchLog);
   // The styles' own tracks, by the look each style draws as it comes on screen: a random
   // look is in place before the intermission that brings it, whose start chooses its music.
@@ -957,6 +957,8 @@ export async function runSession(
 
   /** When this client first saw the match over, for the push onto the winner. */
   let overAt: number | null = null;
+  /** The camera as the match ended, where the push onto the winners starts. */
+  let overFrom: Readonly<{ zoom: number; x: number; y: number }> | null = null;
 
   /**
    * The island zoom (`islandZoom.ts`): the person's island and its box, how far in the camera
@@ -991,7 +993,11 @@ export async function runSession(
    */
   function pointCamera(now: number): void {
     const state = session.state;
-    if (state.phase === 'game_over') overAt ??= now;
+    if (state.phase === 'game_over') {
+      overAt ??= now;
+      // As last pointed, before the push takes the camera: the island zoom's, where it was in.
+      overFrom ??= scene.cameraPlacement();
+    }
     const art = defaultConfigBundle.art.camera;
     peek = peekTowards(peek, hud.endScreen.peeking, now - (peekAt ?? now), art);
     peekAt = now;
@@ -1000,7 +1006,7 @@ export async function runSession(
       ? null
       : (heldShot(now) ??
         openingShot(state, session.tickFraction, islandCentre.get(session.humanPlayer), art) ??
-        winnerShot(state, now - (overAt ?? now), winners, art, peek));
+        winnerShot(state, now - (overAt ?? now), winners, art, peek, overFrom, scene.fittedView()));
     // The island zoom, at the player's asking: a cut under reduced motion, not left out.
     zoomedBy =
       ownBox === null

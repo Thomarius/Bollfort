@@ -16,6 +16,7 @@ import { type Action, type MatchEvent, type MatchState } from '@bollfort/sim';
 import { type NetworkReading } from './network.js';
 import { type LookChoices } from './looks.js';
 import { t } from './i18n.js';
+import type { MatchLog } from './summary.js';
 import { LocalMatch } from './localMatch.js';
 import { botWorker } from './bots/botWorkerTransport.js';
 import { perf } from './perf.js';
@@ -87,6 +88,8 @@ export interface Session {
   ): void;
   /** Each player's bot level by player id, null for a person, where the page knows it better than the setup's seats do. */
   readonly botLevels?: readonly (number | null)[];
+  /** The summary's log so far, where the match was fast-forwarded to its state (a dev snapshot). */
+  readonly matchLog?: MatchLog | null;
 }
 
 export interface Setup {
@@ -201,6 +204,7 @@ export function localSession(match: LocalMatch, rematch: (() => void) | null = n
     watchSteps: (step) => {
       match.onStep = step;
     },
+    matchLog: match.fastForwardLog,
     // Seats are dealt onto players, so the setup's seats are not in player order here.
     botLevels: match.state.players.map((p) => match.setups.get(p.id)?.level ?? null),
   };

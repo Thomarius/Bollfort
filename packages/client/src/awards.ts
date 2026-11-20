@@ -43,8 +43,12 @@ function placesBy(scores: readonly number[]): number[] {
   return scores.map((s) => 1 + scores.filter((other) => other > s).length);
 }
 
-/** Every award that applies to this match, in a fixed order, before the draw. */
-export function awardCandidates(log: MatchLog, state: Judged): Award[] {
+/**
+ * Every award that applies to this match, in a fixed order, before the draw. `humanPlayer`, the
+ * viewer, is told as "you" where an award names its victim: a local match's seat is named "You",
+ * and the nemesis read "You's nemesis" (the user's, 2026-11-20).
+ */
+export function awardCandidates(log: MatchLog, state: Judged, humanPlayer = -1): Award[] {
   const out: Award[] = [];
   const players = state.players;
   const rounds = log.scores;
@@ -245,7 +249,14 @@ export function awardCandidates(log: MatchLog, state: Judged): Award[] {
     blocks: number;
     shared: boolean;
   } | null;
-  if (foe !== null && !foe.shared) {
+  if (foe !== null && !foe.shared && foe.victim === humanPlayer) {
+    give(
+      'nemesis',
+      t('award.nemesisYou'),
+      foe.shooter,
+      t('award.nemesisYou.detail', { n: foe.blocks }),
+    );
+  } else if (foe !== null && !foe.shared) {
     const name = players[foe.victim]?.name ?? t('award.nemesis.rival');
     give(
       'nemesis',

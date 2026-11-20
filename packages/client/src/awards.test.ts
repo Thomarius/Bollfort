@@ -89,6 +89,13 @@ describe('the awards a match earns', () => {
       player: 2,
       detail: "9 blocks of Ada's wall",
     });
+    // Ada the viewer: hers, said as "your", never "You's" (2026-11-20).
+    const yours = awardCandidates(log, state, 0).find((a) => a.id === 'nemesis');
+    expect(yours).toMatchObject({
+      title: 'Your nemesis',
+      player: 2,
+      detail: '9 blocks of your wall',
+    });
   });
 
   it('calls a win by under 5% a photo finish', () => {
