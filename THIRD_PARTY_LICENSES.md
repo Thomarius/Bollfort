@@ -22,10 +22,10 @@ Agreement; Steam and the Steam logo are trademarks of Valve Corporation.
 | [@fontsource-variable/rubik](#fontsource-variablerubik) | 5.3.0 | OFL-1.1 | the game (every build) |
 | [@koromix/koffi-linux-x64](#koromixkoffi-linux-x64) | 3.3.7 | MIT | the Steam build |
 | [@koromix/koffi-win32-x64](#koromixkoffi-win32-x64) | 3.3.7 | MIT | the Steam build |
-| [@libp2p/logger](#libp2plogger) | 6.2.13 | Apache-2.0 OR MIT | the desktop app and the server |
-| [@pixi/colord](#pixicolord) | 2.9.6 | MIT | the game (every build) |
+| [@libp2p/logger](#libp2plogger) | 6.2.16 | Apache-2.0 OR MIT | the desktop app and the server |
 | [@xmldom/xmldom](#xmldomxmldom) | 0.8.15 | MIT | the game (every build) |
-| [earcut](#earcut) | 3.2.3 | ISC | the game (every build) |
+| [colord](#colord) | 2.14.0 | MIT | the game (every build) |
+| [earcut](#earcut) | 3.2.4 | ISC | the game (every build) |
 | [err-code](#err-code) | 3.0.1 | MIT | the desktop app and the server |
 | [eventemitter3](#eventemitter3) | 5.0.4 | MIT | the game (every build) |
 | [freeport-promise](#freeport-promise) | 2.0.0 | Apache-2.0 OR MIT | the desktop app and the server |
@@ -34,21 +34,21 @@ Agreement; Steam and the Steam logo are trademarks of Valve Corporation.
 | [koffi](#koffi) | 3.3.7 | MIT | the Steam build |
 | [merge-options](#merge-options) | 3.0.4 | MIT | the desktop app and the server |
 | [ms](#ms) | 4.0.0-nightly.202508271359 | MIT | the desktop app and the server |
-| [multiformats](#multiformats) | 14.0.5 | Apache-2.0 OR MIT | the desktop app and the server |
-| [netmask](#netmask) | 2.1.1 | MIT | the desktop app and the server |
+| [multiformats](#multiformats) | 14.0.6 | Apache-2.0 OR MIT | the desktop app and the server |
+| [netmask](#netmask) | 2.1.2 | MIT | the desktop app and the server |
 | [p-defer](#p-defer) | 4.0.1 | MIT | the desktop app and the server |
 | [parse-svg-path](#parse-svg-path) | 0.2.0 | MIT | the game (every build) |
-| [pixi.js](#pixijs) | 8.21.0 | MIT | the game (every build) |
+| [pixi.js](#pixijs) | 8.23.0 | MIT | the game (every build) |
 | [race-signal](#race-signal) | 2.0.2 | Apache-2.0 OR MIT | the desktop app and the server |
 | [sax](#sax) | 1.6.1 | BlueOak-1.0.0 | the desktop app and the server |
 | [steamworks.js](#steamworksjs) | 0.4.0 | MIT | the Steam build |
 | [supports-color](#supports-color) | 10.2.2 | MIT | the desktop app and the server |
 | [tiny-lru](#tiny-lru) | 11.4.7 | BSD-3-Clause | the game (every build) |
 | [weald](#weald) | 1.1.3 | Apache-2.0 OR MIT | the desktop app and the server |
-| [ws](#ws) | 8.21.3 | MIT | the desktop app and the server |
+| [ws](#ws) | 8.23.0 | MIT | the desktop app and the server |
 | [xml2js](#xml2js) | 0.6.2 | MIT | the desktop app and the server |
 | [xmlbuilder](#xmlbuilder) | 11.0.1 | MIT | the desktop app and the server |
-| [zod](#zod) | 4.6.5 | MIT | the game (every build), the desktop app and the server |
+| [zod](#zod) | 4.6.7 | MIT | the game (every build), the desktop app and the server |
 
 ## @achingbrain/nat-port-mapper
 
@@ -376,7 +376,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 ## @libp2p/logger
 
-Version 6.2.13, Apache-2.0 OR MIT, https://github.com/libp2p/js-libp2p/tree/main/packages/logger#readme. The text is its repository's MIT text.
+Version 6.2.16, Apache-2.0 OR MIT, https://github.com/libp2p/js-libp2p/tree/main/packages/logger#readme. The text is its repository's MIT text.
 
 ```text
 The MIT License (MIT)
@@ -400,9 +400,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-## @pixi/colord
+## @xmldom/xmldom
 
-Version 2.9.6, MIT, https://github.com/omgovich/colord. The text is colord's, the original it was forked from.
+Version 0.8.15, MIT, https://github.com/xmldom/xmldom.
+
+```text
+Copyright 2019 - present Christopher J. Brody and other contributors, as listed in: https://github.com/xmldom/xmldom/graphs/contributors
+Copyright 2012 - 2017 @jindw <jindw@xidea.org> and other contributors, as listed in: https://github.com/jindw/xmldom/graphs/contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+```
+
+## colord
+
+Version 2.14.0, MIT, https://github.com/omgovich/colord.
 
 ```text
 MIT License
@@ -428,24 +443,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @xmldom/xmldom
-
-Version 0.8.15, MIT, https://github.com/xmldom/xmldom.
-
-```text
-Copyright 2019 - present Christopher J. Brody and other contributors, as listed in: https://github.com/xmldom/xmldom/graphs/contributors
-Copyright 2012 - 2017 @jindw <jindw@xidea.org> and other contributors, as listed in: https://github.com/jindw/xmldom/graphs/contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-```
-
 ## earcut
 
-Version 3.2.3, ISC, https://github.com/mapbox/earcut.
+Version 3.2.4, ISC, https://github.com/mapbox/earcut.
 
 ```text
 ISC License
@@ -678,7 +678,7 @@ SOFTWARE.
 
 ## multiformats
 
-Version 14.0.5, Apache-2.0 OR MIT, https://github.com/multiformats/js-multiformats#readme. The text is its repository's MIT text.
+Version 14.0.6, Apache-2.0 OR MIT, https://github.com/multiformats/js-multiformats#readme. The text is its repository's MIT text.
 
 ```text
 The MIT License (MIT)
@@ -704,7 +704,7 @@ THE SOFTWARE.
 
 ## netmask
 
-Version 2.1.1, MIT, https://github.com/rs/node-netmask.
+Version 2.1.2, MIT, https://github.com/rs/node-netmask.
 
 ```text
 MIT License
@@ -777,7 +777,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## pixi.js
 
-Version 8.21.0, MIT, http://pixijs.com/.
+Version 8.23.0, MIT, http://pixijs.com/.
 
 ```text
 The MIT License
@@ -997,7 +997,7 @@ THE SOFTWARE.
 
 ## ws
 
-Version 8.21.3, MIT, https://github.com/websockets/ws.
+Version 8.23.0, MIT, https://github.com/websockets/ws.
 
 ```text
 Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com>
@@ -1078,7 +1078,7 @@ THE SOFTWARE.
 
 ## zod
 
-Version 4.6.5, MIT, https://zod.dev.
+Version 4.6.7, MIT, https://zod.dev.
 
 ```text
 MIT License

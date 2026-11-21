@@ -14,8 +14,8 @@
   "devDependencies": {
     "@bollfort/config": "*",
     "@bollfort/server": "*",
-    "electron": "44.5.1",
-    "electron-builder": "^26.15.3"
+    "electron": "44.11.5",
+    "electron-builder": "^26.18.0"
   },
   "build": {
     "appId": "io.github.thomarius.bollfort",

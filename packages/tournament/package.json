@@ -12,6 +12,6 @@
   "dependencies": {
     "@bollfort/config": "*",
     "@bollfort/sim": "*",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   }
 }

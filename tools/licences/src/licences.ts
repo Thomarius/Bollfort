@@ -51,9 +51,6 @@ const BORROWED: Record<string, { from: string; package?: string; file?: string }
   // koffi's per-system binaries, published by koffi's author under koffi's licence.
   '@koromix/koffi-linux-x64': { from: "koffi's", package: 'koffi' },
   '@koromix/koffi-win32-x64': { from: "koffi's", package: 'koffi' },
-  // Pixi's fork of colord, MIT by its package.json, which names the original's repository;
-  // its LICENSE.md fetched from github.com/omgovich/colord (2026-11-09).
-  '@pixi/colord': { from: "colord's, the original it was forked from", file: 'colord.txt' },
   // Dual-licensed Apache-2.0 OR MIT, taken under MIT: each repository's LICENSE-MIT (2026-11-09).
   '@achingbrain/nat-port-mapper': {
     from: "its repository's MIT text",

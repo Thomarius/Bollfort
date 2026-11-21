@@ -12640,3 +12640,28 @@ each style's drone enlarged in every pose, then a tower of three on its own isla
 orbit, and one style live. Looking there also broadened the crane's, owl's and butterfly's wings,
 swept the moth's back, and gave the squid four thick arms and two tentacles, its arms before a
 pink block on the reef. A test draws every pose of every look at two tile sizes.
+
+## 16u. The dependencies brought up to date (2026-11-21)
+
+Every dependency moved to its latest release within its range, while Valve answers: Pixi 8.21 →
+8.23, Vite 8.3.8, Vitest 5.1.1, `ws` 8.23, zod 4.6.7, eslint 10.15, prettier 3.10.1, tsx,
+`typescript-eslint` 8.73, electron-builder 26.18.1 and the types. **Electron's pin moved within
+44, 44.5.1 → 44.11.5**, for the one advisory that touched what ships: a high one, the mitigation for
+compromised eMudhra intermediate certificates (`<44.9.1`). Electron 45 waits: 44 is supported until
+47 is out, about early 2027. What `npm audit` still names is one moderate advisory of `minimatch`
+inside electron-builder's build-time chain, which only `--force` clears, by another electron-builder
+major — not worth it for a tool that only reads our own globs.
+
+Left pinned, each for its reason: TypeScript at 5.9.3, since `typescript-eslint` 8.73 accepts
+`<6.1` (TypeScript 7 is out of reach); Playwright at 1.63.0, for the browser cached here (12zh);
+koffi at 3.3.7 and `steamworks.js` at 0.4.0, the versions proven on 480, not to be moved before
+they can be tried there again.
+
+**Pixi's change, measured**: every style's board, the 24 public and the 10 supporter ones, in a
+build and a combat phase at two sizes (`?icons=boards&supporter=1`, 136 images), six runs before
+and three after, a pixel counted only if it changed in every new run and in no old one (13zv's
+method; three old runs against the other three, as a control, gave 16 pixels of noise). After the
+update: 2 pixels, on a board whose control showed 8. The boards are unchanged. Pixi 8.23 bundles
+the original `colord` in place of its fork, so the licences tool's text for the fork is gone with
+it. `npm run check` passed (1,493 tests), and the desktop app on Electron 44.11.5 started and served
+the game.
