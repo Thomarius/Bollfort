@@ -12665,3 +12665,35 @@ update: 2 pixels, on a board whose control showed 8. The boards are unchanged. P
 the original `colord` in place of its fork, so the licences tool's text for the fork is gone with
 it. `npm run check` passed (1,493 tests), and the desktop app on Electron 44.11.5 started and served
 the game.
+
+## 16v. The supporter styles reviewed; the final round's label in the skin's accent (2026-11-21)
+
+While Valve answers, the ten supporter styles were reviewed without the users, in headless Chrome:
+each in its menu, a build, cannon and combat phase, the final round's climax, eight players at the
+Deck's 1280 × 800, the push onto the winner and the end screen — 80 screenshots, no page error or
+console warning — and `&perf=1` in a watched eight-player combat, two runs each alternating with the
+Wild West and Chocolate. All ten at 60 fps, rendering 1.3–2.5 ms a frame against the Wild West's
+1.8 and Chocolate's 3.0, rebuilding 1,060–2,280 vertices a frame against 1,600 and 5,640; stutter
+0–2 frames in 30 s, as the two. The figures per style are in each one's doc in `supporter/docs/`.
+
+**What it found**: the big timer was the default light grey in all ten — every public style has its
+own — and all but vanished on the light boards (Sky Islands' clouds, Subway's map, Petri Dish's
+agar). Each now has one of its own, designed with the review (the user's: "they deserve it"). And
+**the final round's label took the page's gold** (`--accent`) whatever the skin, faint on every
+light bar: the Wild West's and Parchment's nearly invisible, Subway's, Petri Dish's and
+Manuscript's faint. **It takes the skin's `--hud-accent` now**, in every style (the user's, over
+fixing only the faint ones): the root's accent is that gold, so Minimal and Medieval are unchanged;
+Cyberpunk's turned pink, the Wild West's red, Parchment's oxblood. Petri Dish's award titles a size
+smaller on the end screen, its marker's hand being wide.
+
+**The end screen's award titles fitted to their cards** (the user's, from the same review): in
+German "Großgrundbesitz" ran past its card's edge in the looks with a wide heading face (Egypt,
+Minimal, the Wild West), and "Erzfeind von Bot 3" wrapped in every look. A title now keeps to one
+line and is shrunk just enough to fit (`fitText.ts`, its arithmetic tested): measured as the
+summary is written — hidden while held back, but laid out — and again when the screen's size
+changes (a `ResizeObserver` on the screen, not the window, since nothing tells the end screen a
+match has gone), when the fonts have loaded and when the summary unfolds. **Measured again after
+each shrink**: a letter spacing set in `em` on the heading reaches the title as fixed pixels, so
+one pass left "Großgrundbesitz" 9 px too wide. Down to 11 px; a title too long even there, a long
+name, wraps as before. Seen in German, Hessian and English at 1280 and 1000 px wide: the German
+titles at 12–13.6 px, the English ones untouched at 16.

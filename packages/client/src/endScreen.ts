@@ -8,6 +8,10 @@ import { avatarImg } from './steam/avatars.js';
 import { defaultArtConfig } from '@bollfort/config';
 import { AWARD_ICONS, ICONS, withIcon } from './icons.js';
 import { motionReduced } from './motion.js';
+import { fitTitles } from './fitText.js';
+
+/** The award titles kept to one line in their cards (`fitText.ts`). */
+const AWARD_TITLES = '.award strong > span';
 
 import { scoreChart, type MatchLog } from './summary.js';
 
@@ -97,13 +101,24 @@ export class EndScreen {
     if (this.endScreen === null || !this.endScreen.isConnected) {
       const screen = document.createElement('div');
       screen.className = 'end-screen';
+      // The award titles fitted again whenever their cards may have changed width: the window
+      // resized, the look's heading face loaded, the summary unfolded. Observed on the screen
+      // itself, not the window, so nothing is left to remove when a match's screen goes.
+      const fit = (): void => {
+        if (screen.isConnected) fitTitles(screen, AWARD_TITLES);
+      };
+      new ResizeObserver(fit).observe(screen);
+      void document.fonts?.ready.then(fit);
       screen.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
         if (target.closest('.leave')) this.leave?.();
         const rematch = target.closest<HTMLButtonElement>('.rematch');
         if (rematch !== null && !rematch.disabled) this.rematch?.();
         // The board shown, the summary folded to a bar; and back.
-        if (target.closest('.peek')) screen.classList.toggle('peeking');
+        if (target.closest('.peek')) {
+          screen.classList.toggle('peeking');
+          fit();
+        }
       });
       screen.addEventListener('pointermove', (event) => this.hoverChart(event));
       screen.addEventListener('pointerleave', () => this.hoverChart(null));
@@ -114,6 +129,8 @@ export class EndScreen {
     if (html !== this.endScreenHtml) {
       this.endScreen.innerHTML = html;
       this.endScreenHtml = html;
+      // Held back, the summary is hidden but laid out, so it is measured as it is written.
+      fitTitles(this.endScreen, AWARD_TITLES);
     }
     // Held back while the fireworks and the camera's push have the screen to themselves:
     // shown at once, the summary covered the celebration it followed. Timed here rather

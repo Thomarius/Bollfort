@@ -251,8 +251,11 @@ body.reduced-motion .embers {
   }
 }
 
+/* In the skin's own accent: the page's gold faded on the light bars (Wild West, Parchment,
+   Subway, Petri Dish, Manuscript; 2026-11-21). The root's accent is that gold, so a skin
+   without one of its own keeps it. */
 .round.final {
-  color: var(--accent);
+  color: var(--hud-accent);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -7912,6 +7915,18 @@ body:has(.end-screen:not(.held, .peeking) .banner.summary) .bar {
   font-family: var(--heading-font);
   font-size: 1rem;
   letter-spacing: 0.04em;
+}
+
+/* One line, shrunk to fit its card by `fitTitles` (endScreen.ts); a title too long even at the
+   floor, a long name, wraps as before. */
+.end-screen .summary .award strong > span {
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.end-screen .summary .award strong > span.wraps {
+  white-space: normal;
 }
 
 .end-screen .summary .award strong svg.icon {
