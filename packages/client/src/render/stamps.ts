@@ -245,6 +245,41 @@ export class Discs {
 }
 
 /**
+ * A container's children set again every frame, in order, its child list changed only where
+ * this frame's differs from the last's. Emptied and filled, a layer tells Pixi its structure
+ * changed every frame even when the same sprites come back in the same order, as a
+ * `SpritePool` lends them, and Pixi then gathers its render group's whole draw list and updates
+ * every transform in it again: Night's effects, some 900 sprites, about 1 ms a frame
+ * (2026-11-21, PLAN §11, PF2).
+ */
+export class SteadyChildren {
+  private next = 0;
+
+  constructor(readonly container: Container) {}
+
+  begin(): void {
+    this.next = 0;
+  }
+
+  /** `child` as the next child, where it is already unless this frame's order differs. */
+  add(child: Container): void {
+    if (this.container.children[this.next] !== child) {
+      this.container.addChildAt(child, this.next);
+    }
+    this.next++;
+  }
+
+  /**
+   * The children not set again this frame taken off. Kept unseen at no opacity instead, as a
+   * `Stamps` keeps a gone stamp, they still went through the render: Night's render 0.6 ms a
+   * frame dearer with that, the faded torchlight discs and particles (2026-11-21, PF2).
+   */
+  end(): void {
+    if (this.container.children.length > this.next) this.container.removeChildren(this.next);
+  }
+}
+
+/**
  * Sprites lent out for a frame and taken back at the next: a layer emptied and filled
  * again every frame keeps its sprites rather than making new ones and leaving the old to
  * the collector, as Medieval's guns, shots and flags did, two hundred a frame at eight

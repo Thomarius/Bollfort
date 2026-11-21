@@ -87,7 +87,27 @@ function emptySections(): Record<Section, number> {
 const fixed = (n: number, digits = 1): string => n.toFixed(digits);
 
 export class PerfMeter {
-  enabled = false;
+  private on = false;
+
+  /**
+   * Switched on once, at the page's start (`app.ts`), before any match's drawings exist: from
+   * then each `Graphics` reports its drawing changing (`watchGraphics`).
+   */
+  get enabled(): boolean {
+    return this.on;
+  }
+
+  set enabled(on: boolean) {
+    this.on = on;
+    if (on) watchGraphics(this.changed);
+  }
+
+  /**
+   * `Graphics` whose drawing changed since they were last counted: gathered as they change
+   * rather than by walking the stage each frame for them, which cost a frame of Night's
+   * thousands of sprites 1.1 ms (2026-11-21, ARCHIVE 16w).
+   */
+  private readonly changed = new Set<Graphics>();
 
   private started = new Map<Section, number>();
   private current = emptySections();
@@ -174,17 +194,19 @@ export class PerfMeter {
   beforeRender(): void {
     if (!this.enabled || this.stage === null) return;
     const contexts: Graphics[] = [];
-    let dirty = 0;
-    const visit = (node: Container): void => {
-      if (!node.visible) return;
-      if (node instanceof Graphics && node.context.dirty) {
-        dirty++;
-        contexts.push(node);
+    for (const g of this.changed) {
+      // Drawn already, or thrown away: nothing for Pixi to cut again.
+      if (g.destroyed || !g.context.dirty) {
+        this.changed.delete(g);
+        continue;
       }
-      for (const child of node.children) visit(child);
-    };
-    visit(this.stage);
-    this.pending = { contexts, dirty };
+      // Only what is on the stage and shown, as Pixi renders it; one changed while hidden is
+      // kept, to be counted when it shows, still unrendered.
+      if (!shownOn(g, this.stage)) continue;
+      contexts.push(g);
+      this.changed.delete(g);
+    }
+    this.pending = { contexts, dirty: contexts.length };
   }
 
   /** Closes the frame begun at the last call, `interval` after the one before. */
@@ -298,6 +320,34 @@ export class PerfMeter {
         .map(([name, e]) => `  ${name.padEnd(28)} ${String(e.max).padStart(8)} (${e.frames})`),
     ].join('\n');
   }
+}
+
+/** Whether `node` is under `stage` with it and every container above it visible. */
+function shownOn(node: Container, stage: Container): boolean {
+  for (let n: Container | null = node; n !== null; n = n.parent) {
+    if (!n.visible) return false;
+    if (n === stage) return true;
+  }
+  return false;
+}
+
+let watched: Set<Graphics> | null = null;
+
+/**
+ * Every `Graphics` made from now on adds itself to `into` whenever its drawing changes. A
+ * `Graphics` listens for its context's changes with the `onViewUpdate` it has when its context
+ * is set, so this must come before the drawings it is to see; installed once.
+ */
+function watchGraphics(into: Set<Graphics>): void {
+  if (watched !== null) return;
+  watched = into;
+  // `onViewUpdate` is protected in Pixi's types; this is a dev tool's hook, not a subclass.
+  const proto = Graphics.prototype as unknown as { onViewUpdate: (this: Graphics) => void };
+  const original = proto.onViewUpdate;
+  proto.onViewUpdate = function (this: Graphics): void {
+    watched?.add(this);
+    original.call(this);
+  };
 }
 
 /**

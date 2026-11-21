@@ -14,7 +14,7 @@ import { bloom } from './bloom.js';
 import { release } from './release.js';
 import { SceneryTracker, placeScenery } from './scenery.js';
 import { hash } from './noise.js';
-import { Discs, SpritePool, StampBook, Stamps } from './stamps.js';
+import { Discs, SpritePool, StampBook, Stamps, SteadyChildren } from './stamps.js';
 import { Particles } from './particles.js';
 import { behindCorner, outerOcean, seaDepth } from './ocean.js';
 import {
@@ -244,6 +244,14 @@ export class PixelTheme implements Theme {
    * players, and the walls' shadow was a new `Graphics` at every hit, never destroyed.
    */
   private readonly pools = new Map<Container, SpritePool>();
+  /**
+   * The pooled layers filled again whole — every frame the effects, the castles' lights in
+   * them and the flock in the territory's render group; at every hit the walls, some 900
+   * sprites, a frame in three of an eight-player barrage; the craters and the courts as they
+   * change — their children changed only where a fill differs from the last (`SteadyChildren`,
+   * PLAN §11, PF2).
+   */
+  private readonly steady = new Map<Container, SteadyChildren>();
   /** The walls' shadows and the snow lying on them, redrawn with the walls. */
   private readonly shade = new Graphics();
   private readonly snowCaps = new Graphics();
@@ -497,6 +505,16 @@ export class PixelTheme implements Theme {
       }
     }
     layers.effects.addChild(...this.effectStack());
+    for (const layer of [
+      this.effectLayer,
+      this.lightLayer,
+      this.flockLayer,
+      this.structureLayer,
+      this.craterLayer,
+      this.courtLayer,
+    ]) {
+      this.steady.set(layer, new SteadyChildren(layer));
+    }
     layers.overlay.addChild(this.ghostShadow, this.ghostLayer, this.overlayGfx);
   }
 
@@ -509,6 +527,7 @@ export class PixelTheme implements Theme {
       pool.destroy();
     }
     this.pools.clear();
+    this.steady.clear();
     this.shade.destroy();
     this.snowCaps.destroy();
     if (this.structureLayer) release(this.structureLayer);
@@ -550,10 +569,27 @@ export class PixelTheme implements Theme {
     this.surf = [];
   }
 
-  /** Empties a pooled layer for drawing again, its sprites back in its pool. */
+  /**
+   * Empties a pooled layer for drawing again, its sprites back in its pool; a steady one only
+   * to be filled again in order, its children left until `settle` takes off what was not.
+   */
   private empty(layer: Container): void {
-    layer.removeChildren();
+    const steady = this.steady.get(layer);
+    if (steady === undefined) layer.removeChildren();
+    else steady.begin();
     this.pools.get(layer)?.begin();
+  }
+
+  /** What a fill of a steady `layer` did not set again, taken off it. */
+  private settle(layer: Container): void {
+    this.steady.get(layer)?.end();
+  }
+
+  /** `child` added to `layer`: as its next child, if it is filled steadily. */
+  private adopt(layer: Container, child: Container): void {
+    const steady = this.steady.get(layer);
+    if (steady === undefined) layer.addChild(child);
+    else steady.add(child);
   }
 
   private texture(key: string): Texture {
@@ -577,7 +613,7 @@ export class PixelTheme implements Theme {
     // Sprites are generated at 16 pixels a tile but displayed at whatever the map
     // scales to, so snap to the pixel grid rather than let edges land on halves.
     sprite.roundPixels = true;
-    parent.addChild(sprite);
+    this.adopt(parent, sprite);
     return sprite;
   }
 
@@ -886,6 +922,7 @@ export class PixelTheme implements Theme {
       const sprite = this.place(this.craterLayer, KEY.crater(crater.variant), this.view, x, y);
       sprite.alpha = 0.9 * (1 - (this.round - crater.round) / rounds);
     }
+    this.settle(this.craterLayer);
   }
 
   /**
@@ -910,6 +947,7 @@ export class PixelTheme implements Theme {
       // breach rather than paving.
       sprite.alpha = 1;
     }
+    this.settle(this.courtLayer);
     const g = this.territoryGfx;
     clearDrawn(g);
     dimEliminated(g, state, view, hex(this.art.palette.shadow));
@@ -923,7 +961,7 @@ export class PixelTheme implements Theme {
     // Shadows first, under everything that casts them.
     const shade = this.shade;
     clearDrawn(shade);
-    this.structureLayer.addChild(shade);
+    this.adopt(this.structureLayer, shade);
     this.dropShadows(shade, state, view);
 
     // Cracks last only the round they were made in: the walls are dressed again by
@@ -1035,8 +1073,9 @@ export class PixelTheme implements Theme {
         g.rect(tileX(view, castle.x) + 1, tileY(view, castle.y), castle.w * view.tile - 2, cap);
       }
       g.fill({ color: 0xf4f7ff, alpha: 0.85 });
-      this.structureLayer.addChild(g);
+      this.adopt(this.structureLayer, g);
     }
+    this.settle(this.structureLayer);
   }
 
   /**
@@ -1408,7 +1447,7 @@ export class PixelTheme implements Theme {
     this.empty(this.effectLayer);
     this.empty(this.lightLayer);
     this.empty(this.flockLayer);
-    this.effectLayer.addChild(
+    for (const child of [
       this.cloudStamps.container,
       this.lightLayer,
       ...this.effectStack(),
@@ -1416,7 +1455,9 @@ export class PixelTheme implements Theme {
       this.aboveCrownsGfx,
       this.airLight,
       this.airDiscs.container,
-    );
+    ]) {
+      this.adopt(this.effectLayer, child);
+    }
     this.age(state);
     this.beamStamps.begin();
     clearDrawn(this.groundLight);
@@ -1582,6 +1623,8 @@ export class PixelTheme implements Theme {
     this.fragments = this.fragments.filter((f) => f.age < life);
     this.groundDiscs.end();
     this.airDiscs.end();
+    // What this frame did not set again taken off the layers filled every frame.
+    for (const layer of [this.effectLayer, this.lightLayer, this.flockLayer]) this.settle(layer);
   }
 
   /**
@@ -3275,7 +3318,7 @@ export class PixelTheme implements Theme {
         castle.islandId - 1,
         out || this.flags.lowering(castle.id) ? 'dark' : 'base',
       );
-      this.effectLayer.addChild(sprite);
+      this.adopt(this.effectLayer, sprite);
     }
   }
 

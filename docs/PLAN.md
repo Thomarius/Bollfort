@@ -1888,6 +1888,27 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md); AC1, AC2, AC4 and AC3 done (ARCHIVE 16a–16c, AC3
    tried on 480), AC5 waiting for the App ID.
 
+9. **The dearest styles made cheaper** (agreed 2026-11-21, from a measurement of all 34 styles,
+   ARCHIVE 16v–16w): every style holds 60 fps at eight players here, but the five dearest cost
+   4.5–6.5 ms a frame of drawing (effects and render) against Minimal's 0.8 and the Wild West's
+   2.4 — Night 5.8–6.5, Pixel 4.9–5.3, Sakura, Halloween and Chocolate 4.4–4.7 — and Sakura
+   stutters 5–6 times in 30 s. For weaker machines (the Steam Deck) and those stutters. Each
+   package measured against the old code with `&perf=1` and a CPU profile, and looked at in close
+   crops. Packages, in this order (the user's):
+   - **PF1 — The readout's own cost — done** (ARCHIVE 16w): its walk of the whole stage each
+     frame, 1.1 ms of Night's, replaced by drawings gathered as they change; 0.07 ms now.
+   - **PF2 — Night and Pixel — done** (ARCHIVE 16w): six pooled layers no longer emptied and
+     refilled (`SteadyChildren`), Night 5.8–6.5 → 4.9–5.1 ms a frame, Pixel 4.9–5.3 → 4.3–5.1.
+     The rest dropped as not worth the effort for now (the user's, 2026-11-21): the water's
+     eight frames drawn whole, to end its texture swapped on every water tile every 140 ms, and
+     the surf by phase groups, which a parent's opacity changing each child in Pixi defeats.
+   - **PF3 — Later: the walls drawn again at a hit**: an island's walls whole, 26 000–42 000
+     vertices in Sakura (render 12 ms at the 99th percentile), 11 000–15 000 in Halloween,
+     10 000 in Chocolate. First an island's walls in a few parts (`IslandParts`), so a hit
+     draws one; blocks stamped by their neighbours only if that is not enough.
+   - **PF4 — Later, each switched off and measured first**: Chocolate's fall and shine and
+     Halloween's flowing terrain, drawn every frame, as stamps.
+
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
 UI polish, all in ARCHIVE 11h; 11.11 the second visual pass and 11.12 the first

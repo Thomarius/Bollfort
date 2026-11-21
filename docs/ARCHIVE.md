@@ -12697,3 +12697,50 @@ each shrink**: a letter spacing set in `em` on the heading reaches the title as 
 one pass left "Großgrundbesitz" 9 px too wide. Down to 11 px; a title too long even there, a long
 name, wraps as before. Seen in German, Hessian and English at 1280 and 1000 px wide: the German
 titles at 12–13.6 px, the English ones untouched at 16.
+
+## 16w. Every style measured; the readout's own cost; Night's and Pixel's layers kept (2026-11-21, PLAN §11, PF1–PF2)
+
+**Every style measured** (the user's question, whether Chocolate was the dearest): `&perf=1` in a
+watched eight-player combat (round 3, seed 3, 1600 × 1000, headless Chrome with the GPU on, the
+user's video sharing it, so the figures compare rather than stand alone), the dearest run twice.
+Drawing a frame, effects and render: **Night 5.8–6.5 ms, Pixel 4.9–5.3, Sakura 4.4–4.7, Halloween
+4.5–4.7, Chocolate 4.5**; Cyberpunk, Oktoberfest and Opera 3.5–3.8; the Wild West 2.4; Minimal 0.8;
+the supporter styles 1.9–3.5. Every style at 60 fps; Sakura stutters 5–6 times in 30 s, its walls
+drawn again whole at a hit (26 000–42 000 vertices; render 12 ms at the 99th percentile). Vertices
+rebuilt are not the cost (as 14zo found): Sakura's shots, 4 000 a frame, measured 0.07 ms there.
+
+**PF1, the readout's own cost.** `PerfMeter.beforeRender` walked the whole stage each frame for
+the drawings changed, 68 ms a second of Night's frames (1.1 ms each) by a CPU profile, outside the
+sections it times — so the section figures were sound, but the frames were slower than without
+it, most in the styles of many nodes. **Built**: each `Graphics` adds itself to a set as its
+drawing changes (`onViewUpdate`, hooked as the readout is switched on at the page's start, before
+any match's drawings), and only those are looked at. The readout's whole cost in Night's profile:
+4 ms a second. The figures checked against the walk's: the same drawings, the same vertices and
+frames rebuilt within a run's noise (Sakura's sea-life drawing counted in 1 533 frames once, 1 731
+the next, 1 755 and 1 785 on the walk).
+
+**PF2, Night and Pixel.** A profile (bots on the page's thread under `&snapshot=`, alike for every
+style) put Pixi's work per node first: `updateTransformAndChildren` 57 ms a second, the
+render lists gathered again, children taken off and put back. A probe counting changes of
+structure found **the walls' layer filled again whole at every hit** — 31 279 sprites in 120
+frames, a frame in three of an eight-player barrage — the craters' at every new one, and the
+effects', lights' and flock's every frame (the flock inside the territory's render group).
+**Built**: `SteadyChildren` (`render/stamps.ts`), a container's children set again in order and
+changed only where a fill differs from the last — the pools lend their sprites in order, so the
+same sprites come back in the same places — used for those six layers. Re-adding children gone
+from the profile (24 ms a second), `updateTransformAndChildren` 51 → 32, the page's thread idle
+about 60 ms a second more. **Drawing a frame: Night 5.8–6.5 → 4.9–5.1 ms, Pixel 4.9–5.3 →
+4.3–5.1**, three runs each. Looked at against the old code in five scenes each: alike.
+
+**Tried and reverted**: spares kept at no opacity instead of hidden or taken off — the layers'
+pooled sprites, the particles, the torchlight's discs — since hiding (`visible`) is a change of
+structure in Pixi too, and the particles grown 32 at a time. The render was 0.6 ms a frame dearer
+(Night 4.0–4.2 against 3.1–3.6): the unseen still go through the render, the discs under a bloom.
+And not every frame's gathering can go: any `Graphics` redrawn in a group gathers it again (14ze).
+
+**Dropped as not worth the effort for now** (the user's): the water's texture swapped on every water tile (some 10 000 at eight
+players) every 140 ms, some 70 000 sprite updates a second (`updateRenderable`,
+`packQuadAttributes`); drawing its eight frames whole would cost memory and redrawing whenever
+the view moves (the island zoom), for a few tenths of a millisecond, unmeasured. The surf's
+opacity set on each tile every frame stays: a parent's opacity changes each child in Pixi all the
+same. PF3, the walls drawn again at a hit, and PF4 stay in PLAN §11 for later.
