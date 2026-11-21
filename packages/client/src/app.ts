@@ -128,9 +128,14 @@ installSoundButton();
  * pointer or the focus reaches it, wherever it is on whatever screen.
  */
 const TIP_ROOM_PX = 96;
-/** Half the hover text at its widest (`max-width: 17rem` in style.css), and its margin. */
+/**
+ * Half the hover text at its widest, and its margin: `max-width: 17rem` in style.css, and its
+ * padding (0.7rem a side) and border (1px) beside it — the `::after` is content-box, which
+ * `* { box-sizing }` does not reach. Without them a favourite's heart in the looks' last column
+ * opened centred and ran 9px past its grid, which scrolled sideways (2026-11-21).
+ */
 const tipHalfPx = (): number =>
-  (17 * parseFloat(getComputedStyle(document.documentElement).fontSize)) / 2 + 8;
+  ((17 + 2 * 0.7) * parseFloat(getComputedStyle(document.documentElement).fontSize) + 2) / 2 + 8;
 /**
  * What a hover text must fit inside: the nearest box that clips it, or the window. Inside a
  * scrolling one it had been cut off, and one overflowing it to the right or below gave it a
@@ -142,11 +147,14 @@ function tipBounds(target: Element): { left: number; top: number; right: number;
   for (let box = target.parentElement; box !== null; box = box.parentElement) {
     const style = getComputedStyle(box);
     if (style.overflowX === 'visible' && style.overflowY === 'visible') continue;
+    // Its padding box, where it clips: its outer box takes in a scrollbar's width as well.
     const rect = box.getBoundingClientRect();
-    bounds.left = Math.max(bounds.left, rect.left);
-    bounds.top = Math.max(bounds.top, rect.top);
-    bounds.right = Math.min(bounds.right, rect.right);
-    bounds.bottom = Math.min(bounds.bottom, rect.bottom);
+    const left = rect.left + box.clientLeft;
+    const top = rect.top + box.clientTop;
+    bounds.left = Math.max(bounds.left, left);
+    bounds.top = Math.max(bounds.top, top);
+    bounds.right = Math.min(bounds.right, left + box.clientWidth);
+    bounds.bottom = Math.min(bounds.bottom, top + box.clientHeight);
     break;
   }
   return bounds;

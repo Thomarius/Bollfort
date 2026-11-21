@@ -12744,3 +12744,29 @@ players) every 140 ms, some 70 000 sprite updates a second (`updateRenderable`,
 the view moves (the island zoom), for a few tenths of a millisecond, unmeasured. The surf's
 opacity set on each tile every frame stays: a parent's opacity changes each child in Pixi all the
 same. PF3, the walls drawn again at a hit, and PF4 stay in PLAN §11 for later.
+
+## 16x. The users' feedback of 2026-11-21: a hover text's scrollbar, three styles' contrast, the banners' lower line
+
+**A favourite's heart in the looks' last column** opened its hover text centred and ran 9 px past
+the grid, which scrolled sideways (reproduced in Chrome with its scrollbars shown, at every width
+from 1000 to 1960 px). Two errors in `placeTip` (`app.ts`): the clipping box was measured with its
+scrollbar, about 15 px wider than where it clips, and the text's width without its padding and
+border, the `::after` being content-box (`* { box-sizing }` does not reach a pseudo-element).
+Both corrected: 0 px over, English and German.
+
+**Three supporter styles' contrast**: Carnivora's breached plant (green on moss), Petri dish's
+breached nucleus (pale grey on pale pink) and Egypt's valid cannon square (green on its green
+fields), each as the users chose from options (`supporter/docs/`).
+
+**The banners' lower line** — the style's words under the call — was too small to read as it
+passed. The options weighed: a larger font; the banner slower in the middle of the screen and
+faster at its ends, the crossing's 4 s unchanged; or a longer `transitionBannerMs`, a rule that
+would slow every phase change, so not taken. **Built, both of the first two** (the users'
+choice): the line 0.85 → 1.15 rem and in the text's colour rather than the muted grey (news
+1.1 → 1.25 rem), and the crossing eased, `effects.bannerMiddleSpeed` 0.6 (`crossing` in
+`transition.ts`: speed 0.6 of the average in the middle, 1.4 at the ends), so the middle third
+of the screen takes 46% of the crossing, 1.8 s, where it took 1.3. The client's only: the sim
+still holds the phase for the same ticks, and the wipe, the sweep and the drains follow the
+banner, so they keep its pace. This tempers 10's "constant speed, no dwell": it still never
+stops. Looked at in all 34 styles' banners: no style sets the line's size but Manuscript, and
+every one reads in its own colours.

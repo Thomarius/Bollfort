@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   bannerProgress,
+  crossing,
   boardWithStanding,
   crumbleOutward,
   holdsCombatEnclosure,
@@ -84,10 +85,24 @@ describe('where the banner is', () => {
     expect(bannerProgress(at(1000 - BANNER - 1, 'intermission', 'combat'), 0.999)).toBeNull();
   });
 
-  it('crosses at constant speed and leaves as the next phase begins', () => {
+  it('crosses the middle at half time and leaves as the next phase begins', () => {
     expect(bannerProgress(at(1000 - BANNER, 'intermission', 'combat'), 0)).toBe(0);
     expect(bannerProgress(at(1000 - BANNER / 2, 'intermission', 'combat'), 0)).toBeCloseTo(0.5);
     expect(bannerProgress(at(1000 - 1, 'intermission', 'combat'), 1)).toBe(1);
+  });
+
+  it('is slowest in the middle of the screen, where it is read', () => {
+    const at4 = (time: number): number => crossing(time, 0.6);
+    const speed = (time: number): number => (at4(time + 0.001) - at4(time - 0.001)) / 0.002;
+    expect(speed(0.5)).toBeCloseTo(0.6, 3);
+    expect(speed(0.001)).toBeCloseTo(1.4, 2);
+    // Always forward, and the middle third of the screen given more of the time than a third.
+    for (let k = 1; k <= 100; k++) expect(at4(k / 100)).toBeGreaterThan(at4((k - 1) / 100));
+    let entered = 0;
+    while (at4(entered) < 1 / 3) entered += 0.001;
+    expect(1 - 2 * entered).toBeCloseTo(0.46, 2);
+    // At 1, a constant speed.
+    expect(crossing(0.3, 1)).toBe(0.3);
   });
 
   it('moves between ticks, so it does not step down the screen', () => {

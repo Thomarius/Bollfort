@@ -1,3 +1,4 @@
+import { defaultArtConfig } from '@bollfort/config';
 import { Structure, ticksFor, type MatchState, type Phase } from '@bollfort/sim';
 
 /**
@@ -65,15 +66,36 @@ export function looksAround(state: MatchState): { before: Look; after: Look } {
  * the tick it leaves. Driven by the simulation clock rather than a stylesheet, so the
  * wipe beneath it is always exactly where the banner is — through dropped frames, at
  * `&speed=`, and for a client that joins halfway through one.
+ *
+ * Slowest in the middle of the screen (`crossing`), where it is read: at a constant speed its
+ * lower line went by too fast (the users' feedback, 2026-11-21). The wipe follows the banner,
+ * so the board changes at the same pace.
  */
-export function bannerProgress(state: MatchState, tickFraction: number): number | null {
+export function bannerProgress(
+  state: MatchState,
+  tickFraction: number,
+  middleSpeed = defaultArtConfig.effects.bannerMiddleSpeed,
+): number | null {
   if (state.phase !== 'intermission' || state.pendingPhase === null) return null;
   const { transitionBannerMs } = state.ruleset.phases;
   const span = ticksFor(transitionBannerMs, state.ruleset.tickRateHz);
   if (span <= 0) return null;
   const elapsed = state.tick + tickFraction - (state.phaseEndTick - span);
   if (elapsed < 0) return null;
-  return Math.min(1, elapsed / span);
+  return crossing(Math.min(1, elapsed / span), middleSpeed);
+}
+
+/**
+ * Where a crossing is at `time`, both from 0 to 1, its speed `middleSpeed` of the average at
+ * the middle and as much above it at either end, smoothly between: x = t + k·sin(2πt)/2π with
+ * k = 1 − middleSpeed, so dx/dt = 1 + k·cos(2πt). It passes the middle at half time, and keeps
+ * going forward while `middleSpeed` is above 0. At 0.6 the middle third of the screen takes 46%
+ * of the crossing, 1.8 s of 4, where at a constant speed it took a third.
+ */
+export function crossing(time: number, middleSpeed: number): number {
+  if (time <= 0 || time >= 1) return Math.min(1, Math.max(0, time));
+  const k = 1 - middleSpeed;
+  return time + (k * Math.sin(2 * Math.PI * time)) / (2 * Math.PI);
 }
 
 /** A wall block the sim has swept, and whose it was. */

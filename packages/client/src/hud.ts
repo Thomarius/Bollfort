@@ -224,8 +224,9 @@ export class Hud {
    * 1 wholly below — and returns the height of its middle in pixels, which is where the
    * board changes beneath it. Null when there is no announcement.
    *
-   * At constant speed, with no dwell: the banner sweeps past rather than stopping to be
-   * read. The simulation holds the next phase until it has left.
+   * With no dwell: the banner sweeps past rather than stopping, though slowest in the middle
+   * of the screen (`crossing` in transition.ts). The simulation holds the next phase until it
+   * has left.
    */
   placeAnnouncement(progress: number): number | null {
     const banner = this.phaseCall;

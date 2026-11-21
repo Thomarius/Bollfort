@@ -1540,6 +1540,7 @@
     "landingDustPerEdge": 2,
     "overtimePulseMs": 800,
     "tallyMs": 1400,
+    "bannerMiddleSpeed": 0.6,
     "lifeCrumbleMs": 1600,
     "fireworkEveryMs": 300,
     "winnerBannerRiseMs": 1800,

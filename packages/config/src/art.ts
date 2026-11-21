@@ -1171,6 +1171,12 @@ export const ArtConfigSchema = z
       overtimePulseMs: z.number().int().positive(),
       /** The points banked at a resolution counting up as the territory is tallied. */
       tallyMs: z.number().int().positive(),
+      /**
+       * The phase banner's speed as it crosses the middle of the screen, against its average:
+       * slower there, so its words can be read, and as much faster at the top and bottom, the
+       * crossing's time unchanged (1 a constant speed). Below 1, and above 0, which would stop it.
+       */
+      bannerMiddleSpeed: z.number().gt(0).max(1),
       /** A lost life's walls crumbling outward from the middle of the island. */
       lifeCrumbleMs: z.number().int().positive(),
       /** Between rockets over the winners, once the match is over. */

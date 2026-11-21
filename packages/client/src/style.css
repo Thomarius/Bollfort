@@ -1468,7 +1468,7 @@ body.reduced-motion .banner.summary {
 
 .phase-call small.news {
   color: var(--accent);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
@@ -1556,11 +1556,13 @@ table.final tr.you td {
   background: color-mix(in srgb, var(--hud-accent) 16%, transparent);
 }
 
+/* The line under the call, read as the banner passes: 0.85rem in the muted grey was too small to
+   read at its speed (the users' feedback, 2026-11-21), so larger and in the text's own colour. */
 .phase-call small {
   display: block;
   margin-top: 0.5rem;
-  color: var(--muted);
-  font-size: 0.85rem;
+  color: var(--ink);
+  font-size: 1.15rem;
   letter-spacing: 0.08em;
   text-transform: none;
 }
