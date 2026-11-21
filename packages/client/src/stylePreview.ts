@@ -52,11 +52,33 @@ const cache = new Map<ArtStyle, Promise<string>>();
 /** One at a time: each takes a WebGL context, which browsers ration. */
 let queue: Promise<unknown> = Promise.resolve();
 
+/**
+ * While something is to play smoothly over the gallery — the style preview (`styleShowcase.ts`) —
+ * the pictures still to make wait: each makes a renderer of its own, compiling its shaders and
+ * reading its pixels back, and with the gallery just opened they had gone on making them for
+ * seconds under the preview, its opening and first banner stuttering (2026-11-21). Holds nest.
+ */
+let holds = 0;
+let resume: (() => void) | null = null;
+let resumed: Promise<void> = Promise.resolve();
+
+/** Holds the pictures still to make until the returned release is called. */
+export function holdPreviews(): () => void {
+  if (holds++ === 0) resumed = new Promise((done) => (resume = done));
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    if (--holds === 0) resume?.();
+  };
+}
+
 /** The style's picture as a data URL, rendered the first time it is asked for. */
 export function stylePreview(style: ArtStyle): Promise<string> {
   let image = cache.get(style);
   if (image === undefined) {
-    image = queue.then(() => render(style));
+    // Asked whether held as its turn comes, not as it is queued.
+    image = queue.then(() => resumed).then(() => render(style));
     queue = image.catch(() => undefined);
     cache.set(style, image);
   }

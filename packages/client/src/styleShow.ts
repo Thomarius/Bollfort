@@ -30,7 +30,9 @@ import { crossing } from './transition.js';
  *    player's each shown first as the piece in hand, until both castles are sealed again and the
  *    sealed ground floods back.
  *
- * A fade, then the barrage again from the board as it first stood. The shots are the sim's own,
+ * Then straight into the barrage again, on the board as it first stood: the repair lays back exactly
+ * what the barrage took, so nothing need be put back (a fade there hid nothing, the users found,
+ * 2026-11-21). The shots are the sim's own,
  * fired and landed by `fire` and `resolveImpacts`; the pieces are laid by hand, as wall where the
  * breach was, since a match's pieces are dealt and a breach's shape is not theirs to choose.
  */
@@ -54,13 +56,11 @@ export const SHOW_MS = {
   held: 650,
   /** Between one piece set down and the next shown. */
   betweenPieces: 450,
-  /** Both sealed, before the fade. */
-  sealed: 2600,
-  /** The fade out to the next barrage, and in again. */
-  fade: 350,
+  /** Both sealed, before the next barrage. */
+  sealed: 2200,
 } as const;
 
-export type ShowStage = 'barrage' | 'banner' | 'build' | 'fade';
+export type ShowStage = 'barrage' | 'banner' | 'build';
 
 /** A piece of a breach's repair: its cells, and who sets it down. */
 interface Piece {
@@ -85,13 +85,11 @@ export interface StyleShowFrame {
   landed: { player: number; cells: { x: number; y: number }[] }[];
   /** The stage begun this frame, if one was. */
   began: ShowStage | null;
-  /** The board put back as it first stood, for the next barrage. */
-  reset: boolean;
 }
 
 export class StyleShow {
-  /** The board as it stands. Replaced, not changed, when a loop begins again. */
-  state: MatchState;
+  /** The board as it stands. */
+  readonly state: MatchState;
   /** The board as the barrage begins: both castles sealed, every gun loaded. */
   private readonly start: MatchState;
   /** The barrage's shots, the same every loop. */
@@ -106,8 +104,6 @@ export class StyleShow {
   private quietAt: number | null = null;
   /** When the last piece was set down; null while one is still to come. */
   private sealedAt: number | null = null;
-  /** The fade's half: out to black, then in to the next barrage. */
-  private fadedIn = false;
 
   constructor() {
     this.start = openingBoard();
@@ -123,7 +119,7 @@ export class StyleShow {
    * one another by their timings.
    */
   advance(deltaMs: number): StyleShowFrame {
-    const frame: StyleShowFrame = { events: [], landed: [], began: null, reset: false };
+    const frame: StyleShowFrame = { events: [], landed: [], began: null };
     const state = this.state;
     this.ms += deltaMs;
     this.ticks += (deltaMs * state.ruleset.tickRateHz) / 1000;
@@ -140,15 +136,6 @@ export class StyleShow {
         break;
       case 'build':
         this.build(frame);
-        break;
-      case 'fade':
-        // Out to black, the board put back unseen, then in again to the barrage.
-        if (!this.fadedIn && this.ms >= SHOW_MS.fade) {
-          this.fadedIn = true;
-          this.restart(frame);
-        } else if (this.fadedIn && this.ms >= 2 * SHOW_MS.fade) {
-          this.begin('barrage', frame);
-        }
         break;
     }
     frame.events.push(...drainEvents(this.state));
@@ -167,13 +154,6 @@ export class StyleShow {
       Math.min(1, this.ms / SHOW_MS.banner),
       defaultArtConfig.effects.bannerMiddleSpeed,
     );
-  }
-
-  /** How dark the stage is, 0 to 1: the fade between one loop and the next. */
-  get darkness(): number {
-    if (this.stage !== 'fade') return 0;
-    const out = Math.min(1, this.ms / SHOW_MS.fade);
-    return this.fadedIn ? Math.max(0, 2 - this.ms / SHOW_MS.fade) : out;
   }
 
   /** The first player's next piece, held in hand before it is set down; null at other times. */
@@ -213,7 +193,7 @@ export class StyleShow {
     if (frame.landed.length > 0) applyEnclosure(state);
     if (this.pieces.length > 0) return;
     this.sealedAt ??= this.ms;
-    if (this.ms >= this.sealedAt + SHOW_MS.sealed) this.begin('fade', frame);
+    if (this.ms >= this.sealedAt + SHOW_MS.sealed) this.begin('barrage', frame);
   }
 
   private begin(stage: ShowStage, frame: StyleShowFrame): void {
@@ -231,19 +211,14 @@ export class StyleShow {
       applyEnclosure(state);
       this.pieces = repairOf(this.start, state);
       this.sealedAt = null;
-    } else if (stage === 'fade') {
-      this.fadedIn = false;
     } else {
+      // Combat again on the board as sealed, every gun loaded long since.
+      state.phase = 'combat';
+      state.pendingPhase = null;
+      applyEnclosure(state);
       this.plan = [...this.shots];
       this.quietAt = null;
     }
-  }
-
-  /** The board as it first stood, for the next barrage, put back while the stage is dark. */
-  private restart(frame: StyleShowFrame): void {
-    this.state = structuredClone(this.start);
-    this.ticks = this.state.tick;
-    frame.reset = true;
   }
 }
 

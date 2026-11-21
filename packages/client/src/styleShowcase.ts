@@ -11,6 +11,7 @@ import { createTheme, Scene, type SceneLook } from './render/scene.js';
 import type { Ghost } from './render/theme.js';
 import { styleArt, styleServes, stylesFor } from './styles/registry.js';
 import { StyleShow } from './styleShow.js';
+import { holdPreviews } from './stylePreview.js';
 import { t } from './i18n.js';
 import type { Look } from './transition.js';
 
@@ -19,10 +20,18 @@ import type { Look } from './transition.js';
  * by the magnifier on its card — its scenes (`styleShow.ts`) drawn by a real `Scene` in the style,
  * the match screen's own board effects (`BoardEffects`: the sealed ground flooding back, the
  * breach's ground draining as the banner passes), its "Rebuild" banner and its corner piece, with
- * its music playing. No sounds, no score bar or timer. A style made for one look only shows the
- * gallery's choice for the other. Closed by its button or a click outside it, the music before it
- * back again.
+ * its music playing, over the whole window. No sounds, no score bar or timer. A style made for one
+ * look only shows the gallery's choice for the other. Closed by a click anywhere, the music before
+ * it back again.
  */
+
+/** Previews open: a match paused under one need not render a board nobody sees. */
+let open = 0;
+
+/** Whether a style preview covers the window, so a paused match's board under it is unseen. */
+export function showcaseOpen(): boolean {
+  return open > 0;
+}
 
 export interface ShowcaseOptions {
   style: ArtStyle;
@@ -33,48 +42,46 @@ export interface ShowcaseOptions {
   click?(): void;
 }
 
-/** The stage's size in the page's pixels, at most: the board fitted inside it. */
-const STAGE = { width: 1200, height: 640 } as const;
-
 export function openStyleShowcase(options: ShowcaseOptions): void {
   const { style } = options;
   const click = options.click ?? ((): void => undefined);
   const root = document.createElement('div');
   root.className = 'style-showcase';
+  // The whole window, as a match's board is, to see the style's details (the users', 2026-11-21);
+  // its name and the way back over it.
+  root.setAttribute('role', 'dialog');
+  root.setAttribute('aria-label', lookName(style));
   root.innerHTML =
-    `<div class="panel" role="dialog" aria-label="${escape(lookName(style))}">` +
-    `<div class="head"><h2>${escape(lookName(style))}</h2>` +
-    `<button type="button" class="close" data-back>${withIcon('back', t('howTo.back'))}</button></div>` +
-    `<div class="stage"><div class="banner-layer"></div><div class="fade"></div></div></div>`;
-  const stage = root.querySelector<HTMLElement>('.stage')!;
+    `<div class="banner-layer"></div>` +
+    `<h2>${escape(lookName(style))}</h2>` +
+    `<button type="button" class="close" data-back>${withIcon('back', t('howTo.back'))}</button>`;
   const bannerLayer = root.querySelector<HTMLElement>('.banner-layer')!;
-  const fade = root.querySelector<HTMLElement>('.fade')!;
   const canvas = document.createElement('canvas');
-  stage.prepend(canvas);
+  root.prepend(canvas);
 
   // Its own music, where it has a track; the menu's (or the match's) goes on where it has none.
   const before = options.music.musicCue;
   if (audioManifest.styleMusic[style] !== undefined) options.music.music(styleTrack(style));
 
-  const player = new ShowcasePlayer(
-    canvas,
-    stage,
-    bannerLayer,
-    fade,
-    looksFor(style, options.choices),
-  );
+  // The gallery's pictures still to make wait while it plays: each is a renderer of its own.
+  const release = holdPreviews();
+  open++;
+  const player = new ShowcasePlayer(canvas, bannerLayer, looksFor(style, options.choices));
+  const fit = (): void => player.fit();
   const close = (): void => {
+    release();
+    open--;
+    globalThis.removeEventListener('resize', fit);
     player.destroy();
     root.remove();
     if (options.music.musicCue !== before) options.music.music(before);
   };
-  root.addEventListener('click', (event) => {
-    const target = event.target as HTMLElement;
-    if (target === root || target.closest('.close') !== null) {
-      click();
-      close();
-    }
+  // A click anywhere on it goes back to the gallery, its Back button too (the users', 2026-11-21).
+  root.addEventListener('click', () => {
+    click();
+    close();
   });
+  globalThis.addEventListener('resize', fit);
   document.body.append(root);
   player.start();
 }
@@ -90,21 +97,42 @@ export function looksFor(style: ArtStyle, choices: LookChoices): Record<Look, Ar
   return { build: pick('build'), combat: pick('combat') };
 }
 
+/**
+ * The show's clock waits as the preview first draws (`ShowcasePlayer.settled`): until a frame
+ * comes in this many milliseconds, after at least `WARM_FRAMES` and at most `WARM_MAX_FRAMES`.
+ */
+const SETTLED_MS = 25;
+const WARM_FRAMES = 3;
+const WARM_MAX_FRAMES = 30;
+
 class ShowcasePlayer {
   private show = new StyleShow();
   private scene: Scene | null = null;
   private board: BoardEffects | null = null;
+  /**
+   * The "Rebuild" banner, made as the preview opens and kept, hidden above the window between its
+   * crossings: made as it was needed, its first layout — the style's banner, its font — took a
+   * frame of 70 ms as it came in (Minimal, 2026-11-21). Its height and the window's as measured
+   * then, and again as the window changes, not read at every frame.
+   */
   private banner: HTMLElement | null = null;
+  private bannerHeight = 0;
+  private screenHeight = 0;
   private frame = 0;
   private last = 0;
   private closed = false;
   private warmed = false;
+  /**
+   * Frames drawn, and whether they have settled: the first few, as the style is drawn and rendered
+   * for the first time, are long (Electric's 83, 33 and 117 ms), so the show's clock waits them
+   * out rather than jumping the barrage's opening.
+   */
+  private frames = 0;
+  private settled = false;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
-    private readonly stage: HTMLElement,
     private readonly bannerLayer: HTMLElement,
-    private readonly fade: HTMLElement,
     private readonly styles: Record<Look, ArtStyle>,
   ) {}
 
@@ -144,14 +172,19 @@ class ShowcasePlayer {
       return;
     }
     this.scene = scene;
-    const box = this.stage.getBoundingClientRect();
-    scene.resize(
-      this.show.state,
-      Math.min(STAGE.width, Math.round(box.width)),
-      Math.min(STAGE.height, Math.round(box.height)),
-    );
+    scene.resize(this.show.state, globalThis.innerWidth, globalThis.innerHeight);
     scene.drawTerrain(this.show.state);
-    this.board = this.freshBoard(scene);
+    this.board = new BoardEffects(scene, this.show);
+    this.board.refresh(true, true);
+    // The ground sealed as combat begins, which the effects draw only as it changes.
+    this.board.drawFloodedTerritory(performance.now());
+    // The banner made and laid out now, hidden above the window until it crosses.
+    this.banner = phaseBanner('build', this.styles.build);
+    if (this.banner !== null) {
+      this.banner.style.visibility = 'hidden';
+      this.bannerLayer.append(this.banner);
+    }
+    this.measure();
     this.last = performance.now();
     this.frame = requestAnimationFrame((now) => this.step(now));
   }
@@ -159,35 +192,33 @@ class ShowcasePlayer {
   private step(now: number): void {
     const scene = this.scene;
     if (scene === null || this.closed) return;
-    const delta = Math.min(100, now - this.last);
+    const elapsed = now - this.last;
     this.last = now;
+    this.frames++;
+    this.settled ||=
+      (this.frames > WARM_FRAMES && elapsed < SETTLED_MS) || this.frames > WARM_MAX_FRAMES;
+    const delta = this.settled ? Math.min(100, elapsed) : 0;
     const show = this.show;
     const frame = show.advance(delta);
-    if (frame.reset) {
-      // The board as it first stood: its effects begun afresh, as a new match's.
-      this.board = this.freshBoard(scene);
-    }
     const board = this.board!;
     const state = show.state;
-    if (frame.began === 'banner') {
-      board.startRebuild();
-      this.banner = phaseBanner('build', this.styles.build);
-      if (this.banner !== null) this.bannerLayer.append(this.banner);
-    } else if (frame.began !== null) {
-      this.banner?.remove();
-      this.banner = null;
+    if (frame.began === 'banner') board.startRebuild();
+    if (frame.began !== null && this.banner !== null) {
+      this.banner.style.visibility = frame.began === 'banner' ? 'visible' : 'hidden';
     }
     const changed = this.apply(frame.events);
     for (const piece of frame.landed) scene.noteLanding(piece.cells, piece.player);
     const landed = frame.landed.length > 0;
-    board.refresh(changed || landed, changed || landed || frame.began === 'build');
+    // Counted afresh as building begins, and held as combat does (`BoardEffects.refresh`).
+    const phased = frame.began === 'build' || frame.began === 'barrage';
+    board.refresh(changed || landed, changed || landed || phased);
 
     // The banner, as the match screen places it, and the look changing under its middle.
     let lineY: number | null = null;
     const progress = show.bannerProgress;
     if (this.banner !== null && progress !== null) {
-      const height = this.banner.offsetHeight;
-      const top = -height + progress * (this.bannerLayer.clientHeight + height);
+      const height = this.bannerHeight;
+      const top = -height + progress * (this.screenHeight + height);
       this.banner.style.transform = `translateY(${top.toFixed(1)}px)`;
       lineY = top + height / 2;
     }
@@ -214,7 +245,6 @@ class ShowcasePlayer {
       board.advanceDrains(now),
     );
     scene.drawOverlay(state, ghostOf(show.held), 0);
-    this.fade.style.opacity = String(show.darkness);
     // Both looks rendered once unseen first, so the banner's wipe has nothing left to do.
     if (!this.warmed) {
       scene.warmUp();
@@ -224,15 +254,22 @@ class ShowcasePlayer {
     this.frame = requestAnimationFrame((t) => this.step(t));
   }
 
-  /**
-   * The board's effects begun afresh, as a new match's, and the board drawn whole: its walls and
-   * guns, and the ground sealed as combat begins, which the effects draw only as it changes.
-   */
-  private freshBoard(scene: Scene): BoardEffects {
-    const board = new BoardEffects(scene, this.show);
-    board.refresh(true, true);
+  /** The window resized: the board fitted to it again and drawn at its new size, as a match's. */
+  fit(): void {
+    const scene = this.scene;
+    const board = this.board;
+    if (scene === null || board === null) return;
+    scene.resize(this.show.state, globalThis.innerWidth, globalThis.innerHeight);
+    scene.drawTerrain(this.show.state);
     board.drawFloodedTerritory(performance.now());
-    return board;
+    board.drawBoard();
+    this.measure();
+  }
+
+  /** The banner's height and the window's, for placing it: read once, and as the window changes. */
+  private measure(): void {
+    this.bannerHeight = this.banner?.offsetHeight ?? 0;
+    this.screenHeight = this.bannerLayer.clientHeight;
   }
 
   /** The sim's events as a match screen takes them: shots leaving, and landing. */

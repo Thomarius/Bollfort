@@ -1908,6 +1908,12 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      draws one; blocks stamped by their neighbours only if that is not enough.
    - **PF4 — Later, each switched off and measured first**: Chocolate's fall and shine and
      Halloween's flowing terrain, drawn every frame, as stamps.
+   - **PF5 — A banner's first layout, in a match**: found in the style preview (ARCHIVE 16y):
+     a phase banner made as it is needed is laid out in the frame it comes in, and the first time
+     a style's banner is (its styles, its font) that took 70 ms of one frame in Minimal. The match
+     screen makes each banner then (`Hud.announce`), so a look's first banner should hitch the
+     same, with Random every round a new one. To measure, then perhaps lay the next look's banner
+     out unseen in the pause before it (`Scene.prime`'s moment), as the preview now does.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

@@ -42,8 +42,8 @@ describe('the style preview’s scenes', () => {
   it('breaches both rings, bannering into building, and seals them again', () => {
     const show = new StyleShow();
     const before = walls(show.state);
-    const { frames, stages } = playUntil(show, (f) => f.began === 'fade');
-    expect(stages).toEqual(['banner', 'build', 'fade']);
+    const { frames, stages } = playUntil(show, (f) => f.began === 'barrage');
+    expect(stages).toEqual(['banner', 'build', 'barrage']);
     // The barrage's shots land as they fly, the banner coming within seconds.
     const bannerAt = frames.findIndex((f) => f.began === 'banner');
     expect(bannerAt / 60).toBeLessThan(7);
@@ -68,28 +68,38 @@ describe('the style preview’s scenes', () => {
     let held = 0;
     playUntil(show, (f) => {
       if (show.held !== null) held++;
-      return f.began === 'fade';
+      return f.began === 'barrage';
     });
     expect(held).toBeGreaterThan(30);
   });
 
-  it('crosses the banner eased, and fades dark and back to the board as it first stood', () => {
+  it('crosses the banner eased', () => {
     const show = new StyleShow();
-    const start = walls(show.state);
-    let mostDark = 0;
     const progress: number[] = [];
-    const { stages } = playUntil(show, (f) => {
-      mostDark = Math.max(mostDark, show.darkness);
+    playUntil(show, (f) => {
       const p = show.bannerProgress;
       if (p !== null) progress.push(p);
-      return f.began === 'barrage';
+      return f.began === 'build';
     });
-    expect(stages.at(-1)).toBe('barrage');
-    expect(mostDark).toBeGreaterThan(0.95);
-    expect(show.darkness).toBe(0);
-    expect(walls(show.state)).toEqual(start);
     expect(progress[0]).toBeLessThan(0.05);
     expect(progress.at(-1)).toBeGreaterThan(0.95);
     for (let k = 1; k < progress.length; k++) expect(progress[k]).toBeGreaterThan(progress[k - 1]!);
+  });
+
+  it('goes straight into the next barrage, the board as it first stood, and plays it alike', () => {
+    const show = new StyleShow();
+    const start = show.state.structure.slice();
+    const owners = show.state.owner.slice();
+    const loop = (): number => {
+      const { frames } = playUntil(show, (f) => f.began === 'barrage');
+      expect(show.state.phase).toBe('combat');
+      expect(show.state.structure).toEqual(start);
+      expect(show.state.owner).toEqual(owners);
+      return frames.flatMap((f) =>
+        f.events.flatMap((e) => (e.kind === 'shot_impact' ? e.destroyed : [])),
+      ).length;
+    };
+    expect(loop()).toBe(6);
+    expect(loop()).toBe(6);
   });
 });

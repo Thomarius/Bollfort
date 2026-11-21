@@ -12787,7 +12787,7 @@ each player's castle nearest the middle chosen and three guns placed nearest the
 rules' own actions, then a loop of about 17 s — each fires three at the middle of the other's
 facing wall and one into the channel (`fire`, `resolveImpacts`); the banner crosses as the game's
 does, eased; the breaches are laid again in pieces of one or two, the first player's each held as
-the piece in hand first; both sealed, a fade, and the board as it first stood. The drawing is the
+the piece in hand first; both sealed, and the barrage again. The drawing is the
 match screen's own: a `Scene` in the style's two looks, `BoardEffects` for the ground draining
 under the banner and flooding back as each castle seals, the banner from `phaseBanner` (taken out
 of `Hud.announce` for it). A style made for one look shows the gallery's choice in the other
@@ -12801,3 +12801,26 @@ wall that fires as a cannon. The only tower you can place on walls: set it into 
 square over the wall and sets it down there by `placeCannon`, then fires; and Minimal draws it
 with battlements round a smaller gun, where its gun had covered the 2×2 whole and looked an
 ordinary cannon.
+
+**Then, from the users' first look** (the same day): the preview takes **the whole window**, as a
+match's board does, its name and Back floating over the top corners, fitted again as the window
+changes, and **a click anywhere** on it goes back to the gallery; it had been a panel at most
+1200 × 640. And **no fade between loops**: the repair lays
+back exactly what the barrage took, so the sealed board goes straight into the next barrage on
+the same board, combat again, nothing put back from a copy (tested over two loops in a row, six
+blocks lost and laid back in each); a loop is about 15 s.
+
+**And smoother** (the users': the banner stuttered in some styles, Electric among them). Measured
+in headless Chrome with the GPU on, frame times from opening through two banners: the banners
+themselves ran at 16.7 ms throughout; the stutter was elsewhere. **The gallery's card pictures**
+were still being made under the preview, each a renderer of its own (shaders compiled, pixels read
+back), 1.3 s of the first five: they now wait while a preview is open (`holdPreviews`), and the
+slow frames fell from 30 to 4. **The banner's first layout**, made as it was needed, took 70 ms of
+one frame in Minimal: it is made as the preview opens, hidden above the window, its height measured
+then and as the window changes (the same in a match is PLAN PF5). **The opening's** first frames,
+the style drawn and rendered for the first time (Electric 83, 33, 117 ms), no longer jump the
+barrage: the show's clock waits until a frame comes in under 25 ms. And a paused match under a
+preview no longer renders its unseen board. Electric, Minimal, Cyberpunk and Medieval after: no
+frame over 16.8 ms in either banner, every slow frame within the first 350 ms, which the clock
+waits out, but a dropped frame (33 ms) now and then outside the banners. Promoting the banner to
+a layer of its own (`will-change`) changed nothing measurable: Chrome already composites it.

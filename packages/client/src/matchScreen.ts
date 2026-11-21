@@ -25,7 +25,7 @@ import { ConnectionNotice, noticeFor } from './connectionNotice.js';
 import { WatchingStrip } from './watching.js';
 import { onGraphics, storedGraphics } from './graphics.js';
 import { LookRotation, openLookGallery } from './looks.js';
-import { openStyleShowcase } from './styleShowcase.js';
+import { openStyleShowcase, showcaseOpen } from './styleShowcase.js';
 import { t } from './i18n.js';
 import { Hud } from './hud.js';
 import type { IslandBanner } from './boardLabels.js';
@@ -1237,7 +1237,8 @@ export async function runSession(
     if (first) scene.warmUp();
     perf.beforeRender();
     perf.begin('render');
-    scene.render();
+    // Under a style preview, paused, the board is unseen: the preview has the frame to itself.
+    if (!showcaseOpen()) scene.render();
     perf.end('render');
     perf.frameDone(now, delta);
 
