@@ -6807,9 +6807,9 @@ body.reduced-motion .look-gallery .card img {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  /* Five cards to a row, two rows for the ten choices — none and the nine towers, the Drone Tower
-     in the Rapid Cannon's place (2026-11-20) — and wide enough for "Allerdickste" on a card's
-     first line. */
+  /* Five cards to a row, two rows for the ten towers (none in the strip above them since the
+     Fortified Tower made eleven choices, 2026-11-22), and wide enough for "Allerdickste" on a
+     card's first line. */
   width: min(52rem, 94vw);
   max-height: 92vh;
   overflow-y: auto;
@@ -6844,26 +6844,28 @@ body.reduced-motion .tower-menu .panel {
 
 .tower-menu .cards {
   display: grid;
-  /* Two rows of five, the widest name ("Allerdickste") on one line; three to a row where the
-     panel is too narrow for five. */
+  /* Two rows of five, the widest name ("Allerdickste") on one line; two to a row where the
+     panel is too narrow for five, so the ten still fill their rows. */
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.6rem;
 }
 
-/* An eleventh card, the Fortified Tower on trial (2026-11-21), alone in a third row: centred
-   until it is decided whether it stays. */
-.tower-menu .cards > .card:last-child:nth-child(5n + 1) {
-  grid-column: 3;
-}
-
 @media (max-width: 640px) {
   .tower-menu .cards {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* A bot's menu: Random, its draw, above the cards, as wide as they are. */
-.tower-menu .random {
+/* No tower, and a bot's Random — its draw — beside it: a strip above the cards, as wide as they
+   are. */
+.tower-menu .picks {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.tower-menu .pick {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6876,17 +6878,17 @@ body.reduced-motion .tower-menu .panel {
   font-weight: 600;
 }
 
-.tower-menu .random:hover {
+.tower-menu .pick:hover {
   border-color: var(--accent);
 }
 
-.tower-menu .random.chosen {
+.tower-menu .pick.chosen {
   border: 2px solid var(--accent);
   box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--accent);
 }
 
-.tower-menu .random svg {
+.tower-menu .pick svg {
   width: 1.4rem;
   height: 1.4rem;
 }

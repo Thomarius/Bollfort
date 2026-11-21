@@ -24,7 +24,7 @@ import {
  * the wire and nothing is taken on anyone else's word. The page feeds `observe` as the match
  * plays, as `RoundStats` is fed; the harness feeds it from recordings (`--achievements`).
  *
- * Covered here: the 30 earned in a match. The stats' achievements are `statAchievements`, over
+ * Covered here: the 31 earned in a match. The stats' achievements are `statAchievements`, over
  * Steam's running totals; a tournament's three are `tournamentAchievements`; Read the manual is
  * the client's alone.
  */
@@ -72,6 +72,8 @@ export class AchievementWatcher {
   /** Cells the seat laid on a teammate's island. */
   private readonly lentCells = new Set<number>();
   private towersBought = 0;
+  /** The seat's Fortified Towers laid over enough of its wall for Rock solid, by gun id. */
+  private readonly overWall = new Set<number>();
   private spentLife = false;
   private away = false;
 
@@ -326,7 +328,10 @@ export class AchievementWatcher {
     if (this.frozeLast.has(victim)) this.earn('COLD_SHOULDER');
   }
 
-  private towerBought(state: MatchState, e: { cannonKind: string }): void {
+  private towerBought(
+    state: MatchState,
+    e: { cannonId: number; cannonKind: string; wallsCovered?: number },
+  ): void {
     this.earn('SPECIAL_DELIVERY');
     this.towersBought++;
     const bit = SPECIAL_KINDS.indexOf(e.cannonKind as SpecialKind);
@@ -338,6 +343,13 @@ export class AchievementWatcher {
       if (apartSet(state, architects, this.config.ARCHITECT_ZONING.towers)) {
         this.earn('ARCHITECT_ZONING');
       }
+    }
+    if (e.cannonKind === 'fortified' && this.wants('ROCK_SOLID')) {
+      const { towers, walls } = this.config.ROCK_SOLID;
+      if ((e.wallsCovered ?? 0) >= walls) this.overWall.add(e.cannonId);
+      // Those still standing: a continue wipes the island, its towers with it.
+      const standing = state.cannons.filter((c) => this.overWall.has(c.id)).length;
+      if (standing >= towers) this.earn('ROCK_SOLID');
     }
   }
 
@@ -390,8 +402,7 @@ export function statAchievements(config: AchievementsConfig, totals: StatTotals)
 /**
  * The kinds set in a `towers_bought` mask: Steam's `towers_bought_count`, its progress. Only the
  * towers counted (`COUNTED_KINDS`): a retired one's bit (the Rapid Cannon's, 2026-11-20), set by a
- * match from before, and one on trial (the Fortified Tower's) count for nothing, so Tower of Babel
- * asks for the nine whatever was bought.
+ * match from before, counts for nothing, so Tower of Babel asks for the ten whatever was bought.
  */
 export function towersBoughtCount(mask: number): number {
   let count = 0;

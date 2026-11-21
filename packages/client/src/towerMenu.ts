@@ -88,7 +88,7 @@ export function openTowerMenu(options: TowerMenuOptions): void {
       choose('drawn');
       return;
     }
-    const card = target.closest<HTMLElement>('.card');
+    const card = target.closest<HTMLElement>('[data-kind]');
     if (card !== null) {
       const kind = card.dataset['kind'];
       if (kind === 'none') {

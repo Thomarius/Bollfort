@@ -18,8 +18,9 @@ in (ARCHIVE 13zx). The sixth tower, the Laser Tower (§2.6, 2026-10-21), is buil
 played by the user; the seventh and eighth, the Frost Cannon (§2.7) and the Lullaby Tower (§2.8),
 built, balanced and played by the user (2026-10-23). **The Drone Tower** (§2.10, the user's
 design, 2026-11-20) is built, balanced and play-tested, and **replaces the Rapid Cannon** (§5 DR,
-ARCHIVE 16r): nine towers still. The Rapid Cannon is retired — not offered, never drawn, asked
-for by no achievement — its rules kept for the recordings that played it. Open: whether the drone's
+ARCHIVE 16r). **The Fortified Tower** (§2.11, the user's design, 2026-11-21) was tried, and kept
+as the tenth (2026-11-22): ten towers. The Rapid Cannon is retired — not offered, never drawn,
+asked for by no achievement — its rules kept for the recordings that played it. Open: whether the drone's
 area outline stays, the user testing it further. Like PLAN.md it says what is configurable and why and leaves the
 values to `config/*.json`; when a package is done its summary moves to ARCHIVE.md and this file
 keeps only what is open.
@@ -506,15 +507,17 @@ tower and each shot is a small missile from it.
 
 ---
 
-### 2.11 The Fortified Tower (a trial)
+### 2.11 The Fortified Tower
 
 The user's design (2026-11-21), to learn whether the concept works at all: it may be kept, replace
 a tower, or be dropped (§5 CS). **Wall that cannot be destroyed.** First called the Cornerstone in
 the soaks (`soaks/cornerstone-*`); named **Fortified Tower**, _Wehrturm_, _Wehrtorm_ (the user's,
-2026-11-21), `fortified` in the code. **In the game for testing**: in the default ruleset, offered
-in the tower menu and drawn by bots as any, but on trial (`TRIAL_KINDS`) — asked for by no
-achievement, Tower of Babel still counting the nine (`COUNTED_KINDS`), until it is decided whether
-it goes into a release.
+2026-11-21), `fortified` in the code. **Kept as the tenth tower** (the user's, 2026-11-22, after
+their tests): offered and drawn as any, counted by Tower of Babel, and with an achievement of its
+own, Rock solid (`ROCK_SOLID`: three standing at once, each laid over two of its owner's wall
+blocks). Its trial status, `TRIAL_KINDS`, is gone with it. Its team names in tournaments are
+the fortress's (`towerTeams.fortified`). The tower menu shows the ten in two rows of five, with
+no tower in a strip above them beside a bot's Random.
 
 - **Wall for everything but damage** (the user's): its footprint is `Structure.Stone`, which
   `isWallLike` counts with wall — the escape flood, the sweep (a wall beside it keeps it as a
@@ -1096,7 +1099,8 @@ how. Each step's work is ended by the user's go-ahead.
    (`specials.rapid` optional, `RETIRED_KINDS`), so the menu, the bots' draws and a person's
    random tower never offer it; a choice of it remembered by a table, a tournament's save or a
    room's guest is taken as the draw, or none. Its rules stay, for the recordings. The menu keeps
-   its two rows of five. Tower of Babel asks for the nine played (`COUNTED_KINDS`), a bought Rapid
+   its two rows of five. Tower of Babel asked for the nine played (`COUNTED_KINDS`; ten since the
+   Fortified Tower was kept, §2.11), a bought Rapid
    Cannon's bit in Steam's mask counting for nothing. Rapid fire is replaced by **Look, no hands!**
    (`HANDS_FREE`, medium): a Drone Tower's missile opens a rival's sealed castle — in bot play in
    8 of 8 matches at Level 5 with cost 3, 4 of 8 with cost 2, half at Levels 3 and 8; a count of
@@ -1177,8 +1181,8 @@ itself, not the rate, wins against none — likely (not measured) two shots read
 phase opens, for a Level 5 bot short of clicks rather than guns, the reason a faster single barrel
 gained only three points there.
 
-Built into the client and the default ruleset for the user's own play (2026-11-21, §2.11). Open:
-whether it stays, as a tenth tower or in another's place, and with it the achievements.
+Built into the client and the default ruleset for the user's own play (2026-11-21, §2.11), and
+kept as the tenth tower after it (2026-11-22), with its own achievement.
 
 ### After ST8 — the decisions
 

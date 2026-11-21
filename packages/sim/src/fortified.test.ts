@@ -141,6 +141,17 @@ describe('the Fortified Tower', () => {
       expect(state.players[0]!.cannonsToPlace).toBe(1);
     });
 
+    it('tells how many of its owner’s wall blocks it was laid over', () => {
+      const covered = (state: MatchState, x: number, y: number): unknown => {
+        placeCannon(state, 0, x, y, true);
+        const placed = state.events.find((e) => e.kind === 'cannon_placed');
+        return placed?.kind === 'cannon_placed' ? placed.wallsCovered : null;
+      };
+      // The ring's north-east corner: three of its four tiles were wall.
+      expect(covered(cannonPhase(), 6, 2)).toBe(3);
+      expect(covered(cannonPhase(false, 'fortified3', WIDE), 3, 3)).toBe(0);
+    });
+
     it('across the middle of a side', () => {
       const state = cannonPhase();
       expect('cannon' in placeCannon(state, 0, 2, 5, true)).toBe(true);

@@ -4,7 +4,7 @@ import { MAX_LEVEL } from './ai.js';
 import type { Ruleset } from './ruleset.js';
 
 /**
- * Steam achievements (docs/STEAM_ACHIEVEMENTS.md §4): the 35 the user chose (2026-11-12), each
+ * Steam achievements (docs/STEAM_ACHIEVEMENTS.md §4): the 35 the user chose (2026-11-12) and Rock solid (2026-11-22), each
  * under its API name — the name Steam and the code know it by, fixed once published — with the
  * numbers it is earned at. The thresholds come from the recordings (ARCHIVE 15zz); every one is
  * here rather than in the detector, and every achievement is listed, so a new one cannot be
@@ -66,6 +66,11 @@ export const AchievementsConfigSchema = z.strictObject({
   SWEET_DREAMS: z.strictObject({ guns: Count }),
   /** Walls one Subwoofer wave clears, a lane a wall. */
   BASS_DROP: z.strictObject({ walls: Count }),
+  /**
+   * Fortified Towers owned at once, each laid over at least `walls` of its owner's wall blocks
+   * (the user's, 2026-11-22).
+   */
+  ROCK_SOLID: z.strictObject({ towers: Count, walls: Count }),
   /** Special towers bought in a match the player wins. */
   TOWERING_VICTORY: z.strictObject({ towers: Count }),
   AMONG_FRIENDS: None,
@@ -98,7 +103,7 @@ export function achievementProblems(config: AchievementsConfig, ruleset: Ruleset
   const problems: string[] = [];
   const { specials } = ruleset;
   const cap = specials.maxOwned;
-  for (const id of ['ARCHITECT_ZONING', 'TOWERING_VICTORY'] as const) {
+  for (const id of ['ARCHITECT_ZONING', 'ROCK_SOLID', 'TOWERING_VICTORY'] as const) {
     if (cap !== null && config[id].towers > cap) {
       problems.push(`achievements: ${id} asks for ${config[id].towers} towers, the cap is ${cap}`);
     }
@@ -121,6 +126,12 @@ export function achievementProblems(config: AchievementsConfig, ruleset: Ruleset
     // The tile struck, then each jump.
     ['CHAIN_REACTION', config.CHAIN_REACTION.walls, most(specials.lightning, (v) => v.jumps + 1)],
     ['SWEET_DREAMS', config.SWEET_DREAMS.guns, most(specials.lullaby, (v) => v.targets)],
+    // Laid over wall on every tile at most.
+    [
+      'ROCK_SOLID',
+      config.ROCK_SOLID.walls,
+      most(specials.fortified, (v) => v.footprint[0] * v.footprint[1]),
+    ],
   ];
   for (const [id, asked, possible] of limits) {
     if (possible === null) problems.push(`achievements: ${id} needs a tower the ruleset lacks`);

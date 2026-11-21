@@ -101,7 +101,7 @@ host leaving fixed the same day, approved on Windows with v0.10.2, and the bench
 answered the Steamworks registration (still waiting, 2026-11-11). **S3.6** (§7.3), a player who dropped coming back by an invite or the restart's
 prompt, built and passing the bench (2026-11-09, ARCHIVE 15zu). **While Valve answers**: Steam
 achievements, designed in [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md) (2026-11-12), its
-list of 35 chosen (AC1), detected (AC2), with texts and icons (AC4) and sent to Steam, tried on 480
+list of 35 chosen (AC1) and a 36th for the Fortified Tower (2026-11-22), detected (AC2), with texts and icons (AC4) and sent to Steam, tried on 480
 (AC3; ARCHIVE 15zz, 16a–16c); AC5, entering them in Steamworks, waits for the App ID.
 
 ## 3. The Steam build (S1, S2)
@@ -1209,7 +1209,7 @@ in progress are lost once, and the desktop app's old data folder stays behind.
 ## 10. Later, perhaps
 
 A small paid DLC of new things, if the game is received well: the supporter pack of five styles,
-designed (§6.1), not planned. Achievements: 35, designed with packages AC1–AC5, all but the
+designed (§6.1), not planned. Achievements: 36, designed with packages AC1–AC5, all but the
 last buildable before the App ID ([`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md), 2026-11-12,
 ARCHIVE 15zz).
 Steam Cloud for tournament saves. Quick match (still PLAN §12). The host handed to a guest when

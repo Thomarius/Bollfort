@@ -1,4 +1,4 @@
-import { ACHIEVEMENT_IDS, type AchievementId } from '@bollfort/config';
+import { ACHIEVEMENT_IDS, COUNTED_KINDS, type AchievementId } from '@bollfort/config';
 
 import { EMBLEMS } from './towerIcons.js';
 
@@ -49,6 +49,7 @@ export const ACHIEVEMENT_TIERS: Record<AchievementId, Tier> = {
   COLD_SHOULDER: 'medium',
   SWEET_DREAMS: 'easy',
   BASS_DROP: 'easy',
+  ROCK_SOLID: 'medium',
   TOWERING_VICTORY: 'medium',
   AMONG_FRIENDS: 'easy',
 };
@@ -403,11 +404,14 @@ const PICTURES: Record<AchievementId, Picture> = {
       FIRE,
     ),
 
-  // Tower of Babel: all nine emblems.
+  // Tower of Babel: the ten towers' emblems, in rows of three, four and three.
   ALL_TOWERS: () =>
-    (Object.keys(EMBLEMS) as (keyof typeof EMBLEMS)[])
-      .map((kind, i) => emblem(kind, 0.8 + (i % 3) * 8.2, 0.8 + Math.floor(i / 3) * 8.2, 6.6))
-      .join(''),
+    COUNTED_KINDS.map((kind, i) => {
+      const row = i < 3 ? 0 : i < 7 ? 1 : 2;
+      const column = row === 0 ? i : row === 1 ? i - 3 : i - 7;
+      const x = (row === 1 ? 0.4 : 3.4) + column * 6;
+      return emblem(kind, x, 1.4 + row * 7.6, 5.6);
+    }).join(''),
 
   // Heavyweight: the Allerdickste Bertha's bomb, and the shockwave round it.
   HEAVYWEIGHT: () =>
@@ -489,6 +493,11 @@ const PICTURES: Record<AchievementId, Picture> = {
     rect(21.6, 2, 2, 2, SHADE) +
     rect(22.4, 11, 1.8, 1.8, SHADE) +
     rect(21.6, 20, 2, 2, SHADE),
+
+  // Rock solid: three Fortified Towers set into a wall.
+  ROCK_SOLID: () =>
+    bricks(2.2, 14.6, 2, 3) +
+    [0.6, 8.4, 16.2].map((x) => emblem('fortified', x, 7, 7.2, INK, DARK)).join(''),
 
   // Towering victory: three towers under the crown.
   TOWERING_VICTORY: () =>

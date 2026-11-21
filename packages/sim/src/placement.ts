@@ -276,6 +276,7 @@ export function placeCannon(
   if (rejection) return { rejection };
   const player = state.players[playerId] as PlayerState;
   const { kind, cost } = gunPlaced(player, special);
+  const wallsCovered = kind === 'fortified' ? wallsUnder(state, x, y, kind, cost) : undefined;
   const cannon = spawnCannon(state, playerId, x, y, kind, cost);
   player.cannonsToPlace -= cost;
   // A Fortified Tower's tiles are wall, no longer ground: the territory and the guns' activity
@@ -291,8 +292,30 @@ export function placeCannon(
     y,
     cannonKind: kind,
     cannonCost: cost,
+    ...(wallsCovered === undefined ? {} : { wallsCovered }),
   });
   return { cannon };
+}
+
+/**
+ * The wall blocks under a footprint about to be placed: a Fortified Tower may only be laid over
+ * its owner's own wall (`fortifiedRefusal`), so every one is theirs.
+ */
+function wallsUnder(
+  state: MatchState,
+  x: number,
+  y: number,
+  kind: CannonKind,
+  cost: number,
+): number {
+  const [cw, ch] = footprintOf(state.ruleset, kind, cost);
+  let walls = 0;
+  for (let oy = 0; oy < ch; oy++) {
+    for (let ox = 0; ox < cw; ox++) {
+      if (state.structure[(y + oy) * state.width + x + ox] === Structure.Wall) walls++;
+    }
+  }
+  return walls;
 }
 
 /** Writes a cannon into the grid without any phase or entitlement checks. */

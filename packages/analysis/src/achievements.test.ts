@@ -444,6 +444,38 @@ describe('the special towers', () => {
     apart.observe(architects(',,,,,,'), [placed]);
     expect(apart.unlocked).toContain('ARCHITECT_ZONING');
   });
+
+  it('are Rock solid with three Fortified Towers standing, each laid over two walls', () => {
+    // Three Fortified Towers of the seat's, guns 0, 1 and 2.
+    const towers = (): MatchState => stateFromAscii('kk.kk.kk\nkk.kk.kk');
+    const placed = (cannonId: number, wallsCovered: number): MatchEvent => ({
+      kind: 'cannon_placed',
+      tick: 0,
+      player: 0,
+      cannonId,
+      x: 0,
+      y: 0,
+      cannonKind: 'fortified',
+      cannonCost: 2,
+      wallsCovered,
+    });
+    const solid = new AchievementWatcher(defaultAchievements, { seat: 0, levels: [null] });
+    solid.observe(towers(), [placed(0, 2), placed(1, 4)]);
+    expect(solid.unlocked).not.toContain('ROCK_SOLID');
+    solid.observe(towers(), [placed(2, 3)]);
+    expect(solid.unlocked).toContain('ROCK_SOLID');
+    // One laid over a single wall block does not count.
+    const thin = new AchievementWatcher(defaultAchievements, { seat: 0, levels: [null] });
+    thin.observe(towers(), [placed(0, 2), placed(1, 1), placed(2, 2)]);
+    expect(thin.unlocked).not.toContain('ROCK_SOLID');
+    // Nor one no longer standing, its island wiped by a continue.
+    const wiped = towers();
+    const gone = new AchievementWatcher(defaultAchievements, { seat: 0, levels: [null] });
+    gone.observe(wiped, [placed(0, 2), placed(1, 2)]);
+    wiped.cannons = wiped.cannons.filter((c) => c.id !== 0);
+    gone.observe(wiped, [placed(2, 2)]);
+    expect(gone.unlocked).not.toContain('ROCK_SOLID');
+  });
 });
 
 describe('a teammate', () => {
@@ -568,19 +600,20 @@ describe('the match’s end', () => {
 });
 
 describe('across matches', () => {
-  it('asks Tower of Babel for the nine towers played, never the retired Rapid Cannon', () => {
+  it('asks Tower of Babel for the ten towers played, never the retired Rapid Cannon', () => {
     const bit = (kind: SpecialKind): number => 1 << SPECIAL_KINDS.indexOf(kind);
-    const nine = COUNTED_KINDS.reduce((mask, kind) => mask | bit(kind), 0);
-    expect(COUNTED_KINDS).toHaveLength(9);
+    const ten = COUNTED_KINDS.reduce((mask, kind) => mask | bit(kind), 0);
+    expect(COUNTED_KINDS).toHaveLength(10);
+    expect(COUNTED_KINDS).toContain('fortified');
     expect(COUNTED_KINDS).not.toContain('rapid');
     const totals = { castles_sealed: 0, walls_destroyed: 0 };
-    expect(statAchievements(defaultAchievements, { ...totals, towers_bought: nine })).toEqual([
+    expect(statAchievements(defaultAchievements, { ...totals, towers_bought: ten })).toEqual([
       'ALL_TOWERS',
     ]);
-    // Eight played and the Rapid Cannon, bought before it was retired, are not the nine.
-    const eight = (nine & ~bit('drone')) | bit('rapid');
-    expect(towersBoughtCount(eight)).toBe(8);
-    expect(statAchievements(defaultAchievements, { ...totals, towers_bought: eight })).toEqual([]);
+    // Nine played and the Rapid Cannon, bought before it was retired, are not the ten.
+    const nine = (ten & ~bit('fortified')) | bit('rapid');
+    expect(towersBoughtCount(nine)).toBe(9);
+    expect(statAchievements(defaultAchievements, { ...totals, towers_bought: nine })).toEqual([]);
   });
 
   it('reads the stats’ achievements from Steam’s totals', () => {
@@ -596,7 +629,7 @@ describe('across matches', () => {
       statAchievements(defaultAchievements, {
         castles_sealed: 200,
         walls_destroyed: 0,
-        // One played tower short, named: the last kind in the list may be one on trial.
+        // One played tower short.
         towers_bought: all & ~(1 << SPECIAL_KINDS.indexOf('drone')),
       }),
     ).toEqual(['SEAL_OF_APPROVAL']);

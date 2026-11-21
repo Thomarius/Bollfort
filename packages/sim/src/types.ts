@@ -275,6 +275,11 @@ export type MatchEvent =
       y: number;
       cannonKind: CannonKind;
       cannonCost: number;
+      /**
+       * A Fortified Tower's: how many of its owner's wall blocks it was laid over, which the
+       * board no longer shows once it stands (the achievement Rock solid).
+       */
+      wallsCovered?: number;
     }
   | { kind: 'round_resolved'; tick: number; round: number; results: RoundResult[] }
   | {

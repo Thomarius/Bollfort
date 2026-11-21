@@ -31,17 +31,11 @@ export type SpecialKind = z.infer<typeof SpecialKindSchema>;
 export const RETIRED_KINDS: readonly SpecialKind[] = ['rapid'];
 
 /**
- * Towers on trial: offered and played as any, but asked for by no achievement until it is decided
- * whether they stay. The Fortified Tower (2026-11-21, docs/SPECIAL_TOWERS.md §2.11).
- */
-export const TRIAL_KINDS: readonly SpecialKind[] = ['fortified'];
-
-/**
- * The towers the achievements count: every kind but the retired and those on trial — nine, which
- * Tower of Babel asks for.
+ * The towers the achievements count: every kind but the retired — ten since the Fortified Tower
+ * was kept after its trial (the user's, 2026-11-22), which Tower of Babel asks for.
  */
 export const COUNTED_KINDS: readonly SpecialKind[] = SPECIAL_KINDS.filter(
-  (kind) => !RETIRED_KINDS.includes(kind) && !TRIAL_KINDS.includes(kind),
+  (kind) => !RETIRED_KINDS.includes(kind),
 );
 
 /**
@@ -269,8 +263,8 @@ const DroneSchema = z.strictObject({
 });
 
 /**
- * The Fortified Tower (2026-11-21, the user's, a trial): wall that cannot be destroyed. Its footprint
- * counts as wall for everything — the escape flood, the sweep, a drone's or a bolt's choice of
+ * The Fortified Tower (2026-11-21, the user's, kept 2026-11-22): wall that cannot be destroyed.
+ * Its footprint counts as wall for everything — the escape flood, the sweep, a drone's or a bolt's choice of
  * target — but nothing clears it, and an opponent's beam or wave stops at it. Placed on its
  * owner's sealed ground or over their own wall; active while it touches their sealed ground.
  */
@@ -345,7 +339,7 @@ export const SpecialsSchema = z.strictObject({
    */
   drone: byCost(DroneSchema).optional(),
   /**
-   * Indestructible wall (2026-11-21, a trial). Absent from rulesets written before it, and then
+   * Indestructible wall (2026-11-21, kept 2026-11-22). Absent from rulesets written before it, and then
    * not offered.
    */
   fortified: byCost(FortifiedSchema).optional(),

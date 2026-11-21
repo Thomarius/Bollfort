@@ -1883,7 +1883,8 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
    `supporter/` and kept out of every public build, free game or pack decided later; the package's
    own files served (ARCHIVE 16h), and the first style designed, sketched and built in it, its design
    and record kept there (`supporter/docs/`); next, the users' play of it, then the next style (SP4). **Steam
-   achievements** (2026-11-12, the user's, while Valve answers): 35, named and their thresholds
+   achievements** (2026-11-12, the user's, while Valve answers): 35, and a 36th for the Fortified
+   Tower (2026-11-22), named and their thresholds
    from the recordings (ARCHIVE 15zz), and packages AC1–AC5 in
    [`STEAM_ACHIEVEMENTS.md`](./STEAM_ACHIEVEMENTS.md); AC1, AC2, AC4 and AC3 done (ARCHIVE 16a–16c, AC3
    tried on 480), AC5 waiting for the App ID.

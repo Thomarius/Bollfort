@@ -323,7 +323,7 @@ describe('the lobby with special towers', () => {
 });
 
 describe('the tower menu', () => {
-  it('offers every tower at the costs the rules offer, and no tower first', () => {
+  it('offers every tower at the costs the rules offer, and no tower above them', () => {
     expect(offeredTowers()).toEqual([
       { kind: 'bertha', costs: [2, 3] },
       { kind: 'architect', costs: [2, 3] },
@@ -337,28 +337,33 @@ describe('the tower menu', () => {
       { kind: 'fortified', costs: [2, 3] },
     ]);
     const html = towerMenuMarkup('bertha2');
-    expect(html.match(/data-kind="\w+"/)?.[0]).toBe('data-kind="none"');
+    // No tower in the strip, the ten towers in two rows of five beneath it.
+    expect(html).toContain(
+      '<div class="picks"><button type="button" class="pick" data-kind="none">',
+    );
+    expect(html.match(/class="card[ "]/g)).toHaveLength(10);
     expect(html).toContain('class="card chosen" data-kind="bertha"');
     // A person's menu has no Random.
-    expect(html).not.toContain('class="random');
+    expect(html).not.toContain('pick random');
   });
 
-  it('chooses none as a card of its own, both costs off', () => {
+  it('chooses none in the strip, both costs off', () => {
     const html = towerMenuMarkup(null);
-    expect(html).toContain('class="card chosen" data-kind="none"');
+    expect(html).toContain('class="pick chosen" data-kind="none" data-main');
+    expect(html).not.toContain('card chosen');
     expect(html).toMatch(/data-cost="2" disabled/);
     expect(html).toMatch(/data-cost="3" disabled/);
   });
 
   it("offers a bot's menu Random, its draw's card marked rather than chosen", () => {
     const html = towerMenuMarkup('drawn', 'frost3');
-    expect(html).toContain('class="random chosen"');
+    expect(html).toContain('class="pick random chosen"');
     expect(html).toContain('class="card drawn" data-kind="frost"');
     expect(html).not.toContain('card chosen');
     expect(html).toContain(towerWhat('frost3'));
     // Chosen over the draw, Random is offered but no longer chosen.
     const chosen = towerMenuMarkup('frost2', 'frost3');
-    expect(chosen).toContain('class="random"');
+    expect(chosen).toContain('class="pick random"');
     expect(chosen).toContain('class="card chosen" data-kind="frost"');
   });
 

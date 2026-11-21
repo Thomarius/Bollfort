@@ -12824,3 +12824,52 @@ preview no longer renders its unseen board. Electric, Minimal, Cyberpunk and Med
 frame over 16.8 ms in either banner, every slow frame within the first 350 ms, which the clock
 waits out, but a dropped frame (33 ms) now and then outside the banners. Promoting the banner to
 a layer of its own (`will-change`) changed nothing measurable: Chrome already composites it.
+
+## 16z. The Fortified Tower kept: ten towers, Rock solid, the menu's strip, the team names (2026-11-22)
+
+The users' tests of the Fortified Tower (docs/SPECIAL_TOWERS.md §2.11) went well, and it stays, a
+tenth tower beside the nine — none replaced. Its trial status went with the decision:
+`TRIAL_KINDS` is gone, and `COUNTED_KINDS` is every kind but the retired, ten.
+
+**Tower of Babel** asks for the ten (its texts in all three languages say so); a player who bought
+the nine before has one to go. Its icon had laid every emblem in `EMBLEMS` on a grid of three by
+three, the retired Rapid Cannon's and the Fortified Tower's among them — eleven, the last two
+below the frame's picture: it lays the ten counted in rows of three, four and three.
+
+**Rock solid** (_Felsenfest_, _Felsefest_; `ROCK_SOLID`, medium, the 36th, after Bass drop): own
+three Fortified Towers at once, each laid over at least two of its owner's wall blocks. The name was
+proposed with another condition — rivals' shots striking the tower N times in one combat phase —
+which the user turned down as asking the rivals to play badly, and gave this one. The board no
+longer shows the wall a tower replaced, so `placeCannon` tells it: `wallsCovered` on the
+`cannon_placed` event of a Fortified Tower (events are the page's own, never sent nor hashed: no
+protocol change). The watcher keeps the seat's towers that qualified and counts those still
+standing as each is placed, so a continue's wipe takes them from the count. The thresholds are
+config (`towers` 3, `walls` 2) and `achievementProblems` refuses more towers than `maxOwned` or more
+walls than the dearer footprint covers. Its icon: three Fortified Towers set into a wall.
+
+**The tower menu**, laid out for ten choices (none and nine towers, two rows of five), showed the
+Fortified Tower alone in a third row. Of three layouts — no tower moved out of the grid into a strip
+above it, six columns, four columns — the user chose **the strip**: the ten towers in two rows of
+five, and above them **No tower**, beside **Random** in a bot's menu, both as wide as the cards
+together (`.picks`). Where the panel is narrow the cards go two to a row, five rows, rather than
+three to a row with one alone. Looked at in a person's menu (English) and a bot's (German) at
+1600 × 900 and a person's at 600 wide; clicks on no tower and on a tower each chosen.
+
+**The tournament's team names.** Every tower already had its pool (`towerTeams`), but several
+collided: Fortified's _Granite_ was also an ordinary team name, its _Masons_ the Architect's, its
+_Keystones_ and _Monoliths_ near-twins of the Architect's _Keystone_ and the Allerdickste's
+_Monolith_, and the Drone's _Hornets_ the retired Rapid's. Each pool is drawn from apart, so two
+teams of one tournament could have gone by one name. The user asked for the names to be dealt
+where they fit best, ordinary names that suit a tower moved to its pool and new generic ones in
+their place: Granite, Bastion, Boulder, Citadel, Fortress and Stone to the Fortified Tower (with
+Battlements, Garrison, Holdfast, Parapets; its clashing four and Boulders, Bastions dropped);
+Hornet, Wasp and Radar to the Drone (as Hornets, Wasps, Radar); Thunder, Lightning and Bolt to the
+Lightning Tower (Spark dropped beside its Sparks); Frost, Glacier, Iceberg, Tundra to the Frost
+Cannon; Cannon and Caliber to Big Bertha; Titan, Giant, Mammoth to the Allerdickste; Prism to the
+Laser; Lunar to the Lullaby; Echo and Sonic to the Subwoofer; the Rapid's Hornets became Ratatat.
+Twenty-six new ordinary names keep that pool at 298. A test now holds every name to one pool,
+singular and plural alike, which the schema's comment had promised and nothing checked.
+
+**Bots and random towers** needed nothing: the bots' draws, a person's never-chosen tower and a
+tournament's fixed towers all draw from `offeredVariants`, which has offered the Fortified Tower
+since it was added. **The store page's** text (docs/STORE_PAGE.md) says ten towers and lists it.

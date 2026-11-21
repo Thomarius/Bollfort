@@ -79,7 +79,7 @@ Checked against the code and the locales on 2026-11-06. German names are the gam
 - **Online**: on Steam, Steam lobbies — Public in the games list, Friends, Invite only; Steam
   names and avatars, Join from the friends list. The host can remove a guest in the lobby.
 - **Special towers** (Spezialtürme), a table's switch, off by default — the classic game
-  without: bought in the cannon phase for 2 or 3 cannons. Nine:
+  without: bought in the cannon phase for 2 or 3 cannons. Ten:
 
   | English             | German             |
   | ------------------- | ------------------ |
@@ -92,6 +92,7 @@ Checked against the code and the locales on 2026-11-06. German names are the gam
   | Frost Cannon        | Frostkanone        |
   | Lullaby Tower       | Schlafturm         |
   | Subwoofer           | Subwoofer          |
+  | Fortified Tower     | Wehrturm           |
 
 - **Tournaments** (Turniere): the player's team of people and bots against a field of named bot
   teams, a league and then a single- or double-elimination knockout, saved between matches;
@@ -173,7 +174,7 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
 >
 > **Special towers**
 >
-> Switch them on for a wilder game: nine towers, from Big Bertha's crater to a chain of
+> Switch them on for a wilder game: ten towers, from Big Bertha's crater to a chain of
 > lightning and a lullaby that sends enemy cannons to sleep. They are off by default, so the
 > classic game stays classic.
 >
@@ -227,7 +228,7 @@ by `sh tools/storeart/loops.sh` (ARCHIVE 15zo).
 >
 > **Spezialtürme**
 >
-> Schalte sie für ein wilderes Spiel ein: neun Türme, vom Krater der Dicken Berta bis zu einer
+> Schalte sie für ein wilderes Spiel ein: zehn Türme, vom Krater der Dicken Berta bis zu einer
 > Kette aus Blitzen und einem Schlaflied, das gegnerische Kanonen einschlafen lässt.
 > Anfangs sind sie aus, damit das klassische Spiel klassisch bleibt.
 >

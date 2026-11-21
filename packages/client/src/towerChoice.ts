@@ -69,11 +69,11 @@ export function menuTowers(): { kind: SpecialKind; costs: number[] }[] {
 }
 
 /**
- * The menu's choosing part, drawn again on every choice; the preview stays beside it. No tower
- * the first card, then every tower by name — ten cards with the tower still to come, two rows
- * of five (the user's, 2026-10-25; none had been left out since 2026-10-21). A bot's menu, given
- * `drawn` — its seat's draw — offers Random above them: the draw it brings unless the host
- * chooses, its tower's card marked as drawn rather than chosen.
+ * The menu's choosing part, drawn again on every choice; the preview stays beside it. The ten
+ * towers by name in two rows of five, and above them a strip with no tower (the user's,
+ * 2026-11-22: as a card it had been first of ten, 2026-10-25, and the Fortified Tower made
+ * eleven). A bot's menu, given `drawn` — its seat's draw — offers Random in the strip beside it:
+ * the draw it brings unless the host chooses, its tower's card marked as drawn rather than chosen.
  */
 export function towerMenuMarkup(
   chosen: BotTower,
@@ -83,18 +83,20 @@ export function towerMenuMarkup(
 ): string {
   const kind = chosen === null ? 'none' : chosen === 'drawn' ? null : variantKind(chosen);
   const drawnKind = chosen === 'drawn' && drawn !== null ? variantKind(drawn) : null;
-  const card = (k: SpecialKind | 'none', icon: string, name: string): string =>
-    // The chosen card is where a controller's focus starts (`padMenus.ts`).
-    `<button type="button" class="card${k === kind ? ' chosen' : ''}${k === drawnKind ? ' drawn' : ''}" data-kind="${k}"${k === kind || k === drawnKind ? ' data-main' : ''}>` +
-    `${icon}<span class="name">${escape(name)}</span></button>`;
+  // The chosen one is where a controller's focus starts (`padMenus.ts`).
+  const main = (on: boolean): string => (on ? ' data-main' : '');
+  const card = (k: SpecialKind): string =>
+    `<button type="button" class="card${k === kind ? ' chosen' : ''}${k === drawnKind ? ' drawn' : ''}" data-kind="${k}"${main(k === kind || k === drawnKind)}>` +
+    `${towerSvg(k, 'currentColor')}<span class="name">${escape(towerName(k))}</span></button>`;
   const towers = menuTowers();
-  const cards =
-    card('none', cannonSvg('currentColor'), towerName(null)) +
-    towers.map((o) => card(o.kind, towerSvg(o.kind, 'currentColor'), towerName(o.kind))).join('');
+  const cards = towers.map((o) => card(o.kind)).join('');
+  const none =
+    `<button type="button" class="pick${kind === 'none' ? ' chosen' : ''}" data-kind="none"${main(kind === 'none')}>` +
+    `${cannonSvg('currentColor')}<span>${escape(towerName(null))}</span></button>`;
   const random =
     drawn === null && !later
       ? ''
-      : `<button type="button" class="random${chosen === 'drawn' ? ' chosen' : ''}">` +
+      : `<button type="button" class="pick random${chosen === 'drawn' ? ' chosen' : ''}">` +
         `${dieSvg('currentColor')}<span>${escape(t('towerMenu.random'))}</span></button>`;
   // Shown for none and Random too, both costs off, so the menu keeps its height between choices.
   const variant = chosen === null || chosen === 'drawn' ? null : chosen;
@@ -121,7 +123,10 @@ export function towerMenuMarkup(
       return `<p class="what${on ? ' on' : ''}"${on ? '' : ' aria-hidden="true"'}>${whatOf(c, drawn)}</p>`;
     })
     .join('');
-  return `${random}<div class="cards">${cards}</div>${costs}<div class="whats">${whats}</div>`;
+  return (
+    `<div class="picks">${none}${random}</div><div class="cards">${cards}</div>` +
+    `${costs}<div class="whats">${whats}</div>`
+  );
 }
 
 /** What a choice does, by its own numbers and when it can be afforded. */

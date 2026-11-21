@@ -33,11 +33,12 @@ Sources: Steamworks' [Achievements](https://partner.steamgames.com/doc/features/
 
 ## 2. The decisions (the user's, 2026-11-12)
 
-- **35 achievements**, the list of §4.
+- **36 achievements**, the list of §4: the 35 chosen, and Rock solid for the Fortified Tower,
+  kept as the tenth tower (2026-11-22).
 - **Bot matches count**, with no level floor unless an achievement names one; floors are Level 5
   or Level 8, never Level 10.
 - **Grind in reason**: a stat asks for some 10–20 matches of ordinary play, never 100 or more.
-- **Special towers are a core feature**: each of the nine has its own achievement.
+- **Special towers are a core feature**: each of the ten has its own achievement.
 - **No hidden achievements, none about the looks** (styles are subjective and hard to track).
 - **Online achievements few**: one; every other one reachable alone.
 - **No name the same as an end-screen award's**, in either language (Wrecker / Abrissbirne,
@@ -66,7 +67,7 @@ Sources: Steamworks' [Achievements](https://partner.steamgames.com/doc/features/
    `awards.ts` is.
 6. **Thresholds in config** behind a schema (no rule hardcoded).
 
-## 4. The 35
+## 4. The 36
 
 Difficulty: **E** most players within their first few matches; **M** a skilled player in a fair
 share of matches, a casual one now and then; **H** a skilled player's goal; **stat** across
@@ -78,56 +79,63 @@ seat-matches (his "You" and "Du" counted as his), about a Level 5–6 player, an
 Level 2–3: the share of matches in which each met the condition — or else from ARCHIVE 15zz's
 first measurement over all 34, or what the towers' rules say where they were not recorded.
 
-| #   | English              | German                     | API                | Condition                                                                                         | Diff | Recordings                                                                        |
-| --- | -------------------- | -------------------------- | ------------------ | ------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------- |
-| 1   | Breaking ground      | Erster Spatenstich         | `FIRST_MATCH`      | Finish a match                                                                                    | E    | —                                                                                 |
-| 2   | King of the castle   | Burgherr                   | `FIRST_WIN`        | Win a match                                                                                       | E    | Thomas won 74%, Mausica 67%                                                       |
-| 3   | Pocket money         | Taschengeld                | `POCKET`           | Hold a pocket — sealed ground with no castle — at a resolution                                    | E    | Thomas 86%, Mausica 79%                                                           |
-| 4   | Just in time         | Auf den letzten Drücker    | `JUST_IN_TIME`     | With no castle sealed, seal one with a piece laid in the overtime                                 | E    | Thomas 53%, Mausica 56%                                                           |
-| 5   | Knock knock          | Klopf, klopf               | `FIRST_BREACH`     | A shot of yours opens a rival's sealed castle: sealed before it, open after                       | E    | Thomas 79%, Mausica 100%                                                          |
-| 6   | Read the manual      | Wer lesen kann …           | `READ_THE_MANUAL`  | Open every page of How to play                                                                    | E    | —                                                                                 |
-| 7   | Four of a kind       | Alle viere                 | `FULL_ESTATE`      | Hold all four castles of your island sealed at a resolution                                       | M    | Thomas 47%, Mausica 22%                                                           |
-| 8   | Land grab            | Landnahme                  | `LAND_GRAB`        | Hold **150** tiles of territory at a resolution                                                   | M    | Thomas 58%, Mausica 11%                                                           |
-| 9   | Kingdom come         | Königreich                 | `EMPIRE`           | Hold **220** tiles at a resolution                                                                | H    | Thomas 11% (2 of 19), Mausica none                                                |
-| 10  | Seal of approval     | Gütesiegel                 | `SEAL_OF_APPROVAL` | Castles sealed at resolutions, **200** in all                                                     | stat | a match: Thomas 20, Mausica 12 — about 10 and 17 matches                          |
-| 11  | Bring the house down | Kein Stein auf dem anderen | `BIG_BARRAGE`      | Destroy **40** walls in one combat phase                                                          | M    | Thomas 68%, Mausica none (best 27)                                                |
-| 12  | Lights out           | Licht aus                  | `LIGHTS_OUT`       | A rival spends a life after a combat phase in which you destroyed more of their wall than anyone  | E    | Thomas 73%, Mausica 64%                                                           |
-| 13  | Demolition crew      | Fachbetrieb für Rückbau    | `DEMOLITION_CREW`  | Walls destroyed, **2,500** in all                                                                 | stat | a match: Thomas 234, Mausica 135 — about 11 and 19 matches                        |
-| 14  | Seasoned             | Gut gewürzt                | `SEASONED`         | Win a match (Level 5 floor)                                                                       | M    | Thomas won all 5 of his free-for-alls against Level 5                             |
-| 15  | Warlord              | Feldherr                   | `WARLORD`          | Win a match (Level 8 floor)                                                                       | H    | not recorded                                                                      |
-| 16  | Untouchable          | Unantastbar                | `UNTOUCHABLE`      | Finish a whole match never spending a life                                                        | H    | no person in 29 full matches; Level 3–4 bots 27%, Level 5 6%                      |
-| 17  | Sole survivor        | Allein auf weiter Flur     | `SOLE_SURVIVOR`    | Win by knocking everyone out, before the round cap                                                | H    | 2 of 20 matches ended so, both won by bots                                        |
-| 18  | Good neighbour       | Gute Nachbarschaft         | `GOOD_NEIGHBOUR`   | A teammate's castle is sealed at a resolution with your blocks in its wall                        | E    | Thomas 5 of his 19 matches, Mausica 1 of 9                                        |
-| 19  | In good company      | In guter Gesellschaft      | `IN_GOOD_COMPANY`  | Win a team match                                                                                  | E    | Thomas's teams won 9 of 13                                                        |
-| 20  | Season ticket        | Dauerkarte                 | `SEASON_TICKET`    | Play a tournament to its end                                                                      | E    | not recorded; some 5–8 matches                                                    |
-| 21  | Champion             | Pokalheld                  | `CHAMPION`         | Win a tournament                                                                                  | M    | not recorded                                                                      |
-| 22  | Invincible           | Ungeschlagen               | `INVINCIBLE`       | Win a tournament without losing a match                                                           | H    | at Thomas's 74% a match, about one tournament in six                              |
-| 23  | Special delivery     | Sonderlieferung            | `SPECIAL_DELIVERY` | Buy a special tower                                                                               | E    | —                                                                                 |
-| 24  | Tower of Babel       | Turmbau zu Babel           | `ALL_TOWERS`       | Buy each of the nine towers at least once                                                         | stat | one kind a match: nine matches with towers on                                     |
-| 25  | Big bang             | Urknall                    | `BIG_BANG`         | One Big Bertha shot destroys **4** walls                                                          | M    | rules: the `plus5` crater takes 3 of a plain wall, 4–5 at a corner or a thick one |
-| 26  | Heavyweight          | Schwergewicht              | `HEAVYWEIGHT`      | The Allerdickste Bertha's one shell destroys **10** walls                                         | M    | a Level 5 bot's best: 10 at cost 2                                                |
-| 27  | Zoning laws          | Bebauungsplan              | `ARCHITECT_ZONING` | Own three Architects at once, no tile within reach of two of them                                 | M    | the user's design: placement, three rounds of buying                              |
-| 28  | Look, no hands!      | Freihändig                 | `HANDS_FREE`       | A missile from your Drone Tower opens a rival's sealed castle (2026-11-20, in Rapid fire's place) | M    | bots: Level 5 cost 3 in 8 of 8 matches, cost 2 4 of 8; Levels 3 and 8 half        |
-| 29  | Chain reaction       | Kettenreaktion             | `CHAIN_REACTION`   | One Lightning strike destroys **3** walls                                                         | M    | a Level 5 bot's best: 4 at cost 3; cost 2 strikes 3 at most                       |
-| 30  | Straight through     | Voller Durchblick          | `STRAIGHT_THROUGH` | One Laser beam clears **3** walls                                                                 | M    | rules: cost 3 only, the third wall half the time                                  |
-| 31  | Cold shoulder        | Kalte Schulter             | `COLD_SHOULDER`    | A rival spends a life in a build phase with a tile of theirs your Frost Cannon froze              | M    | soaks: a freeze cost a round in some 5% of rounds (SPECIAL_TOWERS.md §5 FR)       |
-| 32  | Sweet dreams         | Schlaf, Kindlein, schlaf   | `SWEET_DREAMS`     | One Lullaby shot puts **3** guns to sleep                                                         | E    | Thomas did it in his one Lullaby match                                            |
-| 33  | Bass drop            | Mit Wumms                  | `BASS_DROP`        | One Subwoofer wave clears **3** walls                                                             | E    | rules: three lanes at cost 3, each clearing the first wall it meets               |
-| 34  | Towering victory     | Turmhoch überlegen         | `TOWERING_VICTORY` | Win a match in which you bought **3** towers                                                      | M    | Thomas bought 3 and won in his one tower match                                    |
-| 35  | Among friends        | Unter Freunden             | `AMONG_FRIENDS`    | Finish an online match with another person at the table                                           | E    | 17 of 34 recordings are rooms                                                     |
+| #   | English              | German                     | API                | Condition                                                                                              | Diff | Recordings                                                                        |
+| --- | -------------------- | -------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------------------------------------------- |
+| 1   | Breaking ground      | Erster Spatenstich         | `FIRST_MATCH`      | Finish a match                                                                                         | E    | —                                                                                 |
+| 2   | King of the castle   | Burgherr                   | `FIRST_WIN`        | Win a match                                                                                            | E    | Thomas won 74%, Mausica 67%                                                       |
+| 3   | Pocket money         | Taschengeld                | `POCKET`           | Hold a pocket — sealed ground with no castle — at a resolution                                         | E    | Thomas 86%, Mausica 79%                                                           |
+| 4   | Just in time         | Auf den letzten Drücker    | `JUST_IN_TIME`     | With no castle sealed, seal one with a piece laid in the overtime                                      | E    | Thomas 53%, Mausica 56%                                                           |
+| 5   | Knock knock          | Klopf, klopf               | `FIRST_BREACH`     | A shot of yours opens a rival's sealed castle: sealed before it, open after                            | E    | Thomas 79%, Mausica 100%                                                          |
+| 6   | Read the manual      | Wer lesen kann …           | `READ_THE_MANUAL`  | Open every page of How to play                                                                         | E    | —                                                                                 |
+| 7   | Four of a kind       | Alle viere                 | `FULL_ESTATE`      | Hold all four castles of your island sealed at a resolution                                            | M    | Thomas 47%, Mausica 22%                                                           |
+| 8   | Land grab            | Landnahme                  | `LAND_GRAB`        | Hold **150** tiles of territory at a resolution                                                        | M    | Thomas 58%, Mausica 11%                                                           |
+| 9   | Kingdom come         | Königreich                 | `EMPIRE`           | Hold **220** tiles at a resolution                                                                     | H    | Thomas 11% (2 of 19), Mausica none                                                |
+| 10  | Seal of approval     | Gütesiegel                 | `SEAL_OF_APPROVAL` | Castles sealed at resolutions, **200** in all                                                          | stat | a match: Thomas 20, Mausica 12 — about 10 and 17 matches                          |
+| 11  | Bring the house down | Kein Stein auf dem anderen | `BIG_BARRAGE`      | Destroy **40** walls in one combat phase                                                               | M    | Thomas 68%, Mausica none (best 27)                                                |
+| 12  | Lights out           | Licht aus                  | `LIGHTS_OUT`       | A rival spends a life after a combat phase in which you destroyed more of their wall than anyone       | E    | Thomas 73%, Mausica 64%                                                           |
+| 13  | Demolition crew      | Fachbetrieb für Rückbau    | `DEMOLITION_CREW`  | Walls destroyed, **2,500** in all                                                                      | stat | a match: Thomas 234, Mausica 135 — about 11 and 19 matches                        |
+| 14  | Seasoned             | Gut gewürzt                | `SEASONED`         | Win a match (Level 5 floor)                                                                            | M    | Thomas won all 5 of his free-for-alls against Level 5                             |
+| 15  | Warlord              | Feldherr                   | `WARLORD`          | Win a match (Level 8 floor)                                                                            | H    | not recorded                                                                      |
+| 16  | Untouchable          | Unantastbar                | `UNTOUCHABLE`      | Finish a whole match never spending a life                                                             | H    | no person in 29 full matches; Level 3–4 bots 27%, Level 5 6%                      |
+| 17  | Sole survivor        | Allein auf weiter Flur     | `SOLE_SURVIVOR`    | Win by knocking everyone out, before the round cap                                                     | H    | 2 of 20 matches ended so, both won by bots                                        |
+| 18  | Good neighbour       | Gute Nachbarschaft         | `GOOD_NEIGHBOUR`   | A teammate's castle is sealed at a resolution with your blocks in its wall                             | E    | Thomas 5 of his 19 matches, Mausica 1 of 9                                        |
+| 19  | In good company      | In guter Gesellschaft      | `IN_GOOD_COMPANY`  | Win a team match                                                                                       | E    | Thomas's teams won 9 of 13                                                        |
+| 20  | Season ticket        | Dauerkarte                 | `SEASON_TICKET`    | Play a tournament to its end                                                                           | E    | not recorded; some 5–8 matches                                                    |
+| 21  | Champion             | Pokalheld                  | `CHAMPION`         | Win a tournament                                                                                       | M    | not recorded                                                                      |
+| 22  | Invincible           | Ungeschlagen               | `INVINCIBLE`       | Win a tournament without losing a match                                                                | H    | at Thomas's 74% a match, about one tournament in six                              |
+| 23  | Special delivery     | Sonderlieferung            | `SPECIAL_DELIVERY` | Buy a special tower                                                                                    | E    | —                                                                                 |
+| 24  | Tower of Babel       | Turmbau zu Babel           | `ALL_TOWERS`       | Buy each of the ten towers at least once                                                               | stat | one kind a match: ten matches with towers on                                      |
+| 25  | Big bang             | Urknall                    | `BIG_BANG`         | One Big Bertha shot destroys **4** walls                                                               | M    | rules: the `plus5` crater takes 3 of a plain wall, 4–5 at a corner or a thick one |
+| 26  | Heavyweight          | Schwergewicht              | `HEAVYWEIGHT`      | The Allerdickste Bertha's one shell destroys **10** walls                                              | M    | a Level 5 bot's best: 10 at cost 2                                                |
+| 27  | Zoning laws          | Bebauungsplan              | `ARCHITECT_ZONING` | Own three Architects at once, no tile within reach of two of them                                      | M    | the user's design: placement, three rounds of buying                              |
+| 28  | Look, no hands!      | Freihändig                 | `HANDS_FREE`       | A missile from your Drone Tower opens a rival's sealed castle (2026-11-20, in Rapid fire's place)      | M    | bots: Level 5 cost 3 in 8 of 8 matches, cost 2 4 of 8; Levels 3 and 8 half        |
+| 29  | Chain reaction       | Kettenreaktion             | `CHAIN_REACTION`   | One Lightning strike destroys **3** walls                                                              | M    | a Level 5 bot's best: 4 at cost 3; cost 2 strikes 3 at most                       |
+| 30  | Straight through     | Voller Durchblick          | `STRAIGHT_THROUGH` | One Laser beam clears **3** walls                                                                      | M    | rules: cost 3 only, the third wall half the time                                  |
+| 31  | Cold shoulder        | Kalte Schulter             | `COLD_SHOULDER`    | A rival spends a life in a build phase with a tile of theirs your Frost Cannon froze                   | M    | soaks: a freeze cost a round in some 5% of rounds (SPECIAL_TOWERS.md §5 FR)       |
+| 32  | Sweet dreams         | Schlaf, Kindlein, schlaf   | `SWEET_DREAMS`     | One Lullaby shot puts **3** guns to sleep                                                              | E    | Thomas did it in his one Lullaby match                                            |
+| 33  | Bass drop            | Mit Wumms                  | `BASS_DROP`        | One Subwoofer wave clears **3** walls                                                                  | E    | rules: three lanes at cost 3, each clearing the first wall it meets               |
+| 34  | Rock solid           | Felsenfest                 | `ROCK_SOLID`       | Own **3** Fortified Towers at once, each laid over at least **2** of your own wall blocks (2026-11-22) | M    | the user's design: placement, three rounds of buying; not recorded                |
+| 35  | Towering victory     | Turmhoch überlegen         | `TOWERING_VICTORY` | Win a match in which you bought **3** towers                                                           | M    | Thomas bought 3 and won in his one tower match                                    |
+| 36  | Among friends        | Unter Freunden             | `AMONG_FRIENDS`    | Finish an online match with another person at the table                                                | E    | 17 of 34 recordings are rooms                                                     |
 
 **Zoning laws** (27): the reach is the Architect's own (`inRepairReach`, 2.2 at cost 2 and 2.6 at
 cost 3, from the footprint's centre); "no tile within reach of two" is checked on the board as the
 third is placed, and while all three stand.
 
+**Rock solid** (34): a Fortified Tower counts when it was laid over at least two of its owner's
+wall blocks — the board no longer shows them once it stands, so the placement says how many
+(`wallsCovered` on `cannon_placed`) — and while it stands; a continue wipes it with the island.
+Earned as the third such tower is placed. The user's condition (2026-11-22): rivals shooting at
+the tower, first proposed, would have asked them to play badly.
+
 ### 4.1 The stats
 
 Integers kept by Steam: `castles_sealed` (10), `walls_destroyed` (13), and `towers_bought` with
 `towers_bought_count` (24, a bitmask by tower kind and its count — the count is the progress
-Steam shows, the mask makes each tower count once). The count is of the nine towers played
+Steam shows, the mask makes each tower count once). The count is of the ten towers played
 (`COUNTED_KINDS`): the Rapid Cannon, retired for the Drone Tower (2026-11-20), keeps its bit in the
-mask, which no match sets any more, and counts for nothing; the Fortified Tower, on trial
-(2026-11-21), sets its bit and counts for nothing until it is decided whether it stays. Steam is the store of truth: nothing is kept beside it,
+mask, which no match sets any more, and counts for nothing; the Fortified Tower, kept after its
+trial (2026-11-22), counts as any. Steam is the store of truth: nothing is kept beside it,
 so a match played with Steam not running counts for nothing.
 
 ## 5. The icons (decided 2026-11-12, the user's)

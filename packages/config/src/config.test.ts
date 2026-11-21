@@ -58,6 +58,23 @@ describe('shipped config files', () => {
   it('pass cross-file validation', () => {
     expect(validateConfigBundle(defaultConfigBundle)).toEqual([]);
   });
+
+  it('keep every team name to one pool, and no plural of another pool’s', () => {
+    // Each pool is drawn from apart (`roster.ts`), so a name in two could name two teams of a
+    // tournament alike; a plural beside its singular reads as the same team.
+    const { names } = defaultConfigBundle.tournament;
+    const owner = new Map<string, string>();
+    for (const [pool, list] of [['teams', names.teams], ...Object.entries(names.towerTeams)] as [
+      string,
+      readonly string[],
+    ][]) {
+      for (const name of list) {
+        const key = name.toLowerCase().replace(/e?s$/, '');
+        expect(owner.get(key) ?? pool, `${name} in ${pool}`).toBe(pool);
+        owner.set(key, pool);
+      }
+    }
+  });
 });
 
 describe('schema strictness', () => {

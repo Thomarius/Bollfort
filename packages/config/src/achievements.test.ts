@@ -5,8 +5,8 @@ import { defaultAchievements, defaultRuleset, locales } from './defaults.js';
 import { placeholders } from './locale.js';
 
 describe('the achievements’ config', () => {
-  it('lists the 35 the user chose, each earnable under the default rules', () => {
-    expect(ACHIEVEMENT_IDS).toHaveLength(35);
+  it('lists the 36 the user chose, each earnable under the default rules', () => {
+    expect(ACHIEVEMENT_IDS).toHaveLength(36);
     expect(Object.keys(defaultAchievements)).toEqual(ACHIEVEMENT_IDS);
     expect(achievementProblems(defaultAchievements, defaultRuleset)).toEqual([]);
   });
@@ -19,10 +19,12 @@ describe('the achievements’ config', () => {
         STRAIGHT_THROUGH: { walls: 4 },
         SWEET_DREAMS: { guns: 4 },
         WARLORD: { levelFloor: 5 },
+        // Four towers, and more wall than a 3x3 covers.
+        ROCK_SOLID: { towers: 4, walls: 10 },
       },
       defaultRuleset,
     );
-    expect(problems).toHaveLength(4);
+    expect(problems).toHaveLength(6);
   });
 });
 
