@@ -2,6 +2,7 @@ import {
   NEIGHBOURS_4,
   NEIGHBOURS_8,
   Structure,
+  isWallLike,
   Terrain,
   cannonReward,
   heldValue,
@@ -24,7 +25,8 @@ export interface SealPlan {
 }
 
 function passable(state: MatchState, i: number): boolean {
-  return state.structure[i] !== Structure.Wall;
+  // A Fortified Tower is wall a seal may run through at no cost, as any wall standing.
+  return !isWallLike(state.structure[i] as number);
 }
 
 /** Empty land of this player's own island: the only tiles they may build on. */
@@ -546,7 +548,7 @@ export function outerSkin(state: MatchState, playerId: number): number[] {
       const ny = y + oy;
       if (nx < 0 || ny < 0 || nx >= state.width || ny >= state.height) continue;
       const j = ny * state.width + nx;
-      if (state.structure[j] === Structure.Wall && state.islandId[j] === islandId) {
+      if (isWallLike(state.structure[j] as number) && state.islandId[j] === islandId) {
         out.push(i);
         break;
       }
@@ -602,10 +604,14 @@ export function weakestWall(state: MatchState, targetPlayer: number): number[] {
   // phase played out in advance cannot know (ARCHIVE 13zf, step 1).
   const walled = (i: number): boolean =>
     state.structure[i] === Structure.Wall && state.islandId[i] === islandId;
+  // This island's Fortified Towers no shot clears: no breach runs through them.
+  const stone = (i: number): boolean =>
+    state.structure[i] === Structure.Stone && state.islandId[i] === islandId;
 
   // The border, in index order: the order the search sets out in decides between paths
   // of equal cost.
   const seedBorder = (i: number): void => {
+    if (stone(i)) return;
     const cost = walled(i) ? 1 : 0;
     if (cost >= (dist[i] as number)) return;
     dist[i] = cost;
@@ -636,6 +642,7 @@ export function weakestWall(state: MatchState, targetPlayer: number): number[] {
       const ny = y + (DY8[k] as number);
       if (nx < 0 || ny < 0 || nx >= state.width || ny >= state.height) continue;
       const j = ny * state.width + nx;
+      if (stone(j)) continue;
       const step = walled(j) ? 1 : 0;
       const next = (dist[i] as number) + step;
       if (next >= (dist[j] as number)) continue;
@@ -738,7 +745,7 @@ export function pocketPlan(
           for (let x = x0 - 1; x <= x0 + w && ok; x++) {
             if (y >= y0 && y < y0 + h && x >= x0 && x < x0 + w) continue;
             const i = y * width + x;
-            if (state.structure[i] === Structure.Wall && state.owner[i] === islandId) reused++;
+            if (isWallLike(state.structure[i] as number) && state.owner[i] === islandId) reused++;
             else if (free(x, y)) tiles.push(i);
             else ok = false;
           }

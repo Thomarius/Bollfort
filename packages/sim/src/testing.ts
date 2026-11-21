@@ -1,6 +1,7 @@
 import { defaultRuleset, defaultTerrainConfig, type Ruleset } from '@bollfort/config';
 
 import { step } from './match.js';
+import { placedBarrels } from './specials.js';
 import {
   Structure,
   Terrain,
@@ -17,8 +18,8 @@ import {
  *
  * `.` water   `,` empty land   `#` wall   `@` castle   `*` cannon
  * `B` Big Bertha   `A` Architect   `R` Rapid Cannon   `L` Lightning Tower, `G` Allerdickste
- *   Bertha, `X` Laser Tower, `F` Frost Cannon, `Z` Lullaby Tower, `W` Subwoofer, `D` Drone Tower — special towers
- *   at cost 3; `b` `a` `r` `l` `g` `x` `f` `z` `w` `d` the same at cost 2
+ *   Bertha, `X` Laser Tower, `F` Frost Cannon, `Z` Lullaby Tower, `W` Subwoofer, `D` Drone Tower, `K` Fortified Tower — special
+ *   towers at cost 3; `b` `a` `r` `l` `g` `x` `f` `z` `w` `d` `k` the same at cost 2
  * `1`-`4` empty land belonging to that island (default is island 1)
  *
  * Adjacent `@`, `*` or tower glyphs are grouped into one structure by bounding box.
@@ -53,6 +54,8 @@ const GUN_GLYPHS: Readonly<Record<string, { kind: CannonKind; cost: number }>> =
   w: { kind: 'subwoofer', cost: 2 },
   D: { kind: 'drone', cost: 3 },
   d: { kind: 'drone', cost: 2 },
+  K: { kind: 'fortified', cost: 3 },
+  k: { kind: 'fortified', cost: 2 },
 };
 
 export function stateFromAscii(
@@ -91,7 +94,10 @@ export function stateFromAscii(
         structure[i] = Structure.Wall;
         owner[i] = islandId[i] as number;
       } else if (ch === '@') structure[i] = Structure.Castle;
-      else if (GUN_GLYPHS[ch] !== undefined) structure[i] = Structure.Cannon;
+      else if (ch === 'K' || ch === 'k') {
+        structure[i] = Structure.Stone;
+        owner[i] = islandId[i] as number;
+      } else if (GUN_GLYPHS[ch] !== undefined) structure[i] = Structure.Cannon;
     }
   }
 
@@ -121,15 +127,20 @@ export function stateFromAscii(
   }));
   const cannons: Cannon[] = Object.entries(GUN_GLYPHS)
     .flatMap(([glyph, gun]) => blocks(glyph).map((b) => ({ ...gun, ...b })))
-    .map(({ kind, cost, ...b }, id) => ({
-      id,
-      owner: (islandId[b.y * width + b.x] as number) - 1,
-      kind,
-      cost,
-      ...b,
-      active: true,
-      shotIds: [],
-    }));
+    .map(({ kind, cost, ...b }, id) => {
+      const cannon: Cannon = {
+        id,
+        owner: (islandId[b.y * width + b.x] as number) - 1,
+        kind,
+        cost,
+        ...b,
+        active: true,
+        shotIds: [],
+      };
+      const barrels = placedBarrels(ruleset, kind, cost);
+      if (barrels !== undefined) cannon.barrels = barrels;
+      return cannon;
+    });
 
   for (const castle of castles) {
     for (let oy = 0; oy < castle.h; oy++)

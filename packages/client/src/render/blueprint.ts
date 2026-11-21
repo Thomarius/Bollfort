@@ -61,6 +61,7 @@ import { hueNearness } from './hue.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 /** A mark where a shot landed: rings for a moment, and on a wall a demolition cross. */
 interface Mark {
@@ -664,7 +665,7 @@ export class BlueprintTheme implements Theme {
     const line = this.style.lineWidthPx;
     const cx = tileX(view, cannon.x + cannon.w / 2);
     const cy = tileY(view, cannon.y + cannon.h / 2);
-    const r = (Math.min(cannon.w, cannon.h) * t) / 2 - t * 0.16;
+    const r = (gunSpan(cannon) * t) / 2 - t * 0.16;
     const corners: [number, number][] = [];
     for (let k = 0; k < 8; k++) {
       const a = ((k + 0.5) / 8) * Math.PI * 2;

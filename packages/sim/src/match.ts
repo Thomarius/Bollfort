@@ -871,6 +871,7 @@ const CANNON_KIND_CODES: readonly string[] = [
   'lullaby',
   'subwoofer',
   'drone',
+  'fortified',
 ];
 /** The same for loadouts; a variant added goes at the end. */
 const VARIANT_CODES: readonly TowerVariant[] = [
@@ -894,6 +895,8 @@ const VARIANT_CODES: readonly TowerVariant[] = [
   'subwoofer3',
   'drone2',
   'drone3',
+  'fortified2',
+  'fortified3',
 ];
 
 export function hashMatchState(state: MatchState, version = HASH_VERSION): string {
@@ -1011,6 +1014,11 @@ export function hashMatchState(state: MatchState, version = HASH_VERSION): strin
       h.i32(w.id).i32(w.cannonId).i32(w.owner).i32(w.cost).i32(w.launchTick);
       h.u32(w.lanes.length);
       for (const l of w.lanes) h.i32(l.ax).i32(l.ay).i32(l.dx).i32(l.dy).bool(l.done);
+      // Only once a Fortified Tower has taken a lane, so every older match hashes as it did.
+      if (w.absorbed !== undefined) {
+        h.u32(w.absorbed.length);
+        for (const id of w.absorbed) h.i32(id);
+      }
     }
   }
   // The Drone Towers' anchors, only once a player has one: a match without them hashes as it

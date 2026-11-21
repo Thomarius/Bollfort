@@ -141,7 +141,7 @@ export class TowerPreview {
     for (const event of events) {
       switch (event.kind) {
         case 'shot_fired':
-          if (!strikesOnFiring(event.shot.kind)) scene.noteShot(event.shot);
+          if (!strikesOnFiring(event.shot.kind)) scene.noteShot(event.shot, state);
           break;
         case 'lightning_struck': {
           scene.noteLightning(event.fromX, event.fromY, event.path, event.owner);

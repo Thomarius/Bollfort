@@ -1,13 +1,20 @@
 import { variantConfig, variantOf, type LaserVariant, type TowerCost } from '@bollfort/config';
 
 import { streamFor } from './rng.js';
-import { strikable, strikeWall } from './shots.js';
+import { opposingStone, stoneAt, strikable, strikeWall } from './shots.js';
 import type { MatchState, Shot } from './types.js';
 
 /** Where a beam goes: the walls it clears, in order along it, and where it ends. */
 export interface LaserBeam {
   /** Tiles whose wall the beam clears, nearest the tower first. */
   cleared: number[];
+  /**
+   * Tiles where an opponent's Fortified Tower took one of the beam's hits (§2.11), the first of its
+   * tiles the beam met, nearest the tower first: one a Fortified Tower, whatever its size.
+   */
+  absorbed: number[];
+  /** Every hit in order along the beam, walls cleared and Fortified Towers alike. */
+  hits: number[];
   /** Where the beam ends, in tile coordinates: the last wall's middle, or the map's edge. */
   endX: number;
   endY: number;
@@ -38,12 +45,28 @@ export function traceLaser(
   const ay = Math.round(2 * fromY);
   const cleared: number[] = [];
   const ray = { ax, ay, dx: 2 * tx - ax, dy: 2 * ty - ay };
-  if (ray.dx === 0 && ray.dy === 0) return { cleared, endX: tx, endY: ty };
+  const absorbed: number[] = [];
+  const hits: number[] = [];
+  if (ray.dx === 0 && ray.dy === 0) return { cleared, absorbed, hits, endX: tx, endY: ty };
+  const stones = new Set<number>();
   const end = walkRay(state, ray, (i) => {
-    if (strikable(state, owner, i)) cleared.push(i);
-    return cleared.length >= count;
+    // An opponent's Fortified Tower takes one of the beam's hits and burns not at all; the beam goes
+    // on through the rest of it free, and on to the walls beyond with any hits left.
+    if (opposingStone(state, owner, i)) {
+      const id = (stoneAt(state, i) as { id: number }).id;
+      if (stones.has(id)) return false;
+      stones.add(id);
+      absorbed.push(i);
+      hits.push(i);
+    } else if (strikable(state, owner, i)) {
+      cleared.push(i);
+      hits.push(i);
+    } else {
+      return false;
+    }
+    return hits.length >= count;
   });
-  return { cleared, endX: end.x, endY: end.y };
+  return { cleared, absorbed, hits, endX: end.x, endY: end.y };
 }
 
 /**

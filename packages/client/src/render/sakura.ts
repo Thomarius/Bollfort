@@ -60,6 +60,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 /** Something with a place and an age: a cloud thrown up, a ring on the sea, a block pressed. */
 interface Aged {
@@ -920,7 +921,7 @@ export class SakuraTheme extends ShapeTheme implements Theme {
     const ink = this.ink(view);
     const cx = tileX(view, cannon.x + cannon.w / 2);
     const cy = tileY(view, cannon.y + cannon.h / 2);
-    const r = Math.min(cannon.w, cannon.h) * t * 0.36;
+    const r = gunSpan(cannon) * t * 0.36;
     g.ellipse(cx + t * 0.08, cy + r * 0.85, r * 1.1, r * 0.28);
     g.fill({ color: this.sumi, alpha: 0.3 });
     // The cheeks of the carriage, a wheel at either side of it.
@@ -1578,7 +1579,7 @@ export class SakuraTheme extends ShapeTheme implements Theme {
    */
   private drawBarrel(g: Graphics, view: ViewTransform, cannon: Cannon, aim: Aim): void {
     const t = view.tile;
-    const r = Math.min(cannon.w, cannon.h) * t * 0.36;
+    const r = gunSpan(cannon) * t * 0.36;
     const cx = tileX(view, cannon.x + cannon.w / 2);
     const cy = tileY(view, cannon.y + cannon.h / 2) - r * 0.1;
     if (!cannon.active) {

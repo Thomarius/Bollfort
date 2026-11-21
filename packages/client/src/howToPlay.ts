@@ -1106,6 +1106,7 @@ const TOWER_ROUND: readonly { kind: SpecialKind; cost: number }[] = [
   { kind: 'lullaby', cost: 2 },
   { kind: 'subwoofer', cost: 3 },
   { kind: 'drone', cost: 2 },
+  { kind: 'fortified', cost: 3 },
 ];
 const TOWER_MS = 3000;
 

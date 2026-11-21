@@ -1,7 +1,7 @@
 import {
   NEIGHBOURS_4,
   NEIGHBOURS_8,
-  Structure,
+  isWallLike,
   computeEnclosure,
   type MatchState,
 } from '@bollfort/sim';
@@ -77,7 +77,8 @@ export function cornerGaps(
       const ny = y + dy;
       if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
       const ni = ny * w + nx;
-      if (inside[ni] === 1 || fourOutside[ni] === 1 || structure[ni] === Structure.Wall) continue;
+      if (inside[ni] === 1 || fourOutside[ni] === 1 || isWallLike(structure[ni] as number))
+        continue;
       inside[ni] = 1;
       queue.push(ni);
     }
@@ -86,7 +87,7 @@ export function cornerGaps(
   // Where the sea gets to, by the real 8-connected flood, without entering that ground.
   const outside = new Uint8Array(w * h);
   const blocked = (i: number): boolean =>
-    outside[i] === 1 || inside[i] === 1 || structure[i] === Structure.Wall;
+    outside[i] === 1 || inside[i] === 1 || isWallLike(structure[i] as number);
   for (let x = 0; x < w; x++) {
     for (const y of [0, h - 1]) if (!blocked(y * w + x)) queue.push(y * w + x);
   }
@@ -110,7 +111,7 @@ export function cornerGaps(
   }
 
   const gaps: CornerGap[] = [];
-  const wall = (x: number, y: number): boolean => structure[y * w + x] === Structure.Wall;
+  const wall = (x: number, y: number): boolean => isWallLike(structure[y * w + x] as number);
   for (let y = 0; y + 1 < h; y++) {
     for (let x = 0; x + 1 < w; x++) {
       // The window's two diagonals: a, b its top-left and bottom-right, c, d the others.

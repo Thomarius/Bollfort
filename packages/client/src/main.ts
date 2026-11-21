@@ -91,6 +91,11 @@ if (params.get('icons') === 'sheet') {
   void import('./dronePreview.js')
     .then(({ showDronePreview }) => showDronePreview())
     .catch((e: unknown) => showError('drones', e));
+} else if (params.get('fortified') === 'preview') {
+  // Every style's Fortified Towers, wall with small guns on top (`fortifiedPreview.ts`).
+  void import('./fortifiedPreview.js')
+    .then(({ showFortifiedPreview }) => showFortifiedPreview())
+    .catch((e: unknown) => showError('fortified', e));
 } else if (supporterAdmin() && params.get('page') !== null) {
   // A developer's page the private supporter package brings, a style's sketch while it is
   // designed (`styles/supporter.ts`); without the package there are none.

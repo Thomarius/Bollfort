@@ -3,7 +3,7 @@ import type { DroneVariant, TowerCost } from '@bollfort/config';
 import { isAwake } from './lullaby.js';
 import { distanceSquared } from './math.js';
 import { streamFor } from './rng.js';
-import { cannonCentreX, cannonCentreY, newShot, strikable } from './shots.js';
+import { cannonCentreX, cannonCentreY, newShot, stoneAt, strikeCandidates } from './shots.js';
 import { circleOffsets, isLoaded } from './specials.js';
 import type { Cannon, MatchState } from './types.js';
 
@@ -32,28 +32,35 @@ export function droneTargets(state: MatchState, cannon: Cannon): number[] {
   const anchor = state.players[cannon.owner]?.droneAnchor;
   if (anchor === undefined) return [];
   const taken = new Set<number>();
+  // A Fortified Tower one of its owner's shots is flying to is not drawn again, by any tile.
+  const takenStones = new Set<number>();
   for (const shot of state.shots) {
-    if (shot.owner === cannon.owner) taken.add(shot.toY * state.width + shot.toX);
+    if (shot.owner !== cannon.owner) continue;
+    const i = shot.toY * state.width + shot.toX;
+    taken.add(i);
+    const stone = stoneAt(state, i);
+    if (stone !== null) takenStones.add(stone.id);
   }
   const ax = anchor % state.width;
   const ay = (anchor - ax) / state.width;
   const maxRange = state.ruleset.shots.maxRangeTiles;
-  const out: number[] = [];
+  const tiles: number[] = [];
   for (const [dx, dy] of circleOffsets(droneOf(state, cannon.cost).radius)) {
     const x = ax + dx;
     const y = ay + dy;
     if (x < 0 || y < 0 || x >= state.width || y >= state.height) continue;
     const i = y * state.width + x;
-    if (taken.has(i) || !strikable(state, cannon.owner, i)) continue;
+    if (taken.has(i)) continue;
     if (
       maxRange !== null &&
       distanceSquared(cannonCentreX(cannon), cannonCentreY(cannon), x, y) > maxRange * maxRange
     ) {
       continue;
     }
-    out.push(i);
+    tiles.push(i);
   }
-  return out;
+  // An opponent's Fortified Tower is one target, as wall, and takes the missile for nothing.
+  return strikeCandidates(state, cannon.owner, tiles, takenStones);
 }
 
 /** Whether this tower launched within its `launchGapMs`: a launch that recent is still in the air. */

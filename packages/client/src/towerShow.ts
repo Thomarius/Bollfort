@@ -91,6 +91,8 @@ const GLYPH: Record<TowerVariant, string> = {
   subwoofer3: 'W',
   drone2: 'd',
   drone3: 'D',
+  fortified2: 'k',
+  fortified3: 'K',
 };
 
 /** Before the first shot of a loop, after its last lands, and before the repair. */
@@ -104,6 +106,9 @@ export function showState(variant: TowerVariant | null): MatchState {
   // No click fires a Drone Tower: a cannon of the chooser's beside it, between it and the castle,
   // fires the shot that aims it.
   if (variant !== null && variantKind(variant) === 'drone') art = art.replaceAll('@@,,', '@@**');
+  // A Fortified Tower stands in its ring, its east side the wall: a 2x2 over the east wall's
+  // middle, a 3x3 reaching a column further in, a block above and below.
+  if (variant !== null && variantKind(variant) === 'fortified') art = fortifiedArt(variant);
   const islands = art
     .split('\n')
     .map((row) =>
@@ -127,6 +132,36 @@ export function showState(variant: TowerVariant | null): MatchState {
   applyEnclosure(state);
   return state;
 }
+
+/** The barrels of the chooser's Fortified Tower, by the default rules. */
+function state0Barrels(variant: TowerVariant): number {
+  const config = defaultRuleset.specials.fortified?.[variantCost(variant) === 3 ? '3' : '2'];
+  return config?.barrels ?? 1;
+}
+
+/** The board with the chooser's Fortified Tower set into its east wall. */
+function fortifiedArt(variant: TowerVariant): string {
+  const rows = BOARD.replaceAll('XX', ',,').split('\n');
+  const glyph = GLYPH[variant];
+  const size = variantCost(variant) === 3 ? 3 : 2;
+  const top = size === 3 ? 3 : 4;
+  for (let y = top; y < top + size; y++) {
+    const row = rows[y + 1] as string;
+    const indent = row.length - row.trimStart().length;
+    const at = indent + 11 - size;
+    rows[y + 1] = row.slice(0, at) + glyph.repeat(size) + row.slice(at + size);
+  }
+  return rows.join('\n');
+}
+
+/**
+ * The rival's barrage on the chooser's Fortified Tower: two shots at its tiles, which stand, while
+ * it fires back.
+ */
+const ON_FORTIFIED = [
+  { x: 10, y: 4 },
+  { x: 10, y: 5 },
+] as const;
 
 interface Planned {
   player: number;
@@ -229,6 +264,14 @@ export class TowerShow {
       // into the area round that shot by itself, its area outlined there for the loop.
       this.plan = [{ player: 0, ...FACING[0], at: AIM_MS }];
       this.dronesLeft = variantCost(variant);
+    } else if (variant !== null && variantKind(variant) === 'fortified') {
+      // Its guns fire at the rival's wall — the 3x3's two together — and the rival's shots at it
+      // land and clear nothing.
+      const guns = state0Barrels(variant);
+      this.plan = [
+        ...FACING.slice(0, guns).map((t) => ({ player: 0, ...t, at: AIM_MS })),
+        ...ON_FORTIFIED.map((t) => ({ player: 1, ...t, at: AIM_MS + 200 })),
+      ];
     } else if (variant !== null && variantKind(variant) === 'laser') {
       this.plan = [{ player: 0, ...ALONG_TOP, at: AIM_MS }];
     } else if (variant !== null && variantKind(variant) === 'subwoofer') {

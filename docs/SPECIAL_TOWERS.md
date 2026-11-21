@@ -506,6 +506,70 @@ tower and each shot is a small missile from it.
 
 ---
 
+### 2.11 The Fortified Tower (a trial)
+
+The user's design (2026-11-21), to learn whether the concept works at all: it may be kept, replace
+a tower, or be dropped (§5 CS). **Wall that cannot be destroyed.** First called the Cornerstone in
+the soaks (`soaks/cornerstone-*`); named **Fortified Tower**, _Wehrturm_, _Wehrtorm_ (the user's,
+2026-11-21), `fortified` in the code. **In the game for testing**: in the default ruleset, offered
+in the tower menu and drawn by bots as any, but on trial (`TRIAL_KINDS`) — asked for by no
+achievement, Tower of Babel still counting the nine (`COUNTED_KINDS`), until it is decided whether
+it goes into a release.
+
+- **Wall for everything but damage** (the user's): its footprint is `Structure.Stone`, which
+  `isWallLike` counts with wall — the escape flood, the sweep (a wall beside it keeps it as a
+  neighbour), the build phase's ground taken. Nothing clears it (`strikable` asks for wall alone):
+  a shot or a crater lands on it for nothing.
+- **It takes one hit of a strike, whatever its size** (the user's, 2026-11-21; only an
+  opponent's, `opposingStone` — its owner's own and a teammate's are passed, and an eliminated
+  player's guns are cleared away, Fortified Towers with them):
+  - a **drone** or a **bolt's jump** may draw it as one wall among the walls, not tile by tile
+    (`strikeCandidates`); a drone not while one of its owner's missiles flies to any of its
+    tiles, a bolt not again once it struck it;
+  - a **Laser** beam spends one of its hits on it, on the first of its tiles it meets, passes the
+    rest free and goes on to the walls beyond with any left; its reload the flight to its first
+    hit, Fortified Tower or wall (`LaserBeam.hits`);
+  - a **Subwoofer** wave's first lane to arrive is taken there and ends; the wave's other lanes
+    pass through it (`Wave.absorbed`, ties by lane), and the bots' preview of a wave plays the
+    same out (`waveTargets`). `absorbed` is hashed and carried only once a lane has been taken,
+    so every older match hashes as before.
+- **Placed in the cannon phase**, every tile its owner's empty sealed ground or a wall of their own
+  island, which it replaces at once; never a tile beyond the ring (the user's: bulging outward
+  would seal new ground); touching their sealed ground. Laid over wall it can only add to what
+  blocks the flood, so it never unseals anything. The enclosure is solved again as it is placed.
+- **Active while it touches its owner's sealed ground**, orthogonally; inert otherwise, as any gun
+  outside sealed ground. Its tiles are wall and never score as ground; it scores as the cannons
+  it cost while active, as every tower.
+- **Levers by cost**: the footprint, 2×2 at cost 2 and 3×3 at cost 3 (a 2×3 would need turning,
+  a protocol change, left until the concept stands), and **`fires`**: an ordinary cannon's shot
+  from its centre, `flightFactor` its reload, not an impact tower. Not firing it is never chosen
+  by a click, never lulled, and the bots count it as no gun. **Firing, at both costs** (the
+  user's, 2026-11-21), and **`barrels`**, each with its own flight as the Rapid Cannon's: **a
+  2×2 of one barrel at flight 0.9 for cost 2, a 3×3 of two at 1.1 for cost 3** (the user's, after
+  the soaks of §5 CS: no reload as quick as 0.5, the 3×3 to stand out, and its result against no
+  tower, 80, not minded).
+- **The cap of three stands for it**: a ring of nothing but Fortified Towers needs four junctions,
+  where two towers meet at a corner, and three rectangles give at most three; four could pinwheel
+  round a castle and seal it for good.
+- **Bots**: their seals run through it free (`passable`), their breaches never through it
+  (`weakestWall`), and their shots never aim at it — their misses, which land beside the wall aimed
+  at, may land on it as on any ground (the user's: no rule of the tower's there). They site it over a
+  corner of their wall first — 9 points a corner, a tile where the wall turns, wall on exactly
+  one side across and one along — then over the most of their own wall, the weakest wall counting
+  three, then over the least sealed ground (`siteFortified`).
+- **Seen** (the user's, 2026-11-21): a block of its style's wall with a gun on top, two on the
+  3×3, and its emblem, a keep under three merlons, below it. No style knows it:
+  `render/fortified.ts` hands every style a board where its tiles are wall and the tower is that
+  many ordinary 1×1 guns, each barrel's shot given to its own gun (the first with none in the air;
+  the sim does not say which barrel fired) and leaving from it, so each gun aims, recoils and
+  reloads apart. **Every gun is drawn full size** (the user's, after `?fortified=preview`: the
+  styles that drew them so looked best): its plate at the 1×1 footprint, so the wall shows round
+  it, the gun itself at an ordinary cannon's span (`gunSpan`), the 3×3's two overlapping a little.
+  Minimal's gun is its square, so there it covers most of the tower. Its shot sounds as a
+  cannon's. The tower menu's eleventh card stands alone in a third row, centred, for now; its
+  preview sets it into the chooser's ring, fires its guns — the 3×3's two together — and has the
+  rival's shots land on it for nothing. How to play's tower round takes it in.
+
 ## 3. Where it lives
 
 ### 3.1 Simulation (`packages/sim`)
@@ -1025,12 +1089,89 @@ how. Each step's work is ended by the user's go-ahead.
    (`specials.rapid` optional, `RETIRED_KINDS`), so the menu, the bots' draws and a person's
    random tower never offer it; a choice of it remembered by a table, a tournament's save or a
    room's guest is taken as the draw, or none. Its rules stay, for the recordings. The menu keeps
-   its two rows of five. Tower of Babel asks for the nine played (`PLAYED_KINDS`), a bought Rapid
+   its two rows of five. Tower of Babel asks for the nine played (`COUNTED_KINDS`), a bought Rapid
    Cannon's bit in Steam's mask counting for nothing. Rapid fire is replaced by **Look, no hands!**
    (`HANDS_FREE`, medium): a Drone Tower's missile opens a rival's sealed castle — in bot play in
    8 of 8 matches at Level 5 with cost 3, 4 of 8 with cost 2, half at Levels 3 and 8; a count of
    missiles or walls was routine at cost 3 (9 a phase, its most, in most phases) or out of reach
    at cost 2. The area outline is kept while the user tests it further.
+
+### CS — The Fortified Tower (a trial, 2026-11-21)
+
+**Measured** (2026-11-21, `soaks/cornerstone-*`, the seeds of §5 BS), 96 matches a pairing, ±5:
+
+| variant                         | against none, L5 | against none, L3 | 3 against 2 |
+| ------------------------------- | ---------------- | ---------------- | ----------- |
+| not firing, 2×2 / 3×3           | 44 / 43          | 55 / 48          | 53          |
+| not firing, 3×3 at cost 2       | 43               |                  |             |
+| **firing**, 2×2 / 3×3, flight 1 | **57 / 60**      |                  | 49          |
+
+**The wall works, but is worth less than the guns it costs.** Per round at Level 5 (48 matches
+each, `--stats`), rounds ending with no castle sealed fell from 10.4–11.2% to 6.5–6.9% at cost 3,
+and from 10.8–11.9% to 8.8–9.6% at cost 2. Not firing, its owner fired a third fewer shots (21
+against 31 at cost 3), and the rival kept that much more ground (102 points of ground a round
+against 85); firing, the shots and the ground came back level and the variant won. A 3×3 at cost
+2 did no better than a 2×2: more wall kept, more ground given up under it. At Level 3, where bots
+lose more rounds, the passive tower gained (55 / 48) but did not clearly pay.
+
+**The user chose the firing tower at both costs** (2026-11-21), with the strikes it takes counted
+once a tower (§2.11) and the bots siting it on corners first. Measured again on the same seeds,
+against no tower, cost 3 against cost 2, and against every played tower at its cost (its mean of
+the nine pairings, ±2; the evened-out towers 44–56, §5 BS):
+
+| cost 2 / cost 3, flight     | against none | 3 against 2 | mean against the towers (range) |
+| --------------------------- | ------------ | ----------- | ------------------------------- |
+| 2×2 1 / 3×3 1               | 69 / 69      | 46          | 45 (32–53) / 39 (28–47)         |
+| 2×2 0.9 / 3×3 0.8           | 56 / 56      | 46          | 48 (39–59) / 41 (31–50)         |
+| — / **2×2** 0.8             | — / 63       | 54          | — / 37 (21–47)                  |
+| — / 3×3 0.65                | — / 66       | 55          | — / 43 (34–52)                  |
+| **2×2 0.9 / 3×3 0.5, kept** | **56 / 67**  | **56**      | **48 (39–59) / 45 (35–61)**     |
+
+**Against none, one pairing of 96 is ±10 either way**: the same variant in the same run took 42 in
+one seat order and 71 in the other, and the runs above at reload 1 drew high (69) and at 0.9 / 0.8
+low (56) — which looked as if a faster reload lost against none. Played again on fresh seeds
+(2000), 384 matches a pairing, ±2–3: **58 / 66 at reload 1, 60 / 69 at the kept 0.9 / 0.5**. A faster
+reload gains a little against none: a Level 5 bot clicks at most every 210 ms and has more loaded
+guns than clicks much of a phase, so a quicker gun adds shots only now and then. Single pairings
+are read as ±10; the means of nine, ±2, and runs of hundreds settle differences of a few points.
+
+The 3×3 is what cost 3 is worth: at the same reload a 2×2 at cost 3 did worse (37 against 41).
+The reload moved it slowly, two to four points a step. At 0.5 cost 3 fires twice as often as a
+gun and sits at the band's lower edge. Against each tower at the kept levers:
+
+| rival        | cost 2 | cost 3 |
+| ------------ | ------ | ------ |
+| Architect    | 46     | 61     |
+| Big Bertha   | 50     | 46     |
+| Allerdickste | 54     | 40     |
+| Drone        | 39     | 35     |
+| Frost        | 59     | 40     |
+| Laser        | 46     | 53     |
+| Lightning    | 39     | 48     |
+| Lullaby      | 45     | 50     |
+| Subwoofer    | 50     | 36     |
+
+**Two barrels rather than a fast reload** (the user's, 2026-11-21: reloads as quick as 0.5 are
+not liked; cost 3 as a Rapid Cannon 2, two guns on the tower). A lever `barrels`, each barrel
+with its own flight as the Rapid's, both at the cost-2 tower's 0.9; against none 384 matches on
+the seeds 2000 (±2), the rest as above:
+
+| cost 3, barrels, flight | against none | 3 against 2 | mean against the towers (range) |
+| ----------------------- | ------------ | ----------- | ------------------------------- |
+| 3×3, 1, 0.5 (kept)      | 69           | 56          | 45 (35–61)                      |
+| 3×3, 2, 0.9             | 78           | 59          | 56 (51–73)                      |
+| 2×2, 2, 0.9             | 75           | 59          | 51 (43–58)                      |
+| 3×3, 2, 1               | 77           | 63          | 52 (46–63)                      |
+| 3×3, 2, 1.1             | 80           | 59          | 51 (43–58)                      |
+
+The user prefers the 3×3, which stands out. Against the towers its reload works as expected
+(56, 52, 51 at 0.9, 1, 1.1); against none it does nothing (78, 77, 80, ±2). So the second barrel
+itself, not the rate, wins against none — likely (not measured) two shots ready together as each
+phase opens, for a Level 5 bot short of clicks rather than guns, the reason a faster single barrel
+gained only three points there.
+
+Built into the client and the default ruleset for the user's own play (2026-11-21, §2.11). Open:
+whether it stays, as a tenth tower or in another's place, and with it the achievements.
 
 ### After ST8 — the decisions
 

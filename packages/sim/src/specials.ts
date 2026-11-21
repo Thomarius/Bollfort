@@ -63,6 +63,15 @@ export function firesItself(kind: CannonKind): boolean {
   return kind === 'drone';
 }
 
+/**
+ * Whether a gun never fires at all: a Fortified Tower whose variant does not (§2.11), wall alone —
+ * never chosen by a click, never lulled.
+ */
+export function neverFires(ruleset: Ruleset, cannon: Pick<Cannon, 'kind' | 'cost'>): boolean {
+  if (cannon.kind !== 'fortified') return false;
+  return ruleset.specials.fortified?.[cannon.cost as TowerCost]?.fires !== true;
+}
+
 /** The variant a tower of this kind and cost is; null for an ordinary cannon. */
 function variantFor(kind: CannonKind, cost: number): TowerVariant | null {
   return kind === 'cannon' ? null : variantOf(kind, cost as TowerCost);
@@ -176,12 +185,27 @@ export function inRepairReach(
  * flight and so its own reload, and a Drone Tower's missiles the same (§2.10); every other
  * gun has one.
  */
-export function barrelsOf(cannon: Pick<Cannon, 'kind' | 'cost'>): number {
+export function barrelsOf(cannon: Pick<Cannon, 'kind' | 'cost' | 'barrels'>): number {
+  if (cannon.barrels !== undefined) return cannon.barrels;
   return cannon.kind === 'rapid' || cannon.kind === 'drone' ? cannon.cost : 1;
 }
 
+/**
+ * The `barrels` a gun is placed with: a Fortified Tower's variant's where it sets more than one
+ * (§2.11), otherwise none, `barrelsOf` going by kind.
+ */
+export function placedBarrels(
+  ruleset: Ruleset,
+  kind: CannonKind,
+  cost: number,
+): number | undefined {
+  if (kind !== 'fortified') return undefined;
+  const barrels = ruleset.specials.fortified?.[cost as TowerCost]?.barrels;
+  return barrels !== undefined && barrels !== 1 ? barrels : undefined;
+}
+
 /** Whether a gun has a barrel free to fire — it may still be inert. */
-export function isLoaded(cannon: Pick<Cannon, 'kind' | 'cost' | 'shotIds'>): boolean {
+export function isLoaded(cannon: Pick<Cannon, 'kind' | 'cost' | 'shotIds' | 'barrels'>): boolean {
   return cannon.shotIds.length < barrelsOf(cannon);
 }
 

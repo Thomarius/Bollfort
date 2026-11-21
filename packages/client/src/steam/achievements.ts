@@ -9,7 +9,7 @@ import {
 } from '@bollfort/analysis';
 import {
   ACHIEVEMENT_IDS,
-  PLAYED_KINDS,
+  COUNTED_KINDS,
   defaultAchievements,
   type AchievementId,
   type AchievementsConfig,
@@ -121,7 +121,7 @@ function statGoals(config: AchievementsConfig): {
   return [
     { id: 'SEAL_OF_APPROVAL', of: (s) => s.castles_sealed, max: config.SEAL_OF_APPROVAL.castles },
     { id: 'DEMOLITION_CREW', of: (s) => s.walls_destroyed, max: config.DEMOLITION_CREW.walls },
-    { id: 'ALL_TOWERS', of: (s) => s.towers_bought_count, max: PLAYED_KINDS.length },
+    { id: 'ALL_TOWERS', of: (s) => s.towers_bought_count, max: COUNTED_KINDS.length },
   ];
 }
 

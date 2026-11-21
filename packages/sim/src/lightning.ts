@@ -1,7 +1,7 @@
 import { variantConfig, variantOf, type LightningVariant, type TowerCost } from '@bollfort/config';
 
 import { streamFor } from './rng.js';
-import { strikable, strikeWall } from './shots.js';
+import { stoneAt, strikeCandidates, strikeWall } from './shots.js';
 import type { MatchState, Shot } from './types.js';
 
 /**
@@ -26,11 +26,15 @@ export function strikeLightning(state: MatchState, shot: Shot): void {
   const rng = streamFor(state.seed, `lightning:${shot.id}`);
   const { width, height } = state;
   const struck = new Set<number>();
+  // Fortified Towers struck: each is drawn once a bolt at most, by any of its tiles.
+  const struckStones = new Set<number>();
   const path: { x: number; y: number }[] = [];
   const destroyed: number[] = [];
   const strike = (x: number, y: number): void => {
     const i = y * width + x;
     struck.add(i);
+    const stone = stoneAt(state, i);
+    if (stone !== null) struckStones.add(stone.id);
     path.push({ x, y });
     if (strikeWall(state, shot.owner, i)) destroyed.push(i);
   };
@@ -40,7 +44,6 @@ export function strikeLightning(state: MatchState, shot: Shot): void {
   const reach = Math.floor(r);
   for (let jump = 0; jump < config.jumps; jump++) {
     const from = path[path.length - 1] as { x: number; y: number };
-    const walls: number[] = [];
     const tiles: number[] = [];
     for (let y = Math.max(0, from.y - reach); y <= Math.min(height - 1, from.y + reach); y++) {
       for (let x = Math.max(0, from.x - reach); x <= Math.min(width - 1, from.x + reach); x++) {
@@ -49,9 +52,15 @@ export function strikeLightning(state: MatchState, shot: Shot): void {
         if ((dx === 0 && dy === 0) || dx * dx + dy * dy > r * r) continue;
         const i = y * width + x;
         tiles.push(i);
-        if (!struck.has(i) && strikable(state, shot.owner, i)) walls.push(i);
       }
     }
+    // An opponent's Fortified Tower draws a jump as one wall does, and takes no damage.
+    const walls = strikeCandidates(
+      state,
+      shot.owner,
+      tiles.filter((i) => !struck.has(i)),
+      struckStones,
+    );
     // Drawn every jump, missed or not, so a lever's change never shifts the draws after it.
     const missed = rng.nextFloat() < config.missChance;
     const pool = !missed && walls.length > 0 ? walls : tiles;

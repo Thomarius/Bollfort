@@ -17,6 +17,7 @@ import { bloomWanted, renderResolution } from '../graphics.js';
 import { styleDefinition } from '../styles/registry.js';
 import type { ThemeMaker } from '../styles/definition.js';
 import { release } from './release.js';
+import { FortifiedDisplay } from './fortified.js';
 import { TowerMarks } from './towerMarks.js';
 import {
   hex,
@@ -219,6 +220,8 @@ export class Scene {
    * kept last under the camera as looks come and go.
    */
   private readonly towers = new TowerMarks();
+  /** The Fortified Towers as the styles draw them: wall with small guns on top. */
+  private readonly fortified = new FortifiedDisplay();
   /** The camera as applied: zoom, and the screen offset of the board under it. */
   private camera = { zoom: 1, x: 0, y: 0 };
 
@@ -544,7 +547,7 @@ export class Scene {
     if (slot.warming.length > 0 || slot.effectsPrimed || last === null) return;
     if (performance.now() >= until) return;
     slot.effectsPrimed = true;
-    slot.theme.drawEffects(withoutInstantShots(last.state), this.view, {
+    slot.theme.drawEffects(this.drawnState(last.state), this.view, {
       tickFraction: last.tickFraction,
       deltaMs: 0,
       castleSealed: last.castleSealed[look],
@@ -680,8 +683,9 @@ export class Scene {
    * sim's own — swept walls the banner has not reached yet — so it is kept whole.
    */
   drawStructures(state: MatchState): void {
-    this.board.structures = state;
-    this.paint('structures', (slot) => slot.theme.drawStructures(state, this.view));
+    const shown = this.fortified.state(state);
+    this.board.structures = shown;
+    this.paint('structures', (slot) => slot.theme.drawStructures(shown, this.view));
   }
 
   drawEffects(
@@ -714,7 +718,7 @@ export class Scene {
     this.towers.drawWaves(state, this.view, art, tickFraction);
     this.towers.drawDrones(state, this.view, art, humanPlayer, tickFraction, front.theme.drone);
     this.towers.drawEffects(this.view, deltaMs);
-    const shown = withoutInstantShots(state);
+    const shown = this.drawnState(state);
     for (const slot of this.visible()) {
       slot.theme.drawEffects(shown, this.view, {
         tickFraction,
@@ -769,7 +773,7 @@ export class Scene {
   drawOverlay(state: MatchState, ghost: Ghost, humanPlayer: number): void {
     const to = this.slots[this.shown.to];
     this.towers.drawGhost(state, this.view, ghost, to.art, humanPlayer);
-    const shown = withoutInstantShots(state);
+    const shown = this.drawnState(state);
     for (const slot of this.visible()) {
       slot.theme.drawOverlay(shown, this.view, slot === to ? ghost : NO_GHOST, humanPlayer);
     }
@@ -788,9 +792,21 @@ export class Scene {
     for (const slot of this.visible()) slot.theme.noteImpact(x, y, debris);
   }
 
-  /** On every look, since it only turns a barrel, which should stay true while hidden. */
-  noteShot(shot: Shot): void {
-    for (const slot of this.all()) slot.theme.noteShot(shot);
+  /**
+   * The match as the styles draw its effects and overlay: the Fortified Towers as wall with small
+   * guns (`FortifiedDisplay`), and no shot another layer draws (`withoutInstantShots`).
+   */
+  private drawnState(state: MatchState): MatchState {
+    return withoutInstantShots(this.fortified.state(state));
+  }
+
+  /**
+   * On every look, since it only turns a barrel, which should stay true while hidden. Given the
+   * match, a Fortified Tower's shot turns the gun on it that fired it (`FortifiedDisplay`).
+   */
+  noteShot(shot: Shot, state?: MatchState): void {
+    const shown = state === undefined ? shot : this.fortified.shot(shot, state);
+    for (const slot of this.all()) slot.theme.noteShot(shown);
   }
 
   /** On the looks on screen, for the same reason as impacts. */

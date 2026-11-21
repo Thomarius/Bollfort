@@ -59,6 +59,7 @@ import { release } from './release.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 /** How long the hourglass takes to turn over as a phase begins. */
 const TURN_MS = 700;
@@ -772,8 +773,8 @@ export class GlassTheme implements Theme {
     const t = view.tile;
     const cx = tileX(view, cannon.x + cannon.w / 2);
     const foot = tileY(view, cannon.y + cannon.h) - t * 0.2;
-    const w = Math.min(cannon.w, cannon.h) * t * 0.5;
-    const h = Math.min(cannon.w, cannon.h) * t * 0.8;
+    const w = gunSpan(cannon) * t * 0.5;
+    const h = gunSpan(cannon) * t * 0.8;
     const spring = foot - h + w * 0.86;
     // Its shadow, then the three panes: two lights below, the pointed head above.
     g.poly(lancet(cx + t * 0.05, foot + t * 0.08, w, h));

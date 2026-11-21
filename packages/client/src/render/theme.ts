@@ -18,6 +18,7 @@ import { COPPER, drawArc, jag } from './spark.js';
 import { INK, PAPER, drawGlove, drawStar } from './toon.js';
 import { GOLD, drawSnowflake, drawStocking } from './yule.js';
 import { BONE, TAR, drawDoubloon, drawJewel, drawSkullAndBones } from './jolly.js';
+import { gunSpan } from './fortified.js';
 
 /**
  * A visual style.
@@ -2074,7 +2075,7 @@ export function drawAimLine(
   g.circle(
     tileX(view, cannon.x + cannon.w / 2),
     tileY(view, cannon.y + cannon.h / 2),
-    (Math.min(cannon.w, cannon.h) * view.tile) / 2 + view.tile * 0.18,
+    (gunSpan(cannon) * view.tile) / 2 + view.tile * 0.18,
   );
   g.stroke({ width: Math.max(1.5, view.tile / 9), color: colour, alpha: Math.min(1, alpha * 1.8) });
 }

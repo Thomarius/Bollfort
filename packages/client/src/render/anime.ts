@@ -83,6 +83,7 @@ import {
 } from './theme.js';
 import { outline, trace, wallGeometry } from './walls.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 const WHITE = 0xffffff;
 const DEAD = 0x9c9aa6;
@@ -976,7 +977,7 @@ export class AnimeTheme extends ShapeTheme implements Theme {
       const clan = this.clan(cannon.owner);
       const hairstyle = hairOf(clan, cannon.id, this.seed);
       const hair = this.hair(owner);
-      const scale = Math.max(1, Math.min(cannon.w, cannon.h) / 2);
+      const scale = Math.max(1, gunSpan(cannon) / 2);
       const x = tileX(view, cannon.x + cannon.w / 2);
       const foot = tileY(view, cannon.y + cannon.h) - t * 0.12;
       const bob =

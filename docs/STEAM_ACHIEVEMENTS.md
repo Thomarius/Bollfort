@@ -125,8 +125,9 @@ third is placed, and while all three stand.
 Integers kept by Steam: `castles_sealed` (10), `walls_destroyed` (13), and `towers_bought` with
 `towers_bought_count` (24, a bitmask by tower kind and its count — the count is the progress
 Steam shows, the mask makes each tower count once). The count is of the nine towers played
-(`PLAYED_KINDS`): the Rapid Cannon, retired for the Drone Tower (2026-11-20), keeps its bit in the
-mask, which no match sets any more, and counts for nothing. Steam is the store of truth: nothing is kept beside it,
+(`COUNTED_KINDS`): the Rapid Cannon, retired for the Drone Tower (2026-11-20), keeps its bit in the
+mask, which no match sets any more, and counts for nothing; the Fortified Tower, on trial
+(2026-11-21), sets its bit and counts for nothing until it is decided whether it stays. Steam is the store of truth: nothing is kept beside it,
 so a match played with Steam not running counts for nothing.
 
 ## 5. The icons (decided 2026-11-12, the user's)

@@ -91,6 +91,13 @@ export const EMBLEMS: Record<SpecialKind, readonly (readonly number[])[]> = {
       0.659, 0.76, 0.724, 0.687, 0.766, 0.598, 0.78, 0.5, 0.766, 0.402, 0.724, 0.313, 0.659, 0.24,
     ],
   ],
+  // A keep: a tower under a battlement of three merlons, wider than the tower.
+  fortified: [
+    [
+      0.22, 1, 0.22, 0.38, 0.12, 0.3, 0.12, 0.04, 0.3, 0.04, 0.3, 0.16, 0.41, 0.16, 0.41, 0.04,
+      0.59, 0.04, 0.59, 0.16, 0.7, 0.16, 0.7, 0.04, 0.88, 0.04, 0.88, 0.3, 0.78, 0.38, 0.78, 1,
+    ],
+  ],
   // A drone from above: four rotors on crossed arms round its body.
   drone: [
     [

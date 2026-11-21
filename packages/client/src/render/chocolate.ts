@@ -59,6 +59,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 /** A swirl on the river, carried along by the current, melting back in as it ages. */
 interface Swirl {
@@ -992,7 +993,7 @@ export class ChocolateTheme extends ShapeTheme implements Theme {
     for (const cannon of state.cannons) {
       const cx = tileX(view, cannon.x + cannon.w / 2);
       const cy = tileY(view, cannon.y + cannon.h / 2);
-      const r = Math.min(cannon.w, cannon.h) * t * 0.4;
+      const r = gunSpan(cannon) * t * 0.4;
       cannonBase(
         g,
         view,

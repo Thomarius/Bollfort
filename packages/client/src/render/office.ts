@@ -57,6 +57,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 /** Something with a place and an age: a crashed plane, shreds, a flat-pack unfolding. */
 interface Aged {
@@ -747,7 +748,7 @@ export class OfficeTheme extends ShapeTheme implements Theme {
     for (const cannon of state.cannons) {
       const cx = tileX(view, cannon.x + cannon.w / 2);
       const cy = tileY(view, cannon.y + cannon.h / 2);
-      const r = Math.min(cannon.w, cannon.h) * t * 0.44;
+      const r = gunSpan(cannon) * t * 0.44;
       cannonBase(
         g,
         view,

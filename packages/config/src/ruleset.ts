@@ -18,6 +18,7 @@ export const SPECIAL_KINDS = [
   'lullaby',
   'subwoofer',
   'drone',
+  'fortified',
 ] as const;
 export const SpecialKindSchema = z.enum(SPECIAL_KINDS);
 export type SpecialKind = z.infer<typeof SpecialKindSchema>;
@@ -29,9 +30,18 @@ export type SpecialKind = z.infer<typeof SpecialKindSchema>;
  */
 export const RETIRED_KINDS: readonly SpecialKind[] = ['rapid'];
 
-/** The towers the game plays: every kind but the retired — nine, which Tower of Babel asks for. */
-export const PLAYED_KINDS: readonly SpecialKind[] = SPECIAL_KINDS.filter(
-  (kind) => !RETIRED_KINDS.includes(kind),
+/**
+ * Towers on trial: offered and played as any, but asked for by no achievement until it is decided
+ * whether they stay. The Fortified Tower (2026-11-21, docs/SPECIAL_TOWERS.md §2.11).
+ */
+export const TRIAL_KINDS: readonly SpecialKind[] = ['fortified'];
+
+/**
+ * The towers the achievements count: every kind but the retired and those on trial — nine, which
+ * Tower of Babel asks for.
+ */
+export const COUNTED_KINDS: readonly SpecialKind[] = SPECIAL_KINDS.filter(
+  (kind) => !RETIRED_KINDS.includes(kind) && !TRIAL_KINDS.includes(kind),
 );
 
 /**
@@ -66,6 +76,8 @@ export const TOWER_VARIANTS = [
   'subwoofer3',
   'drone2',
   'drone3',
+  'fortified2',
+  'fortified3',
 ] as const satisfies readonly `${SpecialKind}${TowerCost}`[];
 export const TowerVariantSchema = z.enum(TOWER_VARIANTS);
 export type TowerVariant = z.infer<typeof TowerVariantSchema>;
@@ -257,6 +269,23 @@ const DroneSchema = z.strictObject({
 });
 
 /**
+ * The Fortified Tower (2026-11-21, the user's, a trial): wall that cannot be destroyed. Its footprint
+ * counts as wall for everything — the escape flood, the sweep, a drone's or a bolt's choice of
+ * target — but nothing clears it, and an opponent's beam or wave stops at it. Placed on its
+ * owner's sealed ground or over their own wall; active while it touches their sealed ground.
+ */
+const FortifiedSchema = z.strictObject({
+  ...towerFields,
+  /**
+   * Whether it also fires, as an ordinary cannon from its centre, its reload `flightFactor`
+   * times a gun's. Without, it is wall alone: never fired, never lulled. A lever (the user's).
+   */
+  fires: z.boolean(),
+  /** Barrels when it fires, each with its own flight as a Rapid Cannon's; 1 when absent. A lever. */
+  barrels: z.number().int().positive().optional(),
+});
+
+/**
  * Special towers (docs/SPECIAL_TOWERS.md): a cannon with an ability of its own, bought in
  * the cannon phase for several ordinary ones. Whether they are played at all is `enabled`,
  * which a match's settings write; the rest is each variant's balance.
@@ -315,6 +344,11 @@ export const SpecialsSchema = z.strictObject({
    * written before it, and then not offered.
    */
   drone: byCost(DroneSchema).optional(),
+  /**
+   * Indestructible wall (2026-11-21, a trial). Absent from rulesets written before it, and then
+   * not offered.
+   */
+  fortified: byCost(FortifiedSchema).optional(),
 });
 export type Specials = z.infer<typeof SpecialsSchema>;
 export type BerthaVariant = z.infer<typeof BerthaSchema>;
@@ -327,6 +361,7 @@ export type FrostVariant = z.infer<typeof FrostSchema>;
 export type LullabyVariant = z.infer<typeof LullabySchema>;
 export type SubwooferVariant = z.infer<typeof SubwooferSchema>;
 export type DroneVariant = z.infer<typeof DroneSchema>;
+export type FortifiedVariant = z.infer<typeof FortifiedSchema>;
 export type VariantConfig =
   | BerthaVariant
   | ArchitectVariant
@@ -337,7 +372,8 @@ export type VariantConfig =
   | FrostVariant
   | LullabyVariant
   | SubwooferVariant
-  | DroneVariant;
+  | DroneVariant
+  | FortifiedVariant;
 
 /** The variants the ruleset offers, in their order everywhere. */
 export function offeredVariants(specials: Specials): TowerVariant[] {

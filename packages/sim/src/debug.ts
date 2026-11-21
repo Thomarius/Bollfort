@@ -31,6 +31,7 @@ export function renderAscii(layers: AsciiLayers): string {
       if (structure === Structure.Wall) row += '#';
       else if (structure === Structure.Castle) row += '@';
       else if (structure === Structure.Cannon) row += '*';
+      else if (structure === Structure.Stone) row += 'K';
       else if (layers.terrain[i] === Terrain.Water) row += '.';
       else if (layers.territory?.[i])
         row += String.fromCharCode(96 + (layers.territory[i] as number));

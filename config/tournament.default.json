@@ -1033,6 +1033,16 @@
         "Payload",
         "Skyline",
         "Propellers"
+      ],
+      "fortified": [
+        "Bedrock",
+        "Granite",
+        "Keystones",
+        "Monoliths",
+        "Boulders",
+        "Masons",
+        "Foundations",
+        "Bastions"
       ]
     }
   }

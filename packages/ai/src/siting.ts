@@ -3,6 +3,8 @@ import {
   NEIGHBOURS_8,
   Structure,
   barrelsOf,
+  isWallLike,
+  neverFires,
   Terrain,
   canPlaceCannon,
   distanceSquared,
@@ -51,6 +53,13 @@ const CASTLE_CHOICE_SLACK = 1.2;
  * scored.
  */
 const CANNON_CLEARANCE = 2;
+
+/**
+ * What a corner of its wall is worth to a Fortified Tower's siting, against a point a wall tile and
+ * three a tile of its weakest wall: enough that a corner decides wherever there is one (the
+ * user's, 2026-11-21) — a 3x3 along the weakest wall makes 9 without one.
+ */
+const CORNER_POINTS = 9;
 
 /** Where a bot stands: the castle it opens from, and where each gun it earns goes. */
 export class Siting {
@@ -140,7 +149,10 @@ export class Siting {
     // Its tower first, while it is for sale, so the cannons left go round it.
     if (player.special !== null && this.buysTower(state, player)) {
       const tower = { kind: variantKind(player.special), cost: variantCost(player.special) };
-      const spot = this.site(state, rng, player, tower);
+      const spot =
+        tower.kind === 'fortified'
+          ? this.siteFortified(state, player, tower.cost)
+          : this.site(state, rng, player, tower);
       if (spot !== null)
         return { kind: 'place_cannon', player: this.playerId, ...spot, special: true };
     }
@@ -155,11 +167,13 @@ export class Siting {
    */
   private buysTower(state: MatchState, player: PlayerState): boolean {
     if (player.special === null || specialRefusal(state, player) !== null) return false;
+    // A Fortified Tower that never fires is wall, no gun at all.
+    const guns = (gun: { kind: CannonKind; cost: number }): number =>
+      neverFires(state.ruleset, gun) ? 0 : barrelsOf(gun);
     let owned = 0;
-    for (const cannon of state.cannons)
-      if (cannon.owner === this.playerId) owned += barrelsOf(cannon);
+    for (const cannon of state.cannons) if (cannon.owner === this.playerId) owned += guns(cannon);
     const tower = { kind: variantKind(player.special), cost: variantCost(player.special) };
-    const after = owned + player.cannonsToPlace - tower.cost + barrelsOf(tower);
+    const after = owned + player.cannonsToPlace - tower.cost + guns(tower);
     return after >= this.minGuns;
   }
 
@@ -237,6 +251,63 @@ export class Siting {
           bestPinned = pinned;
           bestRoom = room;
           bestScore = score;
+          best = { x, y };
+        }
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Where a Fortified Tower goes (§2.11): over a corner of its wall above all — `CORNER_POINTS` a
+   * corner, so a corner decides wherever there is one (the user's, 2026-11-21), a corner being
+   * the hardest part to rebuild — then over the most of its own wall, its weakest wall, where
+   * shots breach it, counting three; then over the least sealed ground, which it takes from the
+   * guns' room and the points. Anywhere it may stand if it covers no wall at all.
+   */
+  private siteFortified(
+    state: MatchState,
+    player: PlayerState,
+    cost: number,
+  ): { x: number; y: number } | null {
+    const { width, height } = state;
+    const [cw, ch] = footprintOf(state.ruleset, 'fortified', cost);
+    const weight = this.guardedWall(state, player.islandId);
+    const own = (x: number, y: number): boolean =>
+      x >= 0 &&
+      y >= 0 &&
+      x < width &&
+      y < height &&
+      isWallLike(state.structure[y * width + x] as number) &&
+      state.islandId[y * width + x] === player.islandId;
+    let best: { x: number; y: number } | null = null;
+    let bestScore = -1;
+    let bestGround = Number.MAX_SAFE_INTEGER;
+    for (let y = 0; y <= height - ch; y++) {
+      for (let x = 0; x <= width - cw; x++) {
+        if (canPlaceCannon(state, this.playerId, x, y, true) !== null) continue;
+        let score = 0;
+        let ground = 0;
+        for (let oy = 0; oy < ch; oy++) {
+          for (let ox = 0; ox < cw; ox++) {
+            const tx = x + ox;
+            const ty = y + oy;
+            const i = ty * width + tx;
+            if (state.structure[i] !== Structure.Wall) {
+              ground++;
+              continue;
+            }
+            score += weight[i] as number;
+            // A corner: where the wall turns, wall on exactly two sides, one across and one
+            // along — not the middle of a thickened wall, which has wall on three or four.
+            const across = Number(own(tx - 1, ty)) + Number(own(tx + 1, ty));
+            const along = Number(own(tx, ty - 1)) + Number(own(tx, ty + 1));
+            if (across === 1 && along === 1) score += CORNER_POINTS;
+          }
+        }
+        if (score > bestScore || (score === bestScore && ground < bestGround)) {
+          bestScore = score;
+          bestGround = ground;
           best = { x, y };
         }
       }

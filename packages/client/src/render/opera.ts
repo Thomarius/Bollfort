@@ -59,6 +59,7 @@ import { ShapeTheme } from './shapeTheme.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 /** Something with a place and an age: rings of sound, a sour note, a chord, a glissando. */
 interface Aged {
@@ -914,7 +915,7 @@ export class OperaTheme extends ShapeTheme implements Theme {
     for (const cannon of state.cannons) {
       const cx = tileX(view, cannon.x + cannon.w / 2);
       const cy = tileY(view, cannon.y + cannon.h / 2);
-      const r = Math.min(cannon.w, cannon.h) * t * 0.38;
+      const r = gunSpan(cannon) * t * 0.38;
       cannonBase(
         g,
         view,

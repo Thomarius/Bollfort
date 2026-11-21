@@ -68,6 +68,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 /** An ink stain where a shot came down on land, fading over the rounds after. */
 interface Stain {
@@ -1422,7 +1423,7 @@ export class ParchmentTheme implements Theme {
     const t = view.tile;
     const { palette } = this.art;
     const kick = Math.max(0, 1 - aim.firedAgo / RECOIL_MS);
-    const u = Math.min(cannon.w, cannon.h) * t * 0.5;
+    const u = gunSpan(cannon) * t * 0.5;
     const cx = tileX(view, cannon.x + cannon.w / 2);
     const cy = tileY(view, cannon.y + cannon.h / 2);
     const sin = Math.sin(aim.angle);

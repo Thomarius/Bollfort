@@ -1,5 +1,5 @@
 import { NEIGHBOURS_4, NEIGHBOURS_8 } from './grid.js';
-import { Structure, type MatchState } from './types.js';
+import { isWallLike, Structure, type MatchState } from './types.js';
 
 /**
  * The enclosure solver — the most load-bearing function in the simulation.
@@ -64,7 +64,7 @@ export function computeEnclosure(state: MatchState): EnclosureResult {
 
   const seed = (x: number, y: number): void => {
     const i = y * w + x;
-    if (outside[i] === 1 || structure[i] === Structure.Wall) return;
+    if (outside[i] === 1 || isWallLike(structure[i] as number)) return;
     outside[i] = 1;
     queue[tail++] = i;
   };
@@ -86,7 +86,7 @@ export function computeEnclosure(state: MatchState): EnclosureResult {
       const ny = y + (dy[k] as number);
       if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
       const ni = ny * w + nx;
-      if (outside[ni] === 1 || structure[ni] === Structure.Wall) continue;
+      if (outside[ni] === 1 || isWallLike(structure[ni] as number)) continue;
       outside[ni] = 1;
       queue[tail++] = ni;
     }
@@ -127,7 +127,7 @@ export function computeEnclosure(state: MatchState): EnclosureResult {
 
   for (let start = 0; start < size; start++) {
     if (outside[start] === 1 || region[start] !== -1) continue;
-    if (structure[start] === Structure.Wall) continue;
+    if (isWallLike(structure[start] as number)) continue;
     const id = regionCount++;
     head = 0;
     tail = 0;
@@ -150,7 +150,7 @@ export function computeEnclosure(state: MatchState): EnclosureResult {
         if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
         const ni = ny * w + nx;
         if (outside[ni] === 1 || region[ni] !== -1) continue;
-        if (structure[ni] === Structure.Wall) continue;
+        if (isWallLike(structure[ni] as number)) continue;
         region[ni] = id;
         queue[tail++] = ni;
       }
@@ -178,6 +178,13 @@ export function computeEnclosure(state: MatchState): EnclosureResult {
   const cannonActive: boolean[] = [];
   for (let c = 0; c < state.cannons.length; c++) {
     const cannon = state.cannons[c] as (typeof state.cannons)[number];
+    if (cannon.kind === 'fortified') {
+      // Wall itself, never territory: active while it touches its owner's sealed ground.
+      cannonActive[c] = state.ruleset.cannons.inertWhenNotEnclosed
+        ? touchesTerritory(territory, w, h, cannon, cannon.owner + 1)
+        : true;
+      continue;
+    }
     let active = true;
     for (let oy = 0; oy < cannon.h && active; oy++) {
       for (let ox = 0; ox < cannon.w; ox++) {
@@ -191,6 +198,25 @@ export function computeEnclosure(state: MatchState): EnclosureResult {
   }
 
   return { outside, territory, castleEnclosed, enclosedCastlesByPlayer, cannonActive };
+}
+
+/** Whether a tile orthogonally beside this footprint, outside it, is this island's territory. */
+function touchesTerritory(
+  territory: Uint8Array,
+  w: number,
+  h: number,
+  box: { x: number; y: number; w: number; h: number },
+  mark: number,
+): boolean {
+  const at = (x: number, y: number): boolean =>
+    x >= 0 && y >= 0 && x < w && y < h && territory[y * w + x] === mark;
+  for (let ox = 0; ox < box.w; ox++) {
+    if (at(box.x + ox, box.y - 1) || at(box.x + ox, box.y + box.h)) return true;
+  }
+  for (let oy = 0; oy < box.h; oy++) {
+    if (at(box.x - 1, box.y + oy) || at(box.x + box.w, box.y + oy)) return true;
+  }
+  return false;
 }
 
 /** Runs the solver and writes the outcome back into the match state. */

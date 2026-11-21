@@ -104,6 +104,10 @@
     "drone": {
       "2": { "footprint": [2, 2], "flightFactor": 1.6, "radius": 4, "launchGapMs": 250 },
       "3": { "footprint": [2, 2], "flightFactor": 1.6, "radius": 4, "launchGapMs": 250 }
+    },
+    "fortified": {
+      "2": { "footprint": [2, 2], "flightFactor": 0.9, "fires": true },
+      "3": { "footprint": [3, 3], "flightFactor": 1.1, "fires": true, "barrels": 2 }
     }
   },
   "build": {

@@ -32,6 +32,7 @@ const NAME_KEY = {
   lullaby: 'tower.lullaby',
   subwoofer: 'tower.subwoofer',
   drone: 'tower.drone',
+  fortified: 'tower.fortified',
 } as const;
 
 /** A tower's name, without its cost. */
@@ -132,6 +133,10 @@ export function towerWhat(variant: TowerVariant, ruleset: Ruleset = defaultRules
         n: cost,
         r: config.radius,
       });
+    case 'fortified':
+      // The 3×3's two barrels are drawn as two guns (`render/fortified.ts`), and told so.
+      if (!('fires' in config)) return '';
+      return t((config.barrels ?? 1) > 1 ? 'tower.fortifiedTwoWhat' : 'tower.fortifiedWhat');
   }
 }
 

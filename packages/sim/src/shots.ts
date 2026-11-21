@@ -14,6 +14,7 @@ import {
   flightFactorOf,
   isImpactTower,
   isLoaded,
+  neverFires,
   noteLostWall,
   strikesOnFiring,
 } from './specials.js';
@@ -76,6 +77,8 @@ export function findReadyCannon(state: MatchState, playerId: number, tx: number,
     if (!isAwake(state, cannon)) continue;
     // A Drone Tower fires on its own (`launchDrones`), never by a click.
     if (firesItself(cannon.kind)) continue;
+    // A Fortified Tower that does not fire is wall alone.
+    if (neverFires(state.ruleset, cannon)) continue;
     const impact = isImpactTower(cannon.kind);
     if (bestImpact && !impact) continue;
     const d = distanceSquared(cannonCentreX(cannon), cannonCentreY(cannon), tx, ty);
@@ -181,7 +184,7 @@ export function fire(
       ? waveRays(fromX, fromY, tx, ty, subwooferOf(state, cannon.cost).waveWidth)
       : null;
   const first =
-    beam?.cleared[0] ??
+    beam?.hits[0] ??
     (rays === null ? undefined : (waveTargets(state, playerId, rays).nearest ?? undefined));
   if (first !== undefined) {
     const factor = flightFactorOf(state.ruleset, cannon.kind, cannon.cost);
@@ -236,6 +239,58 @@ export function strikable(state: MatchState, playerId: number, i: number): boole
   const teammate = owner !== 0 && owner !== shooterIsland && sameTeam(state, playerId, owner - 1);
   if (teammate) return false;
   return isOpponents(state, playerId, owner) || state.ruleset.shots.damagesOwnWalls;
+}
+
+/**
+ * Whether this tile is a live opponent's Fortified Tower (§2.11): wall that nothing clears, at which
+ * an opponent's beam or wave stops. Its owner's own, a teammate's and the eliminated's — whose
+ * guns, Fortified Towers among them, are cleared away — are never one.
+ */
+export function opposingStone(state: MatchState, playerId: number, i: number): boolean {
+  return (
+    state.structure[i] === Structure.Stone && isOpponents(state, playerId, state.owner[i] as number)
+  );
+}
+
+/** The Fortified Tower standing on this tile, or null. */
+export function stoneAt(state: MatchState, i: number): Cannon | null {
+  if (state.structure[i] !== Structure.Stone) return null;
+  const x = i % state.width;
+  const y = (i - x) / state.width;
+  for (const cannon of state.cannons) {
+    if (cannon.kind !== 'fortified') continue;
+    if (x >= cannon.x && x < cannon.x + cannon.w && y >= cannon.y && y < cannon.y + cannon.h) {
+      return cannon;
+    }
+  }
+  return null;
+}
+
+/**
+ * The tiles a strike may be drawn from among these, in their order — a drone's target, a bolt's
+ * jump: every wall it would clear (`strikable`), and each opponent's Fortified Tower **once**, by
+ * the first of its tiles here, whatever its size (the user's, 2026-11-21) — it counts as wall
+ * for the choosing and takes no damage. A Fortified Tower whose id is in `skip` is not drawn at all.
+ */
+export function strikeCandidates(
+  state: MatchState,
+  playerId: number,
+  tiles: Iterable<number>,
+  skip: ReadonlySet<number> = new Set(),
+): number[] {
+  const out: number[] = [];
+  const seen = new Set<number>();
+  for (const i of tiles) {
+    if (strikable(state, playerId, i)) {
+      out.push(i);
+    } else if (opposingStone(state, playerId, i)) {
+      const id = (stoneAt(state, i) as Cannon).id;
+      if (skip.has(id) || seen.has(id)) continue;
+      seen.add(id);
+      out.push(i);
+    }
+  }
+  return out;
 }
 
 function isOpponents(state: MatchState, playerId: number, owner: number): boolean {

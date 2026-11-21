@@ -717,7 +717,7 @@ export async function runSession(
           // A Lightning Tower's has struck already (`lightning_struck`), a Laser Tower's too
           // (`laser_fired`); nothing of either flies.
           if (strikesOnFiring(event.shot.kind)) break;
-          scene.noteShot(event.shot);
+          scene.noteShot(event.shot, session.state);
           // Either Bertha's, for the blast its landing sets off over the tiles it clears.
           if (hasBlast(event.shot.kind)) {
             const { kind, cost } = event.shot;

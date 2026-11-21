@@ -14,6 +14,7 @@ import {
   heldValue,
   isAwake,
   firesItself,
+  neverFires,
   isImpactTower,
   isLoaded,
   lullTargets,
@@ -66,7 +67,8 @@ export class Gunner {
         !cannon.active ||
         !isLoaded(cannon) ||
         !isAwake(state, cannon) ||
-        firesItself(cannon.kind)
+        firesItself(cannon.kind) ||
+        neverFires(state.ruleset, cannon)
       ) {
         this.readySince.delete(cannon.id);
         continue;

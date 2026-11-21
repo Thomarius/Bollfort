@@ -78,6 +78,7 @@ import {
 } from './theme.js';
 import { outline, trace, wallGeometry } from './walls.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 const DEAD = 0x7a6a5e;
 const DEAD_DARK = 0x4a3e36;
@@ -702,7 +703,7 @@ export class MythologyTheme extends ShapeTheme implements Theme {
       aim.firedAgo += frame.deltaMs;
       const dir = Math.sin(aim.angle) >= 0 ? 1 : -1;
       const out = state.players[cannon.owner]?.eliminated !== false;
-      const scale = Math.max(1, Math.min(cannon.w, cannon.h) / 2);
+      const scale = Math.max(1, gunSpan(cannon) / 2);
       const x = tileX(view, cannon.x + cannon.w / 2);
       const foot = tileY(view, cannon.y + cannon.h) - t * 0.18;
       const { angle, stone } = this.armOf(state, cannon, aim.firedAgo, flying, now);

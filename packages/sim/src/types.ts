@@ -3,8 +3,18 @@ import type { Ruleset, SpecialKind, TerrainConfig, TowerVariant } from '@bollfor
 export const Terrain = { Water: 0, Land: 1 } as const;
 export type TerrainKind = (typeof Terrain)[keyof typeof Terrain];
 
-export const Structure = { Empty: 0, Wall: 1, Castle: 2, Cannon: 3 } as const;
+/**
+ * What stands on a tile. `Stone` is a Fortified Tower's footprint (docs/SPECIAL_TOWERS.md §2.11, a
+ * trial): wall in every way that is not damage, so whatever asks whether a tile holds wall
+ * asks `isWallLike`, and only what clears walls asks for `Wall` alone.
+ */
+export const Structure = { Empty: 0, Wall: 1, Castle: 2, Cannon: 3, Stone: 4 } as const;
 export type StructureKind = (typeof Structure)[keyof typeof Structure];
+
+/** Whether a tile's structure is wall for the flood, the sweep and the choice of targets. */
+export function isWallLike(structure: number): boolean {
+  return structure === Structure.Wall || structure === Structure.Stone;
+}
 
 /** An ordinary gun, or one of the special towers (docs/SPECIAL_TOWERS.md). */
 export type CannonKind = 'cannon' | SpecialKind;
@@ -129,6 +139,11 @@ export interface Cannon {
   asleepUntil?: number;
   /** Lullabies it has taken towards its sleep, short of its threshold; absent at none. */
   lulled?: number;
+  /**
+   * Its barrels where its variant sets them (a Fortified Tower's `barrels`, a trial lever); absent
+   * otherwise, `barrelsOf` then going by kind. Read from the ruleset as it is placed, so not hashed.
+   */
+  barrels?: number;
 }
 
 /**
@@ -156,6 +171,12 @@ export interface Wave {
   cost: number;
   lanes: WaveLane[];
   launchTick: number;
+  /**
+   * The opponents' Fortified Towers a lane of this wave has met (§2.11), by gun id: each takes one
+   * lane, and the wave's other lanes pass through it. Absent until one has, so a match without
+   * them hashes and carries as it always did.
+   */
+  absorbed?: number[];
 }
 
 /**

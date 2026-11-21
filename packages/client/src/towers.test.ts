@@ -334,6 +334,7 @@ describe('the tower menu', () => {
       { kind: 'lullaby', costs: [2, 3] },
       { kind: 'subwoofer', costs: [2, 3] },
       { kind: 'drone', costs: [2, 3] },
+      { kind: 'fortified', costs: [2, 3] },
     ]);
     const html = towerMenuMarkup('bertha2');
     expect(html.match(/data-kind="\w+"/)?.[0]).toBe('data-kind="none"');
@@ -373,6 +374,7 @@ describe('the tower menu', () => {
         'architect',
         'bertha',
         'drone',
+        'fortified',
         'frost',
         'laser',
         'lightning',
@@ -391,6 +393,7 @@ describe('the tower menu', () => {
         'laser',
         'lullaby',
         'subwoofer',
+        'fortified',
       ]);
     } finally {
       setLanguage(before);

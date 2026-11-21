@@ -1,5 +1,5 @@
 import {
-  PLAYED_KINDS,
+  COUNTED_KINDS,
   SPECIAL_KINDS,
   defaultAchievements,
   defaultRuleset,
@@ -570,9 +570,9 @@ describe('the match’s end', () => {
 describe('across matches', () => {
   it('asks Tower of Babel for the nine towers played, never the retired Rapid Cannon', () => {
     const bit = (kind: SpecialKind): number => 1 << SPECIAL_KINDS.indexOf(kind);
-    const nine = PLAYED_KINDS.reduce((mask, kind) => mask | bit(kind), 0);
-    expect(PLAYED_KINDS).toHaveLength(9);
-    expect(PLAYED_KINDS).not.toContain('rapid');
+    const nine = COUNTED_KINDS.reduce((mask, kind) => mask | bit(kind), 0);
+    expect(COUNTED_KINDS).toHaveLength(9);
+    expect(COUNTED_KINDS).not.toContain('rapid');
     const totals = { castles_sealed: 0, walls_destroyed: 0 };
     expect(statAchievements(defaultAchievements, { ...totals, towers_bought: nine })).toEqual([
       'ALL_TOWERS',
@@ -596,7 +596,8 @@ describe('across matches', () => {
       statAchievements(defaultAchievements, {
         castles_sealed: 200,
         walls_destroyed: 0,
-        towers_bought: all >> 1,
+        // One played tower short, named: the last kind in the list may be one on trial.
+        towers_bought: all & ~(1 << SPECIAL_KINDS.indexOf('drone')),
       }),
     ).toEqual(['SEAL_OF_APPROVAL']);
   });

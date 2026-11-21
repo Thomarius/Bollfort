@@ -8,9 +8,10 @@ import {
   type MatchState,
   type PlayerState,
 } from './types.js';
+import { applyEnclosure } from './enclosure.js';
 import { pieceAt, pieceCells } from './pieces.js';
 import { isFrozen } from './frost.js';
-import { footprintOf, specialRefusal } from './specials.js';
+import { footprintOf, placedBarrels, specialRefusal } from './specials.js';
 
 /**
  * Why an action was refused. The server returns these to the client verbatim, and
@@ -190,6 +191,7 @@ export function canPlaceCannon(
 
   const placed = gunPlaced(player, special);
   const [cw, ch] = footprintOf(state.ruleset, placed.kind, placed.cost);
+  if (placed.kind === 'fortified') return fortifiedRefusal(state, player, x, y, cw, ch);
   for (let oy = 0; oy < ch; oy++) {
     for (let ox = 0; ox < cw; ox++) {
       const tx = x + ox;
@@ -202,6 +204,52 @@ export function canPlaceCannon(
     }
   }
   return null;
+}
+
+/**
+ * Where a Fortified Tower may stand (§2.11): every tile its owner's empty sealed ground or a wall of
+ * their own island, which it replaces — never a tile outside the ring, which would let it seal
+ * new ground — and touching their sealed ground, so a wall standing alone in the open takes none.
+ * Laid over wall it can only add to what blocks the flood, so it never unseals anything.
+ */
+function fortifiedRefusal(
+  state: MatchState,
+  player: PlayerState,
+  x: number,
+  y: number,
+  cw: number,
+  ch: number,
+): Rejection | null {
+  const { width, height } = state;
+  let touches = false;
+  for (let oy = 0; oy < ch; oy++) {
+    for (let ox = 0; ox < cw; ox++) {
+      const tx = x + ox;
+      const ty = y + oy;
+      if (tx < 0 || ty < 0 || tx >= width || ty >= height) return 'out_of_bounds';
+      const i = ty * width + tx;
+      if (state.terrain[i] !== Terrain.Land) return 'not_land';
+      const s = state.structure[i];
+      if (s === Structure.Wall) {
+        if (state.owner[i] !== player.islandId) return 'not_territory';
+      } else if (s !== Structure.Empty) {
+        return 'occupied';
+      } else if (state.territory[i] !== player.islandId) {
+        return 'not_territory';
+      } else {
+        touches = true;
+      }
+    }
+  }
+  const mark = (tx: number, ty: number): boolean =>
+    tx >= 0 &&
+    ty >= 0 &&
+    tx < width &&
+    ty < height &&
+    state.territory[ty * width + tx] === player.islandId;
+  for (let ox = 0; ox < cw && !touches; ox++) touches = mark(x + ox, y - 1) || mark(x + ox, y + ch);
+  for (let oy = 0; oy < ch && !touches; oy++) touches = mark(x - 1, y + oy) || mark(x + cw, y + oy);
+  return touches ? null : 'not_territory';
 }
 
 export function countCannons(state: MatchState, playerId: number): number {
@@ -230,6 +278,9 @@ export function placeCannon(
   const { kind, cost } = gunPlaced(player, special);
   const cannon = spawnCannon(state, playerId, x, y, kind, cost);
   player.cannonsToPlace -= cost;
+  // A Fortified Tower's tiles are wall, no longer ground: the territory and the guns' activity
+  // change with it, where a cannon on sealed ground changes neither.
+  if (kind === 'fortified') applyEnclosure(state);
   if (kind !== 'cannon') player.specialsBought++;
   state.events.push({
     kind: 'cannon_placed',
@@ -267,10 +318,13 @@ function spawnCannon(
     active: true,
     shotIds: [],
   };
+  const barrels = placedBarrels(state.ruleset, kind, cost);
+  if (barrels !== undefined) cannon.barrels = barrels;
   for (let oy = 0; oy < ch; oy++) {
     for (let ox = 0; ox < cw; ox++) {
       const i = (y + oy) * state.width + x + ox;
-      state.structure[i] = Structure.Cannon;
+      // A Fortified Tower's footprint is wall-like, and replaces any of its owner's wall under it.
+      state.structure[i] = kind === 'fortified' ? Structure.Stone : Structure.Cannon;
       state.owner[i] = player.islandId;
     }
   }

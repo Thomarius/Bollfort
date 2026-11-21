@@ -71,6 +71,7 @@ import { cannonBase } from './cannonBase.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 /** A circuit trace on the sea floor, as tile centres in board coordinates. */
 export interface Trace {
@@ -2728,5 +2729,5 @@ function coilBand(g: Graphics, t: number): void {
 }
 
 function turretRadius(view: ViewTransform, cannon: { w: number; h: number }): number {
-  return (Math.min(cannon.w, cannon.h) * view.tile) / 2 - view.tile * 0.2;
+  return (gunSpan(cannon) * view.tile) / 2 - view.tile * 0.2;
 }

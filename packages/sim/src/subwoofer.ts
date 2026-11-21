@@ -1,7 +1,7 @@
 import type { SubwooferVariant, TowerCost } from '@bollfort/config';
 
 import { walkRay, type Ray } from './laser.js';
-import { strikable, strikeWall } from './shots.js';
+import { opposingStone, stoneAt, strikable, strikeWall } from './shots.js';
 import type { MatchState, Shot, Wave } from './types.js';
 
 /**
@@ -71,21 +71,57 @@ export function waveTargets(
   owner: number,
   rays: readonly Ray[],
 ): { walls: (number | null)[]; nearest: number | null } {
-  let nearest: number | null = null;
-  let nearestAlong = Infinity;
-  const walls = rays.map((ray) => {
-    let wall: number | null = null;
+  // Each lane's way to its first wall: the opponents' Fortified Towers it meets first, each once by
+  // the first of its tiles, then that wall, with how far along each lies.
+  const ways = rays.map((ray) => {
+    const stops: { i: number; along: number; stone: number | null }[] = [];
+    const met = new Set<number>();
     walkRay(state, ray, (i, at) => {
-      if (!strikable(state, owner, i)) return false;
-      wall = i;
-      if (laneAlong(ray, at) < nearestAlong) {
-        nearestAlong = laneAlong(ray, at);
-        nearest = i;
+      if (opposingStone(state, owner, i)) {
+        const id = (stoneAt(state, i) as { id: number }).id;
+        if (!met.has(id)) {
+          met.add(id);
+          stops.push({ i, along: laneAlong(ray, at), stone: id });
+        }
+        return false;
       }
+      if (!strikable(state, owner, i)) return false;
+      stops.push({ i, along: laneAlong(ray, at), stone: null });
       return true;
     });
-    return wall;
+    return stops;
   });
+  // Played out as the wave travels (`advanceWaves`): the lane arriving first at a Fortified Tower is
+  // taken there, ties by lane; every other lane passes it by. The nearest stop of all, wall or
+  // Fortified Tower, is the reload's.
+  const walls: (number | null)[] = rays.map(() => null);
+  const next = ways.map(() => 0);
+  const done = ways.map(() => false);
+  const absorbed = new Set<number>();
+  let nearest: number | null = null;
+  for (;;) {
+    let lane = -1;
+    for (let k = 0; k < ways.length; k++) {
+      const stop = done[k] ? undefined : ways[k]?.[next[k] as number];
+      if (stop === undefined) continue;
+      const best = lane < 0 ? undefined : ways[lane]?.[next[lane] as number];
+      if (best === undefined || stop.along < best.along) lane = k;
+    }
+    if (lane < 0) break;
+    const stop = (ways[lane] as (typeof ways)[number])[
+      next[lane] as number
+    ] as (typeof ways)[number][number];
+    nearest ??= stop.i;
+    if (stop.stone === null) {
+      walls[lane] = stop.i;
+      done[lane] = true;
+    } else if (absorbed.has(stop.stone)) {
+      next[lane] = (next[lane] as number) + 1;
+    } else {
+      absorbed.add(stop.stone);
+      done[lane] = true;
+    }
+  }
   return { walls, nearest };
 }
 
@@ -126,16 +162,27 @@ export function advanceWaves(state: MatchState): void {
     wave.lanes.forEach((lane, index) => {
       if (lane.done) return;
       let hit: number | null = null;
+      // Taken by an opponent's Fortified Tower (§2.11), the lane ends there, clearing nothing.
+      let stopped = false;
       const end = walkRay(state, lane, (i, at) => {
         const d = laneAlong(lane, at);
         if (d > to) return true;
-        if (d <= from || !strikable(state, wave.owner, i)) return false;
+        if (d <= from) return false;
+        if (opposingStone(state, wave.owner, i)) {
+          // The first lane of the wave to reach a Fortified Tower is taken there; the others pass.
+          const id = (stoneAt(state, i) as { id: number }).id;
+          if (wave.absorbed?.includes(id) === true) return false;
+          (wave.absorbed ??= []).push(id);
+          stopped = true;
+          return true;
+        }
+        if (!strikable(state, wave.owner, i)) return false;
         hit = i;
         return true;
       });
       const struck = hit as number | null;
       const offMap = end.edge && laneAlong(lane, end.at) <= to;
-      if (struck === null && !offMap) return;
+      if (struck === null && !offMap && !stopped) return;
       if (struck !== null) strikeWall(state, wave.owner, struck);
       lane.done = true;
       state.events.push({

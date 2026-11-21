@@ -6820,6 +6820,12 @@ body.reduced-motion .tower-menu .panel {
   gap: 0.6rem;
 }
 
+/* An eleventh card, the Fortified Tower on trial (2026-11-21), alone in a third row: centred
+   until it is decided whether it stays. */
+.tower-menu .cards > .card:last-child:nth-child(5n + 1) {
+  grid-column: 3;
+}
+
 @media (max-width: 640px) {
   .tower-menu .cards {
     grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -72,6 +72,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { outline, strokePieceEdge } from './walls.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
 import { FALCON_DRONE } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 interface Blast {
   x: number;
@@ -3249,16 +3250,20 @@ export class PixelTheme implements Theme {
     step: number,
     recoil: number,
   ): void {
+    // Full size wherever it stands, a Fortified Tower's smaller footprint too (`gunSpan`).
+    const span = gunSpan(cannon);
+    const x = cannon.x + (cannon.w - span) / 2;
+    const y = cannon.y + (cannon.h - span) / 2;
     // The carriage runs back with the barrel, and a silenced one stands dark.
-    const bed = this.place(parent, KEY.carriage(step, recoil), view, cannon.x, cannon.y, cannon.w);
+    const bed = this.place(parent, KEY.carriage(step, recoil), view, x, y, span);
     if (!cannon.active) bed.tint = 0x8a8a8a;
     const sprite = this.place(
       parent,
       cannon.active ? KEY.barrel(step, recoil) : KEY.droop(step),
       view,
-      cannon.x,
-      cannon.y,
-      cannon.w,
+      x,
+      y,
+      span,
     );
     // The owner's light colour, a step above the base's, so the barrel reads on it.
     sprite.tint = cannon.active

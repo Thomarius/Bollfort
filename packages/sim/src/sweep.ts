@@ -1,5 +1,5 @@
 import { NEIGHBOURS_4 } from './grid.js';
-import { Structure, type MatchState } from './types.js';
+import { isWallLike, Structure, type MatchState } from './types.js';
 
 /**
  * Clears away wall that is doing no work, between the build phase and the next
@@ -47,7 +47,8 @@ export function sweepOrphanedWalls(state: MatchState): number[] {
       const nx = x + ox;
       const ny = y + oy;
       if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
-      if (structure[ny * w + nx] === Structure.Wall) count++;
+      // A Fortified Tower holds its neighbours as wall does; only wall itself is swept.
+      if (isWallLike(structure[ny * w + nx] as number)) count++;
     }
     if (count < 2) marked.push(i);
   }

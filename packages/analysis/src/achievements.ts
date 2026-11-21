@@ -1,6 +1,6 @@
 import { pocketCount } from '@bollfort/ai';
 import {
-  PLAYED_KINDS,
+  COUNTED_KINDS,
   SPECIAL_KINDS,
   type AchievementId,
   type AchievementsConfig,
@@ -383,18 +383,19 @@ export function statAchievements(config: AchievementsConfig, totals: StatTotals)
   const met: AchievementId[] = [];
   if (totals.castles_sealed >= config.SEAL_OF_APPROVAL.castles) met.push('SEAL_OF_APPROVAL');
   if (totals.walls_destroyed >= config.DEMOLITION_CREW.walls) met.push('DEMOLITION_CREW');
-  if (towersBoughtCount(totals.towers_bought) >= PLAYED_KINDS.length) met.push('ALL_TOWERS');
+  if (towersBoughtCount(totals.towers_bought) >= COUNTED_KINDS.length) met.push('ALL_TOWERS');
   return met;
 }
 
 /**
  * The kinds set in a `towers_bought` mask: Steam's `towers_bought_count`, its progress. Only the
- * towers the game plays: a retired one's bit (the Rapid Cannon's, 2026-11-20), set by a match
- * from before, counts for nothing, so Tower of Babel asks for the nine whatever was bought.
+ * towers counted (`COUNTED_KINDS`): a retired one's bit (the Rapid Cannon's, 2026-11-20), set by a
+ * match from before, and one on trial (the Fortified Tower's) count for nothing, so Tower of Babel
+ * asks for the nine whatever was bought.
  */
 export function towersBoughtCount(mask: number): number {
   let count = 0;
-  for (const kind of PLAYED_KINDS) if ((mask >> SPECIAL_KINDS.indexOf(kind)) & 1) count++;
+  for (const kind of COUNTED_KINDS) if ((mask >> SPECIAL_KINDS.indexOf(kind)) & 1) count++;
   return count;
 }
 

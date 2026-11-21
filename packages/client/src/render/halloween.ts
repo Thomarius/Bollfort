@@ -60,6 +60,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 /** Something with a place and an age: a ghost set free, a ring on the bog, a sinking block. */
 interface Aged {
@@ -805,7 +806,7 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
     const t = view.tile;
     const cx = tileX(view, cannon.x + cannon.w / 2);
     const cy = tileY(view, cannon.y + cannon.h / 2);
-    const r = Math.min(cannon.w, cannon.h) * t * 0.38;
+    const r = gunSpan(cannon) * t * 0.38;
     g.ellipse(cx + t * 0.08, cy + r * 0.85, r * 0.95, r * 0.3);
     g.fill({ color: hex(palette.shadow), alpha: 0.35 });
     for (const lx of [-0.55, 0, 0.55]) {
@@ -1433,7 +1434,7 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
       memo.draw(cannon.id, key, (g) => this.drawLadle(g, view, cannon, aim));
       // The brew bubbling, every frame: over the ladle, as it was drawn after it.
       if (!cannon.active || still) continue;
-      const r = Math.min(cannon.w, cannon.h) * t * 0.38;
+      const r = gunSpan(cannon) * t * 0.38;
       const cx = tileX(view, cannon.x + cannon.w / 2);
       const cy = tileY(view, cannon.y + cannon.h / 2) - r * 0.25;
       for (let k = 0; k < 2; k++) {
@@ -1457,7 +1458,7 @@ export class HalloweenTheme extends ShapeTheme implements Theme {
   /** One cauldron's ladle as aimed, and its splash on firing: the board's memo's and the icon's. */
   private drawLadle(g: Graphics, view: ViewTransform, cannon: Cannon, aim: Aim): void {
     const t = view.tile;
-    const r = Math.min(cannon.w, cannon.h) * t * 0.38;
+    const r = gunSpan(cannon) * t * 0.38;
     const cx = tileX(view, cannon.x + cannon.w / 2);
     const cy = tileY(view, cannon.y + cannon.h / 2) - r * 0.25;
     const kick = Math.max(0, 1 - aim.firedAgo / RECOIL_MS);

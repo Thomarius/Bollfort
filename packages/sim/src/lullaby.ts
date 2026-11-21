@@ -1,6 +1,6 @@
 import type { LullabyVariant, TowerCost } from '@bollfort/config';
 
-import { gunsWorth, isLoaded } from './specials.js';
+import { gunsWorth, isLoaded, neverFires } from './specials.js';
 import { sameTeam } from './teams.js';
 import type { Cannon, MatchState, Shot } from './types.js';
 
@@ -58,6 +58,8 @@ export function lullTargets(
   for (const cannon of state.cannons) {
     if (!cannon.active || !isAwake(state, cannon)) continue;
     if (cannon.kind !== 'cannon' && variant.immune.includes(cannon.kind)) continue;
+    // A Fortified Tower that never fires is wall, not a gun: a lullaby passes it over.
+    if (neverFires(state.ruleset, cannon)) continue;
     if (sameTeam(state, playerId, cannon.owner)) continue;
     if (state.players[cannon.owner]?.eliminated !== false) continue;
     const dx = Math.max(cannon.x - x, 0, x - (cannon.x + cannon.w - 1));

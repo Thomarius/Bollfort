@@ -88,6 +88,7 @@ import { WILDWEST, WILDWEST_WORDS, type WildWestStyleConfig } from './data.js';
 import { WildWestSeaLife } from './seaLife.js';
 
 import { VULTURE_DRONE } from './drone.js';
+import { gunSpan } from '../../render/fortified.js';
 
 const DEAD = 0x9a948a;
 const DEAD_DARK = 0x6a645a;
@@ -862,7 +863,7 @@ export class WildWestTheme extends ShapeTheme implements Theme {
       const asleep = cannon.asleepUntil !== undefined && cannon.asleepUntil > state.tick;
       const silenced = !out && (asleep || !cannon.active);
       const loaded = isLoaded(cannon);
-      const scale = Math.max(1, Math.min(cannon.w, cannon.h) / 2);
+      const scale = Math.max(1, gunSpan(cannon) / 2);
       const x = tileX(view, cannon.x + cannon.w / 2);
       const foot = tileY(view, cannon.y + cannon.h) - t * 0.2;
       const firing = !out && !silenced && aim.firedAgo < this.style.hopMs;

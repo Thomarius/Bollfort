@@ -670,6 +670,7 @@
   "tower.lullaby": "Schlafturm",
   "tower.subwoofer": "Subwoofer",
   "tower.drone": "Drohnenturm",
+  "tower.fortified": "Wehrturm",
   "tower.berthaWhat": "Reißt ein Kreuz aus fünf Mauerblöcken und feuert zuerst, sobald sie bereit ist. Ihre Granate fliegt so schnell wie eine Kanonenkugel.",
   "tower.berthaFastWhat": "Reißt ein Kreuz aus fünf Mauerblöcken und feuert zuerst, sobald sie bereit ist. Ihre Granate fliegt schneller als eine Kanonenkugel, also lädt sie früher nach.",
   "tower.berthaSlowWhat": "Reißt ein Kreuz aus fünf Mauerblöcken und feuert zuerst, sobald sie bereit ist. Ihre Granate fliegt langsamer als eine Kanonenkugel, also lädt sie später nach.",
@@ -691,6 +692,8 @@
   "tower.subwooferSlowWhat": "Schickt eine {w} Blöcke breite Welle in Richtung des angeklickten Felds bis zum Kartenrand; jede ihrer {w} Bahnen reißt den ersten Mauerblock weg, den sie erreicht, wie weit auch immer — feuert zuerst, sobald er bereit ist. Er lädt langsamer nach als eine Kanone.",
   "tower.droneWhat": "Eine Drohne mit {n} Raketen, die von selbst feuert, nie per Klick, auf einen zufälligen Mauerblock bis {r} Blöcke um deinen eigenen letzten Schuss — deine eigenen Schüsse zielen also für sie.",
   "tower.droneSlowWhat": "Eine Drohne mit {n} Raketen, die von selbst feuert, nie per Klick, auf einen zufälligen Mauerblock bis {r} Blöcke um deinen eigenen letzten Schuss — deine eigenen Schüsse zielen also für sie. Ihre Raketen fliegen langsamer als eine Kanonenkugel, also lädt sie später nach.",
+  "tower.fortifiedWhat": "Mauer, die kein Schuss abträgt: dein Ring darf durch ihn laufen. Feuert wie eine Kanone.",
+  "tower.fortifiedTwoWhat": "Mauer, die kein Schuss abträgt: dein Ring darf durch ihn laufen. Feuert wie eine Kanone. Zwei Geschütze.",
   "tower.cost": {
     "one": "{n} Kanone",
     "other": "{n} Kanonen"

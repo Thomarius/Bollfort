@@ -49,6 +49,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { gunSpan } from './fortified.js';
 
 interface Impact {
   x: number;
@@ -277,10 +278,14 @@ export class FlatTheme implements Theme {
 
   /** A gun as a square with its bore: the style has no base under it, so it is the gun. */
   private drawCannon(g: Graphics, view: ViewTransform, cannon: Cannon, inset: number): void {
-    const x = tileX(view, cannon.x);
-    const y = tileY(view, cannon.y);
-    const w = cannon.w * view.tile;
-    const h = cannon.h * view.tile;
+    // The square with its bore is the gun, so full size wherever it stands (`gunSpan`): over a
+    // Fortified Tower's smaller footprint it covers most of the tower's wall.
+    const across = Math.max(gunSpan(cannon), cannon.w);
+    const down = Math.max(gunSpan(cannon), cannon.h);
+    const x = tileX(view, cannon.x + (cannon.w - across) / 2);
+    const y = tileY(view, cannon.y + (cannon.h - down) / 2);
+    const w = across * view.tile;
+    const h = down * view.tile;
     g.rect(x + inset, y + inset, w - inset * 2, h - inset * 2);
     g.fill({ color: playerColour(this.art, cannon.owner, 'dark') });
 

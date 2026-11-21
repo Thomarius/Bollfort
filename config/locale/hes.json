@@ -670,6 +670,7 @@
   "tower.lullaby": "Schlafturm",
   "tower.subwoofer": "Subwoofer",
   "tower.drone": "Drohneturm",
+  "tower.fortified": "Wehrtorm",
   "tower.berthaWhat": "Reißt e Kreuz aus fünf Mauerblöck raus unn feuert zuerst, sobald se parat is. Ihr Granat fliegt so schnell wie e Kanonekugel.",
   "tower.berthaFastWhat": "Reißt e Kreuz aus fünf Mauerblöck raus unn feuert zuerst, sobald se parat is. Ihr Granat fliegt schneller wie e Kanonekugel, also lädt se früher nach.",
   "tower.berthaSlowWhat": "Reißt e Kreuz aus fünf Mauerblöck raus unn feuert zuerst, sobald se parat is. Ihr Granat fliegt langsamer wie e Kanonekugel, also lädt se später nach.",
@@ -691,6 +692,8 @@
   "tower.subwooferSlowWhat": "Schickt e {w} Blöck breit Well in Richtung vum aageklickte Feld bis zum Karterand; jed vun ihre {w} Bahne reißt de erste Mauerblock weg, den se erreischt, egal wie weit — feuert zuerst, sobald er parat is. Er lädt langsamer nach wie e Kanon.",
   "tower.droneWhat": "E Drohn mit {n} Rakete, die vun selbst feuert, nie per Klick, uff en zufällische Mauerblock bis {r} Blöck um dein eigene letzte Schuss — dei eigene Schüss ziele also für die.",
   "tower.droneSlowWhat": "E Drohn mit {n} Rakete, die vun selbst feuert, nie per Klick, uff en zufällische Mauerblock bis {r} Blöck um dein eigene letzte Schuss — dei eigene Schüss ziele also für die. Ihr Rakete fliege langsamer wie e Kanonekugel, also lädt se später nach.",
+  "tower.fortifiedWhat": "Mauer, die kaan Schuss abträscht: dein Ring derf dorch en dorch laafe. Feuert wie e Kanon.",
+  "tower.fortifiedTwoWhat": "Mauer, die kaan Schuss abträscht: dein Ring derf dorch en dorch laafe. Feuert wie e Kanon. Zwaa Kanone.",
   "tower.cost": {
     "one": "{n} Kanon",
     "other": "{n} Kanone"
