@@ -49,7 +49,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
-import { gunSpan } from './fortified.js';
+import { gunSpan, towerUnder } from './fortified.js';
 
 interface Impact {
   x: number;
@@ -273,15 +273,64 @@ export class FlatTheme implements Theme {
       g.fill({ color: playerColour(this.art, owner, 'dark') });
     }
 
+    // A Fortified Tower's battlements under its guns, once a tower however many guns it has.
+    const towers = new Set<Readonly<{ x: number; y: number; w: number; h: number }>>();
+    for (const cannon of state.cannons) {
+      const tower = towerUnder(cannon);
+      if (tower === null || towers.has(tower)) continue;
+      towers.add(tower);
+      this.drawBattlements(g, view, tower, cannon.owner, inset);
+    }
     for (const cannon of state.cannons) this.drawCannon(g, view, cannon, inset);
+  }
+
+  /**
+   * A Fortified Tower seen from above, as plain as the style: one block in the owner's wall colour,
+   * its rim battlements — merlons in the wall's colour, the crenels between them a shade darker,
+   * a merlon at every corner — and its gun smaller inside them (`drawCannon`). Its gun had covered
+   * the 2x2 whole, which looked an ordinary cannon (the users' feedback, 2026-11-21).
+   */
+  private drawBattlements(
+    g: Graphics,
+    view: ViewTransform,
+    tower: Readonly<{ x: number; y: number; w: number; h: number }>,
+    owner: number,
+    inset: number,
+  ): void {
+    const x = tileX(view, tower.x) + inset;
+    const y = tileY(view, tower.y) + inset;
+    const w = tower.w * view.tile - inset * 2;
+    const h = tower.h * view.tile - inset * 2;
+    g.rect(x, y, w, h);
+    g.fill({ color: playerColour(this.art, owner, 'light') });
+    const rim = Math.max(2, this.style.fortifiedRim * view.tile);
+    // An odd number of parts along each side, so it begins and ends on a merlon.
+    const parts = (length: number): number => {
+      const n = Math.max(3, Math.round(length / (rim * 1.4)));
+      return n % 2 === 0 ? n + 1 : n;
+    };
+    const across = parts(w);
+    const down = parts(h);
+    for (let k = 1; k < across; k += 2) {
+      const at = x + (k * w) / across;
+      g.rect(at, y, w / across, rim);
+      g.rect(at, y + h - rim, w / across, rim);
+    }
+    for (let k = 1; k < down; k += 2) {
+      const at = y + (k * h) / down;
+      g.rect(x, at, rim, h / down);
+      g.rect(x + w - rim, at, rim, h / down);
+    }
+    g.fill({ color: playerColour(this.art, owner, 'base') });
   }
 
   /** A gun as a square with its bore: the style has no base under it, so it is the gun. */
   private drawCannon(g: Graphics, view: ViewTransform, cannon: Cannon, inset: number): void {
-    // The square with its bore is the gun, so full size wherever it stands (`gunSpan`): over a
-    // Fortified Tower's smaller footprint it covers most of the tower's wall.
-    const across = Math.max(gunSpan(cannon), cannon.w);
-    const down = Math.max(gunSpan(cannon), cannon.h);
+    // The square with its bore is the gun, so full size wherever it stands (`gunSpan`) — but on a
+    // Fortified Tower smaller, inside its battlements (`drawBattlements`).
+    const span = towerUnder(cannon) === null ? gunSpan(cannon) : this.style.fortifiedGunSpan;
+    const across = Math.max(span, cannon.w);
+    const down = Math.max(span, cannon.h);
     const x = tileX(view, cannon.x + (cannon.w - across) / 2);
     const y = tileY(view, cannon.y + (cannon.h - down) / 2);
     const w = across * view.tile;

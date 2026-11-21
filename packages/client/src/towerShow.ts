@@ -6,6 +6,7 @@ import {
   fire,
   inFlight,
   launchDrones,
+  placeCannon,
   repairWalls,
   resolveImpacts,
   stateFromAscii,
@@ -99,6 +100,13 @@ const GLYPH: Record<TowerVariant, string> = {
 const AIM_MS = 700;
 const AFTER_MS = 1400;
 const REPAIR_MS = 600;
+/**
+ * A Fortified Tower's placing, as the loop opens: the ring whole, then the tower's square held over
+ * its wall from `GHOST_MS`, and set down on it at `PLACE_MS` — the only tower placed on walls, which
+ * the show is to make plain (the users' feedback, 2026-11-21).
+ */
+const GHOST_MS = 500;
+const PLACE_MS = 1700;
 
 /** The board for a variant: both rings sealed, every gun active, towers played. */
 export function showState(variant: TowerVariant | null): MatchState {
@@ -106,9 +114,8 @@ export function showState(variant: TowerVariant | null): MatchState {
   // No click fires a Drone Tower: a cannon of the chooser's beside it, between it and the castle,
   // fires the shot that aims it.
   if (variant !== null && variantKind(variant) === 'drone') art = art.replaceAll('@@,,', '@@**');
-  // A Fortified Tower stands in its ring, its east side the wall: a 2x2 over the east wall's
-  // middle, a 3x3 reaching a column further in, a block above and below.
-  if (variant !== null && variantKind(variant) === 'fortified') art = fortifiedArt(variant);
+  // A Fortified Tower is placed as the loop opens (`fortifiedSpot`): the ring whole until then.
+  if (variant !== null && variantKind(variant) === 'fortified') art = BOARD.replaceAll('XX', ',,');
   const islands = art
     .split('\n')
     .map((row) =>
@@ -139,19 +146,14 @@ function state0Barrels(variant: TowerVariant): number {
   return config?.barrels ?? 1;
 }
 
-/** The board with the chooser's Fortified Tower set into its east wall. */
-function fortifiedArt(variant: TowerVariant): string {
-  const rows = BOARD.replaceAll('XX', ',,').split('\n');
-  const glyph = GLYPH[variant];
+/**
+ * Where the chooser's Fortified Tower is set into its ring, its top left: over the east wall
+ * (column 10), its east side the wall — a 2x2 over the wall's middle, a 3x3 reaching a column
+ * further in, from a row higher.
+ */
+export function fortifiedSpot(variant: TowerVariant): { x: number; y: number; size: number } {
   const size = variantCost(variant) === 3 ? 3 : 2;
-  const top = size === 3 ? 3 : 4;
-  for (let y = top; y < top + size; y++) {
-    const row = rows[y + 1] as string;
-    const indent = row.length - row.trimStart().length;
-    const at = indent + 11 - size;
-    rows[y + 1] = row.slice(0, at) + glyph.repeat(size) + row.slice(at + size);
-  }
-  return rows.join('\n');
+  return { x: 11 - size, y: size === 3 ? 3 : 4, size };
 }
 
 /**
@@ -194,6 +196,8 @@ export class TowerShow {
    * anchor the cannon beside it sets with its shot, and is stopped after one volley.
    */
   private dronesLeft = 0;
+  /** When this loop's Fortified Tower is set down; null once it stands, or for any other tower. */
+  private placeAt: number | null = null;
 
   constructor(readonly variant: TowerVariant | null) {
     this.state = showState(variant);
@@ -218,13 +222,15 @@ export class TowerShow {
         this.dronesLeft -= state.nextShotId - before;
       }
     }
+    if (this.placeAt !== null && this.ms >= this.placeAt) this.place();
     // A gun fires once it is loaded: a plan waits on its barrel, as a click would.
     while (this.plan.length > 0 && this.ms >= (this.plan[0] as Planned).at) {
       const next = this.plan[0] as Planned;
       if ('rejection' in fire(state, next.player, next.x, next.y)) break;
       this.plan.shift();
     }
-    const quiet = this.plan.length === 0 && this.dronesLeft <= 0 && !inFlight(state);
+    const quiet =
+      this.placeAt === null && this.plan.length === 0 && this.dronesLeft <= 0 && !inFlight(state);
     if (quiet && this.repairAt === null && this.doneAt === null) {
       if (this.isArchitect()) this.repairAt = this.ms + REPAIR_MS;
       else this.doneAt = this.ms;
@@ -242,6 +248,35 @@ export class TowerShow {
     return { events: drainEvents(state), reset };
   }
 
+  /**
+   * The Fortified Tower held over the wall before it is set down, its top left and size; null at
+   * any other moment, and for any other tower.
+   */
+  get placing(): { x: number; y: number; size: number } | null {
+    const variant = this.variant;
+    if (this.placeAt === null || this.ms < GHOST_MS || variant === null) return null;
+    return fortifiedSpot(variant);
+  }
+
+  /**
+   * The Fortified Tower set down over the wall by the rules' own `placeCannon`, in a cannon phase
+   * of its own, which then gives way to combat.
+   */
+  private place(): void {
+    const state = this.state;
+    const variant = this.variant as TowerVariant;
+    const spot = fortifiedSpot(variant);
+    const chooser = state.players[0]!;
+    chooser.openingPlacement = false;
+    chooser.specialsBought = 0;
+    chooser.cannonsToPlace = variantCost(variant);
+    const placed = placeCannon(state, 0, spot.x, spot.y, true);
+    if ('rejection' in placed) throw new Error(`Fortified Tower refused: ${placed.rejection}`);
+    chooser.cannonsToPlace = 0;
+    state.phase = 'combat';
+    this.placeAt = null;
+  }
+
   /** How far into its tick the show is, 0 to 1, for the waves to glide between ticks. */
   get tickFraction(): number {
     return this.ticks - Math.floor(this.ticks);
@@ -256,6 +291,7 @@ export class TowerShow {
     this.ms = 0;
     this.doneAt = null;
     this.repairAt = null;
+    this.placeAt = null;
     const variant = this.variant;
     if (variant !== null && variantKind(variant) === 'architect') {
       this.plan = ON_ARCHITECT.map((t) => ({ player: 1, ...t, at: AIM_MS }));
@@ -267,10 +303,14 @@ export class TowerShow {
     } else if (variant !== null && variantKind(variant) === 'fortified') {
       // Its guns fire at the rival's wall — the 3x3's two together — and the rival's shots at it
       // land and clear nothing.
+      // First it is held over the wall in a cannon phase, as a person places it, then set down
+      // there (`place`).
       const guns = state0Barrels(variant);
+      this.state.phase = 'cannon_place';
+      this.placeAt = PLACE_MS;
       this.plan = [
-        ...FACING.slice(0, guns).map((t) => ({ player: 0, ...t, at: AIM_MS })),
-        ...ON_FORTIFIED.map((t) => ({ player: 1, ...t, at: AIM_MS + 200 })),
+        ...FACING.slice(0, guns).map((t) => ({ player: 0, ...t, at: PLACE_MS + AIM_MS })),
+        ...ON_FORTIFIED.map((t) => ({ player: 1, ...t, at: PLACE_MS + AIM_MS + 200 })),
       ];
     } else if (variant !== null && variantKind(variant) === 'laser') {
       this.plan = [{ player: 0, ...ALONG_TOP, at: AIM_MS }];
@@ -288,6 +328,11 @@ export class TowerShow {
     const state = this.state;
     state.structure.set(this.structure);
     state.owner.set(this.owner);
+    // The Fortified Tower lifted, to be set down again; the ground under it sealed as before.
+    if (state.cannons.some((c) => c.kind === 'fortified')) {
+      state.cannons = state.cannons.filter((c) => c.kind !== 'fortified');
+      applyEnclosure(state);
+    }
     state.shots = [];
     state.waves = [];
     state.lostWalls = [];

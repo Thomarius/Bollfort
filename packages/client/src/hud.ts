@@ -61,6 +61,48 @@ const NO_AVATARS: ReadonlyMap<number, string> = new Map();
 /** How long a ranking's entries take to come in before their scores start counting. */
 const RANK_COUNT_DELAY_MS = 450;
 
+/**
+ * A phase's banner, as `Hud.announce` shows it and the style preview too (`styleShowcase.ts`): the
+ * call, or `title` in its place, in the style's own banner — the look it brings, since the banner
+ * is where the look changes — with the style's words under it and any `lines`. Null for a phase
+ * with no call.
+ */
+export function phaseBanner(
+  phase: Phase,
+  style: ArtStyle,
+  lines: readonly AnnouncementLine[] = [],
+  title: string | null = null,
+  card = '',
+): HTMLElement | null {
+  const call = PHASE_CALL[phase];
+  const text = title ?? (call === null ? '' : t(call));
+  if (text === '') return null;
+  const banner = document.createElement('div');
+  // The phase banner each style draws, a class of `.phase-call`.
+  const look = styleDefinition(style);
+  banner.className = `phase-call ${look.banner}${title === null ? '' : ' titled'}`;
+  banner.textContent = text;
+  if (card !== '') {
+    banner.classList.add('carded');
+    banner.insertAdjacentHTML('afterbegin', card);
+  }
+  // A style's own words under the phase's call, where it has them (ARCHIVE 14d, 14q).
+  const flavour = look.flavour?.[title === null ? phase : 'final'];
+  if (flavour !== undefined) {
+    const small = document.createElement('small');
+    small.className = 'flavour';
+    small.textContent = t(flavour);
+    banner.append(small);
+  }
+  for (const line of lines) {
+    const small = document.createElement('small');
+    small.textContent = line.text;
+    if (line.emphasis) small.className = 'news';
+    banner.append(small);
+  }
+  return banner;
+}
+
 export class Hud {
   /** What stands over the board: the marker, team tags, big timer, count and banners. */
   readonly labels: BoardLabels;
@@ -182,33 +224,8 @@ export class Hud {
     card = '',
   ): void {
     this.clearAnnouncement();
-    const call = PHASE_CALL[phase];
-    const text = title ?? (call === null ? '' : t(call));
-    if (text === '') return;
-    const banner = document.createElement('div');
-    // The phase banner each style draws, a class of `.phase-call`; the banner is where the
-    // look changes, so it takes the look it brings — the arriving one.
-    const look = styleDefinition(style);
-    banner.className = `phase-call ${look.banner}${title === null ? '' : ' titled'}`;
-    banner.textContent = text;
-    if (card !== '') {
-      banner.classList.add('carded');
-      banner.insertAdjacentHTML('afterbegin', card);
-    }
-    // A style's own words under the phase's call, where it has them (ARCHIVE 14d, 14q).
-    const flavour = look.flavour?.[title === null ? phase : 'final'];
-    if (flavour !== undefined) {
-      const small = document.createElement('small');
-      small.className = 'flavour';
-      small.textContent = t(flavour);
-      banner.append(small);
-    }
-    for (const line of lines) {
-      const small = document.createElement('small');
-      small.textContent = line.text;
-      if (line.emphasis) small.className = 'news';
-      banner.append(small);
-    }
+    const banner = phaseBanner(phase, style, lines, title, card);
+    if (banner === null) return;
     this.ranking = ranks.length === 0 ? null : this.rankingFor(ranks);
     if (this.ranking !== null) banner.append(this.ranking.node);
     // Replace only the last announcement. This layer also holds everything else drawn

@@ -7,6 +7,7 @@ import { openCredits } from './credits.js';
 import { openOptions } from './options.js';
 import { gameHost } from './host.js';
 import { lookName, lookPicture, LookRotation, openLookGallery, type LookChoices } from './looks.js';
+import { openStyleShowcase } from './styleShowcase.js';
 import { escape } from './html.js';
 import { parseRoomList } from './browser.js';
 import { openFindGames } from './findGames.js';
@@ -338,6 +339,8 @@ export function showMenu(notice: string | null = null, findGame = false): void {
         active: look,
         onChange: choose,
         click: () => audio.play('select'),
+        preview: (style, choices) =>
+          openStyleShowcase({ style, choices, music: audio, click: () => audio.play('select') }),
       });
     });
   }

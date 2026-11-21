@@ -565,10 +565,17 @@ it goes into a release.
   reloads apart. **Every gun is drawn full size** (the user's, after `?fortified=preview`: the
   styles that drew them so looked best): its plate at the 1×1 footprint, so the wall shows round
   it, the gun itself at an ordinary cannon's span (`gunSpan`), the 3×3's two overlapping a little.
-  Minimal's gun is its square, so there it covers most of the tower. Its shot sounds as a
-  cannon's. The tower menu's eleventh card stands alone in a third row, centred, for now; its
-  preview sets it into the chooser's ring, fires its guns — the 3×3's two together — and has the
-  rival's shots land on it for nothing. How to play's tower round takes it in.
+  Minimal's gun is its square, which had covered the 2×2 whole and looked an ordinary cannon (the
+  users' feedback, 2026-11-21): there the tower is drawn with **battlements** round its rim,
+  merlons in the wall's colour and crenels a shade darker, its gun smaller inside them
+  (`flat.fortifiedRim` 0.28, `flat.fortifiedGunSpan` 1.3 tiles; the display tells a style which
+  tower a gun stands on, `towerUnder`). Its shot sounds as a cannon's. The tower menu's eleventh
+  card stands alone in a third row, centred, for now; its preview opens on the ring whole, holds
+  the tower's square over its wall, **sets it down on the wall** by the rules' own `placeCannon`
+  (the users': the only tower placed on walls, to be seen), then fires its guns — the 3×3's two
+  together — and has the rival's shots land on it for nothing. Its text, the same (2026-11-21):
+  "Indestructible wall that fires as a cannon. The only tower you can place on walls: set it into
+  your ring." How to play's tower round takes it in.
 
 ## 3. Where it lives
 

@@ -1338,6 +1338,8 @@
     "outlineWidthPx": 2,
     "castleCoreScale": 0.45,
     "cannonBoreScale": 0.34,
+    "fortifiedRim": 0.28,
+    "fortifiedGunSpan": 1.3,
     "crumbleMs": 450,
     "boatEveryMs": 22000,
     "boatTilesPerSecond": 0.5,

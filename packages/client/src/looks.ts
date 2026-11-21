@@ -3,6 +3,7 @@ import type { ArtLook, ArtStyle, ArtStyles } from '@bollfort/config';
 import { LivePreview } from './galleryLive.js';
 import { t } from './i18n.js';
 import { escape } from './html.js';
+import { ICONS } from './icons.js';
 import { store, stored } from './storage.js';
 import { stylePreview } from './stylePreview.js';
 import { STYLE_IDS, isStyle, styleDefinition, styleServes, stylesFor } from './styles/registry.js';
@@ -223,6 +224,7 @@ export function galleryMarkup(
   active: ArtLook,
   favourites: readonly ArtStyle[] = [],
   dlc: (choice: LookChoice) => boolean = supporterStyle,
+  previews = false,
 ): string {
   const tab = (look: ArtLook, label: string): string =>
     `<button class="tab${look === active ? ' active' : ''}" data-look="${look}">` +
@@ -247,11 +249,17 @@ export function galleryMarkup(
           : `<span class="heart${on ? ' on' : ''}" role="checkbox" aria-checked="${on}" tabindex="0" data-tip="${escape(t('looks.favourite'))}">${heart(on)}</span>`;
       // A supporter style's tag, under the heart, in the corner opposite the badges.
       const tag = dlc(choice) ? `<i class="dlc">${t('looks.dlc')}</i>` : '';
+      // The style shown large and in play (`styleShowcase.ts`), from the picture's lower corner;
+      // clicking it does not choose, as the heart does not.
+      const zoom =
+        previews && choice !== RANDOM
+          ? `<span class="zoom" role="button" tabindex="0" aria-label="${escape(t('looks.preview'))}" data-tip="${escape(t('looks.preview'))}" data-tip-side="left">${ICONS.search}</span>`
+          : '';
       return (
         // The chosen one is where a controller's focus starts (`padMenus.ts`).
         `<button class="card${chosen}" data-choice="${choice}"${hint}${chosen === '' ? '' : ' data-main'}>` +
         `<img alt="" data-preview="${choice}" />` +
-        `<span class="name">${escape(lookName(choice))}</span>${badges}${mark}${tag}</button>`
+        `<span class="name">${escape(lookName(choice))}</span>${badges}${mark}${tag}${zoom}</button>`
       );
     })
     .join('');
@@ -280,6 +288,8 @@ export interface GalleryOptions {
   /** Closed, by Done or a click outside the panel. */
   onClose?(choices: LookChoices): void;
   click?(): void;
+  /** A style shown large, by the magnifier on its card; no magnifiers without it. */
+  preview?(style: ArtStyle, choices: LookChoices): void;
 }
 
 /**
@@ -337,7 +347,13 @@ export function openLookGallery(options: GalleryOptions): void {
   };
   const render = (): void => {
     const fresh = document.createElement('template');
-    fresh.innerHTML = galleryMarkup(choices, active, favourites);
+    fresh.innerHTML = galleryMarkup(
+      choices,
+      active,
+      favourites,
+      supporterStyle,
+      options.preview !== undefined,
+    );
     const cards = root.querySelector<HTMLElement>('.cards');
     const tabs = root.querySelector<HTMLElement>('.tabs');
     if (cards === null || tabs === null) {
@@ -404,6 +420,15 @@ export function openLookGallery(options: GalleryOptions): void {
       click();
       active = tab.dataset.look === 'combat' ? 'combat' : 'build';
       render();
+      return;
+    }
+    // So is the magnifier: the style shown large, the gallery left as it is under it.
+    const zoomed = target.closest<HTMLElement>('.zoom');
+    const shown = zoomed?.closest<HTMLElement>('.card')?.dataset.choice;
+    if (zoomed !== null && isStyle(shown)) {
+      click();
+      live.hide();
+      options.preview?.(shown, { ...choices });
       return;
     }
     // A heart is inside its card, so it is asked first: hearting a style does not choose it.

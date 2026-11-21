@@ -214,6 +214,7 @@
   "looks.build": "Bauen",
   "looks.combat": "Kampf",
   "looks.favourite": "Favorit: Zufall wählt nur aus den Favoriten",
+  "looks.preview": "Vorschau: die Optik groß und im Spiel, mit ihrer Musik",
   "looks.favouritesHint": "Zufall wählt nur aus den Favoriten, oder aus allen Optiken, wenn es keine gibt",
   "looks.heartAll": "Alle",
   "looks.heartNone": "Keine",
@@ -692,8 +693,8 @@
   "tower.subwooferSlowWhat": "Schickt eine {w} Blöcke breite Welle in Richtung des angeklickten Felds bis zum Kartenrand; jede ihrer {w} Bahnen reißt den ersten Mauerblock weg, den sie erreicht, wie weit auch immer — feuert zuerst, sobald er bereit ist. Er lädt langsamer nach als eine Kanone.",
   "tower.droneWhat": "Eine Drohne mit {n} Raketen, die von selbst feuert, nie per Klick, auf einen zufälligen Mauerblock bis {r} Blöcke um deinen eigenen letzten Schuss — deine eigenen Schüsse zielen also für sie.",
   "tower.droneSlowWhat": "Eine Drohne mit {n} Raketen, die von selbst feuert, nie per Klick, auf einen zufälligen Mauerblock bis {r} Blöcke um deinen eigenen letzten Schuss — deine eigenen Schüsse zielen also für sie. Ihre Raketen fliegen langsamer als eine Kanonenkugel, also lädt sie später nach.",
-  "tower.fortifiedWhat": "Mauer, die kein Schuss abträgt: dein Ring darf durch ihn laufen. Feuert wie eine Kanone.",
-  "tower.fortifiedTwoWhat": "Mauer, die kein Schuss abträgt: dein Ring darf durch ihn laufen. Feuert wie eine Kanone. Zwei Geschütze.",
+  "tower.fortifiedWhat": "Unzerstörbare Mauer, die wie eine Kanone feuert. Der einzige Turm, den du auf Mauern setzen kannst: setz ihn in deinen Ring.",
+  "tower.fortifiedTwoWhat": "Unzerstörbare Mauer, die wie eine Kanone feuert. Der einzige Turm, den du auf Mauern setzen kannst: setz ihn in deinen Ring. Zwei Geschütze.",
   "tower.cost": {
     "one": "{n} Kanone",
     "other": "{n} Kanonen"

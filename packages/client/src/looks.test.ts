@@ -208,6 +208,26 @@ describe('the gallery', () => {
     expect(card('random')).not.toContain('class="dlc"');
   });
 
+  it('gives every style its magnifier where the gallery previews, but not random', () => {
+    const card = (html: string, choice: string): string => {
+      const at = html.indexOf(`data-choice="${choice}"`);
+      return html.slice(at, html.indexOf('</button>', at));
+    };
+    const plain = galleryMarkup({ build: 'pixel', combat: 'random' }, 'build');
+    expect(plain).not.toContain('class="zoom"');
+    const html = galleryMarkup(
+      { build: 'pixel', combat: 'random' },
+      'build',
+      [],
+      () => false,
+      true,
+    );
+    for (const style of stylesFor('build')) {
+      expect(card(html, style)).toContain('class="zoom" role="button" tabindex="0"');
+    }
+    expect(card(html, 'random')).not.toContain('class="zoom"');
+  });
+
   it('badges one card twice when both looks are the same style', () => {
     const html = galleryMarkup({ build: 'random', combat: 'random' }, 'build');
     const card = html.slice(html.indexOf('data-choice="random"'), html.indexOf('class="done"'));

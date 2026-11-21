@@ -25,6 +25,7 @@ import { ConnectionNotice, noticeFor } from './connectionNotice.js';
 import { WatchingStrip } from './watching.js';
 import { onGraphics, storedGraphics } from './graphics.js';
 import { LookRotation, openLookGallery } from './looks.js';
+import { openStyleShowcase } from './styleShowcase.js';
 import { t } from './i18n.js';
 import { Hud } from './hud.js';
 import type { IslandBanner } from './boardLabels.js';
@@ -465,6 +466,13 @@ export async function runSession(
             choices: { ...lookChoices },
             active: 'build',
             click: () => audio.play('select'),
+            preview: (style, choices) =>
+              openStyleShowcase({
+                style,
+                choices,
+                music: audio,
+                click: () => audio.play('select'),
+              }),
             onChange: () => undefined,
             onClose: (chosen) => {
               if (chosen.build === lookChoices.build && chosen.combat === lookChoices.combat)

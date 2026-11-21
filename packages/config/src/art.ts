@@ -80,6 +80,13 @@ export const FlatStyleSchema = z.strictObject({
   castleCoreScale: z.number().min(0).max(1),
   /** Bore of a cannon, as a fraction of its footprint. */
   cannonBoreScale: z.number().min(0).max(1),
+  /**
+   * A Fortified Tower's battlements, their depth in tiles, and the gun on it, its side in tiles:
+   * smaller than an ordinary gun's 2, so the battlements show round it (the users' feedback,
+   * 2026-11-21: the 2x2's gun had covered it, and it looked an ordinary cannon).
+   */
+  fortifiedRim: z.number().positive(),
+  fortifiedGunSpan: z.number().positive(),
   /** How long a swept wall block takes to fade as the banner passes over it. */
   crumbleMs: z.number().int().positive(),
   /** A plain boat crossing the outer ocean now and then (`render/ocean.ts`), one at a time. */

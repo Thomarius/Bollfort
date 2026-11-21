@@ -214,6 +214,7 @@
   "looks.build": "Baue",
   "looks.combat": "Kloppe",
   "looks.favourite": "Liebling: Zufall nimmt nur aus de Lieblinge",
+  "looks.preview": "Vorschau: die Optik groß unn beim Spiele, mit ihrer Musik",
   "looks.favouritesHint": "Zufall nimmt nur aus de Lieblinge, odder aus alle Optike, wann's kaa gibt",
   "looks.heartAll": "All",
   "looks.heartNone": "Kaa",
@@ -692,8 +693,8 @@
   "tower.subwooferSlowWhat": "Schickt e {w} Blöck breit Well in Richtung vum aageklickte Feld bis zum Karterand; jed vun ihre {w} Bahne reißt de erste Mauerblock weg, den se erreischt, egal wie weit — feuert zuerst, sobald er parat is. Er lädt langsamer nach wie e Kanon.",
   "tower.droneWhat": "E Drohn mit {n} Rakete, die vun selbst feuert, nie per Klick, uff en zufällische Mauerblock bis {r} Blöck um dein eigene letzte Schuss — dei eigene Schüss ziele also für die.",
   "tower.droneSlowWhat": "E Drohn mit {n} Rakete, die vun selbst feuert, nie per Klick, uff en zufällische Mauerblock bis {r} Blöck um dein eigene letzte Schuss — dei eigene Schüss ziele also für die. Ihr Rakete fliege langsamer wie e Kanonekugel, also lädt se später nach.",
-  "tower.fortifiedWhat": "Mauer, die kaan Schuss abträscht: dein Ring derf dorch en dorch laafe. Feuert wie e Kanon.",
-  "tower.fortifiedTwoWhat": "Mauer, die kaan Schuss abträscht: dein Ring derf dorch en dorch laafe. Feuert wie e Kanon. Zwaa Kanone.",
+  "tower.fortifiedWhat": "Unkaputtbar Mauer, die wie e Kanon feuert. De einzische Torm, den de uff Mauern setze kannst: setz en in dein Ring.",
+  "tower.fortifiedTwoWhat": "Unkaputtbar Mauer, die wie e Kanon feuert. De einzische Torm, den de uff Mauern setze kannst: setz en in dein Ring. Zwaa Kanone.",
   "tower.cost": {
     "one": "{n} Kanon",
     "other": "{n} Kanone"

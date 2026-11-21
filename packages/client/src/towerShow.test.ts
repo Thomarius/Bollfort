@@ -54,6 +54,43 @@ describe('the tower menu’s preview, played by the rules', () => {
     }
   });
 
+  it('sets a Fortified Tower down over the ring’s wall, which then stands its hits', () => {
+    for (const variant of ['fortified2', 'fortified3'] as const) {
+      const show = new TowerShow(variant);
+      const { state } = show;
+      const wallAt = (x: number, y: number): number | undefined =>
+        state.structure[y * state.width + x];
+      // The ring whole and no tower, then the tower held over it, then set down on its wall.
+      expect(wallAt(10, 4)).toBe(Structure.Wall);
+      expect(state.cannons.some((c) => c.kind === 'fortified')).toBe(false);
+      expect(show.placing).toBeNull();
+      const events: MatchEvent[] = [];
+      let held = false;
+      for (let t = 0; t < 6000; t += 1000 / 60) {
+        events.push(...show.advance(1000 / 60).events);
+        held ||= show.placing !== null;
+      }
+      expect(held).toBe(true);
+      const placed = events.find((e) => e.kind === 'cannon_placed');
+      expect(placed?.kind === 'cannon_placed' && placed.cannonKind).toBe('fortified');
+      expect(wallAt(10, 4)).toBe(Structure.Stone);
+      // The rival's shots at it land and clear nothing.
+      const onIt = impacts(events).filter((e) => e.kind === 'shot_impact' && e.x === 10);
+      expect(onIt.length).toBeGreaterThan(0);
+      for (const hit of onIt) expect(hit.kind === 'shot_impact' && hit.destroyed).toEqual([]);
+    }
+  });
+
+  it('lifts the Fortified Tower again for the next loop, the wall back under it', () => {
+    const show = new TowerShow('fortified2');
+    let reset = false;
+    for (let t = 0; t < 20_000 && !reset; t += 1000 / 60) reset = show.advance(1000 / 60).reset;
+    expect(reset).toBe(true);
+    const { state } = show;
+    expect(state.cannons.some((c) => c.kind === 'fortified')).toBe(false);
+    expect(state.structure[4 * state.width + 10]).toBe(Structure.Wall);
+  });
+
   it('rebuilds what the Architect reaches, wider at cost 3, and not the far corner', () => {
     const rebuilt = (variant: TowerVariant): number[] => {
       const { events } = play(variant, 9000);

@@ -12770,3 +12770,34 @@ still holds the phase for the same ticks, and the wipe, the sweep and the drains
 banner, so they keep its pace. This tempers 10's "constant speed, no dwell": it still never
 stops. Looked at in all 34 styles' banners: no style sets the line's size but Manuscript, and
 every one reads in its own colours.
+
+## 16y. A style shown large, in play; the Fortified Tower explained and told apart (2026-11-21)
+
+The users' feedback of 2026-11-21, its questions asked before building.
+
+**The style preview.** A magnifier on every style's card in the gallery (`.zoom`, not on Random;
+a click does not choose, as the heart does not) opens the style large over the gallery
+(`styleShowcase.ts`), from the menu and the pause menu alike. Of a short bot match looping, staged
+scenes, or the hover's island enlarged, the users chose **staged scenes**, and of four, two:
+**the barrage and the "Rebuild" banner**, and **building and sealing**; the board, its banners and
+its corner piece, no score bar nor timer; **the style's music** in place of what was playing,
+which comes back on closing (the three styles without a track leave it be), and no sounds.
+`styleShow.ts` plays them with no drawing: a real two-player map (seed 5, the stills' clear noon),
+each player's castle nearest the middle chosen and three guns placed nearest the rival by the
+rules' own actions, then a loop of about 17 s — each fires three at the middle of the other's
+facing wall and one into the channel (`fire`, `resolveImpacts`); the banner crosses as the game's
+does, eased; the breaches are laid again in pieces of one or two, the first player's each held as
+the piece in hand first; both sealed, a fade, and the board as it first stood. The drawing is the
+match screen's own: a `Scene` in the style's two looks, `BoardEffects` for the ground draining
+under the banner and flooding back as each castle seals, the banner from `phaseBanner` (taken out
+of `Hud.announce` for it). A style made for one look shows the gallery's choice in the other
+(`looksFor`), though every style now serves both. Looked at in Medieval, Cyberpunk, Egypt, Anime
+and the Wild West: no page error. A clock that began at tick 0 on a board set up to tick 450 held
+the barrage's shots in the air for 15 s; the test now asks the banner within 7.
+
+**The Fortified Tower** (docs/SPECIAL_TOWERS.md §2.11): its text says it plainly, "Indestructible
+wall that fires as a cannon. The only tower you can place on walls: set it into your ring."
+(German and Hessian alike); the tower menu's preview opens on the ring whole, holds the tower's
+square over the wall and sets it down there by `placeCannon`, then fires; and Minimal draws it
+with battlements round a smaller gun, where its gun had covered the 2×2 whole and looked an
+ordinary cannon.

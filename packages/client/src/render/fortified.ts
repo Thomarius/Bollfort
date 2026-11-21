@@ -18,6 +18,19 @@ import { barrelsOf, Structure, type Cannon, type MatchState, type Shot } from '@
  */
 const GUN = 1;
 
+/**
+ * The tower each display gun stands on, its footprint: a style that draws the tower round its guns
+ * asks (`towerUnder`). Keyed by the display gun, made afresh with each board.
+ */
+const TOWER_OF = new WeakMap<Cannon, Readonly<{ x: number; y: number; w: number; h: number }>>();
+
+/** The Fortified Tower this gun stands on, its footprint; null for any other gun. */
+export function towerUnder(
+  gun: Cannon,
+): Readonly<{ x: number; y: number; w: number; h: number }> | null {
+  return TOWER_OF.get(gun) ?? null;
+}
+
 /** A display gun's id, never a real gun's (ids count up from 0) nor an icon's (-1). */
 function gunId(tower: Cannon, index: number): number {
   return index === 0 ? tower.id : -1000 - tower.id * 8 - index;
@@ -69,6 +82,7 @@ export class FortifiedDisplay {
       }
       const guns = barrelsOf(cannon);
       const spots = gunSpots(cannon, guns);
+      const footprint = { x: cannon.x, y: cannon.y, w: cannon.w, h: cannon.h };
       const held: number[][] = spots.map(() => []);
       for (const shotId of cannon.shotIds) {
         const k = this.assign(cannon, shotId, guns);
@@ -78,7 +92,7 @@ export class FortifiedDisplay {
       }
       spots.forEach((at, k) => {
         const { barrels: _barrels, ...rest } = cannon;
-        cannons.push({
+        const gun: Cannon = {
           ...rest,
           id: gunId(cannon, k),
           kind: 'cannon',
@@ -88,7 +102,9 @@ export class FortifiedDisplay {
           w: GUN,
           h: GUN,
           shotIds: held[k] as number[],
-        });
+        };
+        TOWER_OF.set(gun, footprint);
+        cannons.push(gun);
       });
     }
     const shots = state.shots.map((shot) => {

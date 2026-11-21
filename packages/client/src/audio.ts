@@ -356,6 +356,11 @@ export class Audio {
    * so the right track is running the moment it can rather than whatever the next phase
    * change happens to ask for.
    */
+  /** The track playing, or asked for before the music could start; null for none. */
+  get musicCue(): MusicTrack | null {
+    return this.pendingMusic;
+  }
+
   music(cue: MusicTrack | null): void {
     this.pendingMusic = cue;
     const ctx = this.ctx;

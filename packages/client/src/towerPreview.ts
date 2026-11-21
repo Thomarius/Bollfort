@@ -9,6 +9,7 @@ import { styleArt } from './styles/registry.js';
 import {
   computeEnclosure,
   craterTilesOf,
+  footprintOf,
   inFlight,
   strikesOnFiring,
   type MatchEvent,
@@ -138,6 +139,8 @@ export class TowerPreview {
     const state = this.show?.state;
     if (scene === null || state === undefined) return;
     let changed = reset;
+    // A Fortified Tower set down or lifted again: its tiles ground or wall.
+    let territory = reset;
     for (const event of events) {
       switch (event.kind) {
         case 'shot_fired':
@@ -181,6 +184,18 @@ export class TowerPreview {
           changed ||= event.destroyed.length > 0;
           break;
         }
+        case 'cannon_placed': {
+          // The Fortified Tower set down over the wall, as a match sets a gun down.
+          const [w, h] = footprintOf(state.ruleset, event.cannonKind, event.cannonCost);
+          const cells: { x: number; y: number }[] = [];
+          for (let dy = 0; dy < h; dy++) {
+            for (let dx = 0; dx < w; dx++) cells.push({ x: event.x + dx, y: event.y + dy });
+          }
+          scene.noteLanding(cells, event.player);
+          territory = true;
+          changed = true;
+          break;
+        }
         case 'tile_frozen':
           scene.noteFrost(event.tile % state.width, Math.floor(event.tile / state.width));
           break;
@@ -200,6 +215,10 @@ export class TowerPreview {
           break;
       }
     }
+    if (territory) {
+      const { territory: tiles } = computeEnclosure(state);
+      scene.drawTerritory(state, { build: tiles, combat: tiles });
+    }
     if (changed) scene.drawStructures(state);
   }
 
@@ -211,6 +230,22 @@ export class TowerPreview {
     const sealed = this.sealed;
     const fraction = this.show?.tickFraction ?? 0;
     scene.drawEffects(state, fraction, deltaMs, { build: sealed, combat: sealed }, [], 0);
+    // A Fortified Tower held over the wall, before it is set down: the cannon phase's square.
+    const placing = this.show?.placing ?? null;
+    scene.drawOverlay(
+      state,
+      {
+        tile: placing === null ? null : { x: placing.x, y: placing.y },
+        cells: [],
+        valid: true,
+        footprint: placing === null ? null : { w: placing.size, h: placing.size },
+        selectable: [],
+        unsealed: [],
+        aiming: false,
+        tower: placing === null ? null : (this.show?.variant ?? null),
+      },
+      0,
+    );
     if (render) scene.render();
   }
 }
