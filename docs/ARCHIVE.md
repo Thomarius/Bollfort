@@ -12873,3 +12873,59 @@ singular and plural alike, which the schema's comment had promised and nothing c
 **Bots and random towers** needed nothing: the bots' draws, a person's never-chosen tower and a
 tournament's fixed towers all draw from `offeredVariants`, which has offered the Fortified Tower
 since it was added. **The store page's** text (docs/STORE_PAGE.md) says ten towers and lists it.
+
+## 16za. A professional finish, GL1: the "real game" pass (2026-11-22, PLAN §11 item 10)
+
+While Valve answers, a review of screenshots of the menu, the lobby, the loading screen, a match
+at two and eight players and the end screen gathered what still makes the game read as a web page
+rather than a game, and what would make it feel alive. Triaged with the user into three packages
+(PLAN §11 item 10): GL1, this one; GL2, animation and liveliness; GL3, two ideas to measure first.
+The ideas declined in earlier reviews were left out of it.
+
+**The menu without text fields.** The first screen had a Name field and a room code's field, which
+made it read as a form. The name is now **asked once**, on a first visit, in a small window over
+the menu — "What should we call you?", the field, Continue (Enter too) — and changed after in
+Options, whose Display tab opened from the menu has it as its first row. Of three places offered —
+Options alone, the lobby's seat card (which online needs a rename message: protocol 38), or asked
+once and then Options — the user chose the last. `shouldAskName` (`namePrompt.ts`) asks nobody
+twice, nobody who typed a name before, never under Steam, and never a browser driven by a script
+(`navigator.webdriver`), since the screenshot, store-art and trailer tools drive the menu in a fresh
+profile; `?askName=1` shows it anyway. The name's storage moved into `playerName.ts`, which loads no
+page, so Options' rows can read it in node tests. **Join by code** moved into Find a game, under the
+list, Enter joining, disabled with the same hover text where no server answers (the Steam bench's
+`joinByCode` opens Find a game first). The menu is one column of ways in — Single match, Find a
+game, the tournaments, How to play and Options, Quit — centred between the title and a **footer**:
+the Credits, moved from under the title where it looked like leftover markup, and the build's
+**version**. `vite.config.ts` stamps it from the release job's `BOLLFORT_VERSION`, or else
+`git describe --tags --always --dirty`; `versionLabel` writes `v0.11.2` for a release and
+`v0.11.2+10 · 1a53b02` between them, `-dirty` kept, so a tester can quote exactly what they ran.
+
+**The browser's tells.** Nothing in the menus is selected by a drag or a double click, and no
+picture dragged off (`user-select`, `-webkit-user-drag`), but what is typed, the Credits and a
+crash's report. The browser's right-click menu (Back, Reload, Inspect) shows nowhere but those
+either; the board's own was already the piece's turn. The name and code fields have no spellcheck
+nor autocomplete. In the desktop app: Ctrl and the wheel no longer zoom the page (a listener in the
+page, Electron only — a browser keeps its zoom), pinching is limited to 1:1, and **packaged** there
+is no application menu, so Alt shows no File / Edit / View bar and with it go the keys for reload,
+the developer tools and zoom; from the repository the menu stays, for the developer tools. The
+game window's **size and place are remembered** — the Steam build's in `steam.json` beside its
+fullscreen (written now by merging, which had replaced the file), the GitHub build's play window in
+a `window.json` of its own so the switches' writing cannot drop it — and restored only while at
+least 120 px of it lies on a screen still connected and it is at least 800 × 500
+(`windowPlace.ts`, tested), else centred at 1400 × 900. Fullscreen by default under Steam, for the
+Deck, was already so (STEAM.md §3.5).
+
+**The corner in a match.** Sound, Full screen and Pause had sat over every look in the menus' dark
+slate with words, which clashed most on Parchment's paper. In a match they are now icons in the
+HUD skin's box, edge and ink, at 45% until the pointer is on the row or a controller's focus on a
+button, their words as hover texts (which the menus, where the words show, leave out) and as
+`aria-label`s. The connection's badge beside them keeps its full strength, since it must be seen
+when it turns red. Looked at in Parchment at eight players, hovered and not.
+
+**The end screen.** The HUD's bar, faded to 30% behind the summary, still read "Game over" and
+showed half-covered scores round the panel: it fades out entirely now, and comes back with Show the
+board, as before.
+
+Looked at in screenshots: the name's window, the menu after it, Find a game with its code row,
+Options with the name, a match's corner in Parchment, the end screen. New texts in all three
+languages (`nameAsk.*`).

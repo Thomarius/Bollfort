@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { loadConfigBundle } from '@bollfort/config/node';
 import { startServer, type RunningServer } from '@bollfort/server';
-import { BrowserWindow, app, ipcMain, shell } from 'electron';
+import { BrowserWindow, Menu, app, ipcMain, screen, shell } from 'electron';
 import type * as Steamworks from 'steamworks.js';
 import type { callback } from 'steamworks.js/client.js';
 
@@ -19,6 +19,7 @@ import {
   type SteamInfo,
 } from './steam.js';
 import { PageLinks, type PageLinkEvent } from './pageLinks.js';
+import { placeOn, readBounds } from './windowPlace.js';
 import { AvatarWatch, steamAvatarSource } from './steamAvatars.js';
 import { SteamLobby, hereAnswer, type AskedLobby, type LobbyKind } from './steamLobby.js';
 import { steamInviteUser, type InviteUser } from './steamInvite.js';
@@ -150,12 +151,18 @@ function readSettings(): unknown {
     return null;
   }
 }
-function saveFullscreen(on: boolean): void {
+/** Writes some of the window's settings, keeping the rest as they were. */
+function saveSettings(changed: Record<string, unknown>): void {
+  const before = readSettings();
+  const kept = typeof before === 'object' && before !== null ? before : {};
   try {
-    writeFileSync(settingsFile(), JSON.stringify({ fullscreen: on }));
+    writeFileSync(settingsFile(), JSON.stringify({ ...kept, ...changed }));
   } catch {
     // Not remembered: it still holds until the app closes.
   }
+}
+function saveFullscreen(on: boolean): void {
+  saveSettings({ fullscreen: on });
 }
 
 async function startOwnServer(steamId: string | null): Promise<RunningServer> {
@@ -194,6 +201,9 @@ async function run(): Promise<void> {
   const quit = (): void => {
     if (quitting) return;
     quitting = true;
+    // The window's size and place, for the next start (GL1); normal bounds, as it was windowed.
+    if (window !== null && !window.isDestroyed())
+      saveSettings({ bounds: window.getNormalBounds() });
     // The guests told the host has left before Steam's links close (STEAM.md §7.3): told
     // nothing, they took it for a dropped network and tried to get back for ten minutes.
     server?.endRooms();
@@ -352,6 +362,9 @@ async function run(): Promise<void> {
   });
 
   await app.whenReady();
+  // No menu bar for Alt to show, and with it none of its keys: reload, the developer tools, the
+  // page's zoom (GL1). From the repository it stays, for the developer tools.
+  if (app.isPackaged) Menu.setApplicationMenu(null);
   log('app ready');
   server = await startOwnServer(steam.steamId);
   log(`server on ${server.port}`);
@@ -426,9 +439,15 @@ async function run(): Promise<void> {
   // The first window made, and the only one: on Windows the overlay draws in the first
   // (STEAM.md §3.3). Fullscreen at the window, not the page's: Esc, the game's pause, would
   // otherwise leave it.
+  // Where the player left it, windowed (PLAN §11 item 10, GL1); fullscreen as before.
+  const place = placeOn(
+    readBounds(readSettings()),
+    screen.getAllDisplays().map((d) => d.workArea),
+  );
   window = new BrowserWindow({
     width: 1400,
     height: 900,
+    ...(place ?? {}),
     fullscreen: full,
     title: 'Bollfort',
     icon,
@@ -450,6 +469,8 @@ async function run(): Promise<void> {
     if (/^https?:\/\//.test(url)) void shell.openExternal(url);
     return { action: 'deny' };
   });
+  // A game, not a page: no pinching the page larger on a touch screen or pad (GL1).
+  void window.webContents.setVisualZoomLevelLimits(1, 1);
   // Closing the window ends the app, the server first, so its port is free after.
   window.on('close', (event) => {
     if (quitting) return;

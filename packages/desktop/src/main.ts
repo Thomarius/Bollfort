@@ -4,12 +4,13 @@ import { fileURLToPath } from 'node:url';
 
 import { loadConfigBundle } from '@bollfort/config/node';
 import { startServer } from '@bollfort/server';
-import { BrowserWindow, app, clipboard, ipcMain, shell } from 'electron';
+import { BrowserWindow, Menu, app, clipboard, ipcMain, screen, shell } from 'electron';
 
 import { cloudflaredBinary } from './cloudflared.js';
 import { ServerControl, nextPort } from './control.js';
 import { checkFirewall, type FirewallStatus } from './firewall.js';
 import { Tunnel } from './tunnel.js';
+import { placeOn, readBounds, type Bounds } from './windowPlace.js';
 
 /**
  * The desktop app (PLAN 11.17 A2): the server behind a minimal window, for a host with no
@@ -66,6 +67,26 @@ function saveSwitch(name: keyof Switches, on: boolean): void {
     writeFileSync(settingsFile, JSON.stringify(switches));
   } catch {
     // Not remembered: it still applies until the app closes.
+  }
+}
+
+/**
+ * The game window's size and place (PLAN §11 item 10, GL1), in a file of its own so the
+ * switches' writing never drops it.
+ */
+const placeFile = join(app.getPath('userData'), 'window.json');
+function savedPlace(): unknown {
+  try {
+    return JSON.parse(readFileSync(placeFile, 'utf8')) as unknown;
+  } catch {
+    return null;
+  }
+}
+function savePlace(bounds: Bounds): void {
+  try {
+    writeFileSync(placeFile, JSON.stringify({ bounds }));
+  } catch {
+    // Not remembered: the next window opens centred.
   }
 }
 
@@ -166,9 +187,14 @@ ipcMain.handle('open-browser', () => {
 ipcMain.handle('play-here', () => {
   const state = control.state;
   if (state.status !== 'running') return;
+  const place = placeOn(
+    readBounds(savedPlace()),
+    screen.getAllDisplays().map((d) => d.workArea),
+  );
   const play = new BrowserWindow({
     width: 1400,
     height: 900,
+    ...(place ?? {}),
     title: 'Bollfort',
     icon,
     backgroundColor: '#0a0a12',
@@ -183,6 +209,9 @@ ipcMain.handle('play-here', () => {
     if (/^https?:\/\//.test(url)) void shell.openExternal(url);
     return { action: 'deny' };
   });
+  // A game, not a page: no pinching the page larger (GL1); and where it was left, next time.
+  void play.webContents.setVisualZoomLevelLimits(1, 1);
+  play.on('close', () => savePlace(play.getNormalBounds()));
   void play.loadURL(`http://localhost:${state.port}`);
 });
 
@@ -193,6 +222,9 @@ app.on('second-instance', () => {
 });
 
 void app.whenReady().then(() => {
+  // No menu bar for Alt to show, and with it none of its keys: reload, the developer tools, the
+  // page's zoom (GL1). From the repository it stays, for the developer tools.
+  if (app.isPackaged) Menu.setApplicationMenu(null);
   createWindow();
   // Started at once: starting the server is what the app is opened for.
   void control.startOn();

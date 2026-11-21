@@ -14,6 +14,8 @@ export interface OptionsActions {
   audio: VolumeTarget;
   /** Called after the language has changed, so the menu behind is written afresh. */
   languageChanged(): void;
+  /** The player's name as a row, from the menu (`SettingsActions.name`). */
+  name?: boolean;
 }
 
 /**
@@ -45,6 +47,7 @@ export function openOptions(actions: OptionsActions): () => void {
           fill();
         },
         rewrite: fill,
+        ...(actions.name === true ? { name: true } : {}),
       }),
     );
     root.querySelector('.close')?.addEventListener('click', close);

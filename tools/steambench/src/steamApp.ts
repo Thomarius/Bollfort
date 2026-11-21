@@ -172,10 +172,11 @@ export class SteamApp implements AppUnderTest {
     return (await this.state())?.room ?? null;
   }
 
-  /** Joins by a code typed into the menu, as a player does. */
+  /** Joins by a code typed into Find a game, as a player does (the menu's field until GL1). */
   async joinByCode(code: string): Promise<void> {
     const page = this.page;
     if (page === null) throw new Error(`${this.label}: no game page`);
+    await page.click('#find-game');
     await page.fill('#code', code);
     await page.click('#join');
   }

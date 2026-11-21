@@ -9,12 +9,13 @@ import { gameHost } from './host.js';
 import { lookName, lookPicture, LookRotation, openLookGallery, type LookChoices } from './looks.js';
 import { openStyleShowcase } from './styleShowcase.js';
 import { escape } from './html.js';
-import { parseRoomList } from './browser.js';
 import { openFindGames } from './findGames.js';
 import { t } from './i18n.js';
 import { SplitTitle } from './decor.js';
 import { app, showError, audio } from './app.js';
-import { preferredStyles, saveStyles, storedName, saveName } from './prefs.js';
+import { preferredStyles, saveStyles, storedName } from './prefs.js';
+import { askName, nameAskFacts, shouldAskName } from './namePrompt.js';
+import { builtVersion, versionLabel } from './version.js';
 import { joinSteam, openLobby } from './lobbyFlow.js';
 import { forgetMatch, keptMatch } from './steam/backToMatch.js';
 import { joinRoute, readHostAnswer, stillPlaying } from './steam/rejoin.js';
@@ -77,38 +78,14 @@ function readCommon(): Common {
   // Under Steam a player is their Steam name: there is no name field (STEAM.md §7.2).
   const steam = steamPlay();
   if (steam !== null) return { styles: readStyles(), name: steam.name, isPublic: true };
-  const typed = document.querySelector<HTMLInputElement>('#name')?.value.trim() ?? '';
-  const name = typed || t('menu.defaultName');
-  // The default is a text in the reader's language, not a name anyone chose: saved as one,
-  // it stayed English after a change to German. Saved empty, the next visit shows the
-  // default in whichever language it is read.
-  saveName(name === t('menu.defaultName') ? '' : name);
+  // Asked once and changed in Options (PLAN §11 item 10, GL1): the default, saved empty, is
+  // read in whichever language is in use.
+  const name = storedName();
   // Every table is listed in the open games (the user's, 2026-10-28): the game is only ever
   // served among friends, and a room leaves the list once its match starts or it is full,
   // so a switch for it was one control too many. `&private=1` keeps one unlisted for tests.
   const isPublic = new URLSearchParams(location.search).get('private') !== '1';
   return { styles: readStyles(), name, isPublic };
-}
-
-/**
- * Whether a server answers, asked once as the menu opens: without one, or with one this page
- * cannot join, the room code's field and Join are disabled — joining by code needs it. Find a
- * game stays, and says so in its window (STEAM.md §4).
- */
-function checkServer(): void {
-  const joining = document.querySelectorAll<HTMLInputElement | HTMLButtonElement>(
-    '.join-row input, .join-row button',
-  );
-  void fetch('/api/rooms', { cache: 'no-store' })
-    .then(async (response) => parseRoomList(await response.json()))
-    .catch(() => null)
-    .then((rooms) => {
-      for (const control of joining) {
-        if (!control.isConnected) return;
-        control.disabled = rooms === null;
-        if (rooms === null) control.dataset.tip = t('menu.noServer');
-      }
-    });
 }
 
 /** Find a game over the menu: joining a room, or hosting a public single match. */
@@ -209,12 +186,13 @@ export function showMenu(notice: string | null = null, findGame = false): void {
     <div class="menu home">
       <section class="home-main">
       <h1 class="title"><span class="title-split" id="title"></span></h1>
-      <p class="inspired"><button id="credits" class="link">${t('menu.credits')}</button></p>
-      ${steamPlay() === null ? `<label>${t('menu.name')} <input id="name" type="text" maxlength="16" placeholder="${escape(t('menu.defaultName'))}" /></label>` : ''}
       <div class="split play-row">
         <button id="play" class="primary">${withIcon('play', t('menu.singleMatch'))}</button>
       </div>
       ${steamRows()}
+      <div class="split find-row">
+        <button id="find-game">${withIcon('search', t('menu.findGame'))}</button>
+      </div>
       <div class="split tournament-row">
         <button id="new-tournament">${withIcon('trophy', t('menu.newTournament'))}</button>
         <button id="resume-tournament"${savedTournaments().length === 0 ? ' disabled' : ''}>${withIcon('resume', t('menu.resumeTournament'))}</button>
@@ -223,15 +201,12 @@ export function showMenu(notice: string | null = null, findGame = false): void {
         <button id="how-to-play" class="quiet${howToPlaySeen() ? '' : ' fresh'}">${withIcon('help', t('menu.howToPlay'))}</button>
         <button id="options" class="quiet">${withIcon('gear', t('menu.options'))}</button>
       </div>
-      <div class="split join-row">
-        <input id="code" type="text" maxlength="8" placeholder="${t('menu.codePlaceholder')}" />
-        <button id="join">${withIcon('join', t('menu.join'))}</button>
-      </div>
-      <div class="split find-row">
-        <button id="find-game">${withIcon('search', t('menu.findGame'))}</button>
-      </div>
       ${gameHost() === null ? '' : `<div class="split quit-row"><button id="quit" class="quiet">${withIcon('power', t('menu.quit'))}</button></div>`}
       ${notice === null || findGame ? '' : `<p class="notice menu-notice">${escape(notice)}</p>`}
+      <footer class="home-foot">
+        <button id="credits" class="link">${t('menu.credits')}</button>
+        <span class="version">${escape(versionLabel(builtVersion()))}</span>
+      </footer>
       </section>
       <section class="home-looks">
         <h2>${t('looks.title')}</h2>
@@ -240,8 +215,9 @@ export function showMenu(notice: string | null = null, findGame = false): void {
       </section>
     </div>
   `;
-  checkServer();
   wireSteamRows();
+  if (shouldAskName(nameAskFacts(steamPlay() !== null, new URLSearchParams(location.search))))
+    askName(() => audio.play('select'));
   // The desktop app's own way out (2026-11-09, the user's): a Steam game, on the Deck above
   // all, has no window to close. Absent in a browser, which has its own.
   document.querySelector('#quit')?.addEventListener('click', () => {
@@ -256,29 +232,16 @@ export function showMenu(notice: string | null = null, findGame = false): void {
   // The banners either side of combat swap one look for the other as they cross the
   // board, as the original did; the same style for both switches nothing.
   const styles = preferredStyles();
-  // Set as a property rather than written into the markup, so a saved name needs no escaping;
-  // the default only as the field's placeholder, so it does not read as a name somebody typed.
-  const nameField = document.querySelector<HTMLInputElement>('#name');
-  const saved = storedName();
-  if (nameField) nameField.value = saved === t('menu.defaultName') ? '' : saved;
   menuChoices = { ...styles };
-  // Options (2026-10-24): the language, the Graphics, the Motion and the volumes, in a panel
-  // over the menu. A name typed is read as it opens, while the default name is still the old
-  // language's, since only a name somebody typed is kept.
-  const typedBefore = (): string | null => {
-    const typed = document.querySelector<HTMLInputElement>('#name')?.value.trim();
-    return typed && typed !== t('menu.defaultName') ? typed : null;
-  };
+  // Options (2026-10-24): the name (outside Steam), the language, the Graphics, the Motion and
+  // the volumes, in a panel over the menu.
   document.querySelector('#options')?.addEventListener('click', () => {
     audio.play('select');
-    const typed = typedBefore();
     openOptions({
       audio,
-      // The language changed: the menu written afresh, keeping a name typed but not yet saved.
-      languageChanged: () => {
-        if (typed !== null) saveName(typed);
-        showMenu(notice);
-      },
+      // The language changed: the menu written afresh.
+      languageChanged: () => showMenu(notice),
+      ...(steamPlay() === null ? { name: true } : {}),
     });
   });
 
@@ -376,12 +339,6 @@ export function showMenu(notice: string | null = null, findGame = false): void {
   document.querySelector('#credits')?.addEventListener('click', () => {
     audio.play('select');
     openCredits(audioManifest, () => audio.play('select'));
-  });
-  document.querySelector('#join')?.addEventListener('click', () => {
-    audio.play('select');
-    const code = document.querySelector<HTMLInputElement>('#code')?.value.trim() ?? '';
-    if (code.length === 0) return;
-    void openLobby(readCommon(), code).catch((e: unknown) => showError(t('error.couldNotJoin'), e));
   });
 }
 

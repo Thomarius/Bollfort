@@ -233,6 +233,8 @@ export class PauseControls {
     if (!force && label === this.buttonLabel) return;
     this.buttonLabel = label;
     this.button.innerHTML = withIcon(this.paused ? 'play' : 'pause', label);
+    // Only its icon shows in a match (GL1), so its name for a screen reader.
+    this.button.setAttribute('aria-label', label);
   }
 
   /** Called every frame with the match as it stands. */

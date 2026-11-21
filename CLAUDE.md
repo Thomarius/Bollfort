@@ -85,7 +85,7 @@ leave your seat undriven on the way, so you are soon knocked out), `&speed=10`,
 `&teams=2` for teams of two in seat order, `&storeArt=scene` the board alone with the title over it (`&title=`, `&titleWidth=`, `&shade=1|band`, `&split=0.5` a change of look held still; `?storeArt=logo` the title alone, transparent), `&autopilot=1` a bot plays the person's seat, shown as a person plays it (the ghost, the reticle), `&clean=1` without the corner's buttons, `&labels=0` no words on the screen but a phase banner's (`&timer=0` without the big countdown too), `&reticle=0` no aiming cursor nor towers' emblems, `&shake=0.5` the screen's shake at a strength (`0` none), `&cameraZoom=1.9&cameraOn=you|duel` the camera held close in play, `?icons=sheet` every style's cannon icon side by side, `?icons=app&kind=castle|ring|letter|keep|bare` the app's icon candidates
 (`?icons=boards` each style's board, for checking a refactor pixel for pixel), `?gaps=preview`
 the corner gaps' ping in every style, `?shots=preview` every style's cannon and Bertha shots in flight, `?drones=preview` every style's Drone Tower drones, enlarged and on its board, parked and in orbit, `&lang=de` (or `hes`) for a
-language (not saved), `?supporter=1` the supporter styles where the private package is checked out
+language (not saved), `?askName=1` the first visit's name window again, `?supporter=1` the supporter styles where the private package is checked out
 (not saved). `?tournament=new` and `?tournament=resume` open the tournament screens,
 `?tournament=demo&seed=N` a tournament of teams of two between matches (saved as `t-demo`), and
 `&snapshot=game_over` plays a tournament's match out at once, its result counted. `?host=8` opens

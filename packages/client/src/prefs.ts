@@ -1,7 +1,6 @@
 import { defaultArtConfig, type ArtLook } from '@bollfort/config';
 
 import { chooseLook, type LookChoices } from './looks.js';
-import { t } from './i18n.js';
 import { store, stored } from './storage.js';
 import { params } from './app.js';
 
@@ -57,13 +56,5 @@ export function chosenSeed(): number {
   return asked !== null && Number.isInteger(n) && n >= 0 ? n >>> 0 : randomSeed();
 }
 
-/** Where the menu remembers the player's name, as it does the looks. */
-const NAME_KEY = 'bollfort.name';
-
-export function storedName(): string {
-  return stored(NAME_KEY)?.trim() || t('menu.defaultName');
-}
-
-export function saveName(name: string): void {
-  store(NAME_KEY, name);
-}
+// The name, in a module of its own that loads no page (`playerName.ts`), for Options' rows.
+export { hasTypedName, saveName, saveTypedName, storedName } from './playerName.js';

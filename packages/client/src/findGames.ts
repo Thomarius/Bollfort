@@ -10,6 +10,7 @@ import {
 } from './browser.js';
 import { enhanceChoices } from './choices.js';
 import { escape } from './html.js';
+import { withIcon } from './icons.js';
 import { t } from './i18n.js';
 import { store, stored } from './storage.js';
 
@@ -65,6 +66,11 @@ export function openFindGames(actions: FindGamesActions): void {
       ${actions.notice ? `<p class="notice">${escape(actions.notice)}</p>` : ''}
       ${filtersMarkup(filters)}
       <div id="open-games"><p class="note">${t('menu.lookingForServer')}</p></div>
+      <div class="split join-row">
+        <input id="code" type="text" maxlength="8" spellcheck="false" autocomplete="off"
+          aria-label="${escape(t('menu.codePlaceholder'))}" placeholder="${escape(t('menu.codePlaceholder'))}" />
+        <button id="join">${withIcon('join', t('menu.join'))}</button>
+      </div>
       <button class="close quiet" data-back>${t('credits.close')}</button>
     </div>`;
   enhanceChoices(root);
@@ -105,6 +111,32 @@ export function openFindGames(actions: FindGamesActions): void {
       actions.host();
     }
   });
+  // A room's code, from the menu since 2026-11-22 (PLAN §11 item 10, GL1): a text field on the
+  // first screen read as a web form. Enter in the field is Join, as a form's would be.
+  const codeField = root.querySelector<HTMLInputElement>('#code')!;
+  const joinButton = root.querySelector<HTMLButtonElement>('#join')!;
+  const joinCode = (): void => {
+    const code = codeField.value.trim();
+    if (code.length === 0 || joinButton.disabled) return;
+    actions.click();
+    close();
+    actions.join(code);
+  };
+  joinButton.addEventListener('click', joinCode);
+  codeField.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') joinCode();
+  });
+  // Joining by code needs a server this page can reach: asked once as the window opens, the
+  // field and Join disabled without one, the window keeping its shape.
+  void fetch('/api/rooms', { cache: 'no-store' })
+    .then(async (response) => parseRoomList(await response.json()))
+    .catch(() => null)
+    .then((answer) => {
+      for (const control of [codeField, joinButton]) {
+        control.disabled = answer === null;
+        if (answer === null) control.dataset.tip = t('menu.noServer');
+      }
+    });
   root.querySelector('.close')?.addEventListener('click', () => {
     actions.click();
     close();

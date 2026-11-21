@@ -96,10 +96,13 @@ document.addEventListener('visibilitychange', followBackground);
 function installSoundButton(): void {
   const button = document.createElement('button');
   button.id = 'sound';
+  button.className = 'icon-tip';
   const show = (): void => {
-    button.innerHTML = audio.isMuted
-      ? withIcon('mute', t('sound.off'))
-      : withIcon('sound', t('sound.on'));
+    const label = t(audio.isMuted ? 'sound.off' : 'sound.on');
+    button.innerHTML = withIcon(audio.isMuted ? 'mute' : 'sound', label);
+    // In a match only its icon shows (style.css, GL1): the words as its hover text then.
+    button.dataset.tip = label;
+    button.setAttribute('aria-label', label);
     button.classList.toggle('off', audio.isMuted);
     button.setAttribute('aria-pressed', String(!audio.isMuted));
   };
@@ -195,10 +198,12 @@ function installFullscreenButton(): void {
   button.id = 'fullscreen';
   let hostFull = false;
   const full = (): boolean => (host === null ? document.fullscreenElement !== null : hostFull);
+  button.className = 'icon-tip';
   const show = (): void => {
-    button.innerHTML = full()
-      ? withIcon('shrink', t('fullscreen.leave'))
-      : withIcon('expand', t('fullscreen.enter'));
+    const label = t(full() ? 'fullscreen.leave' : 'fullscreen.enter');
+    button.innerHTML = withIcon(full() ? 'shrink' : 'expand', label);
+    button.dataset.tip = label;
+    button.setAttribute('aria-label', label);
   };
   button.addEventListener('click', () => {
     if (host !== null) {
@@ -230,6 +235,28 @@ function installFullscreenButton(): void {
 }
 
 installFullscreenButton();
+
+/**
+ * A game, not a page (PLAN §11 item 10, GL1): the browser's own right-click menu — Back,
+ * Reload, Inspect — nowhere but where text may be copied or pasted (the board's right button
+ * turns the piece, `controls.ts`). And in the desktop app the page never zooms by Ctrl and the
+ * wheel, which Chromium does unasked and nothing in the app could undo; the packaged app has
+ * no menu, so no keys for it either (`packages/desktop`). A browser keeps its own zoom.
+ */
+const COPYABLE = 'input, textarea, .credits .panel, .crash';
+document.addEventListener('contextmenu', (event) => {
+  if (event.target instanceof Element && event.target.closest(COPYABLE) !== null) return;
+  event.preventDefault();
+});
+if (navigator.userAgent.includes('Electron')) {
+  document.addEventListener(
+    'wheel',
+    (event) => {
+      if (event.ctrlKey) event.preventDefault();
+    },
+    { passive: false },
+  );
+}
 
 export const params = new URLSearchParams(globalThis.location.search);
 

@@ -30,6 +30,7 @@ import {
   towerBadgesOptions,
 } from './towerBadgesSetting.js';
 import { volumeSliders, type VolumeTarget } from './volume.js';
+import { hasTypedName, saveTypedName, storedName } from './playerName.js';
 
 /**
  * The player's settings — the language, the Graphics, the Motion, the screen's shake, the frame
@@ -48,6 +49,12 @@ export interface SettingsActions {
   languageChanged(): void;
   /** Called after Reset to defaults, for the rows to be written afresh as the settings now stand. */
   rewrite(): void;
+  /**
+   * The player's name as the first row, from the menu's Options only (PLAN §11 item 10, GL1):
+   * the menu's own field is gone, the name asked once on a first visit. Never in a match, where
+   * the seat already has its name, nor under Steam, whose name it is.
+   */
+  name?: boolean;
 }
 
 /** The tabs, in order: what is seen, what is heard, how it is played. */
@@ -68,6 +75,12 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
   node.className = 'settings-rows';
   const pages: Record<SettingsTab, string> = {
     display:
+      (actions.name === true
+        ? row(
+            t('menu.name'),
+            `<input class="name-field" type="text" maxlength="16" spellcheck="false" autocomplete="off" placeholder="${escape(t('menu.defaultName'))}" />`,
+          )
+        : '') +
       row(
         t('settings.language'),
         `<select class="language" data-ui="seg">${languageOptions()}</select>`,
@@ -171,6 +184,12 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
   }
   show(lastTab);
 
+  // Saved as it is typed, so closing the panel any way keeps it.
+  const name = node.querySelector<HTMLInputElement>('.name-field');
+  if (name !== null) {
+    name.value = hasTypedName() ? storedName() : '';
+    name.addEventListener('input', () => saveTypedName(name.value));
+  }
   const language = node.querySelector<HTMLSelectElement>('.language')!;
   language.addEventListener('change', () => {
     actions.click();

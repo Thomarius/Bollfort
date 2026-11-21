@@ -8,7 +8,7 @@ import { withIcon } from './icons.js';
 import { runSession } from './matchScreen.js';
 import { showMenu } from './menu.js';
 import { padText, pads } from './pads.js';
-import { preferredStyles, saveName } from './prefs.js';
+import { preferredStyles } from './prefs.js';
 import { localMatchFor, localSession } from './session.js';
 
 /**
@@ -82,9 +82,6 @@ export function installDemo(): void {
 /** Into the demo from the menu; `?demo=1` too. */
 export function startDemo(): void {
   if (running !== null) return;
-  // A name typed but not yet saved would go with the menu.
-  const typed = document.querySelector<HTMLInputElement>('#name')?.value.trim();
-  if (typed && typed !== t('menu.defaultName')) saveName(typed);
   running = new Demo();
   void running.start();
 }

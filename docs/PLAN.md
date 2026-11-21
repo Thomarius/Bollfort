@@ -1916,6 +1916,38 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      same, with Random every round a new one. To measure, then perhaps lay the next look's banner
      out unseen in the pause before it (`Scene.prime`'s moment), as the preview now does.
 
+10. **A professional finish** (agreed 2026-11-22, from a review of screenshots of the menu, the
+    lobby, the loading screen, a match at two and eight players and the end screen, while Valve
+    answers): what makes the game read as a web page rather than a game, and what makes it feel
+    alive. Display and the desktop app only — no sim, ruleset or protocol change; mouse only.
+    Left out as declined before: personal records, a text size, the lobby's empty half, island
+    hover cards, tips while loading, emotes, a next-piece preview, music ducking, new sounds, a
+    harder shake, guidance in a first match. Packages, in this order (the user's):
+    - **GL1 — The "real game" pass — built** (ARCHIVE 16za), for the user to try: the menu without text fields — the name asked once, on a
+      first visit, in a small window before the menu, and changed after in Options (the user's,
+      2026-11-22; never under Steam, whose name it is), and Join by code moved into Find a game —
+      so the menu is one column of ways in: Single match, Find a game, the tournaments, How to
+      play and Options, Quit; the Credits out from under the title into a footer of the panel with
+      the build's version (`v0.11.2`, or the commit between releases), which testers can quote;
+      the browser's tells taken away — text selected or pictures dragged in the menus, the
+      browser's own right-click menu, spellcheck under the name, and in the desktop app the zoom by
+      Ctrl and the wheel or keys and the menu bar that Alt shows (packaged only), and the window's
+      size and place remembered; in a match, the corner's Sound, Full screen and Pause as icons in
+      the HUD's skin, faint until the pointer or a controller's focus is on them; and at the end,
+      the HUD's bar faded out behind the end screen, where it showed "Game over" and half-covered
+      scores.
+    - **GL2 — Alive**: the loading screen ("Preparing the board") on the look's backdrop with the
+      title, or the lobby's map carried into the match, rather than black; points rising from each
+      island at a resolution ("+176"), the scores counting up and the rows sliding as ranks change
+      (where not done already); and the end screen counting its figures up, drawing the graph's
+      lines in, and the winner's shape and colour large by the headline, "You win" when it is you.
+    - **GL3 — Measured first**: a short card of who plays whom, colours, shapes and islands, as
+      the opening starts — only if it costs no time; and the demo dimmed and slowed behind the menu
+      from the start rather than after 30 s idle — only if the menu still holds its frames on a
+      weak machine. Also to ask again: groups or filters in the looks' gallery, declined in 12b
+      until there were more than about fifteen styles (there are 24); a "What's new" window shown
+      once after an update.
+
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
 UI polish, all in ARCHIVE 11h; 11.11 the second visual pass and 11.12 the first

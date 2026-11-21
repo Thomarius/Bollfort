@@ -71,6 +71,26 @@ body {
   height: 100%;
 }
 
+/* A game, not a page (PLAN §11 item 10, GL1): nothing in the menus selected by a drag or a
+   double click, no picture dragged off — except what is typed, the Credits and a crash's report,
+   which somebody may well want to copy. */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+img {
+  -webkit-user-drag: none;
+}
+
+input,
+textarea,
+.credits .panel,
+.crash {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 body {
   margin: 0;
   background: #0a0a12;
@@ -551,12 +571,32 @@ button svg.icon {
   font-size: 11px;
 }
 
-/* The way to the Credits, under the title: the one place in the game that names the original
-   (a lawyer's advice, 2026-11-11). */
-.menu p.inspired {
-  margin: -0.6rem 0 1rem;
+/* The menu's footer (PLAN §11 item 10, GL1): the Credits — the one place in the game that names
+   the original (a lawyer's advice, 2026-11-11) — and the build's version, at the panel's foot,
+   where the name and room code's fields had left it room. */
+.menu .home-main {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The ways in centred between the title and the footer, the panel's height being the looks'. */
+.menu .home-main > .play-row {
+  margin-top: auto;
+}
+
+.menu .home-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 1.25rem;
   font-size: 11px;
   letter-spacing: 0.06em;
+}
+
+.menu .home-foot .version {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .menu button.link {
@@ -2710,6 +2750,52 @@ body.hud-bricks #hud .roster .line .shape path {
 
 .you-are-here .shape {
   margin-right: 0.55em;
+}
+
+/* In a match the corner's switches are icons in the HUD's skin, faint until the pointer or a
+   controller's focus is on the row (PLAN §11 item 10, GL1): words in the menus' dress had sat
+   over every look, slate on Parchment's paper. Their words are their hover texts then, which
+   the menus, where the words show, leave out. The connection's badge beside them stays as it
+   is, since it must be seen when it turns red. */
+body.in-match #sound,
+body.in-match #fullscreen,
+body.in-match #pause {
+  justify-content: center;
+  width: 2.4rem;
+  min-height: 2.4rem;
+  padding: 0;
+  border: var(--hud-box-edge);
+  background: var(--hud-box);
+  box-shadow: var(--hud-box-shadow);
+  color: var(--hud-ink);
+  opacity: 0.45;
+  transition: opacity 0.2s;
+}
+
+body.in-match #sound > span,
+body.in-match #fullscreen > span,
+body.in-match #pause > span {
+  display: none;
+}
+
+body.in-match #corner:hover > button,
+body.in-match #corner > button:focus-visible,
+html.pad body.in-match #corner > button.pad-focus {
+  opacity: 1;
+}
+
+body.in-match #corner > button:hover {
+  color: var(--hud-accent);
+}
+
+body:not(.in-match) #corner > .icon-tip[data-tip]:hover::after,
+body:not(.in-match) #corner > .icon-tip[data-tip]:focus-visible::after,
+html.pad body:not(.in-match) #corner > .icon-tip[data-tip].pad-focus::after {
+  content: none;
+}
+
+body.reduced-motion.in-match #corner > button {
+  transition: none;
 }
 
 /* The connection, beside Pause, online only (network.ts): a dot that turns amber, then
@@ -7323,15 +7409,39 @@ body.reduced-motion .ui-choice.switch button::after {
   }
 }
 
-/* Room code and Join as one control, the field's right edge the button's left. */
-.menu .join-row {
+/* Room code and Join as one control, the field's right edge the button's left: in Find a game,
+   under the list (GL1). */
+.find-games .join-row {
   gap: 0;
-  margin-top: 1rem;
-  padding-top: 1rem;
+  margin-top: 0;
+  padding-top: 0.8rem;
   border-top: 1px solid var(--line);
 }
 
-.menu .join-row input {
+.find-games .join-row input,
+.how-to-play.name-ask input,
+.how-to-play.options input.name-field {
+  min-height: 2.4rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--field);
+  color: var(--ink);
+  font: 500 14px var(--ui-font);
+}
+
+.find-games .join-row input:focus,
+.how-to-play.name-ask input:focus,
+.how-to-play.options input.name-field:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.how-to-play.options input.name-field {
+  width: 12rem;
+}
+
+.find-games .join-row input {
   border-right: none;
   border-radius: var(--radius-s) 0 0 var(--radius-s);
   font-family: ui-monospace, Consolas, monospace;
@@ -7339,20 +7449,23 @@ body.reduced-motion .ui-choice.switch button::after {
   text-transform: uppercase;
 }
 
-.menu .join-row input::placeholder {
+.find-games .join-row input::placeholder {
   font-family: var(--ui-font);
   letter-spacing: normal;
   text-transform: none;
 }
 
-.menu .join-row button {
+.find-games .join-row button {
   flex: none;
   width: auto;
+  min-height: 2.4rem;
+  margin: 0;
+  font-size: 14px;
   border-radius: 0 var(--radius-s) var(--radius-s) 0;
 }
 
-/* Disabled, not hidden, where no server answers (menu.ts): the window keeps its shape. */
-.menu .join-row input:disabled {
+/* Disabled, not hidden, where no server answers (findGames.ts): the window keeps its shape. */
+.find-games .join-row input:disabled {
   opacity: 0.5;
   cursor: default;
 }
@@ -7767,13 +7880,14 @@ body.reduced-motion #menu-corner {
   display: flex;
 }
 
-/* The HUD's bar says again what the table says: faded back while the summary is up. */
+/* The HUD's bar says again what the table says: faded out while the summary is up — at 30% it
+   still showed "Game over" and half-covered scores round the panel (PLAN §11 item 10, GL1). */
 .bar {
   transition: opacity 400ms;
 }
 
 body:has(.end-screen:not(.held, .peeking) .banner.summary) .bar {
-  opacity: 0.3;
+  opacity: 0;
 }
 
 /* The standings: the figures right-aligned under right-aligned headings, each heading
@@ -8366,15 +8480,13 @@ html.pad .pad-focus {
    recommended least at 1280 × 800, where they were 10 and 11. Larger screens keep them as
    they were designed. */
 @media (max-width: 1280px) and (max-height: 800px) {
-  .menu .inspired,
-  .menu .inspired .link,
+  .menu .home-foot,
   .home-looks .look-label,
   .tag,
   .note,
   .pause-overlay .esc-hint,
   .look-gallery .badge,
   .menu .note,
-  .menu p.inspired,
   .menu .look-label,
   .seats em,
   .menu .seats .tag,
@@ -8644,4 +8756,35 @@ img.avatar {
 
 .style-showcase .close:hover {
   border-color: var(--hud-accent, var(--accent));
+}
+
+/* The name, asked once on a first visit (namePrompt.ts, PLAN §11 item 10, GL1): a small panel
+   over the menu, the field and Continue under a line saying where it can be changed. */
+.how-to-play.name-ask .panel {
+  width: min(26rem, 92vw);
+  gap: 0.9rem;
+  text-align: center;
+}
+
+.how-to-play.name-ask p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.how-to-play.name-ask input {
+  width: 100%;
+  text-align: center;
+}
+
+.how-to-play.name-ask button.primary,
+.how-to-play.name-ask button.primary:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--heading-font);
+}
+
+.how-to-play.name-ask button.primary:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
