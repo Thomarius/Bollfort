@@ -1,5 +1,18 @@
 import { AUDIO_LICENCES, audioCredits, type AudioManifest, type CreditedFile } from './audio.js';
 
+/**
+ * Who made the game (the user's, 2026-11-22): the in-game Credits and `CREDITS.md` both read
+ * these, and the `LICENSE`'s copyright line and the desktop app's `copyright` say the same.
+ */
+export const GAME_AUTHOR = 'Thomas Arnold';
+/** The year of the first commit (2026-09-18), as the copyright notice gives it. */
+export const COPYRIGHT_YEAR = 2026;
+/**
+ * The play-testers, by the nicknames they chose, in the order they joined; more to come (the
+ * user's, 2026-11-22).
+ */
+export const PLAY_TESTERS: readonly string[] = ['Mausica', 'Xenon'];
+
 /** Credits are free text: whatever Markdown would read as formatting is shown as itself. */
 function plain(text: string): string {
   return text.replace(/[\\`*_[\]<>]/g, '\\$&');
@@ -30,7 +43,12 @@ export function creditsMarkdown(audio: AudioManifest): string {
   return [
     '# Credits',
     '',
-    'The code is under the MIT licence.',
+    `**Bollfort**, a game by ${GAME_AUTHOR}.`,
+    '',
+    `- Design and development: ${GAME_AUTHOR}`,
+    `- Play-testing: ${PLAY_TESTERS.join(', ')}`,
+    '',
+    `© ${COPYRIGHT_YEAR} ${GAME_AUTHOR}. The code is under the MIT licence ([\`LICENSE\`](LICENSE)).`,
     '',
     '## Audio',
     '',

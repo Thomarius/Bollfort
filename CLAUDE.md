@@ -24,6 +24,11 @@ build ships has its licence** in `THIRD_PARTY_LICENSES.md`, written by `npm run 
 (`tools/licences`) from what the builds actually bundle and carried beside the desktop app; a
 test fails when it is stale, so run it after adding or updating a dependency.
 
+**Who made it** is credited in one place, `config/src/credits.ts` (`GAME_AUTHOR`, `PLAY_TESTERS`
+by the nicknames they chose, `COPYRIGHT_YEAR`), read by the in-game Credits and `CREDITS.md`; a new
+tester goes there and into the README's first line. The code is MIT, © 2026 Thomas Arnold, in
+`LICENSE`, which the desktop app carries beside it.
+
 **`docs/PLAN.md` is the design and the open work** — read it before changing rules,
 terrain or bots; a design of its own lives beside it until built, then is retired into the
 ARCHIVE — except **`docs/SPECIAL_TOWERS.md`**, finished but kept as the towers' reference (the

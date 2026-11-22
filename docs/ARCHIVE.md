@@ -13089,3 +13089,25 @@ server, and a thrown TypeError with its Details open.
 
 New texts in all three languages: `menu.hosting`, its tip, `settings.window` and its two choices
 and tip, `error.details`, `error.copyReport`, `error.reportHint`.
+
+## 16zf. Who made it: the author and the play-testers credited (2026-11-22)
+
+The game named its sounds' and typefaces' authors but not its own. The user's choices: their name,
+Thomas Arnold, as on the Steam store page; the play-testers by their nicknames, Mausica and Xenon
+for now, more to come; no line on the title screen. In one place, `config/src/credits.ts`
+(`GAME_AUTHOR`, `PLAY_TESTERS`, `COPYRIGHT_YEAR` 2026, the first commit's year), read by:
+
+- **the in-game Credits**, which open with the game's name, "A game by Thomas Arnold", the roles —
+  Design and development, Play-testing — and "© 2026 Thomas Arnold. The code is under the MIT
+  licence.", before the disclaimer and the files' credits (`credits.mit` gone into
+  `credits.copyright`; in German _Spieldesign und Entwicklung_, _Spieltests_; in Hessian
+  _Ausgedacht un gebaut_, _Ausprobiert_);
+- **`CREDITS.md`**, the same at its head, written by `npm run credits`.
+
+**There was no `LICENSE` file**: the README and the Credits said MIT, but the licence means
+little without its text and a copyright line, and GitHub showed the project as unlicensed. It is
+there now, MIT, "Copyright (c) 2026 Thomas Arnold", and the desktop app carries it beside it as
+`LICENSE.txt` (electron-builder's `extraFiles`, with `THIRD_PARTY_LICENSES.md`), since MIT asks for
+the notice in every copy. The app's `copyright` field is set, which Windows shows in the file's
+properties. The README opens with "A game by Thomas Arnold, play-tested by Mausica and Xenon." and
+its licence paragraph names the copyright. Looked at in English and German.

@@ -715,6 +715,53 @@ button svg.icon {
   letter-spacing: 0.02em;
 }
 
+/* Who made the game, first (credits.ts, the user's, 2026-11-22): the name, a byline, the roles,
+   the copyright; then the disclaimer and the files' credits. */
+.how-to-play.credits .made-by {
+  text-align: center;
+}
+
+.how-to-play.credits .made-by p {
+  margin: 0;
+}
+
+.how-to-play.credits .made-by .game {
+  color: var(--ink);
+  font-family: var(--heading-font);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.how-to-play.credits .made-by .byline {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.how-to-play.credits .made-by dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.2rem 1rem;
+  margin: 0.8rem 0;
+  font-size: 13px;
+}
+
+.how-to-play.credits .made-by dt {
+  color: var(--muted);
+  text-align: right;
+}
+
+.how-to-play.credits .made-by dd {
+  margin: 0;
+  color: var(--ink);
+  text-align: left;
+}
+
+.how-to-play.credits .made-by .copyright {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .how-to-play.credits .disclaimer {
   margin: 0;
   color: var(--muted);

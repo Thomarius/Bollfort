@@ -20,6 +20,7 @@
   "build": {
     "appId": "io.github.thomarius.bollfort",
     "productName": "Bollfort",
+    "copyright": "© 2026 Thomas Arnold",
     "directories": {
       "output": "release"
     },
@@ -34,6 +35,10 @@
       {
         "from": "../../THIRD_PARTY_LICENSES.md",
         "to": "THIRD_PARTY_LICENSES.md"
+      },
+      {
+        "from": "../../LICENSE",
+        "to": "LICENSE.txt"
       }
     ],
     "extraResources": [

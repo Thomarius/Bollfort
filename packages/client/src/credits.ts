@@ -1,5 +1,8 @@
 import {
   AUDIO_LICENCES,
+  COPYRIGHT_YEAR,
+  GAME_AUTHOR,
+  PLAY_TESTERS,
   audioCredits,
   type ArtStyle,
   type AudioManifest,
@@ -100,8 +103,16 @@ export function creditsHtml(audio: AudioManifest): string {
   return `
     <div class="panel">
       <h2>${t('credits.title')}</h2>
+      <div class="made-by">
+        <p class="game">Bollfort</p>
+        <p class="byline">${escape(t('credits.byline', { name: GAME_AUTHOR }))}</p>
+        <dl>
+          <dt>${t('credits.development')}</dt><dd>${escape(GAME_AUTHOR)}</dd>
+          <dt>${t('credits.testing')}</dt><dd>${escape(PLAY_TESTERS.join(', '))}</dd>
+        </dl>
+        <p class="copyright">${escape(t('credits.copyright', { year: COPYRIGHT_YEAR, name: GAME_AUTHOR }))}</p>
+      </div>
       <p class="disclaimer">${escape(t('credits.disclaimer'))}</p>
-      <p class="disclaimer">${t('credits.mit')}</p>
       <div class="list">
         ${group(t('credits.music'), shared.map(item))}
         ${group(t('credits.styleMusic'), styled.map(item))}

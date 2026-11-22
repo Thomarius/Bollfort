@@ -1,6 +1,11 @@
 # Credits
 
-The code is under the MIT licence.
+**Bollfort**, a game by Thomas Arnold.
+
+- Design and development: Thomas Arnold
+- Play-testing: Mausica, Xenon
+
+© 2026 Thomas Arnold. The code is under the MIT licence ([`LICENSE`](LICENSE)).
 
 ## Audio
 

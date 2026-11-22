@@ -1,5 +1,7 @@
 # Bollfort
 
+A game by Thomas Arnold, play-tested by Mausica and Xenon.
+
 A multiplayer castle siege for 2–8 players: shoot down your opponents' castle walls, then
 race to rebuild your own with falling blocks before the next barrage. Fail to seal a
 castle and you lose a life; run out of lives and you are out. After ten rounds, the best
@@ -241,7 +243,7 @@ committed.
 
 ## License
 
-The code is MIT. The audio is under its authors' own open licences, listed in
+The code is under the MIT licence, © 2026 Thomas Arnold ([`LICENSE`](LICENSE)). The audio is under its authors' own open licences, listed in
 [`CREDITS.md`](CREDITS.md), which is made from `config/audio.manifest.json` by
 `npm run credits` — a release cannot be built while any sound is uncredited. The menus' typefaces,
 [Inter](https://github.com/rsms/inter) and [Rubik](https://github.com/googlefonts/rubik), are
