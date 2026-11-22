@@ -5,7 +5,7 @@ import { howToPlaySeen, openHowToPlay } from './howToPlay.js';
 import { withIcon } from './icons.js';
 import { openCredits } from './credits.js';
 import { openOptions } from './options.js';
-import { gameHost } from './host.js';
+import { windowHost } from './host.js';
 import { lookName, lookPicture, LookRotation, openLookGallery, type LookChoices } from './looks.js';
 import { openStyleShowcase } from './styleShowcase.js';
 import { escape } from './html.js';
@@ -72,6 +72,21 @@ function lookCard(look: ArtLook): string {
     `<span class="look-change">${withIcon('gallery', t('menu.changeLook'))}</span></span>` +
     `</button>`
   );
+}
+
+/**
+ * The desktop app's own ways out of the menu: Quit, since a game in its own window — on the Deck
+ * above all — has no browser to close (2026-11-09, the user's); and in the GitHub build Hosting,
+ * the server's panel, which no longer opens first (PLAN §11 item 11, PG2). None in a browser.
+ */
+function quitRow(): string {
+  const host = windowHost();
+  if (host === null) return '';
+  const hosting =
+    host.hosting === undefined
+      ? ''
+      : `<button id="hosting" class="quiet" data-tip="${escape(t('menu.hostingTip'))}">${withIcon('globe', t('menu.hosting'))}</button>`;
+  return `<div class="split quit-row">${hosting}<button id="quit" class="quiet">${withIcon('power', t('menu.quit'))}</button></div>`;
 }
 
 function readCommon(): Common {
@@ -201,7 +216,7 @@ export function showMenu(notice: string | null = null, findGame = false): void {
         <button id="how-to-play" class="quiet${howToPlaySeen() ? '' : ' fresh'}">${withIcon('help', t('menu.howToPlay'))}</button>
         <button id="options" class="quiet">${withIcon('gear', t('menu.options'))}</button>
       </div>
-      ${gameHost() === null ? '' : `<div class="split quit-row"><button id="quit" class="quiet">${withIcon('power', t('menu.quit'))}</button></div>`}
+      ${quitRow()}
       ${notice === null || findGame ? '' : `<p class="notice menu-notice">${escape(notice)}</p>`}
       <footer class="home-foot">
         <button id="credits" class="link">${t('menu.credits')}</button>
@@ -222,7 +237,12 @@ export function showMenu(notice: string | null = null, findGame = false): void {
   // all, has no window to close. Absent in a browser, which has its own.
   document.querySelector('#quit')?.addEventListener('click', () => {
     audio.play('select');
-    void gameHost()?.quit();
+    void windowHost()?.quit();
+  });
+  // The GitHub build's server panel (PG2): the app opens the game first now.
+  document.querySelector('#hosting')?.addEventListener('click', () => {
+    audio.play('select');
+    windowHost()?.hosting?.();
   });
   document.querySelector('#find-game')?.addEventListener('click', () => {
     audio.play('select');

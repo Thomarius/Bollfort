@@ -107,7 +107,7 @@ rounds and lives are the config's, no longer offered in a lobby or a new tournam
 | `tournament`     | Tournament mode's core: schedule, brackets, quick rolls, saves. No DOM.    |
 | `server`         | Authoritative match server, rooms, WebSocket, match recordings.            |
 | `client`         | Pixi renderer, 24 visual styles, controls, HUD, netcode client.            |
-| `desktop`        | Electron app for releases: the server behind a minimal window (M14).       |
+| `desktop`        | Electron app for releases: the game, its server's panel on request (PG2).  |
 | `tools/headless` | Bot-vs-bot soak runs and map dumps.                                        |
 
 Internal packages export TypeScript source directly, so there is no build step between

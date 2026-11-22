@@ -23,6 +23,10 @@ export const ICONS = {
   join: stroke('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>'),
   back: stroke('<path d="M19 12H5M12 19l-7-7 7-7"/>'),
   search: stroke('<circle cx="11" cy="11" r="7"/><path d="M21 21l-5.2-5.2"/>'),
+  // Hosting, the GitHub build's server panel (PG2): a globe, others joining from anywhere.
+  globe: stroke(
+    '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  ),
   sound: stroke(
     '<path d="M11 5 6 9H2v6h4l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
   ),

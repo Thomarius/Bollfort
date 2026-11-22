@@ -94,3 +94,25 @@ export function gameHost(): GameHost | null {
 export function steamMissing(steam: HostSteam | null): boolean {
   return steam !== null && !steam.ready;
 }
+
+/**
+ * The window the page runs in, in either desktop build (PLAN §11 item 11, PG2): its fullscreen,
+ * switched at the window so Esc stays the game's pause, and Quit; and in the GitHub build the
+ * server's panel (`hosting`). The Steam build's bridge has all but the panel; the GitHub build's
+ * game window has `window.bollfortApp` (`desktop/src/appPreload.ts`), which is no sign of Steam.
+ * Null in a browser.
+ */
+export interface WindowHost {
+  fullscreen(): Promise<boolean>;
+  setFullscreen(on: boolean): Promise<boolean>;
+  onFullscreen(listener: (on: boolean) => void): void;
+  quit(): Promise<void>;
+  /** The GitHub build's server panel: its addresses, the internet and the online link. */
+  hosting?: () => void;
+}
+
+export function windowHost(): WindowHost | null {
+  // Asked by the settings' rows, which node's tests build too, with no window.
+  if (typeof window === 'undefined') return null;
+  return gameHost() ?? (window as unknown as { bollfortApp?: WindowHost }).bollfortApp ?? null;
+}

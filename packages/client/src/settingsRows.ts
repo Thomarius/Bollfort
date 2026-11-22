@@ -31,6 +31,7 @@ import {
 } from './towerBadgesSetting.js';
 import { volumeSliders, type VolumeTarget } from './volume.js';
 import { hasTypedName, saveTypedName, storedName } from './playerName.js';
+import { windowHost } from './host.js';
 
 /**
  * The player's settings — the language, the Graphics, the Motion, the screen's shake, the frame
@@ -73,6 +74,7 @@ function row(name: string, select: string, tip?: string): string {
 export function settingsRows(actions: SettingsActions): HTMLElement {
   const node = document.createElement('div');
   node.className = 'settings-rows';
+  const host = windowHost();
   const pages: Record<SettingsTab, string> = {
     display:
       (actions.name === true
@@ -85,6 +87,14 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
         t('settings.language'),
         `<select class="language" data-ui="seg">${languageOptions()}</select>`,
       ) +
+      // The desktop app's window (PG2): PC players look for it here, beside the corner's button.
+      (host === null
+        ? ''
+        : row(
+            t('settings.window'),
+            `<select class="window-mode" data-ui="seg"><option value="fullscreen">${t('settings.window.fullscreen')}</option><option value="windowed">${t('settings.window.windowed')}</option></select>`,
+            t('settings.windowTitle'),
+          )) +
       row(
         t('settings.graphics'),
         `<select class="graphics" data-ui="seg">${graphicsOptions()}</select>`,
@@ -189,6 +199,23 @@ export function settingsRows(actions: SettingsActions): HTMLElement {
   if (name !== null) {
     name.value = hasTypedName() ? storedName() : '';
     name.addEventListener('input', () => saveTypedName(name.value));
+  }
+  // The window's own state, asked as the panel opens — the app keeps it, not the page — and
+  // shown without switching anything; while the panel is open nothing else can change it.
+  const windowMode = node.querySelector<HTMLSelectElement>('.window-mode');
+  if (host !== null && windowMode !== null) {
+    let syncing = false;
+    void host.fullscreen().then((on) => {
+      syncing = true;
+      windowMode.value = on ? 'fullscreen' : 'windowed';
+      windowMode.dispatchEvent(new Event('change'));
+      syncing = false;
+    });
+    windowMode.addEventListener('change', () => {
+      if (syncing) return;
+      actions.click();
+      void host.setFullscreen(windowMode.value === 'fullscreen');
+    });
   }
   const language = node.querySelector<HTMLSelectElement>('.language')!;
   language.addEventListener('change', () => {

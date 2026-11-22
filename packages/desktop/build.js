@@ -76,6 +76,16 @@ await build({
   external: ['electron'],
 });
 
+// The GitHub build's game window: its fullscreen, Quit and the server's panel (PG2).
+await build({
+  ...shared,
+  entryPoints: [resolve(here, 'src', 'appPreload.ts')],
+  outfile: resolve(here, 'dist', 'appPreload.cjs'),
+  platform: 'node',
+  format: 'cjs',
+  external: ['electron'],
+});
+
 // The Steam build's game window: Steam's state and the window's fullscreen for the page.
 await build({
   ...shared,

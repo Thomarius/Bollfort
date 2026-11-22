@@ -82,9 +82,9 @@ function savedPlace(): unknown {
     return null;
   }
 }
-function savePlace(bounds: Bounds): void {
+function savePlace(bounds: Bounds, fullscreen: boolean): void {
   try {
-    writeFileSync(placeFile, JSON.stringify({ bounds }));
+    writeFileSync(placeFile, JSON.stringify({ bounds, fullscreen }));
   } catch {
     // Not remembered: the next window opens centred.
   }
@@ -110,11 +110,39 @@ const control = new ServerControl(
   }),
 );
 
-let window: BrowserWindow | null = null;
+/**
+ * The game first (PLAN §11 item 11, PG2; the user's choice, 2026-11-22): the app starts its server
+ * and opens the game's window on it, as a game opens; the server's panel — its addresses for the
+ * other players, Open to the internet, Share a link online — comes from the menu's Hosting, or by
+ * itself when the server could not start, for the host to try another port. It had opened first,
+ * the game behind its Play here, which read as a server tool rather than a game.
+ */
+let panel: BrowserWindow | null = null;
+let game: BrowserWindow | null = null;
+/** The port the game's page was loaded from, so a server moved to another loads it afresh. */
+let gamePort: number | null = null;
 let quitting = false;
 
-function createWindow(): void {
-  window = new BrowserWindow({
+/** The server stopped before the app goes, so the port is free after. */
+function quitApp(): void {
+  if (quitting) return;
+  quitting = true;
+  void control.stop().finally(() => app.quit());
+}
+
+function bringForward(window: BrowserWindow): void {
+  if (window.isMinimized()) window.restore();
+  window.show();
+  window.focus();
+}
+
+/** The server's panel, made or brought forward. */
+function showPanel(): void {
+  if (panel !== null && !panel.isDestroyed()) {
+    bringForward(panel);
+    return;
+  }
+  const made = new BrowserWindow({
     width: 440,
     height: 780,
     resizable: false,
@@ -124,21 +152,96 @@ function createWindow(): void {
     autoHideMenuBar: true,
     webPreferences: { preload: join(here, 'preload.cjs') },
   });
-  void window.loadFile(join(here, '..', 'ui', 'index.html'));
-  window.webContents.on('did-finish-load', () => {
-    window?.webContents.send('state', control.state);
-    window?.webContents.send('firewall', firewall);
+  panel = made;
+  void made.loadFile(join(here, '..', 'ui', 'index.html'));
+  made.webContents.on('did-finish-load', () => {
+    made.webContents.send('state', control.state);
+    made.webContents.send('firewall', firewall);
   });
   // Back from Windows' question or its settings: the rules may have changed.
-  window.on('focus', () => void readFirewall());
-  // Closing the window stops the server before the app goes, so the port is free after.
-  window.on('close', (event) => {
-    if (quitting) return;
+  made.on('focus', () => void readFirewall());
+  // Closed beside the game, only the panel goes; as the app's last window, it ends the app.
+  made.on('close', (event) => {
+    if (quitting || (game !== null && !game.isDestroyed())) return;
     event.preventDefault();
-    quitting = true;
-    void control.stop().finally(() => app.quit());
+    quitApp();
+  });
+  made.on('closed', () => {
+    if (panel === made) panel = null;
   });
 }
+
+/** The game's window on the running server, made, loaded afresh on a new port, or brought forward. */
+function openGame(): void {
+  const state = control.state;
+  if (state.status !== 'running') return;
+  const url = `http://localhost:${state.port}`;
+  if (game !== null && !game.isDestroyed()) {
+    if (gamePort !== state.port) {
+      gamePort = state.port;
+      void game.loadURL(url);
+    }
+    bringForward(game);
+    return;
+  }
+  const saved = savedPlace();
+  const place = placeOn(
+    readBounds(saved),
+    screen.getAllDisplays().map((d) => d.workArea),
+  );
+  const made = new BrowserWindow({
+    width: 1400,
+    height: 900,
+    ...(place ?? {}),
+    // Windowed unless the player left it fullscreen (Options' Window, PG2).
+    fullscreen: (saved as { fullscreen?: unknown } | null)?.fullscreen === true,
+    // Shown once painted (PG1), on the game's title screen rather than an empty frame.
+    show: false,
+    title: 'Bollfort',
+    icon,
+    backgroundColor: '#0a0a12',
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: join(here, 'appPreload.cjs'),
+      // The app's own window may play sound unasked, so the music starts as the game opens
+      // rather than at the first click, as a browser insists (the users' wish, 2026-10-09).
+      autoplayPolicy: 'no-user-gesture-required',
+    },
+  });
+  game = made;
+  // The Credits' links lead off the game, to a licence or an author's page: the
+  // person's own browser, not another window of the app.
+  made.webContents.setWindowOpenHandler(({ url: link }) => {
+    if (/^https?:\/\//.test(link)) void shell.openExternal(link);
+    return { action: 'deny' };
+  });
+  // A game, not a page: no pinching the page larger (GL1).
+  void made.webContents.setVisualZoomLevelLimits(1, 1);
+  showWhenPainted(made);
+  const tell = (on: boolean): void => made.webContents.send('app-fullscreen', on);
+  made.on('enter-full-screen', () => tell(true));
+  made.on('leave-full-screen', () => tell(false));
+  // Where it was left and whether fullscreen, for next time; closing the game ends the app.
+  made.on('close', (event) => {
+    savePlace(made.getNormalBounds(), made.isFullScreen());
+    if (quitting) return;
+    event.preventDefault();
+    quitApp();
+  });
+  made.on('closed', () => {
+    if (game === made) game = null;
+  });
+  gamePort = state.port;
+  void made.loadURL(url);
+}
+
+ipcMain.handle('app-fullscreen', () => game?.isFullScreen() ?? false);
+ipcMain.handle('app-set-fullscreen', (_event, on: boolean) => {
+  game?.setFullScreen(on === true);
+  return on === true;
+});
+ipcMain.handle('app-quit', () => quitApp());
+ipcMain.on('app-hosting', () => showPanel());
 
 /**
  * What Windows Firewall makes of the server, read as it starts and whenever the window comes
@@ -154,7 +257,7 @@ async function readFirewall(): Promise<void> {
     const status = await checkFirewall(process.execPath, state.port);
     if (control.state.status !== 'running' || control.state.port !== state.port) return;
     firewall = status;
-    window?.webContents.send('firewall', firewall);
+    panel?.webContents.send('firewall', firewall);
   } finally {
     reading = false;
   }
@@ -162,9 +265,15 @@ async function readFirewall(): Promise<void> {
 
 let wasRunning = false;
 control.onChange((state) => {
-  window?.webContents.send('state', state);
+  if (panel !== null && !panel.isDestroyed()) panel.webContents.send('state', state);
   const running = state.status === 'running';
-  if (running && !wasRunning) void readFirewall();
+  if (running && !wasRunning) {
+    void readFirewall();
+    // The game on it: at the start, and on a new port the host chose in the panel.
+    openGame();
+  }
+  // Not started (a port in use, no permission): the panel, to try another.
+  if (state.status === 'failed') showPanel();
   wasRunning = running;
 });
 
@@ -184,51 +293,17 @@ ipcMain.handle('open-browser', () => {
   const state = control.state;
   if (state.status === 'running') void shell.openExternal(`http://localhost:${state.port}`);
 });
-ipcMain.handle('play-here', () => {
-  const state = control.state;
-  if (state.status !== 'running') return;
-  const place = placeOn(
-    readBounds(savedPlace()),
-    screen.getAllDisplays().map((d) => d.workArea),
-  );
-  const play = new BrowserWindow({
-    width: 1400,
-    height: 900,
-    ...(place ?? {}),
-    // Shown once painted (PG1), on the game's title screen rather than an empty frame.
-    show: false,
-    title: 'Bollfort',
-    icon,
-    backgroundColor: '#0a0a12',
-    autoHideMenuBar: true,
-    // The app's own window may play sound unasked, so the music starts as the game opens
-    // rather than at the first click, as a browser insists (the users' wish, 2026-10-09).
-    webPreferences: { autoplayPolicy: 'no-user-gesture-required' },
-  });
-  // The Credits' links lead off the game, to a licence or an author's page: the
-  // person's own browser, not another window of the app.
-  play.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:\/\//.test(url)) void shell.openExternal(url);
-    return { action: 'deny' };
-  });
-  // A game, not a page: no pinching the page larger (GL1); and where it was left, next time.
-  void play.webContents.setVisualZoomLevelLimits(1, 1);
-  showWhenPainted(play);
-  play.on('close', () => savePlace(play.getNormalBounds()));
-  void play.loadURL(`http://localhost:${state.port}`);
-});
+ipcMain.handle('play-here', () => openGame());
 
 app.on('second-instance', () => {
-  if (window === null) return;
-  if (window.isMinimized()) window.restore();
-  window.focus();
+  const front = game ?? panel;
+  if (front !== null && !front.isDestroyed()) bringForward(front);
 });
 
 void app.whenReady().then(() => {
   // No menu bar for Alt to show, and with it none of its keys: reload, the developer tools, the
   // page's zoom (GL1). From the repository it stays, for the developer tools.
   if (app.isPackaged) Menu.setApplicationMenu(null);
-  createWindow();
-  // Started at once: starting the server is what the app is opened for.
+  // Started at once, the game opening on it as it runs (`control.onChange`).
   void control.startOn();
 });

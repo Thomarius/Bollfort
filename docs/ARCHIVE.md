@@ -13051,3 +13051,41 @@ since GL1, dressed in the window's look (its panel edge and accent), their words
 starts after 30 s at an idle menu, `?demo=1` at once; `demo.button` and its tip left the locales.
 
 New text in all three languages: `loading.clickToStart`.
+
+## 16ze. A PC game, not a browser game, PG2: what PC players expect (2026-11-22, PLAN §11 item 11)
+
+**The GitHub build opens the game.** It had opened its server's small window first — status, the
+addresses to give other players, Open to the internet, Share a link online, Play here — the game
+behind Play here, which read as a server tool. Of three ways offered (the panel on request, its
+contents as an in-game window, both windows with the game in front) the user chose **the game
+first, the panel on request**: the app starts its server and opens the game's window on it as soon
+as it runs; the menu has **Hosting** (a globe, GitHub build only, beside Quit) for the panel as it
+was. The panel comes by itself when the server could not start, for the host to try another port.
+Closing the game stops the server and ends the app; closing the panel beside the game closes only
+the panel, and as the last window it ends the app, as before. A server moved to another port from
+the panel loads the game afresh there. The panel's note says "The server runs as long as the game
+is open." The game's window has a bridge of its own, `window.bollfortApp` (`appPreload.ts`): its
+fullscreen, Quit and the panel — not the Steam build's `bollfortHost`, whose presence the page takes
+for Steam. The page asks `windowHost()` for either. So the GitHub build gained what the Steam build
+had: Quit in the menu, and Full screen switched at the window, where the page's own fullscreen had
+been left by Esc, the game's pause. Its window remembers whether it was fullscreen, in
+`window.json` beside its place; windowed by default. Started from the repository: the game's window
+alone, titled Bollfort, Hosting in its menu.
+
+**Window in Options.** A row on the Display tab in either desktop app, Fullscreen or Windowed,
+under the language: PC players look for it there, beside the corner's button. The window's state
+is the app's, asked as the panel opens and shown without switching anything.
+
+**Errors as a window.** `showError`, called in 33 places — a crash, and ordinary failures such as
+"Could not join" with no server answering — had replaced everything with a red box of raw text. It
+is a window in the game's dress now, its edge a muted red: the heading, the message in plain words,
+the program's own account folded under Details where there is one, a line that the report helps
+if it keeps happening, **Copy report** (the heading, message and stack with the version, page,
+browser and time; by the Clipboard API, or a selected field where the page is no secure context,
+served by its address over the network) and **Back to menu**, which loads the page afresh at the
+menu, since what failed may have left anything broken. An uncaught error and an unhandled rejection
+are headed "Something went wrong" rather than in the program's words. Looked at: a join with no
+server, and a thrown TypeError with its Details open.
+
+New texts in all three languages: `menu.hosting`, its tip, `settings.window` and its two choices
+and tip, `error.details`, `error.copyReport`, `error.reportHint`.

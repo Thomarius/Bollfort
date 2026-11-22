@@ -3,7 +3,9 @@ import { audioManifest } from './styles/data.js';
 
 import { Audio } from './audio.js';
 import { onLanguageChange, setLanguage, startingLanguage, t } from './i18n.js';
-import { gameHost } from './host.js';
+import { windowHost } from './host.js';
+import { escape } from './html.js';
+import { builtVersion, versionLabel } from './version.js';
 import { withIcon } from './icons.js';
 import { installBackdrop } from './decor.js';
 import { backgroundMuteSetting } from './displaySettings.js';
@@ -34,14 +36,70 @@ installBackdrop(defaultConfigBundle.art);
 
 applyMotion();
 
-/** Surfaces failures on the page: a renderer that throws otherwise looks like a black screen. */
+/**
+ * Surfaces failures on the page — a renderer that throws otherwise looks like a black screen —
+ * as a window in the game's dress (PLAN §11 item 11, PG2), where a red box of raw text had stood
+ * in place of everything, for a crash and for "Could not join" alike: what went wrong in plain
+ * words, the program's own account folded under Details, Copy report for sending it, and Back to
+ * menu, which loads the page afresh at the menu, since what failed may have left anything broken.
+ */
 export function showError(source: string, detail: unknown): void {
-  const message =
-    detail instanceof Error ? `${detail.message}\n${detail.stack ?? ''}` : String(detail);
-  const box = document.createElement('pre');
+  const error = detail instanceof Error ? detail : null;
+  const message = error === null ? String(detail) : error.message;
+  const stack = error?.stack ?? '';
+  const report = [
+    source,
+    message,
+    stack,
+    '',
+    `version: ${versionLabel(builtVersion()) || 'unknown'}`,
+    `page: ${location.href}`,
+    `agent: ${navigator.userAgent}`,
+    `time: ${new Date().toISOString()}`,
+  ].join('\n');
+  const box = document.createElement('div');
   box.className = 'crash';
-  box.textContent = `${source}\n\n${message}`;
+  box.innerHTML =
+    `<div class="panel" role="alertdialog" aria-labelledby="crash-title">` +
+    `<h2 id="crash-title">${escape(source)}</h2>` +
+    `<p class="message">${escape(message)}</p>` +
+    (stack === ''
+      ? ''
+      : `<details><summary>${escape(t('error.details'))}</summary><pre>${escape(stack)}</pre></details>`) +
+    `<p class="hint">${escape(t('error.reportHint'))}</p>` +
+    `<div class="split"><button class="copy">${escape(t('error.copyReport'))}</button>` +
+    `<button class="primary back" data-main>${escape(t('connection.back'))}</button></div></div>`;
+  const copy = box.querySelector<HTMLButtonElement>('.copy')!;
+  copy.addEventListener('click', () => {
+    void copyText(report).then((done) => {
+      if (done) copy.textContent = t('lobby.copied');
+    });
+  });
+  box.querySelector('.back')?.addEventListener('click', () => {
+    location.href = location.pathname;
+  });
   app?.replaceChildren(box);
+}
+
+/**
+ * Text to the clipboard: by the Clipboard API where the page may use it, else by a selected
+ * field — a page served over the network by its address, not `localhost`, is no secure context
+ * and has no `navigator.clipboard`.
+ */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const field = document.createElement('textarea');
+    field.value = text;
+    field.style.cssText = 'position:fixed;opacity:0';
+    document.body.append(field);
+    field.select();
+    const done = document.execCommand('copy');
+    field.remove();
+    return done;
+  }
 }
 
 globalThis.addEventListener('error', (event) =>
@@ -189,9 +247,9 @@ document.addEventListener('focusin', placeTip);
  * page may not go full screen.
  */
 function installFullscreenButton(): void {
-  // The Steam build switches its window, not the page: Esc, the game's pause, would leave the
-  // page's (STEAM.md §3.5).
-  const host = gameHost();
+  // The desktop builds switch their window, not the page: Esc, the game's pause, would leave the
+  // page's (STEAM.md §3.5; the GitHub build's since PG2).
+  const host = windowHost();
   if (host === null && !document.fullscreenEnabled) return;
   const button = document.createElement('button');
   button.id = 'fullscreen';

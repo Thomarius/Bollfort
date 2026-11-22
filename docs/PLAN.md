@@ -1959,7 +1959,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
       the system's; a game's own arrow for the pointer in place of the browser's link hand; the
       HUD's last native tooltips (`title`) as our own hover texts or gone; and the menu's corner
       as icons like the match's, the Demo button gone (the demo still starts after 30 s idle).
-    - **PG2 — What PC players expect**: Windowed or Fullscreen as a row in Options' Display tab in
+    - **PG2 — What PC players expect — built** (ARCHIVE 16ze), for the user to try: Windowed or Fullscreen as a row in Options' Display tab in
       the desktop app; a crash or error window in the game's style with Copy report; and the
       GitHub build opening the game itself rather than its server window first, hosting reached
       from inside.
