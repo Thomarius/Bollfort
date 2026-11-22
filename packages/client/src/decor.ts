@@ -197,6 +197,15 @@ export class SplitTitle {
     this.glide();
   }
 
+  /**
+   * Shows these looks and holds still: the loading screen's title (`matchScreen.ts`, GL2), on
+   * screen while the board is built, when a glide's frames would only stutter.
+   */
+  still(styles: Record<ArtLook, ArtStyle>): void {
+    for (const look of ['build', 'combat'] as const) this.dress(look, styles[look]);
+    this.frame(TITLE_AT_REST);
+  }
+
   /** Draws one half in a style. */
   private dress(look: ArtLook, style: ArtStyle): void {
     if (style === this.shown[look]) return;

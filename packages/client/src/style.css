@@ -3222,10 +3222,27 @@ body.reduced-motion .phase-call .ranking .gain {
   gap: 1rem;
   align-items: center;
   justify-content: center;
-  background: #0a0a12;
+  /* The menu's sea through it, darkened (#backdrop), with the title in the match's looks over
+     it (GL2): black had been the barest screen in the game. */
+  background: radial-gradient(ellipse at center, rgb(10 10 18 / 45%), rgb(10 10 18 / 92%));
   color: var(--accent);
   letter-spacing: 0.3em;
   text-transform: uppercase;
+  transition: opacity 400ms ease;
+}
+
+/* Faded off the board's first frame (matchScreen.ts, PREPARING_FADE_MS). */
+.preparing.done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.reduced-motion .preparing {
+  transition: none;
+}
+
+.preparing .title-split {
+  margin-bottom: 1.5rem;
 }
 
 .preparing p {
@@ -7803,6 +7820,37 @@ body.reduced-motion #menu-corner {
   font-weight: 600;
   letter-spacing: 0.02em;
   text-wrap: balance;
+}
+
+/* The winner's shape by the headline (endScreen.ts, GL2), set down with a bounce as the
+   summary is revealed. */
+.end-screen .summary .winner-mark {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-right: 0.6rem;
+  vertical-align: -0.28em;
+}
+
+.end-screen .summary .winner-mark svg {
+  width: 1.45em;
+  height: 1.45em;
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 45%));
+}
+
+.end-screen:not(.held) .summary .winner-mark svg {
+  animation: winner-mark-in 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 150ms;
+}
+
+@keyframes winner-mark-in {
+  from {
+    opacity: 0;
+    transform: scale(0.2) rotate(-25deg);
+  }
+}
+
+body.reduced-motion .end-screen .summary .winner-mark svg {
+  animation: none;
 }
 
 .end-screen .summary .your-place {

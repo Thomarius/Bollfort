@@ -499,9 +499,25 @@ export class EndScreen {
     const many = (teamed ? teamStandings(state) : standings(state)).length > 5 ? ' many' : '';
     // Buttons, not keys: everything else in the game is the mouse, and a key that does
     // something unannounced is the kind of surprise players dislike.
+    // The winner's shape in their colour, large by the headline (PLAN §11 item 10, GL2) — each
+    // sharer's, a team by its first member's as its row shows it; none for a draw.
+    const marked = state.draw
+      ? []
+      : teamed
+        ? teamStandings(state)
+            .filter((s) => s.members.some((id) => winners.has(id)))
+            .map((s) => s.members[0] ?? 0)
+        : [...winners];
+    const mark =
+      marked.length === 0
+        ? ''
+        : `<span class="winner-mark" aria-hidden="true">${marked
+            .slice(0, 4)
+            .map((id) => shapeSvg(playerShape(id), playerCssColour(id)))
+            .join('')}</span>`;
     return (
       `<div class="banner summary${many}">` +
-      `<h2 class="headline">${text}</h2>${place === null ? '' : `<p class="your-place">${escape(place)}</p>`}` +
+      `<h2 class="headline">${mark}${text}</h2>${place === null ? '' : `<p class="your-place">${escape(place)}</p>`}` +
       `${table}${this.awardsMarkup(state, humanPlayer)}${this.chart(state, humanPlayer)}` +
       `<div class="end-buttons">${this.buttons()}</div></div>` +
       `<div class="peek-bar"><span>${text}</span><button class="peek">${withIcon('eye', t('end.showSummary'))}</button></div>`

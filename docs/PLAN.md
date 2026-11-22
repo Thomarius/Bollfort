@@ -1936,17 +1936,15 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
       the HUD's skin, faint until the pointer or a controller's focus is on them; and at the end,
       the HUD's bar faded out behind the end screen, where it showed "Game over" and half-covered
       scores.
-    - **GL2 — Alive**: the loading screen ("Preparing the board") on the look's backdrop with the
-      title, or the lobby's map carried into the match, rather than black; points rising from each
-      island at a resolution ("+176"), the scores counting up and the rows sliding as ranks change
-      (where not done already); and the end screen counting its figures up, drawing the graph's
-      lines in, and the winner's shape and colour large by the headline, "You win" when it is you.
+    - **GL2 — Alive — built** (ARCHIVE 16zb), for the user to try: most of it was there already —
+      the points over each island at a resolution, the scores counting up and sliding, the end
+      screen's figures counting, its graph drawn in and "You win". New: the loading screen over the
+      game's sea with the title in the look the match opens in, faded off the board's first frame;
+      and the winner's shape and colour large by the end screen's headline.
     - **GL3 — Measured first**: a short card of who plays whom, colours, shapes and islands, as
       the opening starts — only if it costs no time; and the demo dimmed and slowed behind the menu
       from the start rather than after 30 s idle — only if the menu still holds its frames on a
-      weak machine. Also to ask again: groups or filters in the looks' gallery, declined in 12b
-      until there were more than about fifteen styles (there are 24); a "What's new" window shown
-      once after an update.
+      weak machine. Declined for now (the user's, 2026-11-22): groups or filters in the looks' gallery, and a "What's new" window after an update.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

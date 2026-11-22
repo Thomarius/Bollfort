@@ -12929,3 +12929,30 @@ board, as before.
 Looked at in screenshots: the name's window, the menu after it, Find a game with its code row,
 Options with the name, a match's corner in Parchment, the end screen. New texts in all three
 languages (`nameAsk.*`).
+
+## 16zb. A professional finish, GL2: alive (2026-11-22, PLAN §11 item 10)
+
+GL2 had proposed points rising from each island at a resolution, the scores counting up, the rows
+sliding as ranks change, and on the end screen figures counting up, the graph's lines drawn in and
+"You win". Looked for before building, **all of these were there**: the island banners count each
+seat's gain (`kind: 'gain'`), the roster's scores count up over `tallyMs` and slide as places change
+(`Hud.shownScore`, `placeEntries`), the phase call's ranking counts too, and the end screen counts
+its points from nought, draws its lines in (`line-draw`), brings its awards in one by one and says
+"You win" (`end.youWin`). The review had judged from still screenshots, which show none of it. Two
+things were new and are built:
+
+**The loading screen.** "Preparing the board" had been gold words on black, the barest screen in
+the game. It is now translucent over the menu's sea (`#backdrop`, still there until the match
+starts), darkened towards the edges as the menu's is, with the title above the words in the
+look the match opens in — the build look, whole: two looks at rest would be cut through the middle,
+which the menu's glide is written never to show, and a glide during the board's building would only
+stutter (`SplitTitle.still`). The rotation's opening is drawn before the screen, so the title and
+the board agree for Random too. At the board's first frame the screen fades off over 400 ms rather
+than vanishing — an opacity's transition, run off the page's thread, through the first frame's
+warming of the hidden look. Looked at with the page's frames held back, so the screen stayed: Pixel
+and Parchment.
+
+**The winner by the headline.** The winner's shape in their colour, 1.45 em, before the headline,
+set down with a small overshooting bounce as the summary is revealed (none under Reduced motion):
+each sharer's in a shared win, a team's by its first member's as its row shows it, none for a draw.
+Looked at in Minimal and Parchment.

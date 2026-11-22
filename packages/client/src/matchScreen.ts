@@ -61,6 +61,7 @@ import {
 } from './islandZoom.js';
 import { ZOOM_BUTTON_PX, ZoomButton } from './zoomButton.js';
 import { perf } from './perf.js';
+import { SplitTitle } from './decor.js';
 import { bannerProgress, looksAround, type Look } from './transition.js';
 import { Scene, createTheme, type Ghost, type SceneLook } from './render/scene.js';
 import { hasBlast } from './render/towerMarks.js';
@@ -77,6 +78,9 @@ import type { Cell } from './render/theme.js';
 
 /** Height of the HUD's top bar — the phase, timer and roster — kept clear of the board. */
 const HUD_BAR_PX = 64;
+
+/** The loading screen's fade as the board comes (`.preparing.done` in style.css). */
+const PREPARING_FADE_MS = 400;
 
 /**
  * Resolves once what is on the page has been painted: a frame for the layout, and the one
@@ -138,9 +142,24 @@ export async function runSession(
   // Over the board until its first frame (PLAN 11.18 Y1): building both looks' sprites
   // takes about a second as a match opens, and more with every look added, which read as
   // the page freezing. Painted before that work starts, so it is on screen through it.
+  // The looks as chosen, a new style at every banner for one that is random (PLAN 11.23);
+  // the pause menu may change them. Drawn before the board, for the title over it.
+  let lookChoices = setup.styles;
+  let rotation = new LookRotation(lookChoices);
+  const opening = rotation.opening();
+  // Over the game's sea, the title in the look the match opens in (PLAN §11 item 10, GL2):
+  // black with a line of words had been the barest screen in the game.
   app!.innerHTML =
     `<canvas id="stage"></canvas><div id="hud"></div><div id="banner"></div>` +
-    `<div id="preparing" class="preparing"><p>${t('menu.preparing')}</p><span class="blocks"><i></i><i></i><i></i></span></div>`;
+    `<div id="preparing" class="preparing"><span class="title-split"></span><p>${t('menu.preparing')}</p><span class="blocks"><i></i><i></i><i></i></span></div>`;
+  const preparingTitle = document.querySelector<HTMLElement>('#preparing .title-split');
+  if (preparingTitle !== null)
+    // Whole, in the build look the match opens in: at rest, two looks would be cut through the
+    // middle, which the menu's glide never shows.
+    new SplitTitle(preparingTitle, defaultConfigBundle.art).still({
+      build: opening.build,
+      combat: opening.build,
+    });
   const canvas = document.querySelector<HTMLCanvasElement>('#stage');
   const hudRoot = document.querySelector<HTMLElement>('#hud');
   const bannerRoot = document.querySelector<HTMLElement>('#banner');
@@ -155,10 +174,6 @@ export async function runSession(
   const art = defaultConfigBundle.art;
   useMatchPalette(matchPalette(art, session.state));
   useMatchShapes(matchShapes(art, session.state));
-  // The looks as chosen, a new style at every banner for one that is random (PLAN 11.23);
-  // the pause menu may change them.
-  let lookChoices = setup.styles;
-  let rotation = new LookRotation(lookChoices);
   const lookFor = async (style: ArtStyle): Promise<SceneLook> => {
     const own = styleArt(art, style);
     return {
@@ -174,7 +189,6 @@ export async function runSession(
       combat: chosen.combat === chosen.build ? build : await lookFor(chosen.combat),
     };
   };
-  const opening = rotation.opening();
   await scene.init(canvas, await looksFor(opening), art);
   // The build look the first "Rebuild" brings, made now behind "Preparing the board", since
   // the first round has no resolution before it to make it in.
@@ -1104,6 +1118,8 @@ export async function runSession(
     motion: storedMotion(),
   }));
   let last = performance.now();
+  /** Whether the first frame has been drawn, the loading screen faded off it. */
+  let boardShown = false;
   /** When the next frame falls due under the Frame rate's cap (`displaySettings.ts`). */
   let due = 0;
   const loop = (now: number): void => {
@@ -1119,8 +1135,14 @@ export async function runSession(
     last = now;
     // The board is ready: the first frame takes the screen over it down, and draws the
     // hidden look behind it once (`Scene.warmUp`).
-    const first = preparing?.isConnected === true;
-    if (first) preparing?.remove();
+    const first = !boardShown;
+    if (first) {
+      boardShown = true;
+      // Faded off rather than taken down: an opacity's transition runs off the page's thread,
+      // through the first frame's warming of the hidden look (`Scene.warmUp`).
+      preparing?.classList.add('done');
+      setTimeout(() => preparing?.remove(), PREPARING_FADE_MS);
+    }
 
     if (padMatch !== null) {
       const reading = pads.read(now);
