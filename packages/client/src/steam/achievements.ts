@@ -202,6 +202,11 @@ export function howToPageShown(page: string, all: readonly string[]): void {
   if (after.every) bridge.achieve('READ_THE_MANUAL');
 }
 
+/** The tutorial played to its end: Basic training (docs/TUTORIAL.md §6). */
+export function tutorialFinished(): void {
+  bridge?.achieve('TUTORIAL');
+}
+
 /**
  * The match's achievements, when it counts and Steam is there: the achievements already held
  * asked first, so the detector skips them and their dearer checks.

@@ -5,8 +5,8 @@ import { defaultAchievements, defaultRuleset, locales } from './defaults.js';
 import { placeholders } from './locale.js';
 
 describe('the achievements’ config', () => {
-  it('lists the 36 the user chose, each earnable under the default rules', () => {
-    expect(ACHIEVEMENT_IDS).toHaveLength(36);
+  it('lists the 37 the user chose, each earnable under the default rules', () => {
+    expect(ACHIEVEMENT_IDS).toHaveLength(37);
     expect(Object.keys(defaultAchievements)).toEqual(ACHIEVEMENT_IDS);
     expect(achievementProblems(defaultAchievements, defaultRuleset)).toEqual([]);
   });

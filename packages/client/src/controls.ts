@@ -286,6 +286,12 @@ export class Controls {
    * of it, and the zoom it then works (`mouseWheelSetting.ts`, `matchScreen.ts`).
    */
   wheelZooms: () => boolean = () => false;
+  /**
+   * Whether a move is let through, before the rules are asked: the tutorial's, which keeps a
+   * piece to the gap of the moment (docs/TUTORIAL.md §5). A move held back is cued as a refused
+   * one, and its ghost shown red.
+   */
+  allows: (action: Action) => boolean = () => true;
   zoomWheel: (zoomIn: boolean) => void = () => {};
 
   constructor(
@@ -442,24 +448,41 @@ export class Controls {
         else this.submit({ kind: 'fire', player, x: tile.x, y: tile.y });
         return;
       }
-      case 'piece':
+      case 'piece': {
+        const action: Action = {
+          kind: 'place_piece',
+          player,
+          x: tile.x,
+          y: tile.y,
+          rotation: this.rotation,
+        };
+        if (!this.allows(action)) {
+          this.cue('piece_invalid');
+          return;
+        }
         if (canPlacePiece(this.state, player, this.rotation, tile.x, tile.y) !== null) {
           this.cue('piece_invalid');
         }
-        this.submit({ kind: 'place_piece', player, x: tile.x, y: tile.y, rotation: this.rotation });
+        this.submit(action);
         return;
+      }
       case 'cannon': {
         const special = this.placingTower;
-        if (canPlaceCannon(this.state, player, tile.x, tile.y, special) !== null) {
-          this.cue('piece_invalid');
-        }
-        this.submit({
+        const action: Action = {
           kind: 'place_cannon',
           player,
           x: tile.x,
           y: tile.y,
           ...(special ? { special: true as const } : {}),
-        });
+        };
+        if (!this.allows(action)) {
+          this.cue('piece_invalid');
+          return;
+        }
+        if (canPlaceCannon(this.state, player, tile.x, tile.y, special) !== null) {
+          this.cue('piece_invalid');
+        }
+        this.submit(action);
         return;
       }
       default:
@@ -525,7 +548,15 @@ export class Controls {
     switch (mode) {
       case 'piece': {
         const cells = pieceCells(currentPieceId(state, player), this.rotation);
-        const valid = canPlacePiece(state, player, this.rotation, tile.x, tile.y) === null;
+        const valid =
+          canPlacePiece(state, player, this.rotation, tile.x, tile.y) === null &&
+          this.allows({
+            kind: 'place_piece',
+            player,
+            x: tile.x,
+            y: tile.y,
+            rotation: this.rotation,
+          });
         const sealing = valid ? this.sealingFor(cells, tile.x, tile.y) : [];
         return {
           tile,
@@ -545,7 +576,15 @@ export class Controls {
           tower === null
             ? footprintOf(state.ruleset, 'cannon', 1)
             : footprintOf(state.ruleset, variantKind(tower), variantCost(tower));
-        const valid = canPlaceCannon(state, player, tile.x, tile.y, special) === null;
+        const valid =
+          canPlaceCannon(state, player, tile.x, tile.y, special) === null &&
+          this.allows({
+            kind: 'place_cannon',
+            player,
+            x: tile.x,
+            y: tile.y,
+            ...(special ? { special: true as const } : {}),
+          });
         return {
           tile,
           cells: [],

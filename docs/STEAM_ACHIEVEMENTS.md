@@ -33,8 +33,9 @@ Sources: Steamworks' [Achievements](https://partner.steamgames.com/doc/features/
 
 ## 2. The decisions (the user's, 2026-11-12)
 
-- **36 achievements**, the list of §4: the 35 chosen, and Rock solid for the Fortified Tower,
-  kept as the tenth tower (2026-11-22).
+- **37 achievements**, the list of §4: the 35 chosen, Rock solid for the Fortified Tower,
+  kept as the tenth tower (2026-11-22), and Basic training for the tutorial (2026-11-22,
+  docs/TUTORIAL.md §6).
 - **Bot matches count**, with no level floor unless an achievement names one; floors are Level 5
   or Level 8, never Level 10.
 - **Grind in reason**: a stat asks for some 10–20 matches of ordinary play, never 100 or more.
@@ -67,11 +68,11 @@ Sources: Steamworks' [Achievements](https://partner.steamgames.com/doc/features/
    `awards.ts` is.
 6. **Thresholds in config** behind a schema (no rule hardcoded).
 
-## 4. The 36
+## 4. The 37
 
 Difficulty: **E** most players within their first few matches; **M** a skilled player in a fair
 share of matches, a casual one now and then; **H** a skilled player's goal; **stat** across
-matches, with a progress bar. 14 E, 13 M, 5 H, 3 stats.
+matches, with a progress bar. 15 E, 13 M, 5 H, 3 stats.
 
 "Recordings" is what the recordings of 2026-09-28 to 2026-10-23 show: from the detector itself
 (AC2, `--replay recordings/ --achievements`) over the 20 that replay exactly — Thomas 19
@@ -117,6 +118,7 @@ first measurement over all 34, or what the towers' rules say where they were not
 | 34  | Rock solid           | Felsenfest                 | `ROCK_SOLID`       | Own **3** Fortified Towers at once, each laid over at least **2** of your own wall blocks (2026-11-22) | M    | the user's design: placement, three rounds of buying; not recorded                |
 | 35  | Towering victory     | Turmhoch überlegen         | `TOWERING_VICTORY` | Win a match in which you bought **3** towers                                                           | M    | Thomas bought 3 and won in his one tower match                                    |
 | 36  | Among friends        | Unter Freunden             | `AMONG_FRIENDS`    | Finish an online match with another person at the table                                                | E    | 17 of 34 recordings are rooms                                                     |
+| 37  | Basic training       | Grundausbildung            | `TUTORIAL`         | Finish the tutorial (docs/TUTORIAL.md), never counted from any other match                             | E    | —                                                                                 |
 
 **Zoning laws** (27): the reach is the Architect's own (`inRepairReach`, 2.2 at cost 2 and 2.6 at
 cost 3, from the footprint's centre); "no tile within reach of two" is checked on the board as the

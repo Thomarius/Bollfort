@@ -8,6 +8,8 @@ const stroke = (path: string): string =>
 
 export const ICONS = {
   play: stroke('<path d="M7 4v16l13-8z" fill="currentColor"/>'),
+  // The tutorial's: a flag on its pole, the way in for somebody new.
+  flag: stroke('<path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/>'),
   pause: stroke('<path d="M8 5v14M16 5v14"/>'),
   trophy: stroke(
     '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/>',

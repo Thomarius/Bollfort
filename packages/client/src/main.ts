@@ -26,7 +26,7 @@ import {
   towerFromParams,
 } from './session.js';
 import type { Common } from './menu.js';
-import { showMenu, startSteamJoins, tournamentExits } from './menu.js';
+import { playTutorial, showMenu, startSteamJoins, tournamentExits } from './menu.js';
 import { openNewTournament, openResumeList } from './tournamentMenu.js';
 import { writeTournament } from './tournamentSaves.js';
 import { TOURNAMENT_LIMITS } from './tournamentSetup.js';
@@ -111,7 +111,16 @@ if (params.get('icons') === 'sheet') {
   // Every sound and music file first, behind a loading screen (ARCHIVE 14b);
   // then the page the query asks for.
   // A click asked for, where the browser needs one for sound, only on the way to the menu.
-  const routed = ['autostart', 'host', 'join', 'tournament', 'demo', 'storeArt', 'steamLobby'];
+  const routed = [
+    'autostart',
+    'host',
+    'join',
+    'tournament',
+    'tutorial',
+    'demo',
+    'storeArt',
+    'steamLobby',
+  ];
   void showLoading({ askClick: !routed.some((key) => params.has(key)) })
     .then(start)
     .catch((e: unknown) => showError(t('error.unhandled'), e));
@@ -126,7 +135,10 @@ function start(): void {
   installDemo();
   // A controller, in the menus and the match alike (STEAM.md §8).
   startPadLoop((input) => openKeyboard(input, () => audio.play('select')));
-  if (params.get('demo') === '1') {
+  if (params.get('tutorial') === '1') {
+    // Straight into the tutorial (docs/TUTORIAL.md), for looking at it.
+    playTutorial();
+  } else if (params.get('demo') === '1') {
     // Straight into the demo, for looking at it; a click comes back to the menu.
     showMenu();
     startDemo();

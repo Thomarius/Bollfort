@@ -1,12 +1,23 @@
 import type { MatchState } from '@bollfort/sim';
 
 /**
+ * The tutorial's: no clock anywhere, since it holds them and ends each phase itself once its
+ * task is done (docs/TUTORIAL.md §5). On for the tutorial's screen, off as it goes.
+ */
+let clocksHidden = false;
+
+export function hideClocks(hidden: boolean): void {
+  clocksHidden = hidden;
+}
+
+/**
  * Whether a phase's clock is shown — the HUD's figures and bar, and the big timer in the
  * sea. Not in overtime: its window of a few seconds counted down again from 3 straight
  * after the build clock had reached 0, which testers read as the build phase starting
  * over. The clock stops at 0 and goes; the red border and the HUD's words carry overtime.
  */
 export function showsClock(state: Pick<MatchState, 'phase' | 'overtime'>): boolean {
+  if (clocksHidden) return false;
   return !(state.phase === 'build' && state.overtime);
 }
 

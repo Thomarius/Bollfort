@@ -1760,9 +1760,10 @@ table.final tr.head td {
   color: var(--muted);
 }
 
-/* The island labels, which would sit on top of the summary, step aside for it. */
+/* The island labels, which would sit on top of the summary, step aside for it — but for the
+   tutorial's, which has no summary and explains them once the match is over (docs/TUTORIAL.md). */
 #banner.game-over .team-tag,
-#banner.game-over .island-banner {
+body:not(.tutorial) #banner.game-over .island-banner {
   display: none;
 }
 
@@ -9054,4 +9055,165 @@ img.avatar {
 
 .how-to-play.name-ask button.primary:hover:not(:disabled) {
   filter: brightness(1.1);
+}
+
+/* The tutorial's card (docs/TUTORIAL.md §5): above the board, which is fitted below it, in the
+   HUD's dress — the step's heading large, the words under it, a task's count as a bar and a
+   note's Continue. It comes in afresh with every step (`.arrive`), so a new one is noticed. */
+.tutorial-card {
+  position: fixed;
+  top: 68px;
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: min(44rem, 94vw);
+  padding: 0.75rem 1.1rem 0.85rem;
+  border: var(--hud-box-edge);
+  border-top: 3px solid var(--hud-accent);
+  border-radius: var(--radius-s);
+  background: var(--hud-box);
+  box-shadow:
+    var(--hud-box-shadow),
+    0 10px 28px rgb(0 0 0 / 45%);
+  color: var(--hud-ink);
+  font-family: var(--ui-font);
+  transform: translateX(-50%);
+}
+
+.tutorial-card[hidden] {
+  display: none;
+}
+
+.tutorial-card.arrive {
+  animation: tutorial-arrive 360ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes tutorial-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-14px) scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-card.arrive {
+    animation: none;
+  }
+}
+
+.tutorial-card .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tutorial-card .kicker {
+  color: var(--hud-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tutorial-card .skip {
+  padding: 0.2rem 0.6rem;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.tutorial-card .skip:hover {
+  opacity: 1;
+}
+
+.tutorial-card h2 {
+  margin: 0;
+  font: 700 26px var(--hud-font, var(--ui-display));
+  line-height: 1.1;
+}
+
+.tutorial-card .body {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.tutorial-card .foot {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.tutorial-card .progress {
+  flex: 1;
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.tutorial-card .progress .bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--hud-track);
+  overflow: hidden;
+}
+
+.tutorial-card .progress .bar i {
+  display: block;
+  height: 100%;
+  background: var(--hud-accent);
+  transition: width 200ms ease-out;
+}
+
+.tutorial-card .count {
+  color: var(--hud-accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tutorial-card .points {
+  border-collapse: collapse;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tutorial-card .points td {
+  padding: 0.05rem 1.2rem 0.05rem 0;
+}
+
+.tutorial-card .points .sum {
+  color: var(--hud-muted);
+}
+
+.tutorial-card .points .value {
+  padding-right: 0;
+  text-align: right;
+}
+
+.tutorial-card .points .total td {
+  padding-top: 0.2rem;
+  border-top: 1px solid var(--hud-muted);
+  color: var(--hud-accent);
+  font-weight: 700;
+}
+
+.tutorial-card .next {
+  margin-left: auto;
+  min-width: 10rem;
+  min-height: 2.3rem;
+  font-size: 15px;
+  border-color: transparent;
+  background: var(--hud-accent);
+  color: var(--hud-on-accent);
+  font-weight: 700;
+}
+
+/* The tutorial's last window and the first start's offer: the name window's panel, its two
+   buttons one above the other. */
+.how-to-play.tutorial-end .panel button,
+.how-to-play.tutorial-offer .panel button {
+  width: 100%;
 }

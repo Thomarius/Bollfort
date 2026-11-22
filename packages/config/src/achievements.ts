@@ -74,6 +74,8 @@ export const AchievementsConfigSchema = z.strictObject({
   /** Special towers bought in a match the player wins. */
   TOWERING_VICTORY: z.strictObject({ towers: Count }),
   AMONG_FRIENDS: None,
+  /** The tutorial played to its end (docs/TUTORIAL.md §6, 2026-11-22, the user's). */
+  TUTORIAL: None,
 });
 
 export type AchievementsConfig = z.infer<typeof AchievementsConfigSchema>;

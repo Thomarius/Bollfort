@@ -137,6 +137,22 @@ describe('the draw', () => {
     expect(draw(7)).not.toEqual(draw(8));
   });
 
+  it('deals a script first, whatever the seed, then draws as ever', () => {
+    // The tutorial's (docs/TUTORIAL.md): each gap is handed the piece it needs.
+    const ruleset = {
+      ...defaultRuleset,
+      build: { ...defaultRuleset.build, pieceScript: ['i2', 'i1', 'l3'] },
+    };
+    for (const seed of [1, 99]) {
+      expect([0, 1, 2].map((i) => pieceById(pieceAt(ruleset, seed, 1, i)).name)).toEqual([
+        'i2',
+        'i1',
+        'l3',
+      ]);
+      expect(pieceAt(ruleset, seed, 1, 3)).toBe(pieceAt(defaultRuleset, seed, 1, 3));
+    }
+  });
+
   it('gives a different queue each round', () => {
     const draw = (round: number): number[] =>
       Array.from({ length: 30 }, (_, i) => pieceAt(defaultRuleset, 5, round, i));

@@ -48,12 +48,13 @@ export function nameAskFacts(steam: boolean, query: URLSearchParams): NameAskFac
 }
 
 /**
- * Shows the window over the menu; `click` is the menus' click. Continue keeps what is typed —
+ * Shows the window over the menu; `click` is the menus' click, `then` what follows it (the
+ * tutorial's offer, docs/TUTORIAL.md §2). Continue keeps what is typed —
  * nothing typed keeps the default, which follows the language — and either way it is not
  * asked again. Enter in the field is Continue, as a form's would be; a controller's Accept
  * opens its on-screen keyboard on the field (`padKeyboard.ts`) and its main button is Continue.
  */
-export function askName(click: () => void): void {
+export function askName(click: () => void, then: () => void = () => undefined): void {
   document.querySelector('.name-ask')?.remove();
   const root = document.createElement('div');
   root.className = 'how-to-play name-ask';
@@ -71,6 +72,7 @@ export function askName(click: () => void): void {
     saveTypedName(field.value);
     store(ASKED_KEY, '1');
     root.remove();
+    then();
   };
   root.querySelector('.primary')?.addEventListener('click', done);
   field.addEventListener('keydown', (event) => {

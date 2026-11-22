@@ -15,6 +15,13 @@ import { SplitTitle } from './decor.js';
 import { app, showError, audio } from './app.js';
 import { preferredStyles, saveStyles, storedName } from './prefs.js';
 import { askName, nameAskFacts, shouldAskName } from './namePrompt.js';
+import {
+  offerTutorial,
+  shouldOfferTutorial,
+  tutorialDone,
+  tutorialOfferFacts,
+} from './tutorial/offer.js';
+import { startTutorial } from './tutorial/start.js';
 import { builtVersion, versionLabel } from './version.js';
 import { joinSteam, openLobby } from './lobbyFlow.js';
 import { forgetMatch, keptMatch } from './steam/backToMatch.js';
@@ -213,7 +220,10 @@ export function showMenu(notice: string | null = null, findGame = false): void {
         <button id="resume-tournament"${savedTournaments().length === 0 ? ' disabled' : ''}>${withIcon('resume', t('menu.resumeTournament'))}</button>
       </div>
       <div class="split">
+        <button id="tutorial" class="quiet${tutorialDone() ? '' : ' fresh'}">${withIcon('flag', t('menu.tutorial'))}</button>
         <button id="how-to-play" class="quiet${howToPlaySeen() ? '' : ' fresh'}">${withIcon('help', t('menu.howToPlay'))}</button>
+      </div>
+      <div class="split">
         <button id="options" class="quiet">${withIcon('gear', t('menu.options'))}</button>
       </div>
       ${quitRow()}
@@ -231,8 +241,16 @@ export function showMenu(notice: string | null = null, findGame = false): void {
     </div>
   `;
   wireSteamRows();
-  if (shouldAskName(nameAskFacts(steamPlay() !== null, new URLSearchParams(location.search))))
-    askName(() => audio.play('select'));
+  // The first start: the name, then the tutorial offered once (docs/TUTORIAL.md §2).
+  const query = new URLSearchParams(location.search);
+  const offer = (): void => {
+    if (shouldOfferTutorial(tutorialOfferFacts(query))) {
+      offerTutorial(playTutorial, () => audio.play('select'));
+    }
+  };
+  if (shouldAskName(nameAskFacts(steamPlay() !== null, query))) {
+    askName(() => audio.play('select'), offer);
+  } else if (document.querySelector('.name-ask:not(.tutorial-offer)') === null) offer();
   // The desktop app's own way out (2026-11-09, the user's): a Steam game, on the Deck above
   // all, has no window to close. Absent in a browser, which has its own.
   document.querySelector('#quit')?.addEventListener('click', () => {
@@ -346,7 +364,11 @@ export function showMenu(notice: string | null = null, findGame = false): void {
 
   document.querySelector('#play')?.addEventListener('click', () => {
     audio.play('select');
-    void openLobby(readCommon(), null).catch((e: unknown) => showError(t('error.couldNotOpen'), e));
+    openSingleMatch();
+  });
+  document.querySelector('#tutorial')?.addEventListener('click', () => {
+    audio.play('select');
+    playTutorial();
   });
   // How to play (PLAN 11.16 H1): pages of pictures over the menu, marked until first opened.
   const howTo = document.querySelector<HTMLButtonElement>('#how-to-play');
@@ -360,6 +382,17 @@ export function showMenu(notice: string | null = null, findGame = false): void {
     audio.play('select');
     openCredits(audioManifest, () => audio.play('select'));
   });
+}
+
+/** The lobby for a match on this computer: the menu's Single match, and the tutorial's way on. */
+export function openSingleMatch(): void {
+  void openLobby(readCommon(), null).catch((e: unknown) => showError(t('error.couldNotOpen'), e));
+}
+
+/** The tutorial (docs/TUTORIAL.md), back to the menu or on to a first match. */
+export function playTutorial(): void {
+  document.querySelector('.tutorial-offer')?.remove();
+  startTutorial({ menu: () => showMenu(), play: openSingleMatch });
 }
 
 /**

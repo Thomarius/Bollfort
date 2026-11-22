@@ -290,6 +290,9 @@ function drawSeed(seed: number, round: number, index: number): number {
  * the same piece at the same position, so no one is handed an easier bag.
  */
 export function pieceAt(ruleset: Ruleset, seed: number, round: number, index: number): number {
+  // The tutorial's pieces, each the one its gap needs (docs/TUTORIAL.md); no match has any.
+  const scripted = ruleset.build.pieceScript?.[index];
+  if (scripted !== undefined) return pieceByName(scripted).id;
   const pool = poolForRound(ruleset, round);
   const rng = new Rng(drawSeed(seed, round, index));
   return pool.ids[rng.nextWeightedIndex(pool.weights)] as number;

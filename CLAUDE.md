@@ -86,7 +86,8 @@ leave your seat undriven on the way, so you are soon knocked out), `&speed=10`,
 `&bots=thread` to keep a local match's bots off their worker (ARCHIVE 13k),
 `&style=flat|pixel|night|cyberpunk|blueprint|parchment|bricks|glass|chocolate|halloween|sakura|oktoberfest|opera|office|undersea|electric|cartoon|christmas|noir|sports|pirates|anime|mythology|wildwest` for both looks (a one-look style sets only its own)
 (`&buildStyle=`, `&combatStyle=` for one), `&watch=1&level=8` to observe a bot match (`&personality=offensive` fixes every bot's),
-`?demo=1` the demo at once (`&speed=10` to cycle its matches),
+`?demo=1` the demo at once (`&speed=10` to cycle its matches), `?tutorial=1` the tutorial at once
+(`?tutorialOffer=1` the first start's offer of it again, `docs/TUTORIAL.md`),
 `&rounds=12` for the round cap, `&specials=1` for special towers (`&tower=bertha3`, a tower at its cost, the person's),
 `&teams=2` for teams of two in seat order, `&storeArt=scene` the board alone with the title over it (`&title=`, `&titleWidth=`, `&shade=1|band`, `&split=0.5` a change of look held still; `?storeArt=logo` the title alone, transparent), `&autopilot=1` a bot plays the person's seat, shown as a person plays it (the ghost, the reticle), `&clean=1` without the corner's buttons, `&labels=0` no words on the screen but a phase banner's (`&timer=0` without the big countdown too), `&reticle=0` no aiming cursor nor towers' emblems, `&shake=0.5` the screen's shake at a strength (`0` none), `&cameraZoom=1.9&cameraOn=you|duel` the camera held close in play, `?icons=sheet` every style's cannon icon side by side, `?icons=app&kind=castle|ring|letter|keep|bare` the app's icon candidates
 (`?icons=boards` each style's board, for checking a refactor pixel for pixel), `?gaps=preview`
@@ -210,7 +211,8 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 
 - **The game** (ARCHIVE 10u–12zk): its rules, online rooms, Find a game, pause, recordings, team
   matches, bots of levels 1–10 with personalities, tournaments (`packages/tournament`, ARCHIVE
-  12ze–12zr), a demo behind the menu (15m, never recorded), How to play (14zq), the end screen
+  12ze–12zr), a demo behind the menu (15m, never recorded), a tutorial on rails (PLAN §11 item 12,
+  `docs/TUTORIAL.md`, built 2026-11-22 for the user to try), How to play (14zq), the end screen
   (15k), achievements' detector (16a), the island zoom (16j: the player's own island fitted to the
   screen in the build and cannon phases, by a magnifier on its corner or a pad's RB; a setting
   Off / Start out / Start in, applied as each build phase opens; never in combat; the wheel may

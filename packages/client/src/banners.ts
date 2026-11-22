@@ -64,9 +64,14 @@ export function bannersFor(
   state: MatchState,
   livesLost: ReadonlyMap<number, LifeLost>,
   gained: ReadonlyMap<number, PointsGained> = new Map(),
+  /**
+   * Shown after the match is over too: the tutorial's, whose last points and the rival out are
+   * explained over the board once the match has ended (docs/TUTORIAL.md §4).
+   */
+  atEnd = false,
 ): BannerText[] {
   // Once the match is over the winner has the screen; nothing else needs saying.
-  if (state.phase === 'game_over') return [];
+  if (state.phase === 'game_over' && !atEnd) return [];
 
   const out: BannerText[] = [];
   // In a team match the lives are the team's, and a knockout takes the whole team.
@@ -92,7 +97,9 @@ export function bannersFor(
       // A life lost banks nothing, so the two never compete for the same island.
       const points = gained.get(player.id);
       if (points !== undefined && points.amount > 0 && state.tick < points.untilTick) {
-        const shown = countedSoFar(points, state.tick);
+        // Whole once the match is over (the tutorial's, `atEnd`): its clock no longer runs to count.
+        const shown =
+          state.phase === 'game_over' ? points.amount : countedSoFar(points, state.tick);
         out.push({
           player: player.id,
           kind: 'gain',

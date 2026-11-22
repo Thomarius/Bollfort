@@ -8,12 +8,13 @@ import {
   footprintOf,
   inFlight,
   owesCastleChoice,
+  type Action,
   type MatchEvent,
   type MatchState,
   type Phase,
 } from '@bollfort/sim';
 
-import { countdownBeat, showsClock } from './clock.js';
+import { countdownBeat, hideClocks, showsClock } from './clock.js';
 import { Controls, inputMode, maySwitchTower, placeableCannons, readyCannons } from './controls.js';
 import { cannonImg, placeIconPx, placeIconsHtml, switchHintHtml } from './towerIcons.js';
 import { defaultArtConfig, variantCost, variantKind } from '@bollfort/config';
@@ -117,7 +118,40 @@ export interface MatchExits {
    * Pause and no summary; held still while the window is away, as a played match is.
    */
   demo?: boolean;
+  /** The tutorial (docs/TUTORIAL.md): its rails, its pointers and its camera. */
+  tutorial?: TutorialHooks;
 }
+
+/**
+ * What the tutorial asks of the match screen (docs/TUTORIAL.md §5): which moves it lets
+ * through, what it points at, where the camera is, and when the end may be celebrated. No
+ * summary, no clocks and no island zoom while it plays.
+ */
+export interface TutorialHooks {
+  allows(action: Action): boolean;
+  /** The tiles to point at, drawn as a leak is. */
+  marks(): readonly Cell[];
+  camera(): 'board' | 'you' | 'rival';
+  /** Whether the fireworks may go up: the win is told last. */
+  celebrating(): boolean;
+  /** Whether the islands' banners stay up once the match is over, to be explained. */
+  bannersAtEnd(): boolean;
+  /** Whether the phase's clock is shown: the tutorial holds them, but for one countdown. */
+  clockShown(): boolean;
+  /**
+   * The frame's events as they are to be heard: the end's fanfare held back until the win is
+   * told, so it does not sound over what comes before it.
+   */
+  heard(events: readonly MatchEvent[]): readonly MatchEvent[];
+  /** Every frame, once the match has moved on: the card, and the way on at the end. */
+  frame(): void;
+}
+
+/** How close the tutorial's camera comes onto an island, and how fast it gets there. */
+const TUTORIAL_ZOOM = 1.8;
+const TUTORIAL_CAMERA_MS = 500;
+/** The room the tutorial's card takes above the board, which is fitted below it. */
+const TUTORIAL_CARD_PX = 200;
 
 /** Plays a session; resolves with what takes it down, once it is running. */
 export async function runSession(
@@ -128,7 +162,13 @@ export async function runSession(
   // Steam achievements (docs/STEAM_ACHIEVEMENTS.md AC3): the person's own play, the detector fed
   // every step from here. Asked before the board is built, so no step can come first; a board
   // joined after its start was played in part by a bot, which the detector is told.
-  if (achievementsOn() && matchCounts(params, session.humanPlayer, exits.demo === true)) {
+  const tutorial = exits.tutorial ?? null;
+  // The tutorial counts for nothing but its own achievement (docs/TUTORIAL.md §6).
+  if (
+    achievementsOn() &&
+    tutorial === null &&
+    matchCounts(params, session.humanPlayer, exits.demo === true)
+  ) {
     const joinedLate = session.state.tick > 0;
     const watch = await matchAchievements(session.humanPlayer, session.botLevels ?? setup.seats);
     if (watch !== null) {
@@ -250,6 +290,25 @@ export async function runSession(
         // The board is seen whole, so a column's place across it is its place on screen.
         { width: session.state.width, spread: sounds.panWidth },
       );
+  if (tutorial !== null) {
+    // Its own end, and no clocks: it holds them (docs/TUTORIAL.md §5).
+    hud.endScreen.disable();
+    hideClocks(true);
+    document.body.classList.add('tutorial');
+    // The phase's music at once: the tutorial opens inside the cannon phase, with no change of
+    // phase to start it, and the menu's music played on under its first cards.
+    const opening = session.state;
+    matchAudio?.handle([
+      {
+        kind: 'phase_changed',
+        tick: opening.tick,
+        phase: opening.phase,
+        round: opening.round,
+        phaseEndTick: opening.phaseEndTick,
+        pendingPhase: opening.pendingPhase,
+      },
+    ]);
+  }
   if (demo) {
     hud.endScreen.disable();
     // No score bar: a screensaver, not a game whose scores are kept (the user's, 2026-10-29).
@@ -336,7 +395,12 @@ export async function runSession(
       })),
     );
     const banners: IslandBanner[] = [];
-    for (const banner of bannersFor(session.state, livesLost, gained)) {
+    for (const banner of bannersFor(
+      session.state,
+      livesLost,
+      gained,
+      tutorial?.bannersAtEnd() ?? false,
+    )) {
       const centre = islandCentre.get(banner.player);
       if (centre === undefined) continue;
       banners.push({
@@ -360,6 +424,7 @@ export async function runSession(
     // simulation never hears about, so they are cued here rather than from an event.
     (cue) => audio.play(cue),
   );
+  if (tutorial !== null) controls.allows = (action) => tutorial.allows(action);
   // Nobody at the keyboard in a watched match, so there is nothing to listen for.
   if (session.humanPlayer >= 0) controls.attach();
   // A controller steers the same controls (STEAM.md §8), from the player's island's centre.
@@ -392,7 +457,11 @@ export async function runSession(
 
   // A demo has no bar, its board the whole window (the user's, 2026-10-29).
   // Nor has store art (`storeArt.ts`), the board the whole picture.
-  const barPx = demo || storeArtMode(params) !== null ? 0 : HUD_BAR_PX;
+  // The tutorial's card above the board, never over it.
+  const barPx =
+    demo || storeArtMode(params) !== null
+      ? 0
+      : HUD_BAR_PX + (tutorial === null ? 0 : TUTORIAL_CARD_PX);
   /**
    * The screen the island zoom fits the island into: below the bar, above the corner's row of
    * buttons, a little in from the edges — so nothing of the island is under the HUD.
@@ -541,7 +610,8 @@ export async function runSession(
     perf.detach();
     watching.destroy();
     hud.useSkin(null);
-    document.body.classList.remove('in-match', 'demo');
+    hideClocks(false);
+    document.body.classList.remove('in-match', 'demo', 'tutorial');
     globalThis.removeEventListener('resize', fit);
     stopGraphics();
     scene.destroy();
@@ -795,6 +865,9 @@ export async function runSession(
           const cells = event.cells.map((i) => ({ x: i % width, y: Math.floor(i / width) }));
           const first = event.cells[0];
           if (first !== undefined) scene.noteLanding(cells, (owner[first] as number) - 1);
+          // The tutorial's next piece as dealt, so its caption's turns count from there
+          // (docs/TUTORIAL.md §4); a match keeps the turn from piece to piece.
+          if (tutorial !== null && event.player === session.humanPlayer) controls.resetRotation();
           structuresChanged = true;
           territoryChanged = true;
           break;
@@ -977,6 +1050,37 @@ export async function runSession(
     };
   }
 
+  /**
+   * The tutorial's camera, eased towards the island it is about (docs/TUTORIAL.md §4) and back
+   * out to the whole map; a cut under reduced motion. Null at rest on the whole map, so the
+   * match's own camera is left alone.
+   */
+  let tutorialView: { zoom: number; focusX: number; focusY: number } | null = null;
+  let tutorialAt: number | null = null;
+  function tutorialShot(now: number): CameraShot | null {
+    if (tutorial === null) return null;
+    const whole = { zoom: 1, focusX: session.state.width / 2, focusY: session.state.height / 2 };
+    const on = tutorial.camera();
+    const player =
+      on === 'you' ? session.humanPlayer : on === 'rival' ? 1 - session.humanPlayer : -1;
+    const centre = islandCentre.get(player);
+    const target =
+      centre === undefined
+        ? whole
+        : { zoom: TUTORIAL_ZOOM, focusX: centre.x + 0.5, focusY: centre.y + 0.5 };
+    const from = tutorialView ?? whole;
+    const k = motionReduced() ? 1 : 1 - Math.exp(-(now - (tutorialAt ?? now)) / TUTORIAL_CAMERA_MS);
+    tutorialAt = now;
+    const view = {
+      zoom: from.zoom + (target.zoom - from.zoom) * k,
+      focusX: from.focusX + (target.focusX - from.focusX) * k,
+      focusY: from.focusY + (target.focusY - from.focusY) * k,
+    };
+    const resting = target === whole && Math.abs(view.zoom - 1) < 0.001;
+    tutorialView = resting ? null : view;
+    return tutorialView;
+  }
+
   /** When this client first saw the match over, for the push onto the winner. */
   let overAt: number | null = null;
   /** The camera as the match ended, where the push onto the winners starts. */
@@ -988,7 +1092,7 @@ export async function runSession(
    */
   const islandZoom = new IslandZoom();
   const ownBox =
-    session.humanPlayer >= 0 && !demo && storeArtMode(params) === null
+    session.humanPlayer >= 0 && !demo && tutorial === null && storeArtMode(params) === null
       ? islandBox(session.state, session.state.players[session.humanPlayer]?.islandId ?? -1)
       : null;
   let zoomedBy = 0;
@@ -1024,11 +1128,21 @@ export async function runSession(
     peek = peekTowards(peek, hud.endScreen.peeking, now - (peekAt ?? now), art);
     peekAt = now;
     const winners = state.winners.flatMap((id) => islandCentre.get(id) ?? []);
-    const moving = motionReduced()
-      ? null
-      : (heldShot(now) ??
-        openingShot(state, session.tickFraction, islandCentre.get(session.humanPlayer), art) ??
-        winnerShot(state, now - (overAt ?? now), winners, art, peek, overFrom, scene.fittedView()));
+    const moving =
+      tutorialShot(now) ??
+      (motionReduced()
+        ? null
+        : (heldShot(now) ??
+          openingShot(state, session.tickFraction, islandCentre.get(session.humanPlayer), art) ??
+          winnerShot(
+            state,
+            now - (overAt ?? now),
+            winners,
+            art,
+            peek,
+            overFrom,
+            scene.fittedView(),
+          )));
     // The island zoom, at the player's asking: a cut under reduced motion, not left out.
     zoomedBy =
       ownBox === null
@@ -1182,7 +1296,7 @@ export async function runSession(
         session.state.players[session.humanPlayer]?.eliminated !== true,
     );
     applyEvents(events);
-    matchAudio?.handle(events);
+    matchAudio?.handle(tutorial?.heard(events) ?? events);
     matchAudio?.frame(session.state);
     perf.end('sim');
     perf.begin('hud');
@@ -1200,6 +1314,10 @@ export async function runSession(
       session.avatars?.(),
     );
     watching.update(session.state, session.humanPlayer);
+    if (tutorial !== null) {
+      hideClocks(!tutorial.clockShown());
+      tutorial.frame();
+    }
     const reading = session.network();
     if (reading !== null) {
       badge?.update(reading, session.state.ruleset.tickRateHz);
@@ -1210,7 +1328,7 @@ export async function runSession(
     perf.end('hud');
     // Once the match is over, fireworks over whoever won it.
     const celebrate =
-      session.state.phase === 'game_over'
+      session.state.phase === 'game_over' && (tutorial?.celebrating() ?? true)
         ? session.state.winners.flatMap((id) => {
             const centre = islandCentre.get(id);
             return centre === undefined ? [] : [{ ...centre, owner: id }];
@@ -1237,7 +1355,10 @@ export async function runSession(
       ...controls.ghost(session.tickFraction),
       ...hints,
       beat: countdownBeat(session.state, session.tickFraction),
-      leaks: leak !== null && session.state.tick < leak.untilTick ? leak.cells : [],
+      leaks: [
+        ...(leak !== null && session.state.tick < leak.untilTick ? leak.cells : []),
+        ...(tutorial?.marks() ?? []),
+      ],
     };
     // `&reticle=0` (dev only, the trailer's): no aiming cursor, nor the towers' emblems by it;
     // the pieces' ghosts while building stay (the user, 2026-11-05).

@@ -52,6 +52,7 @@ export const ACHIEVEMENT_TIERS: Record<AchievementId, Tier> = {
   ROCK_SOLID: 'medium',
   TOWERING_VICTORY: 'medium',
   AMONG_FRIENDS: 'easy',
+  TUTORIAL: 'easy',
 };
 
 /** The rim's metal, light to dark, by tier. */
@@ -513,6 +514,14 @@ const PICTURES: Record<AchievementId, Picture> = {
     person(17.2, 10, SHADE) +
     line('M10 4.8a2.8 2.8 0 0 1 4 0M8.2 2.8a5.4 5.4 0 0 1 7.6 0', GLOW, 1.4) +
     circle(12, 6.6, 0.9, GLOW),
+
+  // Basic training: the practice target, a shot in its middle.
+  TUTORIAL: () =>
+    circle(12, 12, 10, SHADE) +
+    circle(12, 12, 7, INK) +
+    circle(12, 12, 4, SHADE) +
+    circle(12, 12, 1.8, FIRE) +
+    line('M12 1v4M12 19v4M1 12h4M19 12h4', DARK, 1.2),
 };
 
 /** The achievements in Steam's order (§4), each with its icon. */

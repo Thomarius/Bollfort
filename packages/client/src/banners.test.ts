@@ -82,6 +82,19 @@ describe('island banners', () => {
     expect(bannersFor(over, new Map())).toEqual([]);
   });
 
+  it('keeps the last points and who is out up after the end, for the tutorial', () => {
+    // The tutorial explains them once its match is over (docs/TUTORIAL.md §4): the points whole,
+    // since the match's clock has stopped and would hold a count-up at nothing.
+    const gained = new Map([[0, { amount: 48, untilTick: 900, fromTick: 500, countTicks: 60 }]]);
+    const ada = { ...alive(0, 'Ada'), score: 48 };
+    const bo = { ...knockedOut(1, 'Bo'), eliminatedRound: 1 };
+    const over = state(500, [ada, bo], 'game_over');
+    expect(bannersFor(over, new Map(), gained, true).map((b) => [b.kind, b.title])).toEqual([
+      ['gain', '+48'],
+      ['out', 'Knocked out'],
+    ]);
+  });
+
   it('shows the points an island just banked, and gives way to a lost life', () => {
     const gained = new Map([
       [0, { amount: 48, untilTick: 200 }],

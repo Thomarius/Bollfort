@@ -34,5 +34,6 @@
   "BASS_DROP": { "walls": 3 },
   "ROCK_SOLID": { "towers": 3, "walls": 2 },
   "TOWERING_VICTORY": { "towers": 3 },
-  "AMONG_FRIENDS": {}
+  "AMONG_FRIENDS": {},
+  "TUTORIAL": {}
 }

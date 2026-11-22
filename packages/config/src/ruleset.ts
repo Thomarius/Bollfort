@@ -505,6 +505,12 @@ export const RulesetSchema = z
           }),
         )
         .min(1),
+      /**
+       * Pieces dealt in this order from each build phase's first, by name, before the draw
+       * takes over: the tutorial's, which hands out exactly the piece each gap needs
+       * (docs/TUTORIAL.md). Absent in every match, so their deal is the draw alone.
+       */
+      pieceScript: z.array(z.string().min(1)).min(1).optional(),
     }),
 
     enclosure: z.strictObject({
