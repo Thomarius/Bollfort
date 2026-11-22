@@ -13002,3 +13002,52 @@ idle or from its button.
 
 Also declined for now (the user's): groups or filters in the looks' gallery, asked again since
 12b now there are 24 styles, and a "What's new" window after an update. Item 10 is closed.
+
+## 16zd. A PC game, not a browser game, PG1: the start, and the last tells (2026-11-22, PLAN §11 item 11)
+
+After item 10, a second look for what still said "web page" in the first minute. Agreed with the
+user: seven things in one package (PG1), and what PC players expect of a desktop game in a second
+(PG2). The browser and the GitHub builds stay relevant beside Steam's.
+
+**The title screen.** The loading screen before the first menu (ARCHIVE 14b) had been a small
+dialog — "Bollfort" in the menus' heading face, "Loading sounds and music…", a bar — with the corner's
+buttons already showing. It is now the title, large (the menu's title at 1.6 times), in the build
+look the player has chosen (one drawn for Random), over the game's sea, a thin bar in the accent
+under it and the words small beneath; the corner waits (`body.booting`), and the screen fades off
+the menu over 450 ms. **In a browser that holds sound back** — the audio context made but left
+suspended (`Audio.waitsForGesture`) — the screen waits once loaded: the bar gives way to a
+pulsing "Click to start", a click anywhere goes on, and the page's own listener has resumed the
+audio by then, so the menu's music begins with the menu. A controller's button goes on too, though
+the browser counts no press as a gesture. Never in the desktop app's windows, which may play sound
+unasked, nor on a route a link or script opens straight into a match, lobby, tournament, demo or
+the store's art, nor in a scripted browser (`wantsClick`). Seen in a browser made to look
+unscripted: the screen while loading, Click to start, then the first visit's name window over the
+menu.
+
+**The desktop windows shown once painted.** The Steam build's window and the GitHub build's game
+window are made hidden and shown at their page's first paint (`ready-to-show`) — the title screen,
+not an empty dark frame filled in after — or after 5 s whatever happens, so a page that fails
+cannot leave the game with no window (`showWhenPainted` in `windowPlace.ts`, tested with a fake
+window).
+
+**Scrollbars** in the panels' colours: thin, the thumb the window's accent at 45%, the track clear
+(`scrollbar-width`, `scrollbar-color` on every element, since the accent differs by window and
+look), where the system's grey ones had stood in the gallery, the Credits and Find a game. Seen
+with Playwright's `--hide-scrollbars` taken off, which headless Chrome otherwise passes.
+
+**The game's own pointer.** The browser's link hand over every button (22 rules) and its "?" over
+the end screen's headings (3) were a page's. The pointer is an arrow of our own everywhere, light
+with a dark rim, turning gold over anything to click (`--game-cursor`, `--game-cursor-hover`, SVGs
+in the stylesheet); text fields keep their caret, the board its crosshair.
+
+**The HUD's native tooltips.** Five `title`s in the roster — the rank arrows, the lives, the away
+tag and the names — had never shown at all: the HUD takes no pointer (`#hud`), so nothing in it can
+be hovered. Gone; the arrows and the lives name themselves to a screen reader (`aria-label`), and
+`hud.awayTitle` left the locales.
+
+**The corner as icons everywhere.** Sound and Full screen in the menus are icons now, as in a match
+since GL1, dressed in the window's look (its panel edge and accent), their words as hover texts and
+`aria-label`s. **The Demo button is gone**: an attract mode comes on by itself, and the demo still
+starts after 30 s at an idle menu, `?demo=1` at once; `demo.button` and its tip left the locales.
+
+New text in all three languages: `loading.clickToStart`.

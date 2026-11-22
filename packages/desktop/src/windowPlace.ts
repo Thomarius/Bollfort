@@ -45,3 +45,33 @@ export function placeOn(saved: Bounds | null, screens: readonly Bounds[]): Bound
   });
   return visible ? saved : null;
 }
+
+/** What `showWhenPainted` needs of a window: Electron's `BrowserWindow` has it. */
+export interface PaintedWindow {
+  once(event: 'ready-to-show', listener: () => void): unknown;
+  show(): void;
+  isVisible(): boolean;
+  isDestroyed(): boolean;
+}
+
+/**
+ * How long a window made hidden waits for its first paint before it is shown anyway: a page that
+ * failed to load, or a slow machine, must not leave the game running with no window at all.
+ */
+export const SHOW_ANYWAY_MS = 5000;
+
+/**
+ * Shows a window made with `show: false` once its page has first painted (PLAN §11 item 11,
+ * PG1) — the game's title screen, not an empty frame filled in after — or after `SHOW_ANYWAY_MS`
+ * whatever happens.
+ */
+export function showWhenPainted(
+  window: PaintedWindow,
+  later: (run: () => void, ms: number) => unknown = setTimeout,
+): void {
+  const show = (): void => {
+    if (!window.isDestroyed() && !window.isVisible()) window.show();
+  };
+  window.once('ready-to-show', show);
+  later(show, SHOW_ANYWAY_MS);
+}

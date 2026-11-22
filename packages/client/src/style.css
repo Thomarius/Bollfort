@@ -71,6 +71,36 @@ body {
   height: 100%;
 }
 
+/* The game's own pointer (PLAN §11 item 11, PG1): the browser's link hand over every button was a
+   web page's; a game keeps its arrow and lights what it is over — the arrow turns gold. Text
+   fields keep their caret, the board its own (#stage). */
+:root {
+  --game-cursor:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M3 2v17.5l4.6-4.1 3.1 6.6 2.9-1.3-3-6.5H17z' fill='%23f4efe2' stroke='%2312131c' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E")
+      3 2,
+    default;
+  --game-cursor-hover:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M3 2v17.5l4.6-4.1 3.1 6.6 2.9-1.3-3-6.5H17z' fill='%23e8c25a' stroke='%2312131c' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E")
+      3 2,
+    default;
+}
+
+body {
+  cursor: var(--game-cursor);
+}
+
+input[type='text'] {
+  cursor: text;
+}
+
+/* Scrollbars in the panels' colours (PG1): the system's grey ones in How to play, the Credits,
+   the gallery and Find a game were a web page's. Thin, the thumb in the window's accent, faint
+   until used; set on every element, since the accent differs by window and look. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent;
+}
+
 /* A game, not a page (PLAN §11 item 10, GL1): nothing in the menus selected by a drag or a
    double click, no picture dragged off — except what is typed, the Credits and a crash's report,
    which somebody may well want to copy. */
@@ -335,48 +365,90 @@ body.reduced-motion .embers {
   backdrop-filter: blur(6px);
 }
 
-/* The loading screen before the first menu (loading.ts): the menu's panel, a bar in gold. */
-.loading-screen .panel {
-  position: absolute;
+/* The title screen before the first menu (loading.ts, PLAN §11 item 11, PG1): the title large
+   over the game's sea, a thin bar under it, and in a browser that holds sound back, "Click to
+   start". It fades off the menu drawn under it. */
+.loading-screen {
+  position: fixed;
   inset: 0;
-  margin: auto;
-  width: min(24rem, 90vw);
-  height: fit-content;
-  padding: 2rem;
-  border: var(--panel-edge);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--panel-shadow);
-  text-align: center;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgb(10 10 18 / 30%), rgb(10 10 18 / 90%));
+  transition: opacity 450ms ease;
 }
 
-.loading-screen h1 {
-  margin: 0 0 0.6rem;
-  color: var(--accent);
-  font-family: var(--heading-font);
-  font-weight: 600;
-  letter-spacing: 0.04em;
+.loading-screen.done {
+  opacity: 0;
+  pointer-events: none;
 }
 
-.loading-screen p {
-  margin: 0 0 1rem;
-  color: var(--muted);
+.loading-screen .title-split {
+  margin-bottom: 1.6rem;
+  transform: scale(1.6);
 }
 
 .loading-screen .bar {
-  height: 0.5rem;
-  border: 1px solid var(--line);
+  width: min(16rem, 60vw);
+  height: 3px;
   border-radius: 999px;
-  background: var(--field);
+  background: rgb(255 255 255 / 10%);
   overflow: hidden;
 }
 
 .loading-screen .fill {
   width: 0;
   height: 100%;
-  border-radius: 999px;
   background: var(--accent);
   transition: width 120ms linear;
+}
+
+.loading-screen .words {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* Once loaded and waiting for the click, the bar and its words give way to the call. */
+.loading-screen.ready .bar,
+.loading-screen.ready .words {
+  display: none;
+}
+
+.loading-screen.ready {
+  cursor: var(--game-cursor);
+}
+
+.loading-screen button.start-click {
+  padding: 0.4rem 1rem;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: 600 15px var(--ui-font);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  cursor: var(--game-cursor);
+  animation: start-click-pulse 1600ms ease-in-out infinite;
+}
+
+@keyframes start-click-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+body.reduced-motion .loading-screen button.start-click {
+  animation: none;
+}
+
+/* The corner's buttons wait for the menu. */
+body.booting #corner {
+  visibility: hidden;
 }
 
 /*
@@ -527,7 +599,7 @@ body.reduced-motion .embers {
   color: var(--ink);
   font: 600 14px/1.1 var(--ui-font);
   letter-spacing: 0.01em;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
   transition:
     background 120ms,
     border-color 120ms,
@@ -672,7 +744,7 @@ button svg.icon {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   list-style: none;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .how-to-play.credits .credit-group summary::-webkit-details-marker {
@@ -1321,7 +1393,7 @@ body.reduced-motion .banner.summary {
   background: var(--surface-2);
   color: var(--ink);
   font: 600 14px var(--ui-font);
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
   pointer-events: auto;
 }
 
@@ -2274,12 +2346,12 @@ body.hud-bricks #hud .roster .line .shape path {
 }
 
 .seats .seat .tower-button {
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .seats .seat .tower-badge {
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  cursor: help;
+  cursor: var(--game-cursor);
 }
 
 .seats .seat .tower-button:hover {
@@ -2488,7 +2560,7 @@ body.hud-bricks #hud .roster .line .shape path {
   background: transparent;
   color: var(--muted);
   font: 600 12px var(--ui-font);
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .menu .seats .sit:hover,
@@ -2557,45 +2629,36 @@ body.hud-bricks #hud .roster .line .shape path {
   gap: 0.5rem;
 }
 
+/* Icons, their words as hover texts (PG1; in a match since GL1): words in pills read as a web
+   page's toolbar. In the menus in the window's dress (`body.looked #corner`); Pause beside them
+   during a match only (pause.ts). */
 #sound,
 #fullscreen,
-#demo {
+#pause {
   display: inline-flex;
-  gap: 0.45rem;
   align-items: center;
-  min-height: 2.2rem;
-  padding: 0.3rem 0.75rem;
-  border: 1px solid rgb(255 255 255 / 16%);
+  justify-content: center;
+  width: 2.4rem;
+  min-height: 2.4rem;
+  padding: 0;
+  border: var(--panel-edge, 1px solid rgb(255 255 255 / 16%));
   border-radius: var(--radius-s);
-  background: rgb(14 17 26 / 88%);
+  background: var(--surface, rgb(14 17 26 / 88%));
+  box-shadow: var(--panel-shadow, none);
   color: #d4d7e2;
-  font: 600 13px var(--ui-font);
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 #sound:hover,
 #fullscreen:hover,
-#demo:hover {
-  color: var(--ink);
-}
-
-/* Pause, beside the sound switch, during a match only (pause.ts). */
-#pause {
-  display: inline-flex;
-  gap: 0.45rem;
-  align-items: center;
-  min-height: 2.2rem;
-  padding: 0.3rem 0.75rem;
-  border: 1px solid rgb(255 255 255 / 16%);
-  border-radius: var(--radius-s);
-  background: rgb(14 17 26 / 88%);
-  color: #d4d7e2;
-  font: 600 13px var(--ui-font);
-  cursor: pointer;
-}
-
 #pause:hover {
-  color: var(--ink);
+  color: var(--accent);
+}
+
+#sound > span,
+#fullscreen > span,
+#pause > span {
+  display: none;
 }
 
 /* The island zoom's magnifier (zoomButton.ts), on the corner of the player's island in the
@@ -2614,7 +2677,7 @@ body.hud-bricks #hud .roster .line .shape path {
   background: rgb(14 17 26 / 82%);
   box-shadow: 0 2px 8px rgb(0 0 0 / 35%);
   color: #d4d7e2;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .island-zoom:hover,
@@ -2695,7 +2758,7 @@ body.hud-bricks #hud .roster .line .shape path {
   color: var(--on-accent);
   font: 600 1.05rem var(--heading-font);
   letter-spacing: 0.03em;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .pause-overlay .resume:hover {
@@ -2754,28 +2817,17 @@ body.hud-bricks #hud .roster .line .shape path {
 
 /* In a match the corner's switches are icons in the HUD's skin, faint until the pointer or a
    controller's focus is on the row (PLAN §11 item 10, GL1): words in the menus' dress had sat
-   over every look, slate on Parchment's paper. Their words are their hover texts then, which
-   the menus, where the words show, leave out. The connection's badge beside them stays as it
+   over every look, slate on Parchment's paper. The connection's badge beside them stays as it
    is, since it must be seen when it turns red. */
 body.in-match #sound,
 body.in-match #fullscreen,
 body.in-match #pause {
-  justify-content: center;
-  width: 2.4rem;
-  min-height: 2.4rem;
-  padding: 0;
   border: var(--hud-box-edge);
   background: var(--hud-box);
   box-shadow: var(--hud-box-shadow);
   color: var(--hud-ink);
   opacity: 0.45;
   transition: opacity 0.2s;
-}
-
-body.in-match #sound > span,
-body.in-match #fullscreen > span,
-body.in-match #pause > span {
-  display: none;
 }
 
 body.in-match #corner:hover > button,
@@ -2786,12 +2838,6 @@ html.pad body.in-match #corner > button.pad-focus {
 
 body.in-match #corner > button:hover {
   color: var(--hud-accent);
-}
-
-body:not(.in-match) #corner > .icon-tip[data-tip]:hover::after,
-body:not(.in-match) #corner > .icon-tip[data-tip]:focus-visible::after,
-html.pad body:not(.in-match) #corner > .icon-tip[data-tip].pad-focus::after {
-  content: none;
 }
 
 body.reduced-motion.in-match #corner > button {
@@ -2922,7 +2968,7 @@ body.reduced-motion .menu button.quiet.fresh {
   background: var(--surface-2);
   color: var(--ink);
   font: 600 1.1rem var(--ui-font);
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
   transition:
     background 120ms,
     border-color 120ms;
@@ -2937,7 +2983,7 @@ body.reduced-motion .menu button.quiet.fresh {
   border-color: var(--line);
   background: transparent;
   color: var(--faint);
-  cursor: default;
+  cursor: var(--game-cursor);
 }
 
 .how-to-play button.close {
@@ -3317,7 +3363,7 @@ body.reduced-motion .connection-overlay .blocks i {
   background: var(--surface-2);
   color: var(--ink);
   font: 600 13px var(--ui-font);
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .pause-overlay button.quiet:hover {
@@ -3387,7 +3433,7 @@ body.reduced-motion .connection-overlay .blocks i {
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .watching button:hover {
@@ -3538,7 +3584,7 @@ body.demo #hud .hud-rest {
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .volumes .speaker:hover {
@@ -3560,7 +3606,7 @@ body.demo #hud .hud-rest {
   width: 100%;
   margin: 0;
   accent-color: var(--accent);
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .volumes .percent {
@@ -3651,7 +3697,7 @@ body.demo #hud .hud-rest {
   color: var(--on-accent);
   font: 600 1.05rem var(--heading-font);
   letter-spacing: 0.03em;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .banner .rematch:hover:not(:disabled) {
@@ -3661,7 +3707,7 @@ body.demo #hud .hud-rest {
 .banner .rematch:disabled {
   background: var(--surface-2);
   color: var(--faint);
-  cursor: default;
+  cursor: var(--game-cursor);
 }
 
 /* Side by side, Back to menu loses the auto margins that centre it alone. */
@@ -6016,7 +6062,7 @@ body.hud-mythology .embers i {
 
 .look-gallery button {
   font: inherit;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 /* Building and Combat as one strip, the look being chosen raised, as How to play's tabs. */
@@ -6266,7 +6312,7 @@ body.reduced-motion .look-gallery .card img {
   background: transparent;
   color: var(--faint);
   filter: none;
-  cursor: default;
+  cursor: var(--game-cursor);
 }
 
 /* The new tournament's settings: the team on one side, the tournament's shape on the other. */
@@ -6725,7 +6771,7 @@ body.reduced-motion .look-gallery .card img {
   fill: rgb(255 255 255 / 8%);
   stroke: rgb(255 255 255 / 30%);
   stroke-width: 1;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .bracket-svg .match.later rect {
@@ -6942,7 +6988,7 @@ body.reduced-motion .tower-menu .panel {
 
 .tower-menu button {
   font: inherit;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .tower-menu .cards {
@@ -7080,7 +7126,7 @@ body.reduced-motion .tower-menu .panel {
 
 .tower-menu .cost:disabled {
   opacity: 0.35;
-  cursor: default;
+  cursor: var(--game-cursor);
 }
 
 /* Every choice's text in one cell, only the chosen one seen: the cell is the longest's height. */
@@ -7242,7 +7288,7 @@ select.replaced {
   color: var(--muted);
   font: 600 13px/1 var(--ui-font);
   white-space: nowrap;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
   transition:
     background 120ms,
     color 120ms;
@@ -7251,7 +7297,7 @@ select.replaced {
 .ui-choice button:disabled,
 .menu .ui-choice button:disabled {
   color: var(--faint);
-  cursor: default;
+  cursor: var(--game-cursor);
 }
 
 /* A row of a few: every option in sight, the chosen one raised. */
@@ -7283,7 +7329,7 @@ select.replaced {
   background: var(--surface-3);
   color: var(--accent);
   box-shadow: 0 1px 3px rgb(0 0 0 / 40%);
-  cursor: default;
+  cursor: var(--game-cursor);
 }
 
 /* A number, a step at a time either way. */
@@ -7484,7 +7530,7 @@ body.reduced-motion .ui-choice.switch button::after {
 /* Disabled, not hidden, where no server answers (findGames.ts): the window keeps its shape. */
 .find-games .join-row input:disabled {
   opacity: 0.5;
-  cursor: default;
+  cursor: var(--game-cursor);
 }
 
 /* The seats as cards (PLAN §11 item 4, MS3), edged in the colour each will play in. */
@@ -7722,7 +7768,7 @@ body.reduced-motion #menu-corner {
 }
 
 .menu .seats .seat button.tower-mini {
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .menu .seats .seat button.tower-mini:hover {
@@ -7789,8 +7835,7 @@ body.reduced-motion #menu-corner {
    end screen, its hidden attribute overruled. */
 #pause[hidden],
 #sound[hidden],
-#fullscreen[hidden],
-#demo[hidden] {
+#fullscreen[hidden] {
   display: none;
 }
 
@@ -7886,7 +7931,7 @@ body.reduced-motion .end-screen .summary .winner-mark svg {
   background: transparent;
   color: var(--muted);
   font: 600 12px var(--ui-font);
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
   pointer-events: auto;
 }
 
@@ -7958,7 +8003,7 @@ body:has(.end-screen:not(.held, .peeking) .banner.summary) .bar {
 
 .end-screen table.final th span[data-tip] {
   border-bottom: 1px dotted color-mix(in srgb, var(--muted) 60%, transparent);
-  cursor: help;
+  cursor: var(--game-cursor);
 }
 
 /* Two rows of headings (2026-11-20): "walls" over its two columns, a line under it joining
@@ -7996,7 +8041,7 @@ body:has(.end-screen:not(.held, .peeking) .banner.summary) .bar {
 
 /* A count broken down by player on hover. */
 .end-screen table.final td[data-tip] {
-  cursor: help;
+  cursor: var(--game-cursor);
 }
 
 .end-screen table.final td {
@@ -8799,7 +8844,7 @@ img.avatar {
   color: var(--ink);
   font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
+  cursor: var(--game-cursor-hover);
 }
 
 .style-showcase .close:hover {

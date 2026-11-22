@@ -19,7 +19,7 @@ import {
   type SteamInfo,
 } from './steam.js';
 import { PageLinks, type PageLinkEvent } from './pageLinks.js';
-import { placeOn, readBounds } from './windowPlace.js';
+import { placeOn, readBounds, showWhenPainted } from './windowPlace.js';
 import { AvatarWatch, steamAvatarSource } from './steamAvatars.js';
 import { SteamLobby, hereAnswer, type AskedLobby, type LobbyKind } from './steamLobby.js';
 import { steamInviteUser, type InviteUser } from './steamInvite.js';
@@ -449,6 +449,9 @@ async function run(): Promise<void> {
     height: 900,
     ...(place ?? {}),
     fullscreen: full,
+    // Shown once painted (PLAN §11 item 11, PG1), so the game opens on its title screen rather
+    // than an empty frame filled in after; `showWhenPainted` in case that never comes.
+    show: false,
     title: 'Bollfort',
     icon,
     backgroundColor: '#0a0a12',
@@ -458,6 +461,7 @@ async function run(): Promise<void> {
       autoplayPolicy: 'no-user-gesture-required',
     },
   });
+  showWhenPainted(window);
   const tell = (on: boolean): void => {
     full = on;
     saveFullscreen(on);

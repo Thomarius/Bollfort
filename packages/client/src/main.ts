@@ -110,7 +110,9 @@ if (params.get('icons') === 'sheet') {
 } else {
   // Every sound and music file first, behind a loading screen (ARCHIVE 14b);
   // then the page the query asks for.
-  void showLoading()
+  // A click asked for, where the browser needs one for sound, only on the way to the menu.
+  const routed = ['autostart', 'host', 'join', 'tournament', 'demo', 'storeArt', 'steamLobby'];
+  void showLoading({ askClick: !routed.some((key) => params.has(key)) })
     .then(start)
     .catch((e: unknown) => showError(t('error.unhandled'), e));
 }

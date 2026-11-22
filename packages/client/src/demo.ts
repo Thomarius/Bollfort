@@ -4,7 +4,6 @@ import { app, showError } from './app.js';
 import { demoSetup, idleDue, rollDemoTable, tableCaption } from './demoTable.js';
 import { escape } from './html.js';
 import { t } from './i18n.js';
-import { withIcon } from './icons.js';
 import { runSession } from './matchScreen.js';
 import { showMenu } from './menu.js';
 import { padText, pads } from './pads.js';
@@ -39,21 +38,8 @@ let running: Demo | null = null;
  * idle clock behind it; once, as the page starts.
  */
 export function installDemo(): void {
-  const button = document.createElement('button');
-  button.id = 'demo';
-  button.hidden = true;
-  const label = (): void => {
-    button.innerHTML = withIcon('eye', t('demo.button'));
-    button.dataset.tip = t('demo.buttonTitle');
-    button.dataset.tipSide = 'right';
-  };
-  label();
-  button.addEventListener('click', () => {
-    button.blur();
-    startDemo();
-  });
-  (document.querySelector('#corner') ?? document.body).append(button);
-
+  // No button for it since PG1 (PLAN §11 item 11): an attract mode comes on by itself at an idle
+  // menu, and a button for it in the corner was a web page's; `?demo=1` still opens it at once.
   let since = performance.now();
   const touched = (): void => {
     since = performance.now();
@@ -61,15 +47,8 @@ export function installDemo(): void {
   for (const kind of ['pointermove', 'pointerdown', 'keydown', 'wheel'] as const) {
     globalThis.addEventListener(kind, touched, { capture: true, passive: true });
   }
-  let shownLabel = '';
   setInterval(() => {
     const bare = running === null && bareMenu();
-    if (button.hidden === bare) button.hidden = !bare;
-    // The language may have changed in Options.
-    if (bare && shownLabel !== t('demo.button')) {
-      shownLabel = t('demo.button');
-      label();
-    }
     // The clock runs only at the bare menu, in front: anything else starts it afresh.
     const now = performance.now();
     // A controller touched counts as the mouse moved (STEAM.md §8).

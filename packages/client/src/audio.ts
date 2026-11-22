@@ -249,6 +249,15 @@ export class Audio {
   }
 
   /**
+   * Whether the browser holds sound back until a first gesture: the context made but left
+   * suspended (`unlock`). The title screen asks for a click then (`loading.ts`, PG1); the desktop
+   * app's window and a browser that allows the site sound unasked run at once.
+   */
+  get waitsForGesture(): boolean {
+    return this.ctx !== null && this.ctx.state === 'suspended';
+  }
+
+  /**
    * Every file the manifest names, fetched once — the loading screen waits on it — with how
    * far it is, 0 to 1, as files arrive. Sound effects are decoded; music is kept compressed.
    * A file that fails or is absent counts as done and stays silent. Asked again, the same.

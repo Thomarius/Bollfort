@@ -10,7 +10,7 @@ import { cloudflaredBinary } from './cloudflared.js';
 import { ServerControl, nextPort } from './control.js';
 import { checkFirewall, type FirewallStatus } from './firewall.js';
 import { Tunnel } from './tunnel.js';
-import { placeOn, readBounds, type Bounds } from './windowPlace.js';
+import { placeOn, readBounds, showWhenPainted, type Bounds } from './windowPlace.js';
 
 /**
  * The desktop app (PLAN 11.17 A2): the server behind a minimal window, for a host with no
@@ -195,6 +195,8 @@ ipcMain.handle('play-here', () => {
     width: 1400,
     height: 900,
     ...(place ?? {}),
+    // Shown once painted (PG1), on the game's title screen rather than an empty frame.
+    show: false,
     title: 'Bollfort',
     icon,
     backgroundColor: '#0a0a12',
@@ -211,6 +213,7 @@ ipcMain.handle('play-here', () => {
   });
   // A game, not a page: no pinching the page larger (GL1); and where it was left, next time.
   void play.webContents.setVisualZoomLevelLimits(1, 1);
+  showWhenPainted(play);
   play.on('close', () => savePlace(play.getNormalBounds()));
   void play.loadURL(`http://localhost:${state.port}`);
 });

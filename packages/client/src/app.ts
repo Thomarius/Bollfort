@@ -96,11 +96,10 @@ document.addEventListener('visibilitychange', followBackground);
 function installSoundButton(): void {
   const button = document.createElement('button');
   button.id = 'sound';
-  button.className = 'icon-tip';
   const show = (): void => {
     const label = t(audio.isMuted ? 'sound.off' : 'sound.on');
     button.innerHTML = withIcon(audio.isMuted ? 'mute' : 'sound', label);
-    // In a match only its icon shows (style.css, GL1): the words as its hover text then.
+    // Only its icon shows (style.css, PG1): the words as its hover text.
     button.dataset.tip = label;
     button.setAttribute('aria-label', label);
     button.classList.toggle('off', audio.isMuted);
@@ -198,7 +197,6 @@ function installFullscreenButton(): void {
   button.id = 'fullscreen';
   let hostFull = false;
   const full = (): boolean => (host === null ? document.fullscreenElement !== null : hostFull);
-  button.className = 'icon-tip';
   const show = (): void => {
     const label = t(full() ? 'fullscreen.leave' : 'fullscreen.enter');
     button.innerHTML = withIcon(full() ? 'shrink' : 'expand', label);

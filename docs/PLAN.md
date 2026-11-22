@@ -1947,6 +1947,23 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
       as it is. Declined for now as well: groups or filters in the looks' gallery, and a "What's
       new" window after an update. Item 10 is closed.
 
+11. **A PC game, not a browser game** (agreed 2026-11-22, the user's, from a second look after item
+    10): what still says "web page" in the first minute, and what PC players expect of a desktop
+    game. The browser and the GitHub builds stay relevant beside Steam's. Display and the desktop
+    app only — no sim, ruleset or protocol change. Packages, in this order:
+    - **PG1 — The start, and the last tells — built** (ARCHIVE 16zd), for the user to try: a title screen in place of the loading dialog — the
+      title large in the player's look, a thin bar under it, no corner buttons, faded into the
+      menu; the desktop windows shown only once painted (Electron's `ready-to-show`), so the Steam
+      build opens straight onto it; in the browser, where music waits for a first click, "Click
+      to start" on the title screen once loaded; scrollbars in the panels' colours rather than
+      the system's; a game's own arrow for the pointer in place of the browser's link hand; the
+      HUD's last native tooltips (`title`) as our own hover texts or gone; and the menu's corner
+      as icons like the match's, the Demo button gone (the demo still starts after 30 s idle).
+    - **PG2 — What PC players expect**: Windowed or Fullscreen as a row in Options' Display tab in
+      the desktop app; a crash or error window in the game's style with Copy report; and the
+      GitHub build opening the game itself rather than its server window first, hosting reached
+      from inside.
+
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
 UI polish, all in ARCHIVE 11h; 11.11 the second visual pass and 11.12 the first

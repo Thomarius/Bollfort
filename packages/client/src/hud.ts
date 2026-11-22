@@ -287,9 +287,9 @@ export class Hud {
       const gain = r.score - r.from;
       const moved =
         r.moved > 0
-          ? `<i class="moved up" title="${t('hud.climbed')}">▲</i>`
+          ? `<i class="moved up" aria-label="${t('hud.climbed')}">▲</i>`
           : r.moved < 0
-            ? `<i class="moved down" title="${t('hud.dropped')}">▼</i>`
+            ? `<i class="moved down" aria-label="${t('hud.dropped')}">▼</i>`
             : '';
       entry.innerHTML =
         `<b class="rank">${r.rank}</b>${shapeSvg(playerShape(r.lead), colour)}` +
@@ -499,7 +499,7 @@ export class Hud {
       const spentAt = this.livesSeen.get(team)?.spentAt ?? -Infinity;
       const pips = lifePips(total, left, now - spentAt < SPENT_MARK_MS);
       const title = t('hud.livesTitle', { left, total });
-      return `<span class="lives${left === 1 ? ' last' : ''}" title="${title}">${pips}</span>`;
+      return `<span class="lives${left === 1 ? ' last' : ''}" aria-label="${title}">${pips}</span>`;
     };
     const teamed = isTeamMatch(state);
     // The shape leads the figures, as large as the pips: it is what tells two greens apart.
@@ -517,12 +517,11 @@ export class Hud {
         .filter(Boolean)
         .join(' ');
       const colour = playerCssColour(p.id);
-      // A person dropped online: marked by the name, a bot playing the seat meanwhile. A
-      // `title`, as the name's and the lives' are: the card clips a hover text of our own.
-      const tag = gone
-        ? `<i class="away-tag" title="${t('hud.awayTitle')}">${t('hud.away')}</i>`
-        : '';
-      const name = `${avatarImg(avatars.get(p.id))}<bdi title="${escape(p.name)}">${escape(p.name)}</bdi>${tag}`;
+      // A person dropped online: marked by the name, a bot playing the seat meanwhile. No
+      // hover texts (PG1): the HUD takes no pointer (`#hud`), so the browser's own `title`s these
+      // had never showed; the lives and arrows name themselves to a screen reader instead.
+      const tag = gone ? `<i class="away-tag">${t('hud.away')}</i>` : '';
+      const name = `${avatarImg(avatars.get(p.id))}<bdi>${escape(p.name)}</bdi>${tag}`;
       // A team's members carry only their names: the score and lives are the team's.
       return teamed
         ? `<li class="${classes}" style="--who:${colour}"><b></b>${name}</li>`
