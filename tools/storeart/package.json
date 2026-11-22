@@ -10,7 +10,8 @@
     "shots": "tsx src/screenshots.ts",
     "trailer": "tsx src/trailer.ts",
     "icons": "tsx src/icons.ts",
-    "achievements": "tsx src/achievements.ts"
+    "achievements": "tsx src/achievements.ts",
+    "wallpapers": "tsx src/wallpapers.ts"
   },
   "devDependencies": {
     "playwright": "1.63.0"

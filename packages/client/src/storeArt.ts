@@ -15,6 +15,9 @@ import { GAME_TITLE } from './titles.js';
  * - `?storeArt=logo`: the title alone on a transparent page, filling its width, for the
  *   library's logo.
  *
+ * `&fade=radial|frame|low|band` fades the board to black at the picture's edges, for a
+ * wallpaper on a black desktop (`tools/storeart/src/wallpapers.ts`).
+ *
  * `&split=` holds the line of a change of look across the picture (`storeArtSplit`).
  * `&titleStyle=` picks the lettering, the build look's style by default.
  */
@@ -86,6 +89,15 @@ export function installStoreArt(params: URLSearchParams): void {
   if (mode === 'logo') {
     document.body.replaceChildren(titleImage(style, innerWidth));
     return;
+  }
+
+  // A wallpaper for a black desktop (`&fade=radial|frame|low|band`): the board fading to black
+  // at the edges, under the title.
+  const fade = params.get('fade');
+  if (fade === 'radial' || fade === 'frame' || fade === 'low' || fade === 'band') {
+    const veil = document.createElement('div');
+    veil.className = `store-fade ${fade}`;
+    document.body.append(veil);
   }
 
   const where = params.get('title') ?? 'center';

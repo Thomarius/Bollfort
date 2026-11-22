@@ -13111,3 +13111,18 @@ there now, MIT, "Copyright (c) 2026 Thomas Arnold", and the desktop app carries 
 the notice in every copy. The app's `copyright` field is set, which Windows shows in the file's
 properties. The README opens with "A game by Thomas Arnold, play-tested by Mausica and Xenon." and
 its licence paragraph names the copyright. Looked at in English and German.
+
+## 16zg. Desktop wallpapers from the store-art camera (2026-11-22)
+
+The user wanted wallpapers at 2560 × 1440, some fading into their black desktop. The store art's
+camera (`?storeArt=scene`) renders any window size, so nothing new was needed for the size; the
+fade is `&fade=radial|frame|low|band`, a black gradient over the board and under the title, every
+edge it names ending at #000 — the outermost pixels of each design checked at (0,0,0), since a
+first oval of 62% × 66% left the sea showing at the edges (now `closest-side`).
+`tools/storeart/src/wallpapers.ts` (`npm run wallpapers -w @bollfort/storeart`) makes nine
+designs with a contact sheet; the user's favourite is `black-oval`, the Cyberpunk-over-Medieval
+split in an oval with the title. `--all-splits` makes it for every ordered pair of styles, asked of
+the page (`STYLE_IDS`, so always the menu's), `--supporter` with the ten supporter styles: 34 × 33
+= 1122 pictures, about 11 s and 0.9 MB each, resumable, for the user's own use (the supporter
+styles stay out of public builds) and run on their gaming PC. On Windows the browser is launched
+without `--use-angle=gl`, Direct3D being ANGLE's own there.

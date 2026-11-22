@@ -68,6 +68,7 @@ npm run shots -w @bollfort/storeart -- /tmp/shots [shot...]   # Steam's screensh
 npm run trailer -w @bollfort/storeart -- calibrate|record [clip...]|captions|assemble   # the trailer, filmed live (docs/TRAILER.md); TRAILER_SHAKE=0.5 is Steam's
 TRAILER_SET=loops npm run trailer -w @bollfort/storeart -- record   # the store description's scenes (TRAILER_LANG=de for the banners')
 sh tools/storeart/loops.sh          # the store description's loops, cut from those scenes into assets/store/description/
+npm run wallpapers -w @bollfort/storeart -- /tmp/wp [design...] [--all-splits --supporter]   # desktop wallpapers, 2560x1440 (ARCHIVE 16zg)
 npm run icons -w @bollfort/storeart -- /tmp/icons [castle|ring|letter|keep|bare...]   # app icon candidates in every style, at 184 and 32 px
 npx tsx tools/storeart/src/sysreq.ts NAME [--fullscreen] [--affinity 0x5] [--round 8]   # the packaged app's memory, processor and frames, eight bots (Windows, Linux)
 npx tsx tools/steambench/src/bench.ts [join public private match lag outage reversed restart]   # multiplayer over Steam against the VM (STEAM.md 3.4)

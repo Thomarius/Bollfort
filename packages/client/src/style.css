@@ -8901,6 +8901,47 @@ html.store-art-logo #backdrop {
   position: relative;
 }
 
+/* Wallpapers for a black desktop (`&fade=`, tools/storeart/src/wallpapers.ts): the board
+   fading to pure black at the picture's edges, under the title. Every edge it names ends at
+   #000, so the picture meets a black screen's border with no seam. */
+.store-fade {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+/* An oval of board in the middle, every edge black. */
+.store-fade.radial {
+  background: radial-gradient(
+    ellipse closest-side at 50% 50%,
+    transparent 50%,
+    rgb(0 0 0 / 55%) 78%,
+    #000 100%
+  );
+}
+
+/* The whole board, each edge faded over a band of its own: a frame rather than an oval. */
+.store-fade.frame {
+  background:
+    linear-gradient(90deg, #000 3%, transparent 24%, transparent 76%, #000 97%),
+    linear-gradient(#000 2%, transparent 20%, transparent 80%, #000 98%);
+}
+
+/* The board rising out of the bottom, the top half black for the title. */
+.store-fade.low {
+  background:
+    linear-gradient(#000 26%, rgb(0 0 0 / 60%) 40%, transparent 58%, transparent 82%, #000 99%),
+    linear-gradient(90deg, #000, transparent 14%, transparent 86%, #000);
+}
+
+/* A band across the middle, black above and below and fading at its ends. */
+.store-fade.band {
+  background:
+    linear-gradient(#000 14%, transparent 34%, transparent 66%, #000 86%),
+    linear-gradient(90deg, #000, transparent 12%, transparent 88%, #000);
+}
+
 .store-title {
   display: block;
   /* A dark outline round every letter, then a soft shadow under the whole: the title reads on
