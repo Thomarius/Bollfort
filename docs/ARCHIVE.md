@@ -12956,3 +12956,49 @@ and Parchment.
 set down with a small overshooting bounce as the summary is revealed (none under Reduced motion):
 each sharer's in a shared win, a team's by its first member's as its row shows it, none for a draw.
 Looked at in Minimal and Parchment.
+
+## 16zc. A professional finish, GL3: measured, and dropped (2026-11-22, PLAN §11 item 10)
+
+Two ideas were to be built only if measurements allowed. Both measured on the production build
+(`vite preview`, so nothing recorded), in headless Chrome with the GPU on (`--enable-gpu
+--use-angle=gl --ignore-gpu-blocklist`, which used this machine's integrated AMD Radeon: the
+kind of GPU the 60 fps bar is set on), at normal speed and with the CPU throttled 4× by the
+DevTools protocol as a stand-in for a weaker machine.
+
+**A who-plays-whom card at the opening**, if it cost no time. The opening's four seconds already
+carry the camera on the player's own island with "You are here", the phase banner and the pull
+out to the map, so the only free moment is the loading screen. From the menu, with the audio
+cached as a player has it, "Preparing the board" stood (from its appearing to its fade starting):
+
+| Look, players | Normal | CPU ÷4  |
+| ------------- | ------ | ------- |
+| Minimal, 2    | 98 ms  | 481 ms  |
+| Minimal, 8    | 158 ms | 499 ms  |
+| Pixel, 4      | 416 ms | 1667 ms |
+| Pixel, 8      | 518 ms | 1916 ms |
+| Night, 8      | 512 ms | 1903 ms |
+| Sakura, 8     | 393 ms | 1474 ms |
+| Cyberpunk, 8  | 253 ms | 891 ms  |
+
+Too short to read a roster on; the card could only have had time by holding the match back, the
+condition it was not to be built under. And the lobby has just shown the table. Dropped.
+
+**The demo behind the menu**, if the menu still held its frames. The demo replaces the page, so it
+was approximated: the menu's markup, its panels and their `backdrop-filter`, laid over a running
+demo under a 45% dim, `Math.random` seeded so every run played the same table. Frame intervals by
+`requestAnimationFrame` over 15 s (about 900 frames), two rounds:
+
+| Variant         | Normal               | CPU ÷4                            |
+| --------------- | -------------------- | --------------------------------- |
+| Menu alone      | 60 fps, 0 over 25 ms | 60 fps, 0–1 over 25 ms            |
+| Demo alone      | 60 fps, 0            | 59.6–59.9 fps, 1–5                |
+| Demo under menu | 60 fps, 0            | 59.4–60 fps, 1–10, p99 33 ms once |
+
+It held its frames — but a menu with a match and its bots always running behind it is never idle
+(a bot's plan takes 15–50 ms), which costs battery on the Deck and laptops while someone reads
+Options or waits in Find a game, and it would have meant restructuring the demo into a layer of
+its own with its music and input reworked. Dropped (the user's), the demo kept as it is: after 30 s
+idle or from its button.
+
+Also declined for now (the user's): groups or filters in the looks' gallery, asked again since
+12b now there are 24 styles, and a "What's new" window after an update. Item 10 is closed.

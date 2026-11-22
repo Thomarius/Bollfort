@@ -1916,7 +1916,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      same, with Random every round a new one. To measure, then perhaps lay the next look's banner
      out unseen in the pause before it (`Scene.prime`'s moment), as the preview now does.
 
-10. **A professional finish** (agreed 2026-11-22, from a review of screenshots of the menu, the
+10. **A professional finish — done** (agreed 2026-11-22, from a review of screenshots of the menu, the
     lobby, the loading screen, a match at two and eight players and the end screen, while Valve
     answers): what makes the game read as a web page rather than a game, and what makes it feel
     alive. Display and the desktop app only — no sim, ruleset or protocol change; mouse only.
@@ -1941,10 +1941,11 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
       screen's figures counting, its graph drawn in and "You win". New: the loading screen over the
       game's sea with the title in the look the match opens in, faded off the board's first frame;
       and the winner's shape and colour large by the end screen's headline.
-    - **GL3 — Measured first**: a short card of who plays whom, colours, shapes and islands, as
-      the opening starts — only if it costs no time; and the demo dimmed and slowed behind the menu
-      from the start rather than after 30 s idle — only if the menu still holds its frames on a
-      weak machine. Declined for now (the user's, 2026-11-22): groups or filters in the looks' gallery, and a "What's new" window after an update.
+    - **GL3 — Measured, and dropped** (ARCHIVE 16zc, the user's, 2026-11-22): a who-plays-whom
+      card at the opening has no free moment, and the demo behind the menu, though it held its
+      frames, would keep a match and its bots running whenever the menu is open. The demo stays
+      as it is. Declined for now as well: groups or filters in the looks' gallery, and a "What's
+      new" window after an update. Item 10 is closed.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
