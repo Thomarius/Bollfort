@@ -1,7 +1,9 @@
 import { HOST_TEAM, type Progress, type Save } from '@bollfort/tournament';
 
 import { escape } from './html.js';
-import { formatNumber, ordinal, t } from './i18n.js';
+import { formatNumber, t } from './i18n.js';
+import { openTournamentWindow } from './tournamentBracketView.js';
+import { rankMoves } from './tournamentRoad.js';
 import { stageName } from './tournamentText.js';
 import { leagueTableMarkup } from './tournamentView.js';
 
@@ -10,7 +12,7 @@ import { leagueTableMarkup } from './tournamentView.js';
  * bracket is once the knockout begins (the test session of 2026-10-12: the bracket showed
  * nothing of the league being played). The whole table, every team rather than the tab's
  * excerpt, and every matchday, played or to come — all drawn at creation, so the fixtures
- * are known from the start. Mouse only: Close is a button.
+ * are known from the start, in the window every other one is. Mouse only: Close is a button.
  */
 
 function teamName(save: Save, id: number): string {
@@ -31,15 +33,15 @@ function matchday(save: Save, progress: Progress, day: number): string {
     const host = teams.includes(HOST_TEAM);
     const list =
       result === undefined
-        ? teams.map((id) => `<li>${teamName(save, id)}</li>`).join('')
+        ? teams.map((id) => `<li><span class="name">${teamName(save, id)}</span></li>`).join('')
         : result.order
             .map((id, place) => {
               const score = result.scores?.[place];
               return (
-                `<li><span class="place">${escape(ordinal(place + 1))}</span> ${teamName(save, id)}` +
+                `<li${place === 0 ? ' class="first"' : ''}><span class="place">${place + 1}</span><span class="name">${teamName(save, id)}</span>` +
                 (score === undefined
                   ? ''
-                  : ` <span class="score">${escape(formatNumber(score))}</span>`) +
+                  : `<span class="score">${escape(formatNumber(score))}</span>`) +
                 `</li>`
               );
             })
@@ -66,25 +68,19 @@ export function leagueMarkup(save: Save, progress: Progress): string {
       : leagueTableMarkup(
           save,
           progress.table().map((row, i) => ({ row, rank: i + 1 })),
+          rankMoves(save, progress),
         );
   return (
-    `<div class="panel league-panel"><h2>${escape(t('league.title'))}</h2>` +
+    `<h2>${escape(t('league.title'))}</h2>` +
     `<p class="note">${escape(t('tournament.through', { n: save.plan.advance, of: save.teams.length }))} ${escape(t('league.seeding'))}</p>` +
     `<div class="league-columns">` +
     `<section class="league-standings"><h3>${escape(t('league.table'))}</h3>${table}</section>` +
     `<section class="league-days"><h3>${escape(t('league.matchdays'))}</h3>${days}</section>` +
-    `</div><button class="close" data-back>${escape(t('howTo.close'))}</button></div>`
+    `</div>`
   );
 }
 
 /** Opens the league over whatever is on screen; `click` sounds as the menu's buttons do. */
 export function openLeague(save: Save, progress: Progress, click: () => void): void {
-  const overlay = document.createElement('div');
-  overlay.className = 'bracket-overlay league-overlay';
-  overlay.innerHTML = leagueMarkup(save, progress);
-  document.body.append(overlay);
-  overlay.querySelector('.close')?.addEventListener('click', () => {
-    click();
-    overlay.remove();
-  });
+  openTournamentWindow('league-window', leagueMarkup(save, progress), click);
 }

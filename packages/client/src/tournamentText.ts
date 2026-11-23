@@ -60,11 +60,24 @@ export function settingsLine(settings: TournamentSettings): string {
   return parts.join(' · ');
 }
 
-/** When a tournament was last played, as a date and time in the reader's language. */
-export function playedWhen(iso: string): string {
+/**
+ * When a tournament was last played, as the reader says it: today's and yesterday's by the time
+ * alone, this year's without the year, older ones in full (the menus' polish, 2026-11-23).
+ */
+export function playedWhen(iso: string, now: Date = new Date()): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat(language(), { dateStyle: 'medium', timeStyle: 'short' }).format(
-    date,
-  );
+  const locale = language() === 'en' ? 'en-GB' : 'de-DE';
+  const time = new Intl.DateTimeFormat(locale, { timeStyle: 'short' }).format(date);
+  const day = (d: Date): number => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  const daysAgo = Math.round((day(now) - day(date)) / 86_400_000);
+  if (daysAgo === 0) return t('tournament.today', { time });
+  if (daysAgo === 1) return t('tournament.yesterday', { time });
+  const sameYear = date.getFullYear() === now.getFullYear();
+  const when = new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    ...(sameYear ? {} : { year: 'numeric' }),
+  }).format(date);
+  return `${when}, ${time}`;
 }

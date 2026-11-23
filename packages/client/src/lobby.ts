@@ -96,6 +96,8 @@ export type LobbyTab = 'match' | 'tournament';
 export interface TournamentTab {
   /** The tournament tab's content: where the tournament stands. */
   markup: string;
+  /** Above both tabs: the host's team's road through the tournament, and what the next match decides. */
+  header: string;
   /** The tab shown. */
   open: LobbyTab;
   /** The tournament's last match: its frame marked in gold. */
@@ -573,7 +575,8 @@ export function lobbyMarkup(view: LobbyView): string {
   const panels =
     side === null
       ? body
-      : `${tabStrip(side.open)}
+      : `<div class="tournament-head">${side.header}</div>
+      ${tabStrip(side.open)}
       <div class="tab-panels">
         <div class="tab-panel" data-panel="match"${side.open === 'match' ? '' : ' hidden'}>${body}</div>
         <div class="tab-panel" data-panel="tournament"${side.open === 'tournament' ? '' : ' hidden'}>${side.markup}</div>

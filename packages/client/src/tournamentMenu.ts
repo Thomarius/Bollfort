@@ -35,6 +35,8 @@ export interface TournamentExits {
   play: (id: string) => void;
   /** The resume list, with a line to say why it is shown. */
   list: (notice: string) => void;
+  /** A new tournament's setup: the resume list's way on when nothing is saved. */
+  create: () => void;
 }
 
 /** The form a new tournament was last set up with, kept while the page is open. */
@@ -183,6 +185,9 @@ export function openResumeList(exits: TournamentExits, notice: string | null = n
     if (button.id === 'back') {
       root.removeEventListener('click', onClick);
       exits.menu();
+    } else if (button.id === 'create') {
+      root.removeEventListener('click', onClick);
+      exits.create();
     } else if (button.classList.contains('resume') && id !== null) {
       root.removeEventListener('click', onClick);
       exits.play(id);

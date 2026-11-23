@@ -93,6 +93,13 @@ export class EndScreen {
     this.rematchLabel = label ?? null;
   }
 
+  /** A line under the headline: a tournament's match says what its result did to the tournament. */
+  private context: string | null = null;
+
+  useContext(line: string): void {
+    this.context = line;
+  }
+
   onRematch(handler: () => void): void {
     this.rematch = handler;
   }
@@ -518,6 +525,9 @@ export class EndScreen {
     return (
       `<div class="banner summary${many}">` +
       `<h2 class="headline">${mark}${text}</h2>${place === null ? '' : `<p class="your-place">${escape(place)}</p>`}` +
+      (this.context === null
+        ? ''
+        : `<p class="tournament-line">${ICONS.trophy}<span>${escape(this.context)}</span></p>`) +
       `${table}${this.awardsMarkup(state, humanPlayer)}${this.chart(state, humanPlayer)}` +
       `<div class="end-buttons">${this.buttons()}</div></div>` +
       `<div class="peek-bar"><span>${text}</span><button class="peek">${withIcon('eye', t('end.showSummary'))}</button></div>`

@@ -1,4 +1,4 @@
-import { Progress } from '@bollfort/tournament';
+import { Progress, stepsOf } from '@bollfort/tournament';
 
 import { escape } from './html.js';
 import { withIcon } from './icons.js';
@@ -29,9 +29,15 @@ function savedRow(entry: SavedTournament, confirming: boolean): string {
       ? t('tournament.next', { stage: stageName(save, progress.done) })
       : t('tournament.finished');
   const when = t('tournament.lastPlayed', { date: playedWhen(save.playedAt) });
+  // How far through it is, as a bar: the steps played of all it has.
+  const all = stepsOf(save).length;
+  const share = progress.status.kind === 'playing' ? progress.done / all : 1;
+  const bar =
+    `<span class="saved-progress" data-tip="${escape(t('tournament.progress', { done: progress.done, all }))}">` +
+    `<i style="width:${Math.round(share * 100)}%"></i></span>`;
   return (
     `<li class="saved"><div class="saved-text"><b>${escape(save.teams[0]?.name ?? '')}</b>` +
-    `<small>${escape(settingsLine(save.settings))}</small><small>${escape(next)} · ${escape(when)}</small></div>` +
+    `<small>${escape(settingsLine(save.settings))}</small>${bar}<small>${escape(next)} · ${escape(when)}</small></div>` +
     `<div class="saved-buttons">${confirming ? '' : `<button class="resume" data-id="${escape(entry.id)}">${t('tournament.resume')}</button>`}${remove}</div></li>`
   );
 }
@@ -43,7 +49,8 @@ export function resumeMarkup(
 ): string {
   const list =
     entries.length === 0
-      ? `<p class="note">${t('tournament.none')}</p>`
+      ? `<p class="note">${t('tournament.none')}</p>` +
+        `<button id="create" class="primary">${withIcon('trophy', t('tournament.new'))}</button>`
       : `<ul class="saved-list">${entries.map((e) => savedRow(e, e.id === confirming)).join('')}</ul>`;
   return `
     <div class="menu tournament-resume">

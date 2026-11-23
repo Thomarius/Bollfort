@@ -30,7 +30,7 @@ import {
 import type { TournamentExits } from './tournamentMenu.js';
 import { TournamentRoom, roomTable } from './tournamentRoom.js';
 import { deleteTournament, loadTournament, writeTournament } from './tournamentSaves.js';
-import { tournamentTab } from './tournamentView.js';
+import { afterMatchLine, tournamentTab } from './tournamentView.js';
 import { preferredTower } from './towers.js';
 
 /**
@@ -226,8 +226,14 @@ function matchFor(
     // nothing after it — the page closed on the summary — can lose the result.
     finished: (state) => {
       const placed = placedFrom(state, table, coinFor(save, step));
-      recordMatch(save, defaultConfigBundle.tournament, placed, new Date().toISOString());
+      const after = recordMatch(
+        save,
+        defaultConfigBundle.tournament,
+        placed,
+        new Date().toISOString(),
+      );
       saved = writeTournament(save);
+      return afterMatchLine(save, after);
     },
     // Left before the end: nothing was recorded, and the match waits to be played again.
     // Online, leaving closed the room; a new one is opened.

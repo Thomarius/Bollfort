@@ -13126,3 +13126,48 @@ the page (`STYLE_IDS`, so always the menu's), `--supporter` with the ten support
 = 1122 pictures, about 11 s and 0.9 MB each, resumable, for the user's own use (the supporter
 styles stay out of public builds) and run on their gaming PC. On Windows the browser is launched
 without `--use-angle=gl`, Direct3D being ANGLE's own there.
+
+## 16zh. The tournament screens polished, TS1 (2026-11-23, PLAN §11 item 13)
+
+A review of the tournament's screens from screenshots of a demo tournament played through by
+script (`?tournament=demo`, then `?tournament=resume&snapshot=game_over` a match at a time): the
+league's and the bracket's windows still had the square grey box, monospaced text and browser's
+Close from before the menus' panels (MS1); where the tournament stood was spread over a grey
+settings line, a caption under the map and sentences on the Tournament tab; the table's columns
+were spread across the panel with a paragraph of tie-breaks under it; the Tournament tab before
+the first matchday was one sentence in an empty panel. Suggestions approved by the user, but the
+setup's preview, presets, the winner's ceremony and a team's emblem, which are PLAN §11 item 13's
+TS2–TS5. Their decisions: the lobby keeps opening on the Match tab; the title is "Bastion Cup"
+(_Bastion-Pokal_), in the lobby and the open games alike; the bracket's boxes list their teams.
+
+- **Above both tabs** (`TournamentTab.header`): the host's team's road (`tournamentRoad.ts`,
+  `roadOf`) — the league's matchdays and the knockout's stages played, the next lit, those a
+  winner goes on to dashed, a match won ticked, one lost carrying its place, a trophy at the end —
+  and the stakes (`stakesOf`): the league's cut and the team's place, or where a win and a defeat
+  lead, "1st place" and "any other place" in a match of more than two, a defeat in double
+  elimination's winners' bracket to the losers' bracket.
+- **The Tournament tab**: the last match as a card, its place a gold, silver or bronze medal,
+  whom it was against and in the league the team's place and move; the table with a column of
+  moves since the last matchday (`rankMoves`, from the save without its last step), the teams
+  through tinted, the tie-breaks behind a hover text, and the moved rows sliding into place as
+  they are shown (none under Reduced motion); the knockout as tiles, the teams in each bracket and
+  the archnemesis, the other matches as cards; before the first matchday the day's fixtures; the
+  windows' buttons with their names ("Full table", "Bracket"). The Match tab tags each team with its
+  league place and points, or its knockout seed.
+- **The windows** in How to play's frame (`openTournamentWindow`), a click beside them closing
+  them: the league's matches as cards; the bracket's boxes listing their teams by place with their
+  scores, the host's in gold and the archnemesis's in red, a champion's box after the last match,
+  the rows as tall as each column's boxes need (one height for all, the largest match's, spaced a
+  first round of pairs out to fit a final of four).
+- **The match's summary** has a line under its headline, from what `finished` now returns:
+  the league's place and move, through to the knockout, the next stage, into the losers' bracket,
+  out, or won (`afterMatchLine`). The host's page only; a teammate's summary has none.
+- **The resume list**: a bar of the steps played, "today, 14:59" and the like for the date, and a
+  New tournament button where nothing is saved (`TournamentExits.create`).
+- **The setup**: every setting that needed one has its meaning in a hover text, the name
+  underlined with dots.
+
+Texts in all three languages; seven gone with the sentences they made (`tournament.lastResult`,
+`brackets`, `inWinners`, `inLosers`, `stillIn`, `archIn`, `archOut`). No protocol change: a
+teammate's page draws all of it from the save the host sends. Looked at in English and German at
+1400 × 900; tested in `tournamentRoad.test.ts` and the updated `tournamentScreens.test.ts`.

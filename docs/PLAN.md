@@ -1979,6 +1979,24 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     Steamworks with AC5). One sim change, an optional `build.pieceScript`. Open: the texts in all
     three languages.
 
+13. **The tournament screens polished** (agreed 2026-11-23, the user's, from a review of
+    screenshots of a demo tournament played through). **TS1 — built** for the user to try
+    (ARCHIVE 16zh): the league's and the bracket's windows in the menus' frame, the road and the
+    stakes above both tabs, the last match as a card, the table tightened with its moves, the
+    knockout in figures, the bracket's teams in its boxes and a champion's box, the summary's
+    tournament line, the resume list's progress and dates, the setup's explanations, the title
+    "Bastion Cup". The lobby still opens on the Match tab (the user's). Open, as packages of their
+    own to be looked at after it:
+    - **TS2 — the setup's preview**: the setup's empty left column (alone, it holds one line) as a
+      live picture of the tournament set — teams in all, the format as league → knockout, the
+      matches a champion plays, a rough playing time.
+    - **TS3 — presets**: Quick cup, Classic, Marathon or the like over the detailed settings.
+    - **TS4 — the winner's ceremony**: the end of a tournament won as a podium or trophy in the
+      look's climax, with the tournament's figures — points in all, the best match, the record
+      against the archnemesis — in place of a headline over a table.
+    - **TS5 — a team's colour or emblem**, chosen at the setup and carried into the table, the
+      bracket and the lobby: a field in the save, so a save version.
+
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
 UI polish, all in ARCHIVE 11h; 11.11 the second visual pass and 11.12 the first

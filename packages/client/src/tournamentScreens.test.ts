@@ -328,7 +328,12 @@ describe('the tournament between matches', () => {
       expect(markup).toContain('id="map-preview"');
       expect(markup).toContain('League, matchday 1 of 3');
       expect(markup).toContain('class="tab on" role="tab" data-tab="match"');
-      expect(markup).toMatch(/data-panel="tournament" hidden>[^]*id="league" class="icon-button"/);
+      expect(markup).toMatch(
+        /data-panel="tournament" hidden>[^]*id="league" class="window-button"/,
+      );
+      // Above both tabs the road, the first matchday next, and the league's cut.
+      expect(markup).toMatch(/class="tournament-head">[^]*class="stop next"[^>]*>1</);
+      expect(markup).toContain('the top 8 of 16 go through');
       expect(markup).not.toContain('id="bracket"');
       expect(markup).toContain('class="tag you"');
       // Only the host plays the match on; the teammate waits, in place of the team's bot.
@@ -387,7 +392,10 @@ describe('the tournament between matches', () => {
       'later',
     );
     const after = lobbyOf(save, new Progress(save), false, 'A notice');
-    expect(after).toContain('Last match, League, matchday 1 of 3: 1st of 2 · 1234 points');
+    expect(after).toMatch(
+      /class="result-card place-1"[^]*League, matchday 1 of 3[^]*1st of 2 · 1234 points/,
+    );
+    expect(after).toMatch(/class="stop played won"[^>]*>✓ 1</);
     expect(after).toContain('class="league-table"');
     expect(after).toContain('A notice');
     // Wins beside the points, and the tie-breaks named in order under the table.
@@ -416,7 +424,7 @@ describe('the tournament between matches', () => {
     expect(markup).not.toContain('class="gap"');
     // The first matchday played, the host's match leading it with its score.
     expect(markup).toMatch(
-      /matchday played[^]*?<ol class="match host"><li><span class="place">1st<\/span> /,
+      /matchday played[^]*?<ol class="match host"><li class="first"><span class="place">1<\/span>/,
     );
     expect(markup).toContain('<span class="score">1234</span>');
     expect(markup).toContain('matchday next');
@@ -429,10 +437,12 @@ describe('the tournament between matches', () => {
       knockout: 'double',
       length: 'long',
     });
-    const markup = tournamentTab(save, new Progress(save), 'tournament').markup;
-    expect(markup).toContain('Nemesis, the archnemesis, is still in.');
-    expect(markup).toMatch(/Your team is in the winners(&#39;|') bracket/);
-    expect(markup).toContain('The other matches');
+    const tab = tournamentTab(save, new Progress(save), 'tournament');
+    expect(tab.markup).toMatch(/class="fact arch"><b>Nemesis<\/b><span>the archnemesis, still in/);
+    expect(tab.markup).toMatch(/teams in the winners(&#39;|') bracket/);
+    expect(tab.markup).toContain('The other matches');
+    // A defeat in the winners' bracket is not the end in double elimination.
+    expect(tab.header).toMatch(/class="stake lose"><b>[^<]+<\/b> → Losers(&#39;|') bracket/);
   });
 
   it('ends with the road, won or out', () => {
@@ -452,7 +462,7 @@ describe('the tournament between matches', () => {
     expect(champion).toContain('Champions!');
     expect(champion.match(/<tr class="won">/g)).toHaveLength(2);
     expect(champion).toMatch(
-      /<h2>Your team&#39;s matches<button id="bracket"|<h2>Your team's matches<button id="bracket"/,
+      /<h2>Your team(&#39;|')s matches<button id="bracket" class="window-button"/,
     );
 
     const out = tournament('t', 'now');

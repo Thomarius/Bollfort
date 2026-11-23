@@ -201,6 +201,14 @@ function choice<T extends string | number>(
   return `<select id="${id}" data-ui="${ui}" aria-label="${escape(label)}">${items}</select>`;
 }
 
+/**
+ * A setting's name with what it means in a hover text, marked by a dotted underline (the menus'
+ * polish, 2026-11-23): knockouts, teams a match and the archnemesis were met unexplained.
+ */
+function tipped(text: string, tip: string): string {
+  return `<span class="tipped" data-tip="${escape(tip)}">${text}</span>`;
+}
+
 function numbers(min: number, max: number): number[] {
   return Array.from({ length: max - min + 1 }, (_, i) => min + i);
 }
@@ -214,6 +222,7 @@ function rangeRow(
   label: string,
   range: { min: number; max: number },
   values: { min: number; max: number },
+  tip: string,
   off = false,
 ): string {
   const all = numbers(values.min, values.max);
@@ -221,7 +230,7 @@ function rangeRow(
     const select = choice(`${id}-${which}`, `${label}: ${word}`, all, range[which], String, 'step');
     return off ? select.replace('<select ', '<select disabled ') : select;
   };
-  return `<label${off ? ' class="off"' : ''}>${label}<span class="range">${end('min', t('tournament.from'))}<span class="dash">${t('tournament.to')}</span>${end('max', t('tournament.to'))}</span></label>`;
+  return `<label${off ? ' class="off"' : ''}>${tipped(label, tip)}<span class="range">${end('min', t('tournament.from'))}<span class="dash">${t('tournament.to')}</span>${end('max', t('tournament.to'))}</span></label>`;
 }
 
 /**
@@ -277,6 +286,7 @@ export function setupMarkup(form: TournamentForm, hostName: string): string {
     t('tournament.matchTeams'),
     form.matchTeams,
     teamLimitsNow,
+    t('tournament.tip.matchTeams'),
     teamLimitsNow.max <= teamLimitsNow.min,
   );
   const levelTop = form.archnemesis ? MAX_LEVEL - 1 : MAX_LEVEL;
@@ -294,7 +304,7 @@ export function setupMarkup(form: TournamentForm, hostName: string): string {
         <section class="setup-team">
           <h2>${t('tournament.yourTeam')}</h2>
           <div class="settings">
-            <label>${t('tournament.teamSize')}${choice(
+            <label>${tipped(t('tournament.teamSize'), t('tournament.tip.teamSize'))}${choice(
               'team-size',
               t('tournament.teamSize'),
               numbers(sizes.min, sizes.max),
@@ -310,14 +320,14 @@ export function setupMarkup(form: TournamentForm, hostName: string): string {
         <section class="setup-shape">
           <h2>${t('tournament.shape')}</h2>
           <div class="settings">
-            <label>${t('tournament.length')}${choice('length', t('tournament.length'), TOURNAMENT_LENGTHS, form.length, (l) => t(`tournament.length.${l}`), 'seg')}</label>
+            <label>${tipped(t('tournament.length'), t('tournament.tip.length'))}${choice('length', t('tournament.length'), TOURNAMENT_LENGTHS, form.length, (l) => t(`tournament.length.${l}`), 'seg')}</label>
             <p class="note road">${escape(t('tournament.road', { n: road }))}</p>
-            <label>${t('tournament.league')}${choice('league', t('tournament.league'), ['yes', 'no'] as const, form.league ? 'yes' : 'no', (v) => (v === 'yes' ? t('tournament.withLeague') : t('tournament.noLeague')), 'seg')}</label>
-            <label>${t('tournament.knockout')}${choice('knockout', t('tournament.knockout'), ['single', 'double'] as const, form.knockout, (v) => (v === 'single' ? t('tournament.single') : t('tournament.double')), 'seg')}</label>
+            <label>${tipped(t('tournament.league'), t('tournament.tip.league'))}${choice('league', t('tournament.league'), ['yes', 'no'] as const, form.league ? 'yes' : 'no', (v) => (v === 'yes' ? t('tournament.withLeague') : t('tournament.noLeague')), 'seg')}</label>
+            <label>${tipped(t('tournament.knockout'), t('tournament.tip.knockout'))}${choice('knockout', t('tournament.knockout'), ['single', 'double'] as const, form.knockout, (v) => (v === 'single' ? t('tournament.single') : t('tournament.double')), 'seg')}</label>
             ${finalNote}
             ${matchTeams}
-            ${rangeRow('levels', t('tournament.opponents'), form.levels, { min: MIN_LEVEL, max: levelTop })}
-            <label>${t('tournament.archnemesis')}${choice('archnemesis', t('tournament.archnemesis'), ['no', 'yes'] as const, form.archnemesis ? 'yes' : 'no', (v) => (v === 'yes' ? t('tournament.archOn') : t('tournament.archOff')), 'switch')}</label>
+            ${rangeRow('levels', t('tournament.opponents'), form.levels, { min: MIN_LEVEL, max: levelTop }, t('tournament.tip.opponents'))}
+            <label>${tipped(t('tournament.archnemesis'), t('tournament.tip.archnemesis'))}${choice('archnemesis', t('tournament.archnemesis'), ['no', 'yes'] as const, form.archnemesis ? 'yes' : 'no', (v) => (v === 'yes' ? t('tournament.archOn') : t('tournament.archOff')), 'switch')}</label>
             ${archName}
             ${specialsSwitch(form.specials)}
           </div>

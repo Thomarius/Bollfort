@@ -190,6 +190,7 @@ export function tournamentExits(isPublic: boolean): TournamentExits {
     play: (id) =>
       void playTournament(id, exits).catch((e: unknown) => showError(t('error.couldNotOpen'), e)),
     list: (notice) => openResumeList(exits, notice),
+    create: () => openNewTournament(readCommon(), exits),
   };
   return exits;
 }

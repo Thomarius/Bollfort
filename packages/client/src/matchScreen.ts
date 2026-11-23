@@ -106,8 +106,11 @@ function shownOnScreen(): Promise<void> {
  * played again (ARCHIVE 13w §1.7).
  */
 export interface MatchExits {
-  /** Called once, as the match is first seen over, before the summary shows. */
-  finished?(state: MatchState): void;
+  /**
+   * Called once, as the match is first seen over, before the summary shows; a line it returns
+   * stands on the summary under the headline — a tournament's, what the result did to it.
+   */
+  finished?(state: MatchState): string | void;
   /** Leaving before the end — paused, or watching after being knocked out. */
   leave?(): void;
   /** What Leave match asks before it goes. */
@@ -1297,7 +1300,8 @@ export async function runSession(
     const events = session.advance(delta);
     if (session.finished && !finishedSeen) {
       finishedSeen = true;
-      exits.finished?.(session.state);
+      const line = exits.finished?.(session.state);
+      if (typeof line === 'string' && line !== '') hud.endScreen.useContext(line);
     }
     // Whose the next match is can change as the summary shows: a host who leaves takes it.
     if (next === undefined) hud.endScreen.useRematch(session.rematch, exits.waitLabel);

@@ -6646,15 +6646,18 @@ body.reduced-motion .look-gallery .card img {
   margin-top: 1rem;
 }
 
-/* The bracket as an icon beside the heading of what it shows. */
-.menu button.icon-button {
+/* A window beside the heading of what it shows: the league's whole table, or the bracket. */
+.menu button.window-button {
   display: inline-flex;
+  gap: 0.4rem;
   align-items: center;
-  justify-content: center;
   width: auto;
-  margin: 0 0 0 0.6rem;
-  padding: 0.2rem 0.3rem;
-  vertical-align: middle;
+  min-height: 0;
+  margin: 0 0 0 auto;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 /* The tournament's last match: its stage framed in gold, and a line saying so. */
@@ -6674,6 +6677,129 @@ body.reduced-motion .look-gallery .card img {
   color: var(--accent);
 }
 
+/* Above both tabs (tournamentView.ts): the host's team's road, and what the next match decides. */
+.tournament-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0.25rem 0 0.25rem;
+}
+
+.road-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.4rem;
+  align-items: center;
+}
+
+.road-part {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.road-part .part-name {
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.road-part ol {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.road-part .stop small {
+  margin-left: 0.35rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.road-part .stop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.9rem;
+  height: 1.7rem;
+  padding: 0 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.road-part .stop.later {
+  border-style: dashed;
+  background: transparent;
+  color: var(--faint);
+}
+
+.road-part .stop.played.won {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--accent);
+}
+
+.road-part .stop.next {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  box-shadow: 0 0 0.8rem color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.road-part .stop.out {
+  border-color: #e07a76;
+  color: #e07a76;
+}
+
+.road-part .stop.trophy {
+  padding: 0 0.4rem;
+  color: var(--faint);
+}
+
+.road-part .stop.trophy.won {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.road-part .stop.trophy svg {
+  width: 15px;
+  height: 15px;
+}
+
+.stakes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+.stakes .stake {
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+.stakes .stake b {
+  font-weight: 600;
+}
+
+.stakes .stake.win b {
+  color: #8fd18a;
+}
+
+.stakes .stake.lose b {
+  color: #e07a76;
+}
+
 .tournament-lobby .standings h2,
 .tournament-ending h2 {
   display: flex;
@@ -6689,19 +6815,94 @@ body.reduced-motion .look-gallery .card img {
   margin: -0.5rem 0 1rem;
 }
 
-.menu .last-result {
-  margin: 0 0 1rem;
-  padding: 0.5rem 0.75rem;
-  border-left: 3px solid var(--edge);
-  color: var(--ink);
+.tournament-lobby .tab-panel p.subtitle {
+  margin: 1rem 0 0;
+  color: var(--faint);
 }
 
-.menu .last-result.won {
-  border-left-color: var(--accent);
+/* The last match as a card: its place a medal, gold, silver or bronze for the first three. */
+.menu .result-card {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  margin: 0 0 1.1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+.result-card .medal {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font: 700 1.15rem var(--ui-display);
+}
+
+.result-card.place-1 .medal {
+  border-color: #e8c25a;
+  background: radial-gradient(circle at 35% 30%, #f6dc8a, #c9971f);
+  color: #2a1d00;
+}
+
+.result-card.place-2 .medal {
+  border-color: #c9ced8;
+  background: radial-gradient(circle at 35% 30%, #eef1f6, #9aa2b1);
+  color: #1d2129;
+}
+
+.result-card.place-3 .medal {
+  border-color: #d49a6a;
+  background: radial-gradient(circle at 35% 30%, #efbf94, #a2643a);
+  color: #2a1608;
+}
+
+.result-card .result-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.result-card small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.result-card b {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.result-card .against {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.result-card .standing {
+  flex: none;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+.move.up,
+.league-table td.move.up {
+  color: #8fd18a;
+}
+
+.move.down,
+.league-table td.move.down {
+  color: #e07a76;
 }
 
 .menu em.tag,
-.league-panel em.tag {
+.how-to-play em.tag {
   margin-left: 0.4rem;
   font-size: 0.72rem;
   font-style: normal;
@@ -6711,13 +6912,20 @@ body.reduced-motion .look-gallery .card img {
 }
 
 .menu em.tag.you,
-.league-panel em.tag.you {
+.how-to-play em.tag.you {
   color: var(--accent);
 }
 
 .menu em.tag.arch,
-.league-panel em.tag.arch {
+.how-to-play em.tag.arch {
   color: #e07a76;
+}
+
+/* A team's form beside its name in the match: its league place, or its seed. */
+.menu em.tag.form {
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--faint);
 }
 
 .standings p {
@@ -6726,7 +6934,7 @@ body.reduced-motion .look-gallery .card img {
 }
 
 .standings h3 {
-  margin: 1rem 0 0.4rem;
+  margin: 1rem 0 0.5rem;
   font-size: 0.78rem;
   font-weight: normal;
   letter-spacing: 0.1em;
@@ -6734,16 +6942,69 @@ body.reduced-motion .look-gallery .card img {
   color: var(--muted);
 }
 
+/* The knockout in figures: the brackets' teams and the archnemesis, a tile each. */
+.standings .facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem;
+}
+
+.standings .fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+.standings .fact b {
+  color: var(--ink);
+  font: 700 1.35rem var(--ui-display);
+}
+
+.standings .fact span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.standings .fact.arch b {
+  color: #e07a76;
+  font-size: 1.05rem;
+  line-height: 1.6rem;
+}
+
+.standings .fact.arch.gone b {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+/* The step's other matches as small cards, their teams one under another. */
 .other-matches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.4rem;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 0.85rem;
-  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .other-matches li {
-  padding: 0.15rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  color: var(--ink);
+}
+
+.other-matches li.more {
+  justify-content: center;
+  border-style: dashed;
+  color: var(--muted);
 }
 
 /* The league's table, cut down to its top, the host's neighbourhood and the cut. */
@@ -6758,7 +7019,7 @@ body.reduced-motion .look-gallery .card img {
 .league-table td,
 .road th,
 .road td {
-  padding: 0.25rem 0.4rem;
+  padding: 0.3rem 0.45rem;
   text-align: left;
 }
 
@@ -6766,16 +7027,33 @@ body.reduced-motion .look-gallery .card img {
 .road th {
   font-weight: normal;
   color: var(--muted);
-  border-bottom: 1px solid var(--edge);
+  border-bottom: 1px solid var(--line);
 }
 
-.league-table td:first-child,
-.league-table td:nth-child(n + 3),
-.league-table th:nth-child(n + 3) {
+.league-table .rank {
+  width: 2.6rem;
   text-align: right;
+  color: var(--muted);
 }
 
-.league-table tr.through td:first-child {
+.league-table .move {
+  width: 2.4rem;
+  padding-left: 0;
+  font-size: 0.72rem;
+}
+
+.league-table .num {
+  width: 3.6rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The teams going through tinted, a line where the cut falls. */
+.league-table tr.through td {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+.league-table tr.through td.rank {
   color: var(--accent);
 }
 
@@ -6784,13 +7062,95 @@ body.reduced-motion .look-gallery .card img {
 }
 
 .league-table tr.mine td {
-  background: rgb(255 255 255 / 6%);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent);
+  font-weight: 600;
 }
 
 .league-table tr.gap td {
+  padding: 0;
+  background: none;
   text-align: center;
   color: var(--muted);
+}
+
+/* A row the last matchday moved slides into its place as it is shown. */
+.league-table tr[style*='--moved'] {
+  animation: rank-move 700ms 150ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes rank-move {
+  from {
+    transform: translateY(calc(var(--moved) * 100%));
+  }
+  to {
+    transform: none;
+  }
+}
+
+body.reduced-motion .league-table tr[style*='--moved'] {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .league-table tr[style*='--moved'] {
+    animation: none;
+  }
+}
+
+.tie-legend {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+}
+
+.tie-legend .info {
+  color: var(--muted);
+  border-bottom: 1px dotted var(--faint);
+}
+
+/* A setting's name with its meaning on hover (tournamentSetup.ts). */
+.tipped {
+  border-bottom: 1px dotted var(--faint);
+}
+
+/* How far through a saved tournament is, under its settings. */
+.saved-progress {
+  display: block;
+  width: 100%;
+  max-width: 16rem;
+  height: 4px;
+  margin: 0.35rem 0 0.15rem;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--surface-3);
+}
+
+.saved-progress i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.tournament-resume > button#create {
+  margin-top: 0.5rem;
+}
+
+/* A tournament's match's summary: what the result did to the tournament, under the headline. */
+.end-screen .summary .tournament-line {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0.4rem 0 0;
+  padding: 0.25rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.end-screen .summary .tournament-line svg {
+  width: 15px;
+  height: 15px;
 }
 
 /* The end of a tournament: a champion's in gold, an exit plainer. */
@@ -6839,60 +7199,56 @@ body.reduced-motion .look-gallery .card img {
   font-size: 15px;
 }
 
-/* The knockout's tree, in a window over the tournament (tournamentBracketView.ts). */
-.bracket-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgb(0 0 0 / 55%);
-}
-
-.bracket-overlay .panel {
+/* The league's and the knockout's windows (tournamentLeagueView.ts, tournamentBracketView.ts), in
+   How to play's frame as every other window is: drawn before the menus' panels, they had a
+   square grey box, monospaced text and a browser's Close (the menus' polish, 2026-11-23). */
+.how-to-play.tournament-window .panel {
   position: relative;
+  align-items: stretch;
   width: min(92vw, 1400px);
   max-height: 92vh;
-  padding: 1.25rem 1.5rem;
-  border: 1px solid var(--edge);
-  background: rgb(20 20 30);
-  box-shadow: 0 1rem 3rem rgb(0 0 0 / 60%);
   color: var(--ink);
 }
 
-.bracket-overlay h2 {
-  margin: 0 0 0.25rem;
+.tournament-window h2 {
+  margin: 0;
   color: var(--accent);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  font: 700 1.6rem var(--heading-font);
+}
+
+.tournament-window .panel > .note {
+  margin: 0;
+  color: var(--muted);
+}
+
+.tournament-window .panel > button.close {
+  align-self: center;
 }
 
 .bracket-scroll {
-  max-height: 72vh;
+  max-height: 70vh;
   overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--field);
 }
 
 .bracket-svg {
   display: block;
   margin: 0 auto;
-  font:
-    11px ui-monospace,
-    Menlo,
-    Consolas,
-    monospace;
+  font: 12px var(--ui-font);
 }
 
 .bracket-svg .heading {
   fill: var(--muted);
-  font-size: 11px;
-  letter-spacing: 0.04em;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .bracket-svg .edge {
   fill: none;
-  stroke: rgb(255 255 255 / 25%);
+  stroke: rgb(255 255 255 / 18%);
   stroke-width: 1.5;
 }
 
@@ -6902,8 +7258,8 @@ body.reduced-motion .look-gallery .card img {
 }
 
 .bracket-svg .match rect {
-  fill: rgb(255 255 255 / 8%);
-  stroke: rgb(255 255 255 / 30%);
+  fill: var(--surface-2);
+  stroke: rgb(255 255 255 / 14%);
   stroke-width: 1;
   cursor: var(--game-cursor-hover);
 }
@@ -6914,29 +7270,90 @@ body.reduced-motion .look-gallery .card img {
 }
 
 .bracket-svg .match.next rect {
-  stroke: #ffffff;
-  stroke-width: 2;
+  stroke: rgb(255 255 255 / 55%);
+  stroke-width: 1.5;
 }
 
 .bracket-svg .match.host rect {
-  fill: rgb(240 200 80 / 18%);
+  fill: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
   stroke: var(--accent);
   stroke-width: 2;
 }
 
 .bracket-svg .match.pinned rect,
 .bracket-svg .match:hover rect {
-  fill: rgb(255 255 255 / 22%);
+  fill: var(--surface-3);
 }
 
-.bracket-svg .match text {
+.bracket-svg text {
+  pointer-events: none;
+}
+
+.bracket-svg .team .name {
+  fill: var(--muted);
+}
+
+.bracket-svg .team.first .name,
+.bracket-svg .match:not(.played) .team .name {
   fill: var(--ink);
-  pointer-events: none;
 }
 
-.bracket-svg .arch-dot {
-  fill: #e0504c;
-  pointer-events: none;
+.bracket-svg .team.first .name {
+  font-weight: 600;
+}
+
+.bracket-svg .team .place {
+  fill: var(--faint);
+  font-size: 10.5px;
+}
+
+.bracket-svg .team.first .place {
+  fill: var(--accent);
+}
+
+.bracket-svg .team .score {
+  fill: var(--faint);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  text-anchor: end;
+}
+
+.bracket-svg .team.you .name {
+  fill: var(--accent);
+}
+
+.bracket-svg .team.arch .name {
+  fill: #e07a76;
+}
+
+.bracket-svg .champion rect {
+  fill: color-mix(in srgb, var(--accent) 14%, var(--surface-2));
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.bracket-svg .champion.open rect {
+  fill: none;
+  stroke-dasharray: 4 3;
+  stroke: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.bracket-svg .champion .cup {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bracket-svg .champion text {
+  fill: var(--accent);
+  font-weight: 700;
+}
+
+.bracket-svg .champion.open text {
+  fill: var(--muted);
+  font-weight: 400;
 }
 
 .bracket-tip {
@@ -6944,64 +7361,35 @@ body.reduced-motion .look-gallery .card img {
   z-index: 1;
   width: 240px;
   padding: 0.6rem 0.75rem;
-  border: 1px solid var(--edge);
-  background: #0e0e16;
-  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 60%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow);
   font-size: 0.85rem;
   pointer-events: none;
 }
 
 .bracket-tip p {
-  margin: 0.3rem 0;
+  margin: 0.3rem 0 0;
   color: var(--muted);
 }
 
-/* The places are written out ("1st"), so the list numbers nothing itself. */
-.bracket-tip ol,
-.bracket-tip ul {
-  margin: 0;
-  padding-left: 0;
-  list-style: none;
-}
-
-.bracket-tip .place,
-.bracket-tip .score {
-  color: var(--muted);
-}
-
-.bracket-tip em {
-  font-style: normal;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-}
-
-.bracket-tip em.you {
-  color: var(--accent);
-}
-
-.bracket-tip em.arch {
-  color: #e07a76;
-}
-
-.bracket-overlay .close {
-  margin-top: 0.75rem;
-}
-
-/* The league in the same window (tournamentLeagueView.ts): the whole table beside every matchday. */
-.league-panel .league-columns {
+/* The league in the same window: the whole table beside every matchday. */
+.league-window .league-columns {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-  gap: 1.5rem;
-  margin-top: 0.75rem;
+  gap: 1.75rem;
+  margin-top: 0.25rem;
 }
 
-.league-panel .league-columns > section {
-  max-height: 68vh;
+.league-window .league-columns > section {
+  max-height: 66vh;
+  padding-right: 0.4rem;
   overflow: auto;
 }
 
-.league-panel h3 {
-  margin: 0 0 0.4rem;
+.league-window h3 {
+  margin: 0 0 0.5rem;
   font-size: 0.78rem;
   font-weight: normal;
   letter-spacing: 0.1em;
@@ -7009,68 +7397,103 @@ body.reduced-motion .look-gallery .card img {
   color: var(--muted);
 }
 
-.league-panel .matchday {
-  margin-bottom: 1rem;
+.league-window .matchday {
+  margin-bottom: 1.1rem;
 }
 
-.league-panel .matchday h3 {
+.league-window .matchday h3 {
   color: var(--ink);
 }
 
-.league-panel .matchday.next h3 {
+.league-window .matchday.next h3 {
   color: var(--accent);
 }
 
-.league-panel .matchday h3 .note {
+.league-window .matchday h3 .note {
   color: var(--muted);
   text-transform: none;
   letter-spacing: 0;
 }
 
-.league-panel .matches {
+.league-window .matches {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
-/* The places are written out ("1st"), so the list numbers nothing itself. */
-.league-panel .match {
+/* A match as a card, a team a line: its place, its name, its score at the right. */
+.league-window .match {
   margin: 0;
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--edge);
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
   list-style: none;
   font-size: 0.8rem;
 }
 
-.league-panel .match.host {
+.league-window .match.host {
   border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-2));
 }
 
-.league-panel .match .place,
-.league-panel .match .score {
+.league-window .match li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.05rem 0;
   color: var(--muted);
 }
 
-.league-panel .match em {
-  font-style: normal;
-  font-size: 0.7rem;
-  text-transform: uppercase;
+.league-window .match li.first,
+.league-window ul.match li {
+  color: var(--ink);
 }
 
-.league-panel .match em.you {
+.league-window .match li.first {
+  font-weight: 600;
+}
+
+.league-window .match .place {
+  width: 0.9rem;
+  color: var(--faint);
+  text-align: right;
+}
+
+.league-window .match li.first .place {
   color: var(--accent);
 }
 
-.league-panel .match em.arch {
+.league-window .match .name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.league-window .match .score {
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.league-window .match em {
+  font-style: normal;
+  font-size: 0.68rem;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.league-window .match em.you {
+  color: var(--accent);
+}
+
+.league-window .match em.arch {
   color: #e07a76;
 }
 
 .league-table td.tie sup {
   color: var(--muted);
-}
-
-.tie-legend {
-  font-size: 0.75rem;
 }
 
 /* ---------- the special tower menu (towerMenu.ts) ---------- */
@@ -8721,7 +9144,7 @@ html.pad .pad-focus {
   .roster .away-tag,
   .banner small,
   #network,
-  .league-panel .match em,
+  .league-window .match em,
   .end-screen table.final .tag.out,
   .team-column h2 .tag {
     font-size: 12px;
