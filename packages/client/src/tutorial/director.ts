@@ -358,21 +358,37 @@ export class TutorialDirector {
   }
 
   /**
-   * A tile of your island for the rival's next shot beyond the script. In the first barrage one
-   * where no wall stands, so the gaps the lesson needs are the only ones; in the second a wall
-   * now and then (`rivalWallShare`), the repair being yours, though never so many that a new
-   * player's island is wrecked: hitting at random, they took most of the main ring.
+   * The tile for the rival's next shot beyond the script. A near miss, a tile right beside a wall
+   * of yours (the user's: a miss far out on the island looked wrong) — always in the first
+   * barrage, so the gaps the lesson needs are the only ones; in the second a wall itself now and
+   * then (`rivalWallShare`), the repair being yours, though never so often that a new player's
+   * island is wrecked: hitting at random, its shots took most of the main ring.
    */
   private randomTarget(state: MatchState): Tile {
+    const { width, height, structure, islandId } = state;
     const island = state.players[YOU]!.islandId;
-    const wall = this.barrage > 0 && this.aim.nextFloat() < this.timing.rivalWallShare;
-    for (let tries = 0; tries < 400; tries++) {
-      const i = this.aim.nextInt(state.islandId.length);
-      if (state.islandId[i] !== island) continue;
-      if ((state.structure[i] === Structure.Wall) !== wall) continue;
-      return { x: i % state.width, y: Math.floor(i / state.width) };
+    const walls: number[] = [];
+    const beside = new Set<number>();
+    for (let i = 0; i < structure.length; i++) {
+      if (structure[i] !== Structure.Wall || islandId[i] !== island) continue;
+      walls.push(i);
+      const x = i % width;
+      const y = (i - x) / width;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const n = ny * width + nx;
+          if (structure[n] !== Structure.Wall) beside.add(n);
+        }
+      }
     }
-    return this.layout.mainCastle;
+    const hit = this.barrage > 0 && this.aim.nextFloat() < this.timing.rivalWallShare;
+    const pool = hit ? walls : [...beside];
+    const i = pool[this.aim.nextInt(pool.length)];
+    if (i === undefined) return this.layout.mainCastle;
+    return { x: i % width, y: Math.floor(i / width) };
   }
 
   /** The tiles the next placement must fill, while a placement is the task. */

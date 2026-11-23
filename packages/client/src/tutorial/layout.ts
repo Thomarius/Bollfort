@@ -32,8 +32,8 @@ export interface TutorialLayout {
   /** What is missing of the second castle's ring: an L, its corner and both arms. */
   secondGap: readonly Tile[];
   /**
-   * The rival's shots in order, at your island: the three that break the gaps and four for
-   * show — the keep, the sea, a gun and bare ground — which break nothing (§4, round 1).
+   * The rival's first shots, at your island: exactly the three that break the gaps. Its shots
+   * after them all miss, landing beside your walls.
    */
   rivalShots: readonly Tile[];
   /** The rival's shots in the second barrage: four walls, the repair left to you (§4, round 2). */
@@ -68,14 +68,12 @@ export const TUTORIAL_LAYOUT: TutorialLayout = {
     { x: 22, y: 22 },
     { x: 23, y: 21 },
   ],
+  // The three breaks first and nothing else, so the barrage never waits on them once your count
+  // is reached (the user's, 2026-11-23); every shot after them misses (`TutorialDirector`).
   rivalShots: [
-    { x: 11, y: 12 }, // the keep: castles never break
     { x: 15, y: 12 },
-    { x: 26, y: 8 }, // the sea
     { x: 15, y: 9 },
-    { x: 13, y: 10 }, // the corner gun: guns never break
     { x: 15, y: 13 },
-    { x: 20, y: 13 }, // bare ground
   ],
   rivalShotsAgain: [
     { x: 11, y: 9 },

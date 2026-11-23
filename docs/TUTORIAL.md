@@ -97,15 +97,17 @@ use. _Skip tutorial_ in the card's corner; Esc pauses as ever.
 |         | `won`          | note | You win! — last one standing, or the best score after 10 rounds (fireworks)           |                                             |
 |         | `done`         |      | _Tutorial complete_: **Play a match** (the lobby) or **Main menu**                    |                                             |
 
-The rival's shots, one every 1.6 s from 2.5 s into each barrage. The first barrage's script: your
-keep, the long gap's upper block, the sea, the corner, your corner gun, the long gap's lower block,
-bare ground — three break wall, four show what a shot cannot break. The second's: four walls, two
-rings, the repair left to you. **Then the rival keeps firing until the barrage ends** (the user's: a
-rival falling silent felt wrong), at random tiles of your island: in the first barrage never at a
-wall, so the gaps the lesson needs are the only ones; in the second at a wall one time in four
-(`rivalWallShare`) — aimed anywhere, they took most of the main ring. A barrage ends once your count
-is reached and the script's shots have landed. After its lost life the rival takes its castle again
-and places its guns where the rules first allow.
+The rival's shots, one every 1.6 s from 2.5 s into each barrage. The first barrage's script is
+exactly the three breaks — the long gap's upper block, the corner, the long gap's lower block — so
+the barrage never waits on them once your count is reached (the user's, 2026-11-23: with four shots
+for show among them, it had). The second's: four walls, two rings, the repair left to you. **Then
+the rival keeps firing until the barrage ends** (the user's: a rival falling silent felt wrong).
+Every further shot is a **near miss**, a tile right beside one of your walls — a miss far out on the
+island looked wrong — in the first barrage always, so the gaps the lesson needs are the only ones;
+in the second a wall itself one time in four (`rivalWallShare`), since aimed anywhere its shots took
+most of the main ring. A near miss may land on your keep or a gun, which shows what a shot cannot
+break. A barrage ends once your count is reached and the script's shots have landed. After its lost
+life the rival takes its castle again and places its guns where the rules first allow.
 
 Notes:
 
@@ -152,7 +154,7 @@ Notes:
   step in order; the points told equal to the points banked; the match held still under a note;
   under three minutes of play; a piece only into the gap of the moment, Bertha only where she is the
   task; the rival's first barrage breaking exactly the three tiles meant, and the rival firing on
-  through a slow barrage with nothing more broken; the second build phase run
+  through a slow barrage, its script first and then only near misses, nothing more broken; the second build phase run
   out on its clock and overtime; each task's hint. `offer.test.ts`: when the offer shows. Looked at
   in a browser, every step.
 

@@ -278,12 +278,29 @@ describe('the tutorial', () => {
       state.structure.filter((s, i) => s === Structure.Wall && state.islandId[i] === island).length;
     const before = walls();
     // Half a minute without firing: the barrage cannot end, and the rival goes on.
-    let fired = 0;
+    // Every shot after the script's three a near miss: on no wall, beside one.
+    const wallAt = (x: number, y: number): boolean =>
+      state.structure[y * state.width + x] === Structure.Wall;
+    const gaps = [...TUTORIAL_LAYOUT.sideGap, TUTORIAL_LAYOUT.cornerGap];
+    const besideWall = (x: number, y: number): boolean =>
+      [-1, 0, 1].some((dy) =>
+        [-1, 0, 1].some(
+          (dx) => wallAt(x + dx, y + dy) || gaps.some((g) => g.x === x + dx && g.y === y + dy),
+        ),
+      );
+    const targets: { x: number; y: number }[] = [];
     for (let i = 0; i < 30 * 30; i++) {
-      fired += match.advance(1000 / 30).filter((e) => e.kind === 'shot_fired').length;
+      for (const e of match.advance(1000 / 30)) {
+        if (e.kind === 'shot_fired') targets.push({ x: e.shot.toX, y: e.shot.toY });
+      }
     }
     expect(director.step).toBe('fire');
-    expect(fired).toBeGreaterThan(TUTORIAL_LAYOUT.rivalShots.length + 5);
+    expect(targets.slice(0, 3)).toEqual(TUTORIAL_LAYOUT.rivalShots);
+    expect(targets.length).toBeGreaterThan(TUTORIAL_LAYOUT.rivalShots.length + 5);
+    for (const { x, y } of targets.slice(3)) {
+      expect(gaps.some((g) => g.x === x && g.y === y) || !wallAt(x, y)).toBe(true);
+      expect(besideWall(x, y)).toBe(true);
+    }
     // Only the script's three breaks: the long gap's two blocks and the corner.
     expect(before - walls()).toBe(3);
   });
