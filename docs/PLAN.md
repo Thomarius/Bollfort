@@ -1909,12 +1909,22 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
      draws one; blocks stamped by their neighbours only if that is not enough.
    - **PF4 — Later, each switched off and measured first**: Chocolate's fall and shine and
      Halloween's flowing terrain, drawn every frame, as stamps.
-   - **PF5 — A banner's first layout, in a match**: found in the style preview (ARCHIVE 16y):
-     a phase banner made as it is needed is laid out in the frame it comes in, and the first time
-     a style's banner is (its styles, its font) that took 70 ms of one frame in Minimal. The match
-     screen makes each banner then (`Hud.announce`), so a look's first banner should hitch the
-     same, with Random every round a new one. To measure, then perhaps lay the next look's banner
-     out unseen in the pause before it (`Scene.prime`'s moment), as the preview now does.
+   - **PF5 — A banner's first layout, in a match — closed: measured, not worth it**
+     (2026-11-23): found in the style preview (ARCHIVE 16y), where a banner's first layout took
+     70 ms in Minimal. Measured in a watched match in headless Chrome with the GPU on, frames and
+     Chrome's long-animation-frame reports around every banner, 75 s a run: with fixed looks —
+     the default Minimal and Pixel, Minimal alone, Electric and Cyberpunk — **no banner costs
+     anything**, the same skin swapped every phase included. Under **Random looks** a look's
+     first banner holds the frame 35–160 ms (Anime's card the worst), three to five times a
+     match, all of it forced style and layout in the frame callback (`placeAnnouncement`'s
+     `offsetHeight`). It is not the banner's own layout: every style's banner laid out unseen in
+     advance, the plan's remedy, left 122–166 ms a run against 143–290 without (noisy, as each
+     run draws other looks), Wild West, Mythology and Noir still 35–93 ms. Nor the fonts: every
+     declared font loaded ahead changed nothing (248–318 against 197–329). The cost is the page
+     restyled the first time a look's HUD skin goes on (`Hud.useSkin`, as its banner starts),
+     paid once a look. A remedy would be to warm each skin unseen in `Scene.prime`'s pause,
+     which its selectors on `body` make awkward; closed by the user (2026-11-23), to be reopened only
+     if players of Random looks notice it.
 
 10. **A professional finish — done** (agreed 2026-11-22, from a review of screenshots of the menu, the
     lobby, the loading screen, a match at two and eight players and the end screen, while Valve
