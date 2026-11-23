@@ -16,7 +16,13 @@ import {
 
 import { countdownBeat, hideClocks, showsClock } from './clock.js';
 import { Controls, inputMode, maySwitchTower, placeableCannons, readyCannons } from './controls.js';
-import { cannonImg, placeIconPx, placeIconsHtml, switchHintHtml } from './towerIcons.js';
+import {
+  cannonImg,
+  placeIconPx,
+  placeIconsHtml,
+  switchHintHtml,
+  turnHintHtml,
+} from './towerIcons.js';
 import { defaultArtConfig, variantCost, variantKind } from '@bollfort/config';
 import { bannersFor, type LifeLost, type PointsGained } from './banners.js';
 import { matchPalette, playerCssColour, useMatchPalette } from './colours.js';
@@ -41,7 +47,7 @@ import { styleMusicOn } from './styleMusicSetting.js';
 import { PauseControls, pausesOnBlur } from './pause.js';
 import { Autopilot } from './autopilot.js';
 import { PadMatch } from './padMatch.js';
-import { pads } from './pads.js';
+import { padText, pads } from './pads.js';
 import { storeArtMode, storeArtSplit } from './storeArt.js';
 import { CURSOR_SPEEDS, storedCursorSpeed } from './padSettings.js';
 import { howToSectionFor, openHowToPlay } from './howToPlay.js';
@@ -138,6 +144,10 @@ export interface TutorialHooks {
   bannersAtEnd(): boolean;
   /** Whether the phase's clock is shown: the tutorial holds them, but for one countdown. */
   clockShown(): boolean;
+  /** Whether the person's moves are open: no ghost nor reticle under a card being read. */
+  inputOpen(): boolean;
+  /** Whether the cursor shows how a piece is turned, so the words need name no button. */
+  turnHint(): boolean;
   /**
    * The frame's events as they are to be heard: the end's fanfare held back until the win is
    * told, so it does not sound over what comes before it.
@@ -753,6 +763,17 @@ export async function runSession(
       aiming ? readyCannons(state, human) : 0,
     );
     const special = state.players[human]?.special ?? null;
+    // The controller's button where a pad is in use, the mouse's otherwise (STEAM.md §8).
+    const turnButton = padText((marks) => marks.turn);
+    if (ghost.tile !== null && mode === 'piece' && tutorial?.turnHint() === true) {
+      const right = Math.max(...ghost.cells.map(([x]) => x)) + 1;
+      hud.labels.showPlaceIcons(
+        scene.screenAt(ghost.tile.x + right + 0.3, ghost.tile.y),
+        '',
+        turnHintHtml(playerCssColour(human), turnButton),
+      );
+      return;
+    }
     if (ghost.tile === null || mode !== 'cannon') {
       hud.labels.showPlaceIcons(null, '', null);
       return;
@@ -771,7 +792,7 @@ export async function runSession(
     const icons = placeIconsHtml(placeableCannons(state, human), tower, colour, cannon);
     const hint =
       special !== null && maySwitchTower(state, human)
-        ? switchHintHtml(variantKind(special), tower === null, colour, cannon)
+        ? switchHintHtml(variantKind(special), tower === null, colour, cannon, turnButton)
         : null;
     const w = ghost.footprint?.w ?? 2;
     hud.labels.showPlaceIcons(scene.screenAt(ghost.tile.x + w + 0.3, ghost.tile.y), icons, hint);
@@ -1362,8 +1383,10 @@ export async function runSession(
     };
     // `&reticle=0` (dev only, the trailer's): no aiming cursor, nor the towers' emblems by it;
     // the pieces' ghosts while building stay (the user, 2026-11-05).
+    // Nor under a tutorial's card being read: nothing is to be placed or aimed then.
+    const closed = tutorial !== null && !tutorial.inputOpen();
     const ghost =
-      noReticle && shown.aiming
+      (noReticle && shown.aiming) || closed
         ? {
             ...shown,
             tile: null,
@@ -1372,6 +1395,7 @@ export async function runSession(
             impact: null,
             badges: [],
             nextTower: null,
+            ...(closed ? { cells: [], footprint: null, sealing: [] } : {}),
           }
         : shown;
     scene.drawOverlay(session.state, ghost, session.humanPlayer);

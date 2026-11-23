@@ -104,6 +104,8 @@ export function startTutorial(ways: TutorialWays): void {
       // Kept up after the end: the rival "Knocked out", your last points, both told then.
       bannersAtEnd: () => true,
       clockShown: () => director.clockShown,
+      inputOpen: () => director.inputOpen,
+      turnHint: () => director.turnHint,
       heard: (events) => {
         const now = [...held.splice(0), ...events];
         if (director.celebrating) return now;

@@ -209,6 +209,28 @@ export function rightClickSvg(colour: string): string {
   );
 }
 
+/**
+ * The hint by the cursor while a piece is to be turned (the tutorial's, docs/TUTORIAL.md §4): the
+ * button that turns it — a controller's glyph, or the mouse's right button and wheel — and the
+ * turn. So the words need name no button.
+ */
+export function turnHintHtml(colour: string, button: string | null = null): string {
+  return (
+    (button ?? rightClickSvg(colour) + wheelSvg()) +
+    `<span class="turn" aria-hidden="true">↻</span>`
+  );
+}
+
+/** The mouse's wheel, beside its right button in the turn's hint. */
+function wheelSvg(): string {
+  return (
+    `<svg class="icon mouse" viewBox="0 0 16 16" aria-hidden="true">` +
+    `<rect x="3.5" y="1" width="9" height="14" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.2"/>` +
+    `<rect x="7" y="3" width="2" height="4.4" rx="1" fill="currentColor"/>` +
+    `<path d="M8 8.6 V12 M6.6 10.8 8 12.2 9.4 10.8" fill="none" stroke="currentColor" stroke-width="0.9"/></svg>`
+  );
+}
+
 /** Most icons shown in the row; more are told as a number after them. */
 const MAX_ICONS = 8;
 
@@ -249,9 +271,11 @@ export function switchHintHtml(
   toTower: boolean,
   colour: string,
   cannon: string | null = null,
+  /** The button that switches, a controller's glyph in place of the mouse's right button. */
+  button: string | null = null,
 ): string {
   return (
-    rightClickSvg(colour) +
+    (button ?? rightClickSvg(colour)) +
     `<span class="turn" aria-hidden="true">↻</span>` +
     (toTower ? towerSvg(kind, colour) : (cannon ?? cannonSvg(colour)))
   );

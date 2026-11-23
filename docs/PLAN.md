@@ -1965,9 +1965,11 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
       from inside.
 
 12. **A tutorial — built** (agreed and built 2026-11-22, the user's; `docs/TUTORIAL.md`), for the
-    user to try, reworked the same day after their first look: reverses "guidance in a first
+    user to try, reworked the same day after their first look and on 2026-11-23 after their
+    play-through (plain words, no note interrupting a task, fewer cards, no button named, the
+    overtime at the end): reverses "guidance in a first
     match", declined in items 7 and 10, since a free release on Steam stands or falls by the first
-    minutes. One scripted match on rails of two rounds, four to five minutes, Medieval for building
+    minutes. One scripted match on rails of two rounds, three to four minutes, Medieval for building
     and Night for combat; a card above the board, its notes holding the match until Continue. The
     stage set first; then two cannons, nine blocks broken while the rival breaks a gap and a corner
     of yours, both closed with the pieces dealt for them, a second castle walled in, the round's

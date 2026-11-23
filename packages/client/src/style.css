@@ -9139,6 +9139,13 @@ img.avatar {
   line-height: 1.4;
 }
 
+.tutorial-card .hint {
+  margin: 0;
+  color: var(--hud-muted);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
 .tutorial-card .foot {
   display: flex;
   gap: 1.5rem;

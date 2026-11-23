@@ -98,22 +98,23 @@ export const TUTORIAL_TIMING = {
   /** Into the barrage before the rival's first shot, and between its shots. */
   rivalFirstShotMs: 2500,
   rivalShotGapMs: 1600,
-  /** Into the first barrage before the silent gun is pointed out. */
-  silentAfterMs: 4000,
+  /** Of the rival's shots beyond the script in the second barrage, the share aimed at a wall. */
+  rivalWallShare: 0.25,
+  /** The camera's time to reach the rival before its round resolves, so the loss is seen. */
+  lookMs: 1200,
   /** The second build phase's clock, once a castle of yours is sealed (§4, round 2). */
   countdownMs: 10000,
 } as const;
 
 /**
- * The default rules, with the tutorial's pieces dealt, no overtime — the tutorial ends each
- * build phase itself (§5) — and the special towers on, for Big Bertha in the second round. The
- * clocks are held by the tutorial, not changed here, so the rules a new player learns are the
- * real ones.
+ * The default rules, with the tutorial's pieces dealt and the special towers on, for Big Bertha
+ * in the second round. The clocks are held by the tutorial, not changed here, so the rules a new
+ * player learns are the real ones — the second build phase's overtime too.
  */
 export function tutorialRuleset(base: Ruleset = defaultRuleset): Ruleset {
   return {
     ...base,
     specials: { ...base.specials, enabled: true },
-    build: { ...base.build, overtimeMs: 0, pieceScript: [...TUTORIAL_PIECES] },
+    build: { ...base.build, pieceScript: [...TUTORIAL_PIECES] },
   };
 }

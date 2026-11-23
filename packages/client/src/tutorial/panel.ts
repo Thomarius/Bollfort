@@ -1,7 +1,6 @@
 import { escape } from '../html.js';
 import { formatNumber, t } from '../i18n.js';
 import { withIcon } from '../icons.js';
-import { padText } from '../pads.js';
 import type { TutorialCard } from './director.js';
 
 /**
@@ -83,12 +82,9 @@ export class TutorialPanel {
 /** The card's markup. */
 export function cardHtml(card: TutorialCard): string {
   const params = card.params ?? {};
-  // A controller's words where they name a button (STEAM.md §8), the mouse's otherwise.
-  const pad =
-    card.padBody === undefined
-      ? null
-      : padText((marks) => t(card.padBody!, { ...params, ...marks }));
-  const body = pad ?? escape(t(card.body, params));
+  // No button is named: the cursor shows the mouse's or the controller's (STEAM.md §8).
+  const body = escape(t(card.body, params));
+  const hint = card.hint === undefined ? '' : `<p class="hint">${escape(t(card.hint, params))}</p>`;
   const kicker = t(card.kind === 'task' ? 'tutorial.kickerTask' : 'tutorial.kickerNote');
   const progress =
     card.progress === undefined
@@ -118,7 +114,7 @@ export function cardHtml(card: TutorialCard): string {
   return (
     `<div class="head" data-title="${card.title}"><span class="kicker ${card.kind}">${escape(kicker)}</span>` +
     `<button class="quiet skip">${escape(t('tutorial.skip'))}</button></div>` +
-    `<h2>${escape(t(card.title, params))}</h2><p class="body">${body}</p>` +
+    `<h2>${escape(t(card.title, params))}</h2><p class="body">${body}</p>${hint}` +
     (points + progress + next === '' ? '' : `<div class="foot">${points}${progress}${next}</div>`)
   );
 }

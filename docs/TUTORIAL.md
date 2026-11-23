@@ -3,10 +3,12 @@
 A guided match for first-time players, designed with the user on 2026-11-22 and built the same
 day for the user to try. A second pass the same day followed their first look: the stage set before
 anything is asked, the words in a card above the board rather than a line at its foot, the points as
-a sum, the sounds in the order they are told, and a second round with Big Bertha. It reverses
-"guidance in a first match", declined twice before (PLAN §11 items 7 and 10): the game is to be
-released free on Steam, where the first few minutes decide whether a player stays. Once tried and
-settled, this design is retired into the ARCHIVE.
+a sum, the sounds in the order they are told, and a second round with Big Bertha. A third
+(2026-11-23) followed their play-through: the texts in plain words, no note interrupting a task,
+fewer cards, no button named, the special towers called optional, and the last build phase ending
+in its overtime as any match's does. It reverses "guidance in a first match", declined twice before
+(PLAN §11 items 7 and 10): the game is to be released free on Steam, where the first few minutes
+decide whether a player stays. Once tried and settled, this design is retired into the ARCHIVE.
 
 ## 1. The idea
 
@@ -14,14 +16,15 @@ settled, this design is retired into the ARCHIVE.
 player do anything, has to answer every move a player might make. A tutorial where each task admits
 only the move it teaches is far easier to keep on track (the user's). So every task has one outcome,
 any other move is refused before it reaches the rules, and **no clock runs** but one, at the very
-end, which is the lesson. It takes 92 s of play for someone who does each task the moment it is set
-(measured in the test's play-through), plus the reading of 23 cards: four to five minutes.
+end, which is the lesson. It takes 97 s of play for someone who does each task the moment it is set
+(measured in the test's play-through), plus the reading of 9 cards: three to four minutes.
 
 It is a real match: the board is the game's, the rules the default ruleset's, every move goes
 through the simulation, so nothing it teaches is untrue. It covers every core mechanic and one
-special tower: placing cannons, firing and reloading, what shots break, silent guns, building and
-turning pieces, sealing, the corner rule, the main castle's reward, a second castle, the points,
-a life lost and a fresh start, Big Bertha, the build clock, and how a match is won.
+special tower: placing cannons, firing and reloading, what shots break, building and turning
+pieces, sealing, the corner rule, the main castle's reward, a second castle, the points, silent
+guns, a life lost and a fresh start, Big Bertha, the build clock and its overtime, and how a match
+is won.
 
 Medieval for building and Night for combat, whatever the menu has chosen (the user's): the two
 plainest styles, which show everything clearly. The build look's music starts with the tutorial, not
@@ -55,96 +58,103 @@ It starts in the cannon phase of round 1, with two cannons still for you to plac
 ## 4. The script
 
 **A card above the board** (`tutorial/panel.ts`): the board is fitted below it, so it covers
-nothing. A small kicker, _Tutorial_ or _Your task_; the heading large; a line or two under it. It
-comes in afresh with every step, so a new one is noticed. Two kinds:
+nothing. A small kicker, _Tutorial_ or _Your task_; the heading large; a sentence or two in plain
+words under it. It comes in afresh with every step, so a new one is noticed. Two kinds:
 
-- **A note** explains, and holds the match still — shots stop in the air — until **Continue** is
-  pressed (a controller's Accept), read at the player's own pace.
-- **A task** lets the match run until it is done, its count as a bar where it has one.
+- **A note** explains, and holds the match still until **Continue** is pressed (a controller's
+  Accept), read at the player's own pace. No ghost or reticle while it is up.
+- **A task** lets the match run until it is done, its count as a bar where it has one, and what
+  helps with it as a smaller hint line. **A task is never interrupted by a note** (the user's).
 
-_Skip tutorial_ in the card's corner; Esc pauses as ever. The texts are drafts in all three languages.
+**No button is named in the words** (the user's): the cursor shows it — while a piece is to be
+turned, the mouse's right button and wheel or the controller's Turn, beside a turning arrow; while
+the tower may be chosen, the game's own switch hint, with the controller's button where a pad is in
+use. _Skip tutorial_ in the card's corner; Esc pauses as ever.
 
-| Phase   | Step           | Kind | Heading — what it says                                                                  | Done when                                         |
-| ------- | -------------- | ---- | --------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Opening | `welcome`      | note | Welcome to Bollfort — two islands, two castles, one siege                               |                                                   |
-|         | `island`       | note | Your island — the castle in its ring; the ground and its guns yours (camera on it)      |                                                   |
-|         | `rules`        | note | How a round goes — cannons, fire, rebuild; a round unsealed costs a life                |                                                   |
-| Cannons | `cannons`      | task | Place your cannons (0 / 2)                                                              | Both placed                                       |
-| Combat  | `fire`         | task | Fire! — break 9 blocks (bar)                                                            | Your first shot                                   |
-|         | `reload`       | note | Reloading — a cannon fires again once its shot has landed                               |                                                   |
-|         | `firing`       | task | Keep firing (bar)                                                                       | 9 down, the rival's shots landed, both notes read |
-|         | `silent`       | note | A silent cannon — outside your walls it cannot fire (marked)                            | 4 s into `firing`                                 |
-|         | `underFire`    | note | They fire back! — shots break walls only, never castles or cannons                      | As the rival's first wall hit lands               |
-| Build   | `turn`         | task | Rebuild — close the gap; turn the piece to fit it (marked)                              | The two-block piece upright in the long gap       |
-|         | `corner`       | task | Mind the corner — blocks touching only at corners leave a gap (marked, pinged)          | The single block in the corner                    |
-|         | `sealed`       | note | Sealed! — its ground keeps you in the match and scores                                  |                                                   |
-|         | `reward`       | note | Cannons for castles — the crowned castle earns two each round                           |                                                   |
-|         | `second`       | task | A second castle — wall it in; turn the piece to fit the gap (marked)                    | The L, turned half round, in its gap              |
-|         | `secondSealed` | note | Two castles — every further castle one more cannon, and more ground                     |                                                   |
-|         | `clock`        | note | Time's up — a real match gives 20 seconds; here the clock waited                        |                                                   |
-|         | `points`       | note | Your points this round — walls 14 × 2, ground 72 × 1, cannons 3 × 5, total (camera you) |                                                   |
-|         | `idleGun`      | note | Nothing for idle cannons — the gun outside scores nothing (marked)                      |                                                   |
-|         | `rivalFails`   | note | Meanwhile, your rival … has not closed its walls (camera on it)                         | Continue: the round resolves                      |
-|         | `lifeLost`     | note | A life lost — the island cleared, a fresh castle, its last life                         | The intermission, then the cannon phase           |
-| Cannons | `tower`        | task | Big Bertha — right-click to switch to her, worth two cannons, and place her             | Bertha placed                                     |
-|         | `lastCannon`   | task | One more — place your last cannon                                                       | Placed                                            |
-| Combat  | `bertha`       | note | Bertha fires first — whatever you click, and her shell breaks a cross of five           |                                                   |
-|         | `barrage`      | task | Their last life — break 14 blocks of their new wall (bar)                               | 14 down, the rival's four shots landed            |
-| Build   | `repair`       | task | Rebuild on your own — seal at least one castle; any placement                           | A castle of yours sealed                          |
-|         | `countdown`    | task | The clock is running — the clock shown, 10 s                                            | The clock all but out                             |
-|         | `rivalFinal`   | note | Time's up — the rival sealed nothing again (camera on it)                               | Continue: the round resolves                      |
-|         | `out`          | note | Knocked out — no lives left (camera on it, the banner over it)                          |                                                   |
-|         | `won`          | note | Victory! — last one standing, or the best score after 10 rounds (camera you, fireworks) |                                                   |
-|         | `done`         |      | _Tutorial complete_: **Play a match** (the lobby) or **Main menu**                      |                                                   |
+| Phase   | Step           | Kind | Heading — what it says                                                                | Done when                                   |
+| ------- | -------------- | ---- | ------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Opening | `welcome`      | note | Welcome to Bollfort — you and a rival each hold a castle on an island                 |                                             |
+|         | `island`       | note | This is your island — the crowned castle in its wall; the land and cannons yours      |                                             |
+|         | `rules`        | note | How a round works — cannons, fire, repair; a castle not walled in costs a life        |                                             |
+| Cannons | `cannons`      | task | Place your cannons (0 / 2)                                                            | Both placed                                 |
+| Combat  | `fire`         | task | Fire! — break 9 blocks (bar); hint: reloading, and only walls break                   | 9 down and the rival's shots landed         |
+| Build   | `turn`         | task | Repair your wall — turn the piece so it fits the gap (marked)                         | The two-block piece upright in the long gap |
+|         | `corner`       | task | Close the corner — blocks touching only at a corner leave a gap (marked, pinged)      | The single block in the corner              |
+|         | `sealed`       | note | Your castle is walled in! — land, points, and two cannons a round for the crowned one |                                             |
+|         | `second`       | task | Wall in a second castle — turn the last piece so it fits (marked)                     | The L, turned half round, in its gap        |
+|         | `secondSealed` | note | Two castles — one more cannon each; a real game gives 20 seconds to build             |                                             |
+|         | `points`       | note | Your points for this round — the sum; the marked gun outside earns nothing            | Continue: the camera goes to the rival      |
+|         | `resolving`    |      | (no card: the camera reaches the rival, then the round resolves)                      | The rival's life lost                       |
+|         | `lifeLost`     | note | Your rival lost a life — its island cleared, a new castle, its last life              | The intermission, then the cannon phase     |
+| Cannons | `tower`        | task | Big Bertha — special towers are an optional extra; she costs two of your 3 cannons    | Bertha placed                               |
+|         | `lastCannon`   | task | One more cannon                                                                       | Placed                                      |
+| Combat  | `barrage`      | task | Your rival's last life — break 14 blocks (bar); hint: Bertha fires first, a cross     | 14 down and the rival's four shots landed   |
+| Build   | `repair`       | task | Repair on your own — wall in at least one castle; any placement                       | A castle of yours sealed                    |
+|         | `countdown`    | task | The clock is running — the clock shown, 10 s                                          | The clock out                               |
+|         | `overtime`     | task | Last piece — the piece held may still be placed, as in any match                      | The overtime all but out                    |
+|         | `resolving`    |      | (no card: the camera reaches the rival, then the round resolves)                      | The rival knocked out                       |
+|         | `out`          | note | Your rival is out — no castle walled in, no lives left                                |                                             |
+|         | `won`          | note | You win! — last one standing, or the best score after 10 rounds (fireworks)           |                                             |
+|         | `done`         |      | _Tutorial complete_: **Play a match** (the lobby) or **Main menu**                    |                                             |
 
-The rival's shots, one every 1.6 s from 2.5 s into each barrage. The first: your keep, the long
-gap's upper block, the sea, the corner, your corner gun, the long gap's lower block, bare ground —
-three break wall, four show what a shot cannot break. The second: four walls, two rings, the repair
-left to you. After its lost life the rival takes its castle again and places its guns where the rules
-first allow.
+The rival's shots, one every 1.6 s from 2.5 s into each barrage. The first barrage's script: your
+keep, the long gap's upper block, the sea, the corner, your corner gun, the long gap's lower block,
+bare ground — three break wall, four show what a shot cannot break. The second's: four walls, two
+rings, the repair left to you. **Then the rival keeps firing until the barrage ends** (the user's: a
+rival falling silent felt wrong), at random tiles of your island: in the first barrage never at a
+wall, so the gaps the lesson needs are the only ones; in the second at a wall one time in four
+(`rivalWallShare`) — aimed anywhere, they took most of the main ring. A barrage ends once your count
+is reached and the script's shots have landed. After its lost life the rival takes its castle again
+and places its guns where the rules first allow.
 
 Notes:
 
-- **Explained before it happens**: each round's end is told while the build phase is held, the
+- **Explained before it happens**: the first round's end is told while the build phase is held, the
   points worked out as the resolution will count them (`pointsAhead`, which a test holds to the
-  banked score). Only then does the camera go to the rival and the round resolve, so its life lost is
-  seen and heard there, and the build music plays on until then. The victory fanfare is held back
-  until the camera is back on your castle (`TutorialHooks.heard`), the fireworks too.
+  banked score). Then the camera goes to the rival, and the round resolves 1.2 s later, as it
+  arrives, so its life lost is seen and heard there; the build music plays on until then. The
+  second round's overtime is held a moment short of its end in the same way. The victory fanfare is
+  held back until the camera is back on your castle (`TutorialHooks.heard`), the fireworks too.
+- **The silent gun is told with the points**, the gun marked, rather than in the barrage, which no
+  note interrupts (the user's).
 - **The corner is the corner-gap lesson**: a missing corner seals under a 4-connected flood but not
-  the real one, so the game's own corner ping (`cornerGaps.ts`) marks it.
+  the real one, so the game's own corner ping (`cornerGaps.ts`) marks it. The words speak of blocks
+  touching only at a corner, never of the sea (the user's).
 - **Turns count from the piece as dealt**: in the tutorial each new piece starts unturned, so a gap
   always wants the same turns; a match keeps the turn from piece to piece. The cards never say how
   many (the user's).
 - **Big Bertha is handed over in round 2**, as the rival's life is lost: from the start, the HUD
   spoke of her ("not at the opening") before she was introduced.
-- **The countdown** stops two ticks short of its end, for the rival's failure to be told before the
-  round resolves.
 
 ## 5. How it is built
 
 - **One sim change**: an optional `build.pieceScript` in the ruleset, names dealt in order from each
   build phase's first piece before the draw takes over (`pieceAt`). No match has one. The tutorial's
   ruleset is the default with its three pieces scripted — at the start of every build phase, so the
-  free repair begins with small ones too — no overtime, and the special towers on
-  (`tutorialRuleset`).
+  free repair begins with small ones too — and the special towers on (`tutorialRuleset`). The
+  overtime is the default's; the first round's resolution, explained beforehand, skips it.
 - **The director** (`tutorial/director.ts`), pure and played through in a test: the steps, notes
   holding the match, the rival's moves as actions, the clocks held 60 s ahead while a task is open
   and let go by setting the phase's end to now; which moves are let through (`allows`), what is
-  marked, the card, the camera, when to celebrate, when the clock shows.
+  marked, the card and its hint, the camera, whether input is open and the turn shown by the cursor,
+  when to celebrate, when the clock shows.
 - **The session** (`tutorial/session.ts`): ticks the match as a local one does, with no bots and no
   recording, and not at all while a note is up.
 - **The match screen** takes `exits.tutorial` (`TutorialHooks`): placements and guns filtered in
   `Controls` before the rules (the ghost red, the refusal cue), the marks drawn as a leak's tiles
   are, the board fitted below the card, the phase's music at once, no clocks but the countdown
-  (`hideClocks`), no island zoom, no summary, the island banners kept after the end (`bannersFor`'s
-  `atEnd`), the camera eased onto an island and back, the fanfare and fireworks only for the win.
-- **Controller**: the same rails, since a pad sends the same moves; Accept is Continue; the cards
-  naming a button have pad versions.
+  (`hideClocks`), no ghost under a note, the turn's hint by the cursor (`turnHintHtml`), no island
+  zoom, no summary, the island banners kept after the end (`bannersFor`'s `atEnd`), the camera eased
+  onto an island and back, the fanfare and fireworks only for the win. The tower's switch hint by
+  the cursor shows a controller's button where a pad is in use, in any match.
+- **Controller**: the same rails, since a pad sends the same moves; Accept is Continue.
 - **Tests** (`director.test.ts`): the board; the whole tutorial played through to your win, every
   step in order; the points told equal to the points banked; the match held still under a note;
   under three minutes of play; a piece only into the gap of the moment, Bertha only where she is the
-  task; the rival's first barrage breaking exactly the three tiles meant; the countdown's clock and
-  its stop. `offer.test.ts`: when the offer shows. Looked at in a browser, every step.
+  task; the rival's first barrage breaking exactly the three tiles meant, and the rival firing on
+  through a slow barrage with nothing more broken; the second build phase run
+  out on its clock and overtime; each task's hint. `offer.test.ts`: when the offer shows. Looked at
+  in a browser, every step.
 
 ## 6. Achievement and recordings
 
@@ -155,6 +165,6 @@ Notes:
 
 ## 7. Open
 
-- **The texts**: every card in all three languages, the Hessian above all, are drafts for the user
-  to fix.
+- **The texts**: rewritten in plain words (2026-11-23), still for the user to settle, the Hessian
+  above all.
 - **Placement in the menu**: Tutorial beside How to play leaves Options alone on its row.

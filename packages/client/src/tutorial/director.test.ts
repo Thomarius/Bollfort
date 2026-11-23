@@ -7,6 +7,7 @@ import {
   legalCannonPlacements,
   pieceById,
   pieceCells,
+  startingRingTiles,
   type MatchState,
 } from '@bollfort/sim';
 
@@ -70,8 +71,15 @@ function rivalWall(state: MatchState): Tile | null {
   return null;
 }
 
-/** The main castle's ring tiles the rival's second barrage breaks. */
-const MAIN_RING_HITS = TUTORIAL_LAYOUT.rivalShotsAgain.filter((t) => t.x <= 15 && t.y <= 16);
+/** The main castle's ring tiles still missing, whatever the rival's shots broke. */
+function mainRingGaps(state: MatchState): Tile[] {
+  const { x, y } = TUTORIAL_LAYOUT.mainCastle;
+  const castle = state.castles.find((c) => c.x === x && c.y === y)!;
+  return startingRingTiles(state, castle).map((i) => ({
+    x: i % state.width,
+    y: Math.floor(i / state.width),
+  }));
+}
 
 /** One tick of a prompt person: a note read at once, each task done as soon as it is set. */
 function act(match: TutorialMatch): void {
@@ -107,7 +115,7 @@ function act(match: TutorialMatch): void {
     match.submit({ kind: 'place_piece', player: YOU, ...placementInto(state, target) });
   }
   if (step === 'repair' && state.phase === 'build') {
-    const spot = placementOver(state, MAIN_RING_HITS);
+    const spot = placementOver(state, mainRingGaps(state));
     if (spot !== null) match.submit({ kind: 'place_piece', player: YOU, ...spot });
   }
 }
@@ -163,33 +171,25 @@ describe('the tutorial', () => {
       'island',
       'rules',
       'cannons',
+      // The barrage runs through without a note: its help is a hint on its card.
       'fire',
-      'reload',
-      'firing',
-      'silent',
-      'firing',
-      'underFire',
-      'firing',
       'turn',
       'corner',
       'sealed',
-      'reward',
       'second',
       'secondSealed',
-      'clock',
       'points',
-      'idleGun',
-      'rivalFails',
-      // 'resolving' comes and goes on one tick: the round resolves at once.
+      // The camera goes to the rival, and the round resolves as it arrives.
+      'resolving',
       'lifeLost',
       'waiting',
       'tower',
       'lastCannon',
-      'bertha',
       'barrage',
       'repair',
       'countdown',
-      'rivalFinal',
+      'overtime',
+      'resolving',
       'out',
       'won',
       'done',
@@ -269,6 +269,25 @@ describe('the tutorial', () => {
     ).toBe(true);
   });
 
+  it('keeps the rival firing through the barrage, its further shots all missing in the first', () => {
+    const match = new TutorialMatch(tutorialBoard(NAMES));
+    const { state, director } = match;
+    playThrough(match, 'fire');
+    const island = state.players[YOU]!.islandId;
+    const walls = (): number =>
+      state.structure.filter((s, i) => s === Structure.Wall && state.islandId[i] === island).length;
+    const before = walls();
+    // Half a minute without firing: the barrage cannot end, and the rival goes on.
+    let fired = 0;
+    for (let i = 0; i < 30 * 30; i++) {
+      fired += match.advance(1000 / 30).filter((e) => e.kind === 'shot_fired').length;
+    }
+    expect(director.step).toBe('fire');
+    expect(fired).toBeGreaterThan(TUTORIAL_LAYOUT.rivalShots.length + 5);
+    // Only the script's three breaks: the long gap's two blocks and the corner.
+    expect(before - walls()).toBe(3);
+  });
+
   it('breaks with the rival’s first barrage only the tiles it is meant to', () => {
     const match = new TutorialMatch(tutorialBoard(NAMES));
     const { state } = match;
@@ -290,16 +309,32 @@ describe('the tutorial', () => {
     expect(lost.sort((a, b) => a - b)).toEqual(expected.sort((a, b) => a - b));
   });
 
-  it('shows the clock only in the second build phase’s countdown, and stops it short', () => {
+  it('runs the second build phase out on its clock and its overtime, then resolves', () => {
     const match = new TutorialMatch(tutorialBoard(NAMES));
     const { state, director } = match;
     playThrough(match, 'countdown');
     expect(director.clockShown).toBe(true);
-    const left = state.phaseEndTick - state.tick;
-    expect(left / state.ruleset.tickRateHz).toBeGreaterThan(9);
-    playThrough(match, 'rivalFinal');
-    // Held at its end for the rival's failure to be told, the round not yet resolved.
-    expect(state.phase).toBe('build');
+    expect((state.phaseEndTick - state.tick) / state.ruleset.tickRateHz).toBeGreaterThan(9);
+    // The clock out, the overtime of any match: the piece held may still go down.
+    playThrough(match, 'overtime');
+    expect(state.overtime).toBe(true);
     expect(director.clockShown).toBe(false);
+    expect(
+      director.allows(state, { kind: 'place_piece', player: YOU, x: 4, y: 20, rotation: 0 }),
+    ).toBe(true);
+    // Its end held for the camera to reach the rival, nothing placed meanwhile: no ghost then.
+    playThrough(match, 'resolving');
+    expect(state.phase).toBe('build');
+    expect(director.inputOpen).toBe(false);
+    playThrough(match, 'out');
+    expect(state.phase).toBe('game_over');
+  });
+
+  it('gives each task’s card its hint, and no note stops a barrage', () => {
+    const match = new TutorialMatch(tutorialBoard(NAMES));
+    playThrough(match, 'fire');
+    expect(match.director.card(match.state)?.hint).toBe('tutorial.fire.hint');
+    playThrough(match, 'barrage');
+    expect(match.director.card(match.state)?.hint).toBe('tutorial.barrage.hint');
   });
 });
