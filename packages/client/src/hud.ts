@@ -86,8 +86,11 @@ export function phaseBanner(
     banner.classList.add('carded');
     banner.insertAdjacentHTML('afterbegin', card);
   }
-  // A style's own words under the phase's call, where it has them (ARCHIVE 14d, 14q).
-  const flavour = look.flavour?.[title === null ? phase : 'final'];
+  // A style's own words under the phase's call, where it has them (ARCHIVE 14d, 14q) and the
+  // config shows them (`art.bannerFlavour`).
+  const flavour = defaultArtConfig.bannerFlavour
+    ? look.flavour?.[title === null ? phase : 'final']
+    : undefined;
   if (flavour !== undefined) {
     const small = document.createElement('small');
     small.className = 'flavour';

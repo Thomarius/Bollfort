@@ -1359,6 +1359,14 @@ export const ArtConfigSchema = z
      * stays, to switch back to.
      */
     cannonIcons: z.enum(['style', 'generic']),
+    /**
+     * Whether a style's own small line under a phase banner is shown (`StyleDefinition.flavour`:
+     * Stadium's "Kick-off!", the supporter styles'). Fifteen of the 34 styles have one; switched
+     * off, every banner is its big call alone, as the other nineteen's are (2026-11-23: hard to
+     * read in some looks, and adding little). The game's own small lines, the final round's
+     * "Fire!", show either way.
+     */
+    bannerFlavour: z.boolean(),
     tileSizePx: z.number().int().positive(),
     atlasSizePx: z.number().int().positive(),
     pixelSnap: z.boolean(),

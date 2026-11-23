@@ -4,6 +4,7 @@
     "combat": "pixel"
   },
   "cannonIcons": "style",
+  "bannerFlavour": false,
   "tileSizePx": 16,
   "atlasSizePx": 2048,
   "pixelSnap": true,
