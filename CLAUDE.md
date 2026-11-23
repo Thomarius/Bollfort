@@ -212,7 +212,7 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 - **The game** (ARCHIVE 10u–12zk): its rules, online rooms, Find a game, pause, recordings, team
   matches, bots of levels 1–10 with personalities, tournaments (`packages/tournament`, ARCHIVE
   12ze–12zr), a demo behind the menu (15m, never recorded), a tutorial on rails (PLAN §11 item 12,
-  `docs/TUTORIAL.md`, built 2026-11-22 for the user to try), How to play (14zq), the end screen
+  `docs/TUTORIAL.md`, approved by the user 2026-11-23), How to play (14zq), the end screen
   (15k), achievements' detector (16a), the island zoom (16j: the player's own island fitted to the
   screen in the build and cannon phases, by a magnifier on its corner or a pad's RB; a setting
   Off / Start out / Start in, applied as each build phase opens; never in combat; the wheel may

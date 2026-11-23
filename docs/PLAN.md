@@ -1947,11 +1947,11 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
       as it is. Declined for now as well: groups or filters in the looks' gallery, and a "What's
       new" window after an update. Item 10 is closed.
 
-11. **A PC game, not a browser game** (agreed 2026-11-22, the user's, from a second look after item
+11. **A PC game, not a browser game — done** (agreed 2026-11-22, the user's, from a second look after item
     10): what still says "web page" in the first minute, and what PC players expect of a desktop
     game. The browser and the GitHub builds stay relevant beside Steam's. Display and the desktop
     app only — no sim, ruleset or protocol change. Packages, in this order:
-    - **PG1 — The start, and the last tells — built** (ARCHIVE 16zd), for the user to try: a title screen in place of the loading dialog — the
+    - **PG1 — The start, and the last tells — done** (ARCHIVE 16zd), tried and approved by the user (2026-11-23): a title screen in place of the loading dialog — the
       title large in the player's look, a thin bar under it, no corner buttons, faded into the
       menu; the desktop windows shown only once painted (Electron's `ready-to-show`), so the Steam
       build opens straight onto it; in the browser, where music waits for a first click, "Click
@@ -1959,12 +1959,12 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
       the system's; a game's own arrow for the pointer in place of the browser's link hand; the
       HUD's last native tooltips (`title`) as our own hover texts or gone; and the menu's corner
       as icons like the match's, the Demo button gone (the demo still starts after 30 s idle).
-    - **PG2 — What PC players expect — built** (ARCHIVE 16ze), for the user to try: Windowed or Fullscreen as a row in Options' Display tab in
+    - **PG2 — What PC players expect — done** (ARCHIVE 16ze), tried and approved by the user (2026-11-23): Windowed or Fullscreen as a row in Options' Display tab in
       the desktop app; a crash or error window in the game's style with Copy report; and the
       GitHub build opening the game itself rather than its server window first, hosting reached
       from inside.
 
-12. **A tutorial — built** (agreed and built 2026-11-22, the user's; `docs/TUTORIAL.md`), for the
+12. **A tutorial — done** (agreed and built 2026-11-22, the user's; `docs/TUTORIAL.md`), for the
     user to try, reworked the same day after their first look and on 2026-11-23 after their
     play-through (plain words, no note interrupting a task, fewer cards, no button named, the
     overtime at the end): reverses "guidance in a first
@@ -1979,7 +1979,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     Steamworks with AC5). One sim change, an optional `build.pieceScript`. Its texts in all three
     languages checked by the user (2026-11-23): done.
 
-13. **The tournament screens polished** (agreed 2026-11-23, the user's, from a review of
+13. **The tournament screens polished — done** (agreed 2026-11-23, the user's, from a review of
     screenshots of a demo tournament played through). **TS1 — built** for the user to try
     (ARCHIVE 16zh): the league's and the bracket's windows in the menus' frame, the road and the
     stakes above both tabs, the last match as a card, the table tightened with its moves, the
@@ -1987,13 +1987,13 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     tournament line, the resume list's progress and dates, the setup's explanations, the title
     "Bastion Cup". The lobby still opens on the Match tab (the user's). Open, as packages of their
     own to be looked at after it:
-    - **TS2 — the setup's preview**: the setup's empty left column (alone, it holds one line) as a
-      live picture of the tournament set — teams in all, the format as league → knockout, the
-      matches a champion plays, a rough playing time.
-    - **TS3 — presets**: Quick cup, Classic, Marathon or the like over the detailed settings.
+    - **TS2 and TS3 — the setup's preview and presets — dropped** (the user's, 2026-11-23): not
+      needed.
     - **TS4 — the winner's ceremony — built** (ARCHIVE 16zi), for the user to look at.
-    - **TS5 — a team's colour or emblem**, chosen at the setup and carried into the table, the
-      bracket and the lobby: a field in the save, so a save version.
+    - **TS5 — a team's colour or emblem — not for now** (the user's, 2026-11-23: it adds little).
+      Outlined then: a shield of colour and emblem for every team, the host's chosen at the setup
+      and the rest dealt from the seed, in the menus only; an optional settings field, so no new
+      save version, but a protocol bump.
     - **Not to be built: a trophy cabinet** of the cups won (the user's, 2026-11-23): a cup won
       is shown once, at the tournament's end, and its save goes with it.
 
