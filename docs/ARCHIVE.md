@@ -13171,3 +13171,33 @@ Texts in all three languages; seven gone with the sentences they made (`tourname
 `brackets`, `inWinners`, `inLosers`, `stillIn`, `archIn`, `archOut`). No protocol change: a
 teammate's page draws all of it from the save the host sends. Looked at in English and German at
 1400 × 900; tested in `tournamentRoad.test.ts` and the updated `tournamentScreens.test.ts`.
+
+## 16zi. The winner's ceremony, TS4 (2026-11-23, PLAN §11 item 13)
+
+A tournament won ended on a headline over a table of the team's matches. The user's decisions:
+the ceremony on a menu screen, not on the final's board (the climaxes were made for build phases,
+a teammate's page skips the final's summary, and it would tie the match screen to tournaments);
+the final's teams on the podium, as the final placed them — two in double elimination, up to four
+in single — since a "third place" is not defined in double elimination; the ending of a
+tournament lost reworked in the same layout, quietly; no record of cups won, ever.
+
+`tournamentCeremony.ts` (`endingMarkup`, moved from `tournamentView.ts`): won, the cup drawn in
+SVG and engraved with its name and the day ("Bastion Cup", 23 November 2026), rising in with a
+glint; "Champions!", "Bastion won the Bastion Cup.", the team's members; confetti in the look's
+accent and three fixed colours, a fixed scatter falling twice and gone; the podium, its blocks
+rising one after another, gold, silver and bronze; the tournament in figures (`figuresOf`):
+matches won of played, points in all, the best match and its stage, the place in the league's
+final table, and against the archnemesis the places ahead and behind, "put out by your team" where
+it was, "never met" where not; the road (TS1's strip, every stop ticked, the trophy lit), the
+bracket's button and Back to menu. Out: the same without the cup and confetti, the headline grey,
+where the team went out and who won the cup. Nothing of it moves under Reduced motion.
+
+**Who won, when the host's team is out**: the tournament stopped there, its later steps never
+decided. `rollOut` (`packages/tournament`) rolls the rest on a copy of the save, from the seed's
+streams as `settle` rolls the steps the host has no match in, so every page finds the same
+champion; the save itself is untouched and goes as before. Its test covers every shape of
+tournament, out at once and after a win. The ending's podium and its bracket window are the
+rolled-out tournament's, the finished tree with its champion. No save format or protocol change.
+German's heading for a tournament lost is now "Aus dem Turnier": "Ausgeschieden" stood over
+"Ausgeschieden: Verliererrunde 2.". Five texts of the old table gone. Looked at in English and
+German at 1400 × 900, from saves made by the tournament core and put in the page's storage.

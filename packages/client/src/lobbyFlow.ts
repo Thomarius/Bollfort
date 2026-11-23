@@ -11,7 +11,7 @@ import {
 import { styleArt } from './styles/registry.js';
 import { botTowerOf, drawnSpecial } from '@bollfort/ai';
 import { type ServerMessage } from '@bollfort/protocol';
-import { Progress, parseSave, type Save } from '@bollfort/tournament';
+import { Progress, parseSave, rollOut, type Save } from '@bollfort/tournament';
 
 import {
   addedSeats,
@@ -61,7 +61,8 @@ import { showMenu } from './menu.js';
 import { runSession } from './matchScreen.js';
 import { openBracket } from './tournamentBracketView.js';
 import { openLeague } from './tournamentLeagueView.js';
-import { endingMarkup, tournamentTab } from './tournamentView.js';
+import { endingMarkup } from './tournamentCeremony.js';
+import { tournamentTab } from './tournamentView.js';
 import { openTowerMenu } from './towerMenu.js';
 import { preferredSpecials, preferredTower, saveSpecials, saveTower } from './towers.js';
 import { saveTable, storedTable, type RememberedTable } from './tableMemory.js';
@@ -333,9 +334,14 @@ export function wireBracket(save: Save, progress: Progress): void {
 /** A tournament's end, won or out, as the host's page and their teammates' show it. */
 export function showEnding(save: Save, progress: Progress, back: () => void): void {
   tournamentEnded(save, progress);
-  app!.innerHTML = endingMarkup(save, progress);
+  // Out before the end, the rest rolled out on a copy, for the champion and the whole tree.
+  const finished =
+    progress.status.kind === 'out'
+      ? rollOut(save, defaultConfigBundle.tournament)
+      : { save, progress };
+  app!.innerHTML = endingMarkup(save, progress, finished);
   audio.music(progress.status.kind === 'won' ? 'music_victory' : 'music_defeat');
-  wireBracket(save, progress);
+  wireBracket(finished.save, finished.progress);
   app!.querySelector('#back')?.addEventListener('click', () => {
     audio.play('select');
     back();

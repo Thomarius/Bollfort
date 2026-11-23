@@ -12,7 +12,7 @@ import { createTournament, unbeatenRoad } from './create.js';
 import { placings } from './placement.js';
 import { matchTable, placedFrom } from './table.js';
 import { knockoutSizes, largestField, loserRounds, matchdaySizes, product } from './plan.js';
-import { Progress, hostHistory, recordMatch, rollHostMatch, stepsOf } from './progress.js';
+import { Progress, hostHistory, recordMatch, rollHostMatch, rollOut, stepsOf } from './progress.js';
 import { NameDrawer } from './roster.js';
 import { rollOrder } from './roll.js';
 import { HOST_TEAM, parseSave, SAVE_VERSION, type Save } from './save.js';
@@ -183,6 +183,26 @@ describe('a tournament', () => {
     // Long, but not absurd: the losers' bracket roughly doubles the road.
     expect(hostHistory(save).length).toBeGreaterThan(4);
     expect(hostHistory(save).length).toBeLessThanOrEqual(10);
+  });
+
+  it('rolls out to a champion after the host is out, in every shape, the save untouched', () => {
+    for (const shape of shapes()) {
+      // Out at once, and out after a match won where there is one to win.
+      for (const wins of [0, 1]) {
+        const save = make(shape);
+        for (let i = 0; i < wins; i++) winNext(save);
+        const out = playOut(save, loseNext);
+        if (out.status.kind !== 'out') continue;
+        const steps = save.steps.length;
+        const rolled = rollOut(save, config);
+        expect(save.steps).toHaveLength(steps);
+        expect(rolled.progress.winner).not.toBeNull();
+        expect(rolled.progress.winner).not.toBe(HOST_TEAM);
+        expect(rolled.progress.status).toEqual(out.status);
+        // The same champion every time it is rolled out.
+        expect(rollOut(save, config).progress.winner).toBe(rolled.progress.winner);
+      }
+    }
   });
 
   it('caps the knockout field', () => {

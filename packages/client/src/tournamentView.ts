@@ -58,7 +58,7 @@ function teamTag(save: Save, id: number): string {
 }
 
 /** A team's name, marked as the host's or the archnemesis's. */
-function teamLabel(save: Save, id: number): string {
+export function teamLabel(save: Save, id: number): string {
   return `${escape((save.teams[id] as Team).name)}${teamTag(save, id)}`;
 }
 
@@ -162,7 +162,7 @@ function stopMarkup(save: Save, stop: RoadStop): string {
  * team has played or would play on winning, the next lit, a trophy at the end — so where the
  * tournament stands is read at a glance rather than gathered from three lines.
  */
-function roadStrip(save: Save, progress: Progress): string {
+export function roadStrip(save: Save, progress: Progress): string {
   const road = roadOf(save, progress);
   const part = (name: string, stops: readonly RoadStop[], end = ''): string =>
     `<div class="road-part"><span class="part-name">${escape(name)}</span>` +
@@ -347,7 +347,7 @@ function leagueButton(): string {
 }
 
 /** The knockout's tree. */
-function bracketButton(): string {
+export function bracketButton(): string {
   return windowButton(
     'bracket',
     t('tournament.bracket'),
@@ -435,43 +435,4 @@ export function afterMatchLine(save: Save, progress: Progress): string {
     save.settings.knockout === 'double' &&
     last.match.order[0] !== HOST_TEAM;
   return dropped ? `${t('tournament.after.losers')} · ${next}` : next;
-}
-
-/** The end of a tournament, won or out: the team's road through it, match by match. */
-export function endingMarkup(save: Save, progress: Progress): string {
-  const won = progress.status.kind === 'won';
-  const out = progress.status.kind === 'out' ? progress.status.step : null;
-  const headline = won ? t('tournament.wonTitle') : t('tournament.outTitle');
-  const line = won
-    ? t('tournament.wonLine', { team: teamName(save, HOST_TEAM) })
-    : out !== null &&
-        stepsOf(save)[out]?.kind === 'league' &&
-        hostHistory(save).at(-1)?.step === out
-      ? t('tournament.outLeague', { n: save.plan.advance })
-      : t('tournament.outLine', { stage: out === null ? '' : stageName(save, out) });
-  const rows = hostHistory(save)
-    .map(({ step, match }) => {
-      const place = match.order.indexOf(HOST_TEAM);
-      const score = match.scores?.[place];
-      const others = match.teams
-        .filter((id) => id !== HOST_TEAM)
-        .map((id) => teamLabel(save, id))
-        .join(' · ');
-      return (
-        `<tr${place === 0 ? ' class="won"' : ''}><td>${escape(stageName(save, step))}</td><td>${others}</td>` +
-        `<td>${escape(t('tournament.placeOf', { place: ordinal(place + 1), of: match.teams.length }))}</td>` +
-        `<td>${score === undefined ? '' : escape(formatNumber(score))}</td></tr>`
-      );
-    })
-    .join('');
-  return `
-    <div class="menu lobby tournament-ending ${won ? 'won' : 'out'}">
-      <h1>${escape(headline)}</h1>
-      <p class="ending-line">${escape(line)}</p>
-      <p class="note subtitle">${escape(settingsLine(save.settings))}</p>
-      <h2>${t('tournament.yourMatches')}${bracketButton()}</h2>
-      <table class="road"><thead><tr><th>${t('tournament.stage')}</th><th>${t('tournament.against')}</th><th>${t('tournament.place')}</th><th>${t('tournament.score')}</th></tr></thead>
-      <tbody>${rows}</tbody></table>
-      <button id="back" data-back>${t('watching.back')}</button>
-    </div>`;
 }

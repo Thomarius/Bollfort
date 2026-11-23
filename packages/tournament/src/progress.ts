@@ -125,6 +125,15 @@ export class Progress {
     return this.pool.filter((team) => !this.outAt.has(team));
   }
 
+  /**
+   * The next step's matches whether or not the host's team is still in, or null once the
+   * tournament is decided: for rolling out its rest after the team is out (`rollOut`).
+   */
+  pairingAhead(): Pairing | null {
+    if (this.champion !== null || this.done >= this.steps.length) return null;
+    return this.pairing(this.done);
+  }
+
   /** The knockout's champion, once there is one. */
   get winner(): number | null {
     return this.champion;
@@ -395,6 +404,26 @@ export function settle(save: Save, config: TournamentConfig): Progress {
     save.steps.push({
       matches: matches.map((teams, m) => rollMatch(save, config, progress.done, m, teams)),
       byes,
+    });
+  }
+}
+
+/**
+ * The rest of a tournament the host's team is out of, rolled to its end on a copy of the save,
+ * so its end can name the champion (the winner's ceremony, 2026-11-23). The rolls are the
+ * seed's, as `settle`'s are, so every page that rolls it out finds the same champion; the save
+ * given is left as it is.
+ */
+export function rollOut(save: Save, config: TournamentConfig): { save: Save; progress: Progress } {
+  // A save is plain JSON, as it is stored; the package has no DOM or Node for structuredClone.
+  const copy = JSON.parse(JSON.stringify(save)) as Save;
+  for (;;) {
+    const progress = new Progress(copy);
+    const next = progress.pairingAhead();
+    if (next === null) return { save: copy, progress };
+    copy.steps.push({
+      matches: next.matches.map((teams, m) => rollMatch(copy, config, progress.done, m, teams)),
+      byes: next.byes,
     });
   }
 }

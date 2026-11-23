@@ -6800,8 +6800,7 @@ body.reduced-motion .look-gallery .card img {
   color: #e07a76;
 }
 
-.tournament-lobby .standings h2,
-.tournament-ending h2 {
+.tournament-lobby .standings h2 {
   display: flex;
   align-items: center;
   margin: 0 0 0.75rem;
@@ -7008,23 +7007,19 @@ body.reduced-motion .look-gallery .card img {
 }
 
 /* The league's table, cut down to its top, the host's neighbourhood and the cut. */
-.league-table,
-.tournament-ending .road {
+.league-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
 }
 
 .league-table th,
-.league-table td,
-.road th,
-.road td {
+.league-table td {
   padding: 0.3rem 0.45rem;
   text-align: left;
 }
 
-.league-table th,
-.road th {
+.league-table th {
   font-weight: normal;
   color: var(--muted);
   border-bottom: 1px solid var(--line);
@@ -7153,33 +7148,310 @@ body.reduced-motion .league-table tr[style*='--moved'] {
   height: 15px;
 }
 
-/* The end of a tournament: a champion's in gold, an exit plainer. */
+/* The end of a tournament (tournamentCeremony.ts, PLAN §11 item 13, TS4): won, a ceremony — the
+   cup, the confetti, the final's podium rising, the figures; out, the same layout quietly. */
+/* Positioned as every menu is, which holds the confetti. */
 .menu.tournament-ending {
-  width: min(46rem, 94vw);
+  width: min(54rem, 94vw);
+  overflow-x: hidden;
 }
 
-.tournament-ending .ending-line {
-  margin: 0 0 0.5rem;
-  font-size: 1.1rem;
-  color: var(--ink);
+.tournament-ending .ceremony-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.75rem;
+  align-items: center;
 }
 
-.tournament-ending.won h1 {
-  font-size: 2.2rem;
-  text-shadow: 0 0 1.2rem rgb(240 200 80 / 45%);
+.tournament-ending .cup {
+  display: block;
+  width: 9.5rem;
+  height: auto;
+  filter: drop-shadow(0 0 1.4rem rgb(240 200 80 / 35%));
+  animation: cup-in 900ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.tournament-ending .cup .shine {
+  animation: cup-shine 2.4s ease-in-out 900ms infinite;
+}
+
+.tournament-ending .cup .engraved {
+  fill: #ecc969;
+  font: 700 14px var(--ui-display);
+  letter-spacing: 0.04em;
+}
+
+.tournament-ending .cup .engraved.small {
+  fill: #b9a066;
+  font: 500 10.5px var(--ui-font);
+}
+
+@keyframes cup-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cup-shine {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.tournament-ending .ceremony-title h1 {
+  margin: 0 0 0.35rem;
+}
+
+.tournament-ending.won .ceremony-title h1 {
+  font-size: 2.8rem;
+  text-shadow: 0 0 1.4rem rgb(240 200 80 / 45%);
 }
 
 .tournament-ending.out h1 {
   color: var(--muted);
 }
 
-.tournament-ending .road tr.won td:nth-child(3) {
-  color: var(--accent);
+.tournament-ending .ending-line {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  color: var(--ink);
 }
 
-.tournament-ending .road td:last-child,
-.tournament-ending .road th:last-child {
-  text-align: right;
+.tournament-ending .members,
+.tournament-ending .champion-line {
+  margin: 0;
+  color: var(--muted);
+}
+
+.tournament-ending .ceremony-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.75rem;
+  margin: 1.5rem 0 1.25rem;
+}
+
+.tournament-ending h2 {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The final's teams on a podium, the winner raised in the middle. */
+.tournament-ending .podium {
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-end;
+  justify-content: center;
+  height: 11rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tournament-ending .podium .step {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  max-width: 8rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.tournament-ending .podium .who {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tournament-ending .podium .who em.tag {
+  display: block;
+  margin: 0;
+  font-size: 0.62rem;
+}
+
+.tournament-ending .podium small {
+  color: var(--faint);
+  font-size: 0.72rem;
+}
+
+.tournament-ending .podium .block {
+  display: grid;
+  place-items: start center;
+  width: 100%;
+  height: 2.2rem;
+  margin-top: 0.3rem;
+  padding-top: 0.35rem;
+  border-radius: 6px 6px 0 0;
+  background: var(--surface-3);
+  color: var(--muted);
+  font: 700 1.2rem var(--ui-display);
+  transform-origin: bottom;
+  animation: podium-rise 700ms ease-out both;
+  animation-delay: calc(500ms + var(--place) * 180ms);
+}
+
+.tournament-ending .podium .place-1 .block {
+  height: 5.5rem;
+  background: linear-gradient(#f2d278, #b8861c);
+  color: #2a1d00;
+}
+
+.tournament-ending .podium .place-2 .block {
+  height: 4rem;
+  background: linear-gradient(#e6e9ef, #8e97a6);
+  color: #1d2129;
+}
+
+.tournament-ending .podium .place-3 .block {
+  height: 3rem;
+  background: linear-gradient(#e7b58a, #9a5e35);
+  color: #2a1608;
+}
+
+.tournament-ending .podium .place-1 .who {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+@keyframes podium-rise {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/* The tournament in figures, a tile each, as the knockout's on the Tournament tab. */
+.tournament-ending .facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.tournament-ending .fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--surface-2);
+}
+
+.tournament-ending .fact b {
+  color: var(--ink);
+  font: 700 1.3rem var(--ui-display);
+}
+
+.tournament-ending .fact span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.tournament-ending .fact.arch b {
+  color: #e07a76;
+}
+
+.tournament-ending .road-head .window-button {
+  margin-left: auto;
+}
+
+.tournament-ending .road-strip {
+  margin-bottom: 1.25rem;
+}
+
+/* Confetti over the champions: a fixed scatter, falling twice, then gone. */
+.tournament-ending .confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tournament-ending .confetti i {
+  position: absolute;
+  top: -1rem;
+  width: 7px;
+  height: 11px;
+  border-radius: 1px;
+  opacity: 0;
+  animation: confetti-fall 3.4s ease-in 2;
+}
+
+.tournament-ending .confetti .c0 {
+  background: var(--accent);
+}
+
+.tournament-ending .confetti .c1 {
+  background: #f4efe2;
+}
+
+.tournament-ending .confetti .c2 {
+  background: #e07a76;
+}
+
+.tournament-ending .confetti .c3 {
+  background: #7cc3f0;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--spin));
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(46rem) translateX(2rem) rotate(calc(var(--spin) + 540deg));
+  }
+}
+
+body.reduced-motion .tournament-ending .confetti {
+  display: none;
+}
+
+body.reduced-motion .tournament-ending .cup,
+body.reduced-motion .tournament-ending .cup .shine,
+body.reduced-motion .tournament-ending .podium .block {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tournament-ending .confetti {
+    display: none;
+  }
+
+  .tournament-ending .cup,
+  .tournament-ending .cup .shine,
+  .tournament-ending .podium .block {
+    animation: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .tournament-ending .ceremony-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .tournament-setup h3 {

@@ -4,6 +4,7 @@ import {
   createTournament,
   Progress,
   recordMatch,
+  rollOut,
   settingsProblems,
   stepsOf,
   type Save,
@@ -30,7 +31,9 @@ import {
 import { settingsLine, stageName } from './tournamentText.js';
 import { lobbyMarkup, type LobbyView } from './lobby.js';
 import { roomTable } from './tournamentRoom.js';
-import { endingMarkup, tableExcerpt, tournamentTab } from './tournamentView.js';
+import { bracketSvg } from './tournamentBracketView.js';
+import { endingMarkup } from './tournamentCeremony.js';
+import { tableExcerpt, tournamentTab } from './tournamentView.js';
 import { leagueMarkup } from './tournamentLeagueView.js';
 
 const config = defaultConfigBundle.tournament;
@@ -445,7 +448,7 @@ describe('the tournament between matches', () => {
     expect(tab.header).toMatch(/class="stake lose"><b>[^<]+<\/b> → Losers(&#39;|') bracket/);
   });
 
-  it('ends with the road, won or out', () => {
+  it('ends with a ceremony when won, and quietly, naming the champion, when out', () => {
     setLanguage('en');
     const won = tournament('t', 'now', { length: 'short' });
     let progress = new Progress(won);
@@ -460,10 +463,14 @@ describe('the tournament between matches', () => {
     }
     const champion = endingMarkup(won, progress);
     expect(champion).toContain('Champions!');
-    expect(champion.match(/<tr class="won">/g)).toHaveLength(2);
-    expect(champion).toMatch(
-      /<h2>Your team(&#39;|')s matches<button id="bracket" class="window-button"/,
-    );
+    // The cup engraved, the confetti, the final's two teams on the podium, the road all won.
+    expect(champion).toMatch(/class="engraved"[^>]*>Ada Cup</);
+    expect(champion).toContain('class="confetti"');
+    expect(champion.match(/class="step place-/g)).toHaveLength(2);
+    expect(champion).toContain('Ada won the Ada Cup.');
+    expect(champion).toContain('<b>2 / 2</b><span>matches won</span>');
+    expect(champion.match(/class="stop played won"/g)).toHaveLength(2);
+    expect(champion).toMatch(/class="road-head">[^]*id="bracket" class="window-button"/);
 
     const out = tournament('t', 'now');
     const first = new Progress(out);
@@ -474,8 +481,18 @@ describe('the tournament between matches', () => {
       [...teams.filter((t) => t !== 0), 0].map((team) => ({ team, score: 9 })),
       'later',
     );
-    const exit = endingMarkup(out, progress);
+    const finished = rollOut(out, config);
+    const exit = endingMarkup(out, progress, finished);
     expect(exit).toContain('Out of the tournament');
     expect(exit).toContain('Knocked out: Quarter-final.');
+    expect(exit).not.toContain('class="confetti"');
+    expect(exit).not.toContain('class="cup"');
+    const champ = out.teams[finished.progress.winner!]!.name;
+    expect(exit).toContain(`class="champion-line">${champ}`);
+    expect(exit).toContain('class="podium"');
+    // The bracket of the tournament rolled out ends with its champion.
+    expect(bracketSvg(finished.save, finished.progress)).toMatch(
+      new RegExp(`class="champion"[^]*>${champ}</text>`),
+    );
   });
 });
