@@ -29,7 +29,7 @@ export interface TutorialLayout {
   /** The tiles the rival's shots break: the long gap's two, then the corner. */
   sideGap: readonly Tile[];
   cornerGap: Tile;
-  /** What is missing of the second castle's ring: an L, its corner and both arms. */
+  /** What is missing of the second castle's ring: two blocks of its east side, the sea beside them. */
   secondGap: readonly Tile[];
   /**
    * The rival's first shots, at your island: exactly the three that break the gaps. Its shots
@@ -61,12 +61,17 @@ export const TUTORIAL_LAYOUT: TutorialLayout = {
     { x: 15, y: 13 },
   ],
   cornerGap: { x: 15, y: 9 },
-  // The south-east corner of the ring from (16, 15) to (23, 22): the L, dealt with its corner
-  // top-left, fits only turned half round — the same either way the wheel turns (task 5).
+  // Two blocks of the east side of the ring from (16, 15) to (23, 22), on the coast. Any
+  // placement that seals a castle is one a person may fairly expect to be let through, so the
+  // gap is one exactly one placement seals (the user's, 2026-11-23; an L in the corner, then a T
+  // along the side, each sealed it a second way, refused). The S, dealt flat, stood upright with
+  // its lower column in the gap and its upper one stepping inside: flat it seals nothing, and
+  // the other way round it would stand in the sea. Every block of it then touches two others, so
+  // the round's end sweeps none of it away. Found by trying every short gap of the ring with
+  // every placement of the S and the Z; `director.test.ts` holds it to one.
   secondGap: [
-    { x: 23, y: 22 },
-    { x: 22, y: 22 },
-    { x: 23, y: 21 },
+    { x: 23, y: 19 },
+    { x: 23, y: 20 },
   ],
   // The three breaks first and nothing else, so the barrage never waits on them once your count
   // is reached (the user's, 2026-11-23); every shot after them misses (`TutorialDirector`).
@@ -87,7 +92,7 @@ export const TUTORIAL_LAYOUT: TutorialLayout = {
 export const TUTORIAL_TOWER: TowerVariant = 'bertha2';
 
 /** The pieces dealt in the build phase, in the order the tasks need them (§4, tasks 3–5). */
-export const TUTORIAL_PIECES = ['i2', 'i1', 'l3'] as const;
+export const TUTORIAL_PIECES = ['i2', 'i1', 's4'] as const;
 
 /** How the tutorial is paced, in milliseconds of play: nothing here is a rule of the game. */
 export const TUTORIAL_TIMING = {

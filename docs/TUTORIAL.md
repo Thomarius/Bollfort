@@ -49,7 +49,13 @@ allows (`tutorial/board.ts`): both castles chosen and the guns placed as actions
 where no rule could: the second ring and the gun in the open.
 
 - **Your main castle** (11, 12), crowned, its ring whole, a gun in the ring's north-east corner.
-- **A second castle** (19, 18), walled but for an L at its ring's south-east corner.
+- **A second castle** (19, 18), walled but for two blocks of its ring's east side, on the coast.
+  One placement only seals it: the S, stood upright, its lower column in the gap and its upper one
+  stepping inside. Flat, as dealt, it seals nothing; the other way round it stands in the sea. A
+  placement refused that would have sealed looks like the tutorial in the wrong (the user's,
+  2026-11-23): an L in the ring's corner, then a T along its side, each sealed it a second way. The
+  gap was found by trying every short gap of the ring with every placement of the S and the Z;
+  `director.test.ts` holds it, and the corner's one block, to a single sealing placement.
 - **A gun out in the open** (17, 11), between the two rings, inert.
 - **The rival's castle** (41, 12), its ring whole, three guns; **two lives left**.
 
@@ -81,7 +87,7 @@ use. _Skip tutorial_ in the card's corner; Esc pauses as ever.
 | Build   | `turn`         | task | Repair your wall — turn the piece so it fits the gap (marked)                         | The two-block piece upright in the long gap |
 |         | `corner`       | task | Close the corner — blocks touching only at a corner leave a gap (marked, pinged)      | The single block in the corner              |
 |         | `sealed`       | note | Your castle is walled in! — land, points, and two cannons a round for the crowned one |                                             |
-|         | `second`       | task | Wall in a second castle — turn the last piece so it fits (marked)                     | The L, turned half round, in its gap        |
+|         | `second`       | task | Wall in a second castle — turn the last piece so it fits (marked)                     | The S, upright, in the gap                  |
 |         | `secondSealed` | note | Two castles — one more cannon each; a real game gives 20 seconds to build             |                                             |
 |         | `points`       | note | Your points for this round — the sum; the marked gun outside earns nothing            | Continue: the camera goes to the rival      |
 |         | `resolving`    |      | (no card: the camera reaches the rival, then the round resolves)                      | The rival's life lost                       |

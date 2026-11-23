@@ -39,7 +39,7 @@ function act(state: MatchState, action: Action): void {
 /**
  * The board the tutorial opens on (docs/TUTORIAL.md §3), in the cannon phase of the first
  * round: your main castle sealed with a gun in its corner and two guns still to place, a second
- * castle walled but for an L, a gun out in the open; the rival's castle sealed, three guns in
+ * castle walled but for two blocks of its east side, a gun out in the open; the rival's castle sealed, three guns in
  * it, and two lives left.
  *
  * Played up to there by the rules wherever they allow it — the castles chosen and the guns
@@ -82,7 +82,7 @@ export function tutorialBoard(
   }
   act(state, { kind: 'place_cannon', player: YOU, ...layout.cornerCannon });
 
-  // The second castle's ring, all but the L the last piece fills.
+  // The second castle's ring, all but the two blocks the S fills.
   const island = state.players[YOU]!.islandId;
   const gap = new Set(layout.secondGap.map((tile) => tileIndex(state, tile)));
   for (const i of startingRingTiles(state, castleAt(state, layout.secondCastle))) {

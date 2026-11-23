@@ -18,13 +18,12 @@ import { pointsAhead, type TutorialStep } from './director.js';
 
 const NAMES = ['You', 'Rival'] as const;
 
-/** The placement that fills exactly `target` with the piece held, as a person would find it. */
+/** The placement that fills every tile of `target` with the piece held, as a person would find it. */
 function placementInto(
   state: MatchState,
   target: readonly Tile[],
 ): { x: number; y: number; rotation: number } {
   const piece = currentPieceId(state, YOU);
-  const wanted = new Set(target.map((t) => tileIndex(state, t)));
   for (let rotation = 0; rotation < 4; rotation++) {
     const cells = pieceCells(piece, rotation);
     for (const goal of target) {
@@ -32,13 +31,36 @@ function placementInto(
         const x = goal.x - dx;
         const y = goal.y - dy;
         const covered = cells.map(([cx, cy]) => (y + cy) * state.width + x + cx);
-        if (covered.length === wanted.size && covered.every((i) => wanted.has(i))) {
+        const fills = target.every((t) => covered.includes(tileIndex(state, t)));
+        if (fills && canPlacePiece(state, YOU, rotation, x, y) === null) {
           return { x, y, rotation };
         }
       }
     }
   }
   throw new Error('no placement fills the target');
+}
+
+/** Every placement of the piece held the rules would take that seals the castle. */
+function sealingPlacements(
+  state: MatchState,
+  castleId: number,
+): { x: number; y: number; rotation: number }[] {
+  const piece = currentPieceId(state, YOU);
+  const found: { x: number; y: number; rotation: number }[] = [];
+  for (let rotation = 0; rotation < pieceById(piece).rotations.length; rotation++) {
+    for (let y = 0; y < state.height; y++) {
+      for (let x = 0; x < state.width; x++) {
+        if (canPlacePiece(state, YOU, rotation, x, y) !== null) continue;
+        const after = structuredClone(state);
+        for (const [dx, dy] of pieceCells(piece, rotation)) {
+          after.structure[(y + dy) * state.width + x + dx] = Structure.Wall;
+        }
+        if (computeEnclosure(after).castleEnclosed[castleId]) found.push({ x, y, rotation });
+      }
+    }
+  }
+  return found;
 }
 
 /** Any placement of the piece held that fills one of `gaps`, as a free repair would. */
@@ -157,7 +179,7 @@ describe('the tutorial', () => {
     expect(state.cannons.filter((c) => c.owner === RIVAL && c.active)).toHaveLength(3);
     // The rival has two lives left, a continue and the life it plays.
     expect(state.teams[state.players[RIVAL]!.team]!.continuesRemaining).toBe(1);
-    // The second castle's ring wants exactly the L the last piece is.
+    // The second castle's ring is open where the T goes.
     for (const tile of TUTORIAL_LAYOUT.secondGap) {
       expect(state.structure[tileIndex(state, tile)]).toBe(Structure.Empty);
     }
@@ -267,6 +289,34 @@ describe('the tutorial', () => {
     expect(
       director.allows(state, { kind: 'place_cannon', player: YOU, ...spot, special: true }),
     ).toBe(true);
+  });
+
+  it('has one placement only that seals, where the last pieces seal a castle', () => {
+    const match = new TutorialMatch(tutorialBoard(NAMES));
+    const { state, director } = match;
+    // A refused placement that would seal looks like the tutorial in the wrong (the user's): in
+    // the corner, and at the second castle, the one placement that seals is the one let through.
+    for (const [step, name, at] of [
+      ['corner', 'i1', TUTORIAL_LAYOUT.mainCastle],
+      ['second', 's4', TUTORIAL_LAYOUT.secondCastle],
+    ] as const) {
+      playThrough(match, step);
+      expect(pieceById(currentPieceId(state, YOU)).name).toBe(name);
+      const castle = state.castles.find((c) => c.x === at.x && c.y === at.y)!;
+      const sealing = sealingPlacements(state, castle.id);
+      expect(sealing).toHaveLength(1);
+      const move = { kind: 'place_piece', player: YOU, ...sealing[0]! } as const;
+      expect(director.allows(state, move)).toBe(true);
+    }
+    // The S has to be turned: as dealt, flat, it is refused.
+    const [placed] = sealingPlacements(
+      state,
+      state.castles.find((c) => c.x === 19 && c.y === 18)!.id,
+    );
+    expect(placed!.rotation).not.toBe(0);
+    expect(
+      director.allows(state, { kind: 'place_piece', player: YOU, ...placed!, rotation: 0 }),
+    ).toBe(false);
   });
 
   it('keeps the rival firing through the barrage, its further shots all missing in the first', () => {

@@ -421,8 +421,8 @@ export class TutorialDirector {
         const cells = pieceCells(currentPieceId(state, action.player), action.rotation).map(
           ([dx, dy]) => (action.y + dy) * state.width + action.x + dx,
         );
-        const wanted = new Set(target.map((tile) => tileIndex(state, tile)));
-        return cells.length === wanted.size && cells.every((i) => wanted.has(i));
+        // Every tile of the gap covered: the S fills the second's two and two inside them.
+        return target.every((tile) => cells.includes(tileIndex(state, tile)));
       }
       default:
         return false;
