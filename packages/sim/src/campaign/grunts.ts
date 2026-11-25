@@ -256,11 +256,22 @@ export function openGruntsBuild(state: MatchState, roundsPlayed: number): void {
   fleet.ships = fleet.ships.map((s) => ({ ...s, nextLandTick: state.tick }));
 }
 
-/** As a battle opens: every grunt's first smash a while off. */
+/**
+ * As a battle opens: every grunt turns to its castle, its first smash a while off. A grunt held
+ * up by a wall had slid along it and faced along it, not into it, and so smashed nothing: one wall
+ * in some two hundred grunts' battles (the user's playtest, 2026-11-25).
+ */
 export function openGruntsBattle(state: MatchState): void {
   const fleet = fleetOf(state);
   const every = ticks(state, rulesOf(state).grunts.timing.smashMs);
-  fleet.grunts = fleet.grunts.map((g) => ({ ...g, nextActTick: state.tick + every }));
+  fleet.grunts = fleet.grunts.map((g) => {
+    const goal = towardsCastle(state, g);
+    return {
+      ...g,
+      facing: goal === null ? g.facing : facingTowards(goal.dx, goal.dy),
+      nextActTick: state.tick + every,
+    };
+  });
 }
 
 /** A player's shot kills every grunt on the tiles it lands on, and scores them for the shooter. */
@@ -309,11 +320,24 @@ function kill(
 }
 
 /**
- * Grunts inside a ring about to be raised are gone (CAMPAIGN §6.2): a continue's fresh start is
- * not walled in with the enemy, nor built on top of it.
+ * A campaign's ring about to be raised gets clear ground (CAMPAIGN §6.2, §9): the grunts, the ice
+ * and the walls in its square, from (x0, y0) to (x1, y1), are gone, so a continue's fresh start is
+ * neither walled in with the enemy nor built round the wreck of the last one.
  */
 export function clearRing(state: MatchState, x0: number, y0: number, x1: number, y1: number): void {
   const fleet = state.campaign;
   if (fleet === null) return;
-  fleet.grunts = fleet.grunts.filter((g) => g.x < x0 || g.x > x1 || g.y < y0 || g.y > y1);
+  const inside = (x: number, y: number): boolean => x >= x0 && x <= x1 && y >= y0 && y <= y1;
+  fleet.grunts = fleet.grunts.filter((g) => !inside(g.x, g.y));
+  state.frozen = state.frozen.filter(
+    (f) => !inside(f.tile % state.width, Math.floor(f.tile / state.width)),
+  );
+  for (let y = Math.max(0, y0); y <= Math.min(state.height - 1, y1); y++) {
+    for (let x = Math.max(0, x0); x <= Math.min(state.width - 1, x1); x++) {
+      const i = y * state.width + x;
+      if (state.structure[i] !== Structure.Wall) continue;
+      state.structure[i] = Structure.Empty;
+      state.owner[i] = 0;
+    }
+  }
 }

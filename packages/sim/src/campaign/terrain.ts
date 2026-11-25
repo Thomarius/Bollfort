@@ -243,6 +243,27 @@ export function spawnPointsOf(sea: Uint8Array, w: number, h: number): SpawnPoint
   return points;
 }
 
+/**
+ * Whether no land lies within `clearance` tiles of a ship's footprint at (x, y), in any direction:
+ * where a sea band met a land edge of the map, a spawn point stood right beside the shore.
+ */
+function clearOfLand(
+  mask: Uint8Array,
+  w: number,
+  h: number,
+  x: number,
+  y: number,
+  clearance: number,
+): boolean {
+  for (let ty = y - clearance; ty < y + 2 + clearance; ty++) {
+    for (let tx = x - clearance; tx < x + 2 + clearance; tx++) {
+      if (tx < 0 || ty < 0 || tx >= w || ty >= h) continue;
+      if (mask[ty * w + tx] === Terrain.Land) return false;
+    }
+  }
+  return true;
+}
+
 type Attempt =
   | { ok: true; value: Omit<CampaignTerrain, 'attempts'> }
   | { ok: false; reason: CampaignRejectReason };
@@ -280,7 +301,9 @@ function tryGenerate(
   const area = largestComponent(mask, w, h);
 
   const sea = seaOf(mask, w, h);
-  const spawnPoints = spawnPointsOf(sea, w, h);
+  const spawnPoints = spawnPointsOf(sea, w, h).filter((p) =>
+    clearOfLand(mask, w, h, p.x, p.y, map.spawnClearanceTiles),
+  );
   if (spawnPoints.length === 0) return { ok: false, reason: 'sea' };
 
   const spots = placeCastles(mask, distanceToWater(mask, w, h), w, h, config, {

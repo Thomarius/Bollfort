@@ -69,6 +69,15 @@ describe('which look is on screen', () => {
     });
   });
 
+  it("keeps the battle's look as a campaign level won leads to its end", () => {
+    expect(looksAround(at(0, 'intermission', 'game_over'))).toEqual({
+      before: 'combat',
+      after: 'combat',
+    });
+    // And no banner crosses before the end.
+    expect(bannerProgress(at(999, 'intermission', 'game_over'), 0)).toBeNull();
+  });
+
   it('keeps the phase look outside an intermission', () => {
     expect(looksAround(at(0, 'combat'))).toEqual({ before: 'combat', after: 'combat' });
     expect(looksAround(at(0, 'build'))).toEqual({ before: 'build', after: 'build' });

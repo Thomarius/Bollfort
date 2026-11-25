@@ -9,8 +9,9 @@ import {
 
 import { createMatch, hashMatchState, step } from '../match.js';
 import { campaignLevelRuleset, fastRuleset, stateFromAscii } from '../testing.js';
+import { fire } from '../shots.js';
 import { openBuild } from './fleet.js';
-import { levelCleared, threat } from './level.js';
+import { fleetBeaten, threat } from './level.js';
 import type { CampaignState } from './state.js';
 import { Structure, type MatchState } from '../types.js';
 
@@ -165,11 +166,11 @@ describe('a campaign level', () => {
     // 7 × (2 + the raider afloat) + 18 + 20, a grunt's 4, less a gun's 7.
     expect(threat(state)).toBe(7 * 3 + 18 + 20 + 4 - 7);
     // Below level 1's threshold of 20 after a battle, the level is cleared.
-    expect(levelCleared(state)).toBe(false);
+    expect(fleetBeaten(state)).toBe(false);
     fleet.pool = [0, 0, 0];
     fleet.wave = [0, 0, 0];
     expect(threat(state)).toBe(7 + 4 - 7);
-    expect(levelCleared(state)).toBe(true);
+    expect(fleetBeaten(state)).toBe(true);
   });
 
   it('adds a frost ship to the pool on its countdown, which starts two rounds long', () => {
@@ -192,5 +193,51 @@ describe('a campaign level', () => {
     }
     // Every second round once it has run its first four.
     expect(added).toEqual([0, 0, 0, 1, 0, 1]);
+  });
+
+  it("is won the moment the battle's last shot lands once the fleet is beaten", () => {
+    // A battle with its clock run out and one gun's shot still in the air, the fleet already gone.
+    const state = solo(campaignRules({ maxRounds: 10 }));
+    stepUntil(state, (s) => s.phase === 'combat');
+    const rules = state.ruleset.campaign as CampaignLevelRules;
+    state.ruleset = { ...state.ruleset, campaign: { ...rules, threshold: 1000 } };
+    const cannon = state.cannons[0];
+    expect(cannon).toBeDefined();
+    stepUntil(state, (s) => s.tick === s.phaseEndTick - 5);
+    const fired = fire(state, 0, 1, 1);
+    expect('shot' in fired).toBe(true);
+    stepUntil(state, (s) => s.phase !== 'combat');
+    // No build phase next: the intermission leads to the end, its music unchanged.
+    expect(state.phase).toBe('intermission');
+    expect(state.pendingPhase).toBe('game_over');
+    const landing = 'shot' in fired ? fired.shot.impactTick : 0;
+    stepUntil(state, (s) => s.phase === 'game_over');
+    expect(state.endedBy).toBe('level_cleared');
+    // Ended on the tick the shot came down, not after the pause and the banner.
+    expect(state.tick).toBe(landing);
+  });
+
+  it('gives a player faster shots for each life lost, twice at most', () => {
+    const state = solo(campaignRules({ lives: 3, maxRounds: 10 }));
+    const fleet = state.campaign as CampaignState;
+    for (let failures = 0; failures < 3; failures++) {
+      stepUntil(state, (s) => s.phase === 'combat');
+      breachRing(state);
+      stepUntil(state, (s) => s.phase === 'cannon_place');
+      expect(fleet.boosts).toEqual([Math.min(2, failures + 1)]);
+    }
+    // The flight over the same distance: 25% faster twice is a factor of 1.5.
+    stepUntil(state, (s) => s.phase === 'combat');
+    const shot = fire(state, 0, 1, 1);
+    expect('shot' in shot).toBe(true);
+    if (!('shot' in shot)) return;
+    const flight = shot.shot.impactTick - shot.shot.launchTick;
+    fleet.boosts = [0];
+    state.shots = [];
+    for (const c of state.cannons) c.shotIds = [];
+    const plain = fire(state, 0, 1, 1);
+    if (!('shot' in plain)) return;
+    const slow = plain.shot.impactTick - plain.shot.launchTick;
+    expect(Math.abs(flight * 1.5 - slow)).toBeLessThanOrEqual(1.5);
   });
 });

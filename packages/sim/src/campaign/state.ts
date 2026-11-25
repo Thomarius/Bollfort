@@ -101,6 +101,8 @@ export interface CampaignState {
   gruntsLeft: number;
   /** Rounds until a frost ship joins the pool; null on a level without the countdown (§8.2). */
   frostshipCountdown: number | null;
+  /** Each player's comeback, by player: the continues that have made their shots faster (§9). */
+  boosts: number[];
   /** Ships sunk this level by kind, and grunts killed, for its summary. */
   sunk: KindCounts;
   gruntsKilled: number;
@@ -151,6 +153,7 @@ export function hashCampaign(h: Hasher, campaign: CampaignState): void {
   for (const i of campaign.struck) h.i32(i);
   h.i32(campaign.nextGruntId).i32(campaign.gruntsLeft).nullable(campaign.frostshipCountdown);
   for (const n of campaign.sunk) h.i32(n);
+  for (const n of campaign.boosts) h.i32(n);
   h.i32(campaign.gruntsKilled);
   h.u32(campaign.grunts.length);
   for (const g of campaign.grunts) {
@@ -175,5 +178,6 @@ export function copyCampaign(campaign: CampaignState): CampaignState {
     struck: [...campaign.struck],
     grunts: campaign.grunts.map((g) => ({ ...g })),
     sunk: [...campaign.sunk],
+    boosts: [...campaign.boosts],
   };
 }

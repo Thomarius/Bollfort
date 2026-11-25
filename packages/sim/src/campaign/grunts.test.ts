@@ -285,4 +285,36 @@ describe('the grunts', () => {
       },
     ]);
   });
+
+  it('turn to their castle as a battle opens, and smash the wall in its way', () => {
+    // It slid along the wall and faces north, along it: in the battle it turns east, at the wall.
+    const state = stateFromAscii(
+      `
+      ,,,,,,,,,,
+      ,,,#######
+      ,,m#,,,,,,
+      ,,,#,@@,,,
+      ,,,#,@@,,,
+      `,
+      rules(),
+    );
+    state.phase = 'combat';
+    state.phaseEndTick = state.tick + 600;
+    openGruntsBattle(state);
+    expect(grunts(state)).toEqual([[2, 2, 1]]);
+    run(state, 208);
+    expect(state.structure[2 * state.width + 3]).toBe(Structure.Empty);
+  });
+
+  it("clear a ring's square of walls and ice as well as grunts", () => {
+    const state = stateFromAscii(',##,,m\n,#m,,,\n,,,,,,', rules());
+    state.frozen = [
+      { tile: 2 * state.width + 1, share: 1, throughOvertime: true, thawTick: 0, buildsLeft: 2 },
+      { tile: 2 * state.width + 5, share: 1, throughOvertime: true, thawTick: 0, buildsLeft: 2 },
+    ];
+    clearRing(state, 0, 0, 3, 2);
+    expect(state.structure.filter((t) => t === Structure.Wall)).toHaveLength(0);
+    expect(grunts(state)).toEqual([[5, 0, 0]]);
+    expect(state.frozen.map((f) => f.tile)).toEqual([2 * state.width + 5]);
+  });
 });

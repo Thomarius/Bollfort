@@ -21,8 +21,8 @@ orientation, not as a specification.
 - **Maps are generated**, from a seed, in a few shapes (§3), and **shared**: in co-op all players
   defend one map together.
 - **Lives, as in versus** (a pooled count with continues), the count a lever of the difficulty.
-- **Three difficulty settings**: Normal and Veteran first; where the third goes (easier or harder)
-  is decided after testing (§9).
+- **Four difficulty settings**: Easy, Normal, Veteran and Legend (the user's, 2026-11-25, after the
+  first campaign played; §9).
 - **Progress is saved** between levels, as tournaments are (§12).
 - **Co-op online from the start**, through rooms, like any match; one player locally too. **No
   bots** in campaign seats for now.
@@ -466,9 +466,10 @@ must also stop the all-one-team ending of versus play).
 **Difficulty** is a table of levers (`campaign.difficulties`): the pool row, the frost ship
 countdown, lives, retries, the grunt allowance factor, and a score multiplier (Normal 1.0, Veteran
 1.5). **Veteran also starts at level 2** with a bonus of 500 points, skipping level 1 (six levels
-remain: 2, 3, 4, 5, a second 5 and the final battle). The third setting is placed after testing,
-either easier (more lives, the easier pool, no frost ship countdown before level 3) or harder (the
-harder pool, 1 life, no retries).
+remain: 2, 3, 4, 5, a second 5 and the final battle). **Easy**: the easier pool, 4 lives, unlimited
+retries, points × 0.75. **Legend**: the harder pool, 1 life, no retries, from level 2 with 500
+points, points × 2 (Easy's and Legend's lives, retries and multipliers starting guesses, the user's
+to tune).
 
 ## 10. Between levels
 
@@ -909,6 +910,32 @@ a level left is played again from its start). The main menu's Campaign button st
 `campaign.menuButton` (the user's, 2026-11-25: early work, one switch to take it out);
 `?campaign=menu` opens the screen either way, and `&snapshot=game_over` plays each level out at once.
 Campaign levels count for none of versus play's achievements. Texts in every locale.
+
+**After the first campaign played** (the user's, 2026-11-25; lost at level 5: "very fun and
+playable", grunts and frost ships "very annoying, as they should"). Fixed, every change in the
+campaign only:
+
+- **Ships beside the shore at once**: 3% of spawn points stood beside land, where a sea band met a
+  land edge of the map (162 of 4173 on level 3 over 40 seeds), and a transport arriving there in a
+  build phase landed its grunts at once. Spawn points keep `map.spawnClearanceTiles` (3) of water
+  from land.
+- **Grunts barely smashed**: one wall in some two hundred grunts' battles, since a grunt held up by
+  a wall slid along it and faced along it. As a battle opens every grunt turns to its castle (§6.4).
+  With the ring rebuilt each round, 6 walls smashed where there was 1 — still few, since most
+  grunts make for the nearest castle, often one nobody holds. Left so (the user's): they are still a
+  great threat, and hard to keep in check.
+- **The win came late**, after the pause and the "Rebuild" banner. Now the fleet's threat is asked
+  the moment the battle's clock runs out, shots in the air or not (the user's design): beaten, the
+  intermission leads to `game_over` — no new music, no banner, the battle's look kept — and the
+  level is won on the tick its last shot lands. The round limit is asked as before.
+- **The comeback** (the user's choice of two): a castle chosen in a campaign has its ring's square
+  cleared of walls, grunts and ice first, a clean start; and each continue makes that player's shots
+  fly 25% faster, at most twice (`campaign.comeback`, `state.campaign.boosts`).
+- **The screen**: no island zoom and no corner piece in a campaign (one shared map, the ships to be
+  seen); the round label reads the ships left to beat, not the threat's figure; the level's intro says
+  when ships take a hit more.
+- **Four difficulties**, Easy, Normal, Veteran and Legend, the reserved two offered (ids `easy` and
+  `legend`, `easier` and `harder` before).
 
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |

@@ -435,6 +435,8 @@ export const CampaignLevelSchema = z.strictObject({
     }),
     lakes: z.number().int().nonnegative(),
     lakeRadiusTiles: z.number().int().positive(),
+    /** No spawn point this close to land. */
+    spawnClearanceTiles: z.number().int().nonnegative(),
     /** Castles on the map, for every player together (CAMPAIGN §3.4). */
     castles: z.number().int().positive(),
   }),
@@ -473,6 +475,11 @@ export const CampaignLevelSchema = z.strictObject({
     /** The allowance's factor: the difficulty's, and more for more players. */
     factor: z.number().positive(),
     timing: GruntTimingSchema,
+  }),
+  /** A player's shots fly this much faster for each continue, at most so many times (§9). */
+  comeback: z.strictObject({
+    shotSpeedup: z.number().nonnegative(),
+    maxBoosts: z.number().int().nonnegative(),
   }),
   /** The build phases a frost ship's ice lasts, as the campaign's config has them (CAMPAIGN §7). */
   ice: z.strictObject({

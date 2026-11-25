@@ -48,12 +48,12 @@ function outcome(cleared: boolean, score: number): LevelOutcome {
 }
 
 describe('the campaign screens', () => {
-  it('offer Normal and Veteran, the third setting greyed until it is placed', () => {
+  it('offer the four difficulties, easiest first', () => {
     const markup = campaignMenuMarkup(config, 'veteran', [], null, null);
-    expect(markup).toContain('data-difficulty="normal"');
+    const order = [...markup.matchAll(/data-difficulty="(\w+)"/g)].map((m) => m[1]);
+    expect(order).toEqual(['easy', 'normal', 'veteran', 'legend']);
     expect(markup).toContain('class="difficulty primary" data-difficulty="veteran"');
-    expect(markup).toContain('A third setting');
-    expect(markup).toMatch(/<button class="difficulty" disabled>/);
+    expect(markup).toContain('One life, no retry, from level 2, points × 2');
     expect(markup).toContain('No campaign saved yet.');
   });
 
@@ -84,10 +84,14 @@ describe('the campaign screens', () => {
     expect(markup).not.toContain('Transports');
     expect(markup).toContain('and another frost ship every 5 rounds');
     expect(markup).toContain('id="campaign-map"');
+    expect(markup).not.toContain('one hit more');
     // The last level is the final battle.
     let save = campaign();
     for (let stage = 0; stage < 5; stage++) save = recordLevel(config, save, outcome(true, 0), NOW);
-    expect(introMarkup(config, save, 'island', [], null)).toContain('The final battle');
+    const final = introMarkup(config, save, 'island', [], null);
+    expect(final).toContain('The final battle');
+    // From level 4 on, every ship takes one hit more, and the intro says so.
+    expect(final).toContain('From this level on every ship takes one hit more.');
   });
 
   it('sum a cleared level up, and offer a lost one again while retries last', () => {

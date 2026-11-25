@@ -28,17 +28,17 @@ import { playedWhen } from './tournamentText.js';
  */
 
 const DIFFICULTY_NAMES: Record<CampaignDifficulty, TextKey> = {
-  easier: 'campaign.easier',
+  easy: 'campaign.easy',
   normal: 'campaign.normal',
   veteran: 'campaign.veteran',
-  harder: 'campaign.harder',
+  legend: 'campaign.legend',
 };
 
 const DIFFICULTY_HINTS: Record<CampaignDifficulty, TextKey> = {
-  easier: 'campaign.toCome',
+  easy: 'campaign.easyHint',
   normal: 'campaign.normalHint',
   veteran: 'campaign.veteranHint',
-  harder: 'campaign.toCome',
+  legend: 'campaign.legendHint',
 };
 
 const SHAPE_NAMES: Record<MapShape, TextKey> = {
@@ -104,13 +104,9 @@ export function campaignMenuMarkup(
   const card = (d: CampaignDifficulty): string =>
     `<button class="difficulty${d === chosen ? ' primary' : ''}" data-difficulty="${d}">` +
     `<b>${escape(difficultyName(d))}</b><small>${escape(t(DIFFICULTY_HINTS[d]))}</small></button>`;
-  const offered = CAMPAIGN_DIFFICULTIES.filter((d) => config.difficulties[d].offered);
-  // The third setting is placed after testing, easier or harder: shown greyed until then (§9).
-  const third =
-    offered.length < 3
-      ? `<button class="difficulty" disabled><b>${t('campaign.third')}</b><small>${t('campaign.toCome')}</small></button>`
-      : '';
-  const cards = offered.map(card).join('') + third;
+  const cards = CAMPAIGN_DIFFICULTIES.filter((d) => config.difficulties[d].offered)
+    .map(card)
+    .join('');
   const list =
     saved.length === 0
       ? `<p class="note">${t('campaign.none')}</p>`
@@ -145,7 +141,13 @@ function fleetLine(config: CampaignConfig, save: CampaignSave, sails: readonly s
     every === null || every === undefined
       ? ''
       : `<li class="note">${escape(t('campaign.frostEvery', { n: every }))}</li>`;
-  return `<ul class="campaign-fleet">${kinds}${extra}</ul>`;
+  // From this level ships take a hit more (CAMPAIGN §5.1): said where the fleet is shown (the
+  // user's, 2026-11-25).
+  const tougher =
+    level >= config.fleet.toughFromLevel && config.fleet.extraHits > 0
+      ? `<li class="note">${escape(t('campaign.tougher'))}</li>`
+      : '';
+  return `<ul class="campaign-fleet">${kinds}${extra}${tougher}</ul>`;
 }
 
 /** A level's intro: its number, its map's shape over a preview, the fleet, and the way in. */

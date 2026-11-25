@@ -233,6 +233,7 @@ export function stateFromAscii(
           : ruleset.campaign.fleet.frostshipEvery + 2,
       sunk: [0, 0, 0],
       gruntsKilled: 0,
+      boosts: players.map(() => 0),
       sea,
       spawnPoints: spawnPointsOf(sea, width, height),
     };
@@ -346,6 +347,7 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
         coastNoise: { amplitudeTiles: 7, frequency: 0.06 },
         lakes: 0,
         lakeRadiusTiles: 4,
+        spawnClearanceTiles: 3,
         castles: 6,
       },
       maxRounds: 3,
@@ -376,6 +378,7 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
         timing: { landMs: 1866, breedMs: 11733, stepMs: 1600, smashMs: 6933 },
       },
       ice: { early: 2, late: 3, lateFromRound: 8 },
+      comeback: { shotSpeedup: 0.25, maxBoosts: 2 },
       scoring: { hitPoints: 10, gruntPoints: 10, sinkPoints: [20, 40, 60], multiplier: 1 },
     },
   });

@@ -52,9 +52,11 @@ export function looksAround(state: MatchState): { before: Look; after: Look } {
     const look = lookOf(state.phase);
     return { before: look, after: look };
   }
+  // A campaign level won as a battle ends leads to its end, in the battle's look (CAMPAIGN §8.3).
+  const won = state.pendingPhase === 'game_over';
   return {
-    before: state.pendingPhase === 'build' ? 'combat' : 'build',
-    after: state.pendingPhase === 'combat' ? 'combat' : 'build',
+    before: state.pendingPhase === 'build' || won ? 'combat' : 'build',
+    after: state.pendingPhase === 'combat' || won ? 'combat' : 'build',
   };
 }
 
@@ -77,6 +79,8 @@ export function bannerProgress(
   middleSpeed = defaultArtConfig.effects.bannerMiddleSpeed,
 ): number | null {
   if (state.phase !== 'intermission' || state.pendingPhase === null) return null;
+  // A campaign level won ends as its last shot lands: no banner crosses before.
+  if (state.pendingPhase === 'game_over') return null;
   const { transitionBannerMs } = state.ruleset.phases;
   const span = ticksFor(transitionBannerMs, state.ruleset.tickRateHz);
   if (span <= 0) return null;

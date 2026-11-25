@@ -34,15 +34,35 @@ export function threat(state: MatchState): number {
   );
 }
 
+/** The ships still to beat: afloat, waiting in the wave, and still to come in the pool. */
+export function shipsLeft(state: MatchState): number {
+  const fleet = state.campaign;
+  if (fleet === null) return 0;
+  return (
+    fleet.ships.length +
+    fleet.wave.reduce((a, b) => a + b, 0) +
+    fleet.pool.reduce((a, b) => a + b, 0)
+  );
+}
+
 /**
- * Whether the level is survived, asked as the battle's intermission ends, its last shot down:
- * once the fleet's threat has fallen below the level's threshold, or the rounds played in it
- * reach the level's limit, so no level is endless (CAMPAIGN §8.3).
+ * Whether the fleet is beaten: its threat below the level's threshold (CAMPAIGN §8.3). Asked the
+ * moment a battle's clock runs out, shots still in the air or not (the user's, 2026-11-25): the
+ * battle is never cut short, and once its last shot is down the level is won at once, without the
+ * pause and the banner that lead into a build phase.
  */
-export function levelCleared(state: MatchState): boolean {
+export function fleetBeaten(state: MatchState): boolean {
   const campaign = state.ruleset.campaign;
-  if (campaign === undefined) return false;
-  return state.round >= campaign.maxRounds || threat(state) < campaign.threshold;
+  return campaign !== undefined && threat(state) < campaign.threshold;
+}
+
+/**
+ * Whether the level's round limit is reached, asked as the battle's intermission ends, so no level
+ * is endless (CAMPAIGN §8.3).
+ */
+export function roundLimitReached(state: MatchState): boolean {
+  const campaign = state.ruleset.campaign;
+  return campaign !== undefined && state.round >= campaign.maxRounds;
 }
 
 /**

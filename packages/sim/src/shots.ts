@@ -133,7 +133,14 @@ export function shotFlightTicks(
   const fixed = fixedFlightMsOf(state.ruleset, cannon.kind, cannon.cost);
   if (fixed !== null) return Math.max(1, Math.ceil((fixed * state.ruleset.tickRateHz) / 1000));
   const factor = flightFactorOf(state.ruleset, cannon.kind, cannon.cost);
-  return flightTicks(state, fromX, fromY, tx, ty, factor);
+  return flightTicks(state, fromX, fromY, tx, ty, factor / comebackSpeed(state, cannon.owner));
+}
+
+/** How much faster a campaign's player's shots fly for the lives they have lost (§9): 1 in versus play. */
+function comebackSpeed(state: MatchState, player: number): number {
+  const comeback = state.ruleset.campaign?.comeback;
+  const boosts = state.campaign?.boosts[player] ?? 0;
+  return comeback === undefined || boosts === 0 ? 1 : 1 + comeback.shotSpeedup * boosts;
 }
 
 export function fire(

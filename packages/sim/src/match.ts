@@ -25,7 +25,7 @@ import { launchDrones } from './drone.js';
 import { repairWalls } from './specials.js';
 import { denseTeams, tableTeamSize, teamScore } from './teams.js';
 import { generateTerrain } from './terrain.js';
-import { levelCleared, levelEndAtResolution } from './campaign/level.js';
+import { fleetBeaten, levelEndAtResolution, roundLimitReached } from './campaign/level.js';
 import { generateCampaignTerrain } from './campaign/terrain.js';
 import { advanceFleet, formWave, openBattle, openBuild } from './campaign/fleet.js';
 import { hashCampaign } from './campaign/state.js';
@@ -204,6 +204,7 @@ export function createMatch(options: MatchOptions): MatchState {
           : ruleset.campaign.fleet.frostshipEvery + 2,
       sunk: [0, 0, 0],
       gruntsKilled: 0,
+      boosts: players.map(() => 0),
       sea,
       spawnPoints: generated.spawnPoints,
     };
@@ -308,7 +309,9 @@ export function startingRingTiles(
 
 /** Lays the auto-built wall ring around a player's chosen castle. */
 function buildStartingRing(state: MatchState, castle: Castle): void {
-  // A campaign's grunts inside the ring's square go: it is raised on clear ground (CAMPAIGN §6.2).
+  // In a campaign the ring's square is cleared first — grunts, ice and every wall in it — so a
+  // castle chosen again after a life is lost starts as clean as the first did (the user's,
+  // 2026-11-25: the map full of grunts and ice left no way back).
   const ring = state.terrainConfig.startingWall.ringRadiusTiles;
   clearRing(
     state,
@@ -541,8 +544,16 @@ function resolveRound(state: MatchState): void {
       const spent = team.continuesAtStart - team.continuesRemaining;
       // A campaign's map is the team's and stays as it is, walls, ice and enemy alike: only the
       // failing player's guns go, as they choose a castle again (CAMPAIGN §9).
-      if (state.campaign === null) wipeIsland(state, player.id);
-      else removeGuns(state, player.id);
+      if (state.campaign === null) {
+        wipeIsland(state, player.id);
+      } else {
+        removeGuns(state, player.id);
+        // A way back: their shots fly faster for each life lost, up to a limit (CAMPAIGN §9).
+        const { maxBoosts } = state.ruleset.campaign!.comeback;
+        state.campaign.boosts = state.campaign.boosts.map((n, i) =>
+          i === player.id ? Math.min(maxBoosts, n + 1) : n,
+        );
+      }
       player.startingCastleId = null;
       player.enclosedCastles = 0;
       player.openingPlacement = true;
@@ -770,7 +781,9 @@ function advancePhase(state: MatchState): void {
       if (state.tick >= state.phaseEndTick) {
         // Every gun a Lullaby Tower put to sleep wakes with the barrage's end: nothing carries over.
         wakeAll(state);
-        enterIntermission(state, 'build');
+        // A campaign's fleet beaten as the clock runs out: the level ends once the last shot is
+        // down, the intermission leading to nothing else (CAMPAIGN §8.3).
+        enterIntermission(state, fleetBeaten(state) ? 'game_over' : 'build');
       }
       return;
     }
@@ -823,10 +836,12 @@ function advancePhase(state: MatchState): void {
       // before the banner, so the player sees it and a bot plans its build phase on the
       // board it will build on (docs/SPECIAL_TOWERS.md §2.3).
       if (state.pendingPhase === 'build') repairWalls(state);
-      if (state.tick < state.phaseEndTick) return;
-      // A campaign level is survived after a battle, its last shot down (CAMPAIGN §8.3):
-      // everyone still in has cleared it.
-      if (state.pendingPhase === 'build' && levelCleared(state)) {
+      // A campaign's fleet beaten: won the moment the battle's last shot is down.
+      const won = state.pendingPhase === 'game_over';
+      if (!won && state.tick < state.phaseEndTick) return;
+      // Or the level's round limit reached, as the intermission ends: everyone still in has
+      // survived it (CAMPAIGN §8.3).
+      if (won || (state.pendingPhase === 'build' && roundLimitReached(state))) {
         endMatch(
           state,
           alivePlayers(state).map((p) => p.id),

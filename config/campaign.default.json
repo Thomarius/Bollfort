@@ -51,8 +51,8 @@
     }
   ],
   "difficulties": {
-    "easier": {
-      "offered": false,
+    "easy": {
+      "offered": true,
       "levelOrder": [0, 1, 2, 3, 4, 5],
       "pool": [
         [10, 0, 0],
@@ -108,8 +108,8 @@
       "scoreMultiplier": 1.5,
       "startBonus": 500
     },
-    "harder": {
-      "offered": false,
+    "legend": {
+      "offered": true,
       "levelOrder": [1, 2, 3, 4, 4, 5],
       "pool": [
         [10, 0, 0],
@@ -134,9 +134,21 @@
   "lifePerLevel": true,
   "map": {
     "sizes": [
-      { "players": 1, "width": 44, "height": 32 },
-      { "players": 2, "width": 56, "height": 36 },
-      { "players": 3, "width": 66, "height": 40 }
+      {
+        "players": 1,
+        "width": 44,
+        "height": 32
+      },
+      {
+        "players": 2,
+        "width": 56,
+        "height": 36
+      },
+      {
+        "players": 3,
+        "width": 66,
+        "height": 40
+      }
     ],
     "seaMarginTiles": 4,
     "landFraction": {
@@ -146,14 +158,30 @@
       "island": 0.42,
       "bay": 0.55
     },
-    "coastNoise": { "amplitudeTiles": 7, "frequency": 0.06 },
+    "coastNoise": {
+      "amplitudeTiles": 7,
+      "frequency": 0.06
+    },
+    "spawnClearanceTiles": 3,
     "lakeRadiusTiles": 4
   },
   "fleet": {
     "kinds": {
-      "raider": { "hitsToSink": 2, "weight": 7, "sinkPoints": 20 },
-      "transport": { "hitsToSink": 3, "weight": 18, "sinkPoints": 40 },
-      "frostship": { "hitsToSink": 5, "weight": 20, "sinkPoints": 60 }
+      "raider": {
+        "hitsToSink": 2,
+        "weight": 7,
+        "sinkPoints": 20
+      },
+      "transport": {
+        "hitsToSink": 3,
+        "weight": 18,
+        "sinkPoints": 40
+      },
+      "frostship": {
+        "hitsToSink": 5,
+        "weight": 20,
+        "sinkPoints": 60
+      }
     },
     "toughFromLevel": 3,
     "extraHits": 1,
@@ -194,6 +222,10 @@
   "threat": {
     "perGrunt": 4,
     "perCannon": 7
+  },
+  "comeback": {
+    "shotSpeedup": 0.25,
+    "maxBoosts": 2
   },
   "pieces": {
     "levelStartRound": 3,

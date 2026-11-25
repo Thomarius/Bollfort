@@ -10,7 +10,8 @@ import { z } from 'zod';
  * are built; what is here is what the levels and difficulties are made of.
  */
 
-export const CAMPAIGN_DIFFICULTIES = ['easier', 'normal', 'veteran', 'harder'] as const;
+/** The four difficulties, easiest first (the user's names, 2026-11-25). */
+export const CAMPAIGN_DIFFICULTIES = ['easy', 'normal', 'veteran', 'legend'] as const;
 export const CampaignDifficultySchema = z.enum(CAMPAIGN_DIFFICULTIES);
 export type CampaignDifficulty = z.infer<typeof CampaignDifficultySchema>;
 
@@ -166,10 +167,10 @@ export const CampaignConfigSchema = z
     menuButton: z.boolean(),
     levels: perLevel(LevelSchema),
     difficulties: z.strictObject({
-      easier: DifficultySchema,
+      easy: DifficultySchema,
       normal: DifficultySchema,
       veteran: DifficultySchema,
-      harder: DifficultySchema,
+      legend: DifficultySchema,
     }),
     /** Castles added for every player beyond the first (CAMPAIGN §3.4). */
     castlesPerExtraPlayer: count,
@@ -203,6 +204,12 @@ export const CampaignConfigSchema = z
         amplitudeTiles: z.number().nonnegative(),
         frequency: z.number().positive(),
       }),
+      /**
+       * A ship never arrives this close to land: where a sea band met a land edge of the map, a
+       * spawn point stood beside the shore, and a transport arriving there in a build phase
+       * landed its grunts at once (the user's playtest, 2026-11-25).
+       */
+      spawnClearanceTiles: z.number().int().nonnegative(),
       /** A lake's radius, before the noise roughens its shore. */
       lakeRadiusTiles: z.number().int().positive(),
     }),
@@ -246,6 +253,14 @@ export const CampaignConfigSchema = z
       perGrunt: count,
       /** …and each of the team's cannons takes this off it. */
       perCannon: count,
+    }),
+    /**
+     * A way back after a life is lost (CAMPAIGN §9, the user's choice after playtesting): each
+     * continue makes that player's shots fly `shotSpeedup` faster, at most `maxBoosts` times.
+     */
+    comeback: z.strictObject({
+      shotSpeedup: z.number().nonnegative(),
+      maxBoosts: z.number().int().nonnegative(),
     }),
     pieces: z.strictObject({
       /** Each level deals pieces from this round of the size schedule on (CAMPAIGN §7.4). */

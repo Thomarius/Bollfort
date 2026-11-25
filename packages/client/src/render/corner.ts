@@ -93,6 +93,9 @@ export function roseSpot(
   bottom: number,
   avoid: TimerSpot | null,
 ): TimerSpot | null {
+  // None in a campaign: a corner piece stood in the sea the enemy's ships sail, and hid them
+  // (the user's playtest, 2026-11-25).
+  if (state.campaign !== null) return null;
   const land = (x: number, y: number): boolean =>
     x >= 0 &&
     y >= 0 &&

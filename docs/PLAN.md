@@ -2012,7 +2012,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     ice — over six levels on generated maps shared in co-op, three difficulty settings, progress
     saved between levels, co-op online through rooms, no bots in its seats. A mode of its own:
     nothing of it reaches versus play or tournaments. Its work packages CA1–CA15 are in
-    CAMPAIGN.md §16; the user's play of a whole campaign solo, then CA9.
+    CAMPAIGN.md §16; the first playtest's fixes done, CA9 next.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

@@ -1,5 +1,5 @@
 import type { TextKey } from '@bollfort/config';
-import { teamScore, threat, type MatchState, type PlayerState } from '@bollfort/sim';
+import { shipsLeft, teamScore, type MatchState, type PlayerState } from '@bollfort/sim';
 
 import { listOf, t, type TextParams } from './i18n.js';
 
@@ -83,19 +83,16 @@ export function teamStandings(state: MatchState): TeamStanding[] {
 }
 
 export function roundLabel(state: MatchState): string {
-  // A campaign level: its rounds against its limit, and the fleet's threat against the
-  // threshold that clears it (CAMPAIGN §8.3), until the HUD has its fleet bar (CA9).
+  // A campaign level: its rounds against its limit, and the ships still to beat — afloat, waiting
+  // and to come — where the threat's figure against its threshold read as nothing (the user's,
+  // 2026-11-25); the HUD's fleet bar is CA9's.
   const campaign = state.ruleset.campaign;
   if (campaign !== undefined) {
     const round =
       state.round === 0
         ? t('round.opening')
         : t('round.labelOf', { round: state.round, cap: campaign.maxRounds });
-    return t('round.campaign', {
-      round,
-      threat: Math.max(0, threat(state)),
-      threshold: Math.round(campaign.threshold),
-    });
+    return t('round.campaign', { round, ships: shipsLeft(state) });
   }
   // Round 0 is the opening, castles chosen and the first cannons placed: no round has been
   // played, and "round 0 / 10" read as a fault (PLAN §11 item 4, UP1).

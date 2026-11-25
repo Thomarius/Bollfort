@@ -1152,7 +1152,12 @@ export async function runSession(
    */
   const islandZoom = new IslandZoom();
   const ownBox =
-    session.humanPlayer >= 0 && !demo && tutorial === null && storeArtMode(params) === null
+    session.humanPlayer >= 0 &&
+    !demo &&
+    tutorial === null &&
+    storeArtMode(params) === null &&
+    // Not in a campaign: one shared map, the whole of it wanted in sight (the user's, 2026-11-25).
+    session.state.ruleset.campaign === undefined
       ? islandBox(session.state, session.state.players[session.humanPlayer]?.islandId ?? -1)
       : null;
   let zoomedBy = 0;

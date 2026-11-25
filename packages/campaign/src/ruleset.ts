@@ -124,6 +124,7 @@ export function campaignRuleset(
         coastNoise: { ...config.map.coastNoise },
         lakes: entry.lakes,
         lakeRadiusTiles: config.map.lakeRadiusTiles,
+        spawnClearanceTiles: config.map.spawnClearanceTiles,
         castles: entry.castles + config.castlesPerExtraPlayer * (players - 1),
       },
       fleet: {
@@ -148,6 +149,7 @@ export function campaignRuleset(
         timing: { ...config.grunts.timing },
       },
       ice: { ...config.ice },
+      comeback: { ...config.comeback },
       scoring: {
         hitPoints: config.scoring.hitPoints,
         gruntPoints: config.scoring.gruntPoints,

@@ -95,11 +95,17 @@ describe('generateCampaignTerrain', () => {
             }
           }
 
-          // Ships appear on the edge, in open sea.
+          // Ships appear on the edge, in open sea, never within the clearance of land.
           expect(map.spawnPoints.length).toBeGreaterThan(0);
+          const c = level.map.spawnClearanceTiles;
           for (const p of map.spawnPoints) {
             expect(p.x === 0 || p.y === 0 || p.x === w - 2 || p.y === h - 2).toBe(true);
             for (const i of [0, 1, w, w + 1]) expect(map.sea[p.y * w + p.x + i]).toBe(1);
+            for (let y = Math.max(0, p.y - c); y < Math.min(h, p.y + 2 + c); y++) {
+              for (let x = Math.max(0, p.x - c); x < Math.min(w, p.x + 2 + c); x++) {
+                expect(map.terrain[y * w + x]).toBe(Terrain.Water);
+              }
+            }
           }
         }
       });

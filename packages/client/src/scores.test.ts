@@ -73,14 +73,14 @@ describe('the round counter', () => {
     expect(roundLabel(state({ round: 3, maxRounds: null }))).toBe('round 3');
   });
 
-  it("counts a campaign level against its limit, beside the fleet's threat", () => {
+  it('counts a campaign level against its limit, beside the ships left to beat', () => {
     const level = stateFromAscii(',,,,\n,**,\n,**,', campaignLevelRuleset());
     (level.campaign as CampaignState).pool = [5, 0, 0];
     level.round = 2;
-    // Five raiders at 7, less the one gun's 7, against level 1's threshold of 20.
-    expect(roundLabel(level)).toBe('round 2 / 3 · fleet 28 / 20');
+    // The five raiders still to come.
+    expect(roundLabel(level)).toBe('round 2 / 3 · ships left: 5');
     level.round = 0;
-    expect(roundLabel(level)).toBe('opening · fleet 28 / 20');
+    expect(roundLabel(level)).toBe('opening · ships left: 5');
   });
 
   it('names the opening rather than counting a round 0', () => {
