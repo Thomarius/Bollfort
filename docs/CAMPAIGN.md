@@ -8,7 +8,7 @@ into the ARCHIVE as every other one is.
 
 **This document is meant to be enough to build the mode from.** Every mechanism is described with
 its starting numbers. Where something is still missing, the local reference notes
-(`romreverse/NOTES.md`, on the developer's machine only, never published) hold the measured
+(`gameanalysis/NOTES.md`, on the developer's machine only, never published) hold the measured
 behaviour this design was oriented on; consult them before inventing a number, and treat them as
 orientation, not as a specification.
 
@@ -784,6 +784,20 @@ fallback for numbers, never a source of code or text.
 ## 16. Work packages
 
 In order; each ends with `npm run check` passing and, where marked, the user's play.
+
+**Progress.** **CA1 done** (2026-11-25). `config/campaign.default.json` holds the levels,
+difficulties, pools, countdowns, lives, map sizes, ship kinds, threat, pieces and scoring; the
+fleet's, grunts' and fire's timings join it in their packages. `ruleset.campaign` carries
+the level's difficulty, index, shape (drawn from the seed by `campaignRuleset`), round limit,
+lives, piece start round and carry, and grows the same way. A campaign ruleset may take one
+player, has no versus round cap and no towers. The team's pool of continues is the carried lives,
+scores start from the carry, and the first build deals the schedule's round 3. The level is
+cleared in the intermission after the battle that reaches its round limit, and lost at a
+resolution once nobody is left in it (`sim/src/campaign/level.ts`); `endedBy` gains
+`level_cleared` and `level_lost`, hashed after versus play's codes. Until CA2 a solo level is
+played on a one-island versus map, from a `players: 1` pattern added to the terrain config;
+`?campaign=1&level=N&difficulty=` opens one. The protocol is unchanged (CA11 bumps it), and so
+is the end screen ("You win" when cleared).
 
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |

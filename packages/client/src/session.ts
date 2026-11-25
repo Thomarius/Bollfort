@@ -6,6 +6,7 @@ import {
   parsePersonality,
   type MatchSettings,
   type Personality,
+  type Ruleset,
   TOWER_VARIANTS,
   type BotTower,
   type TowerVariant,
@@ -114,6 +115,11 @@ export interface Setup {
   tournament?: { id: string; step: number };
   /** Each team's name, by team label in order, where the table names them. */
   teamNames?: readonly string[];
+  /**
+   * The rules in full, where the table brings its own — a campaign level's — rather than the
+   * default rules with `settings` over them.
+   */
+  ruleset?: Ruleset;
 }
 
 export const SETTING_BOUNDS = defaultConfigBundle.server.lobbySettings;
@@ -151,7 +157,7 @@ export function localMatchFor(setup: Setup, record = true, worker = true): Local
     ...(setup.botTowers === undefined ? {} : { botTowers: setup.botTowers }),
     ...(setup.tournament === undefined ? {} : { tournament: setup.tournament }),
     ...(setup.teamNames === undefined ? {} : { teamNames: setup.teamNames }),
-    ruleset: applySettings(defaultConfigBundle.ruleset, setup.settings),
+    ruleset: setup.ruleset ?? applySettings(defaultConfigBundle.ruleset, setup.settings),
     ...(record ? { record: new RecordingUpload().write } : {}),
     ...(transport === null ? {} : { worker: transport }),
     // The worker's answers are applied and stepped between frames: the sim's work still.

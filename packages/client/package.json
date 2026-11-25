@@ -12,6 +12,7 @@
   "dependencies": {
     "@bollfort/ai": "*",
     "@bollfort/analysis": "*",
+    "@bollfort/campaign": "*",
     "@bollfort/config": "*",
     "@bollfort/protocol": "*",
     "@bollfort/sim": "*",

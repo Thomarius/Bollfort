@@ -1,0 +1,165 @@
+{
+  "levels": [
+    {
+      "shapes": ["coast"],
+      "lakes": 0,
+      "castles": 6,
+      "threshold": 20,
+      "maxRounds": 3,
+      "clearPoints": 250
+    },
+    {
+      "shapes": ["corner"],
+      "lakes": 0,
+      "castles": 5,
+      "threshold": 30,
+      "maxRounds": 8,
+      "clearPoints": 500
+    },
+    {
+      "shapes": ["strip"],
+      "lakes": 0,
+      "castles": 5,
+      "threshold": 60,
+      "maxRounds": 17,
+      "clearPoints": 750
+    },
+    {
+      "shapes": ["coast"],
+      "lakes": 0,
+      "castles": 4,
+      "threshold": 80,
+      "maxRounds": 19,
+      "clearPoints": 1000
+    },
+    {
+      "shapes": ["corner", "strip"],
+      "lakes": 0,
+      "castles": 3,
+      "threshold": 80,
+      "maxRounds": 21,
+      "clearPoints": 1250
+    },
+    {
+      "shapes": ["island"],
+      "lakes": 1,
+      "castles": 2,
+      "threshold": 80,
+      "maxRounds": 21,
+      "clearPoints": 2000
+    }
+  ],
+  "difficulties": {
+    "easier": {
+      "offered": false,
+      "levelOrder": [0, 1, 2, 3, 4, 5],
+      "pool": [
+        [10, 0, 0],
+        [18, 6, 0],
+        [15, 20, 0],
+        [13, 26, 0],
+        [3, 24, 3],
+        [3, 24, 3]
+      ],
+      "fireshipEvery": [5, 3, 2, 2, 1, 1],
+      "lives": 4,
+      "livesPerExtraPlayer": 1,
+      "retries": null,
+      "gruntFactor": 1,
+      "scoreMultiplier": 0.75,
+      "startBonus": 0
+    },
+    "normal": {
+      "offered": true,
+      "levelOrder": [0, 1, 2, 3, 4, 5],
+      "pool": [
+        [10, 0, 0],
+        [16, 8, 0],
+        [12, 22, 0],
+        [8, 30, 0],
+        [2, 25, 10],
+        [2, 25, 10]
+      ],
+      "fireshipEvery": [5, 4, 3, 2, 1, 1],
+      "lives": 3,
+      "livesPerExtraPlayer": 1,
+      "retries": null,
+      "gruntFactor": 1,
+      "scoreMultiplier": 1,
+      "startBonus": 0
+    },
+    "veteran": {
+      "offered": true,
+      "levelOrder": [1, 2, 3, 4, 4, 5],
+      "pool": [
+        [10, 0, 0],
+        [15, 10, 0],
+        [10, 25, 0],
+        [6, 30, 6],
+        [2, 32, 14],
+        [2, 32, 14]
+      ],
+      "fireshipEvery": [3, 2, 1, 1, 1, 1],
+      "lives": 2,
+      "livesPerExtraPlayer": 1,
+      "retries": 2,
+      "gruntFactor": 1,
+      "scoreMultiplier": 1.5,
+      "startBonus": 500
+    },
+    "harder": {
+      "offered": false,
+      "levelOrder": [1, 2, 3, 4, 4, 5],
+      "pool": [
+        [10, 0, 0],
+        [15, 12, 0],
+        [9, 30, 6],
+        [5, 35, 10],
+        [2, 40, 18],
+        [2, 40, 18]
+      ],
+      "fireshipEvery": [2, 2, 1, 1, 1, 1],
+      "lives": 1,
+      "livesPerExtraPlayer": 1,
+      "retries": 0,
+      "gruntFactor": 1,
+      "scoreMultiplier": 2,
+      "startBonus": 500
+    }
+  },
+  "castlesPerExtraPlayer": 2,
+  "coopPoolFactor": 0.6,
+  "coopGruntFactor": 0.5,
+  "lifePerLevel": true,
+  "map": {
+    "sizes": [
+      { "players": 1, "width": 44, "height": 32 },
+      { "players": 2, "width": 56, "height": 36 },
+      { "players": 3, "width": 66, "height": 40 }
+    ],
+    "seaMarginTiles": 4
+  },
+  "fleet": {
+    "kinds": {
+      "raider": { "hitsToSink": 2, "weight": 7, "sinkPoints": 20 },
+      "transport": { "hitsToSink": 3, "weight": 18, "sinkPoints": 40 },
+      "fireship": { "hitsToSink": 5, "weight": 20, "sinkPoints": 60 }
+    },
+    "toughFromLevel": 3,
+    "extraHits": 1,
+    "maxAfloat": 16,
+    "maxAfloatPerExtraPlayer": 4
+  },
+  "threat": {
+    "perGrunt": 4,
+    "perCannon": 7
+  },
+  "pieces": {
+    "levelStartRound": 3,
+    "repairDeck": false
+  },
+  "scoring": {
+    "hitPoints": 10,
+    "gruntPoints": 10
+  }
+}

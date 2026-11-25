@@ -33,6 +33,7 @@ import { TOURNAMENT_LIMITS } from './tournamentSetup.js';
 import { createTournament } from '@bollfort/tournament';
 import { openLobby } from './lobbyFlow.js';
 import { runSession } from './matchScreen.js';
+import { campaignLevelSetup } from './campaignLevel.js';
 import { showLoading } from './loading.js';
 import { installDemo, startDemo } from './demo.js';
 import { openKeyboard } from './padKeyboard.js';
@@ -113,6 +114,7 @@ if (params.get('icons') === 'sheet') {
   // A click asked for, where the browser needs one for sound, only on the way to the menu.
   const routed = [
     'autostart',
+    'campaign',
     'host',
     'join',
     'tournament',
@@ -142,6 +144,9 @@ function start(): void {
     // Straight into the demo, for looking at it; a click comes back to the menu.
     showMenu();
     startDemo();
+  } else if (params.get('campaign') === '1') {
+    // A campaign level alone, for trying it until the campaign has its screens (CA1).
+    playLocal(campaignLevelSetup(params, chosenSeed(), t('menu.defaultName'), preferredStyles()));
   } else if (params.get('autostart') === '1') {
     const count = Number(params.get('players') ?? 3);
     // ?watch=1 fills every seat with a bot, which is how a match is observed rather
@@ -166,19 +171,7 @@ function start(): void {
         ? { teams: defaultTeams(count, Number(params.get('teams'))) }
         : {}),
     };
-    const phase = params.get('snapshot');
-    const match = localMatchFor(setup, phase === null, phase === null);
-    // &round=N stops at that phase in round N or later, for looking at a match deep in.
-    if (phase !== null && PHASES.includes(phase as Phase)) {
-      match.fastForwardTo(
-        phase as Phase,
-        Number(params.get('round') ?? 0),
-        params.get('idle') === '1',
-      );
-    }
-    void runSession(localSession(match), setup).catch((error: unknown) =>
-      showError(t('error.failedToStart'), error),
-    );
+    playLocal(setup);
   } else if (params.get('host') !== null || params.get('join') !== null) {
     // The lobby had no way in except clicking through the menu, which meant it could not
     // be looked at the way `?autostart=1` lets a match be looked at — and it went
@@ -256,4 +249,24 @@ function start(): void {
         startSteamJoins();
       });
   }
+}
+
+/**
+ * A local match from the address, played at once: `&snapshot=PHASE` fast-forwards it to a
+ * phase (`&round=N` one deep in, `&idle=1` the person's seat left undriven) and is not recorded.
+ */
+function playLocal(setup: Setup): void {
+  const phase = params.get('snapshot');
+  const match = localMatchFor(setup, phase === null, phase === null);
+  // &round=N stops at that phase in round N or later, for looking at a match deep in.
+  if (phase !== null && PHASES.includes(phase as Phase)) {
+    match.fastForwardTo(
+      phase as Phase,
+      Number(params.get('round') ?? 0),
+      params.get('idle') === '1',
+    );
+  }
+  void runSession(localSession(match), setup).catch((error: unknown) =>
+    showError(t('error.failedToStart'), error),
+  );
 }

@@ -5,6 +5,7 @@ import type { ArtConfig } from './art.js';
 import type { ServerConfig } from './server.js';
 import type { AiConfig } from './ai.js';
 import type { TournamentConfig } from './tournament.js';
+import type { CampaignConfig } from './campaign.js';
 
 export interface ConfigBundle {
   ruleset: Ruleset;
@@ -14,6 +15,7 @@ export interface ConfigBundle {
   server: ServerConfig;
   ai: AiConfig;
   tournament: TournamentConfig;
+  campaign: CampaignConfig;
 }
 
 /**

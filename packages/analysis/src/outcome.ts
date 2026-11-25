@@ -1,5 +1,5 @@
 import type { BotSetup } from '@bollfort/config';
-import type { MatchState } from '@bollfort/sim';
+import type { MatchEnd, MatchState } from '@bollfort/sim';
 
 /**
  * How one match ended, one row per match beside the per-round table.
@@ -19,7 +19,7 @@ export interface MatchOutcome {
   /** Trait values joined by `-`, `parsePersonality` reading them back. */
   personalities: string[];
   rounds: number;
-  endedBy: 'round_cap' | 'elimination' | 'unfinished';
+  endedBy: MatchEnd | 'unfinished';
   draw: boolean;
   winners: number[];
   /** Final banked scores, by player id. */

@@ -176,7 +176,7 @@ export const SnapshotSchema = z.strictObject({
   nextShotId: z.number().int().nonnegative(),
   winners: z.array(z.number().int().nonnegative()),
   draw: z.boolean(),
-  endedBy: z.enum(['elimination', 'round_cap']).nullable(),
+  endedBy: z.enum(['elimination', 'round_cap', 'level_cleared', 'level_lost']).nullable(),
 });
 
 export type Snapshot = z.infer<typeof SnapshotSchema>;

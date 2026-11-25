@@ -5,6 +5,7 @@ import audioJson from '../../../config/audio.manifest.json' with { type: 'json' 
 import serverJson from '../../../config/server.default.json' with { type: 'json' };
 import aiJson from '../../../config/ai.default.json' with { type: 'json' };
 import tournamentJson from '../../../config/tournament.default.json' with { type: 'json' };
+import campaignJson from '../../../config/campaign.default.json' with { type: 'json' };
 import achievementsJson from '../../../config/achievements.json' with { type: 'json' };
 import enJson from '../../../config/locale/en.json' with { type: 'json' };
 import deJson from '../../../config/locale/de.json' with { type: 'json' };
@@ -17,6 +18,7 @@ import { AudioManifestSchema, type AudioManifest } from './audio.js';
 import { ServerConfigSchema, type ServerConfig } from './server.js';
 import { AiConfigSchema, type AiConfig } from './ai.js';
 import { TournamentConfigSchema, type TournamentConfig } from './tournament.js';
+import { CampaignConfigSchema, type CampaignConfig } from './campaign.js';
 import { LocaleSchema, type Language, type Locale } from './locale.js';
 import { AchievementsConfigSchema, type AchievementsConfig } from './achievements.js';
 
@@ -32,6 +34,7 @@ export const defaultServerConfig: ServerConfig = ServerConfigSchema.parse(server
 export const defaultAiConfig: AiConfig = AiConfigSchema.parse(aiJson);
 export const defaultTournamentConfig: TournamentConfig =
   TournamentConfigSchema.parse(tournamentJson);
+export const defaultCampaignConfig: CampaignConfig = CampaignConfigSchema.parse(campaignJson);
 
 /** The Steam achievements' thresholds (docs/STEAM_ACHIEVEMENTS.md), apart from the bundle: no rule reads them. */
 export const defaultAchievements: AchievementsConfig =
@@ -45,6 +48,7 @@ export const defaultConfigBundle = {
   server: defaultServerConfig,
   ai: defaultAiConfig,
   tournament: defaultTournamentConfig,
+  campaign: defaultCampaignConfig,
 } as const;
 
 /** Every text the game shows, keyed as in English, the reference. */

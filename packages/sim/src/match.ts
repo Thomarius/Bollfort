@@ -25,12 +25,14 @@ import { launchDrones } from './drone.js';
 import { repairWalls } from './specials.js';
 import { denseTeams, tableTeamSize, teamScore } from './teams.js';
 import { generateTerrain } from './terrain.js';
+import { levelCleared, levelEndAtResolution } from './campaign/level.js';
 import {
   PHASES,
   Structure,
   type Action,
   type Castle,
   type LoggedAction,
+  type MatchEnd,
   type MatchState,
   type Phase,
   type PlayerState,
@@ -85,8 +87,11 @@ export function createMatch(options: MatchOptions): MatchState {
   // Team labels to dense ids in label order, so the table's Team A is team 0.
   const teamOfSeat = denseTeams(labels);
   const teamCount = teamOfSeat.reduce((most, t) => Math.max(most, t + 1), 0);
+  const { campaign } = ruleset;
   const teams: TeamState[] = Array.from({ length: teamCount }, (_, id) => {
-    const pool = teamOfSeat.filter((t) => t === id).length * ruleset.elimination.continues;
+    // A campaign's one team brings the lives the campaign has left (CAMPAIGN §9).
+    const pool =
+      campaign?.lives ?? teamOfSeat.filter((t) => t === id).length * ruleset.elimination.continues;
     return { id, continuesRemaining: pool, continuesAtStart: pool };
   });
 
@@ -102,9 +107,12 @@ export function createMatch(options: MatchOptions): MatchState {
     cannonsToPlace: 0,
     pieceIndex: 0,
     team: teamOfSeat[id] as number,
-    pieceRound: 0,
+    // A campaign level deals from a later round of the size schedule (CAMPAIGN §7.4); the
+    // count goes up as the first battle begins, so one less here.
+    pieceRound: campaign === undefined ? 0 : campaign.pieceStartRound - 1,
     overtimeSpent: false,
-    score: 0,
+    // A campaign's score runs across its levels (CAMPAIGN §11).
+    score: campaign?.carry.scores[id] ?? 0,
     wallsDestroyed: 0,
     special: offered(ruleset, p.special ?? null),
     specialsBought: 0,
@@ -337,33 +345,52 @@ function stripEliminated(state: MatchState, playerId: number): void {
  * every member of the winning teams.
  */
 function checkGameOver(state: MatchState): boolean {
+  if (state.ruleset.campaign !== undefined) {
+    // One team against the fleet: it ends only when the team is out (CAMPAIGN §9).
+    const end = levelEndAtResolution(state);
+    if (end === null) return false;
+    endMatch(state, [], false, end);
+    return true;
+  }
   const aliveTeams = [...new Set(alivePlayers(state).map((p) => p.team))];
   const { maxRounds } = state.ruleset.scoring;
   const capped = maxRounds !== null && state.round >= maxRounds;
   if (aliveTeams.length > 1 && !capped) return false;
-  state.pendingPhase = null;
   const membersOf = (teams: readonly number[]): number[] =>
     state.players.filter((p) => teams.includes(p.team)).map((p) => p.id);
   if (aliveTeams.length > 1) {
     const top = Math.max(...aliveTeams.map((t) => teamScore(state, t)));
-    state.winners = membersOf(aliveTeams.filter((t) => teamScore(state, t) === top));
-    state.draw = false;
-    state.endedBy = 'round_cap';
+    endMatch(
+      state,
+      membersOf(aliveTeams.filter((t) => teamScore(state, t) === top)),
+      false,
+      'round_cap',
+    );
   } else {
-    state.winners = membersOf(aliveTeams);
-    state.draw = aliveTeams.length === 0 && state.ruleset.elimination.simultaneousIsDraw;
-    state.endedBy = 'elimination';
+    endMatch(
+      state,
+      membersOf(aliveTeams),
+      aliveTeams.length === 0 && state.ruleset.elimination.simultaneousIsDraw,
+      'elimination',
+    );
   }
+  return true;
+}
+
+function endMatch(state: MatchState, winners: number[], draw: boolean, endedBy: MatchEnd): void {
+  state.pendingPhase = null;
+  state.winners = winners;
+  state.draw = draw;
+  state.endedBy = endedBy;
   state.phase = 'game_over';
   state.phaseEndTick = state.tick;
   state.events.push({
     kind: 'game_over',
     tick: state.tick,
-    winners: [...state.winners],
-    draw: state.draw,
-    endedBy: state.endedBy,
+    winners: [...winners],
+    draw,
+    endedBy,
   });
-  return true;
 }
 
 /**
@@ -720,7 +747,19 @@ function advancePhase(state: MatchState): void {
       // before the banner, so the player sees it and a bot plans its build phase on the
       // board it will build on (docs/SPECIAL_TOWERS.md §2.3).
       if (state.pendingPhase === 'build') repairWalls(state);
-      if (state.tick >= state.phaseEndTick) beginPendingPhase(state);
+      if (state.tick < state.phaseEndTick) return;
+      // A campaign level is survived after a battle, its last shot down (CAMPAIGN §8.3):
+      // everyone still in has cleared it.
+      if (state.pendingPhase === 'build' && levelCleared(state)) {
+        endMatch(
+          state,
+          alivePlayers(state).map((p) => p.id),
+          false,
+          'level_cleared',
+        );
+        return;
+      }
+      beginPendingPhase(state);
       return;
     }
     case 'lobby':
@@ -873,6 +912,13 @@ const CANNON_KIND_CODES: readonly string[] = [
   'drone',
   'fortified',
 ];
+/** How a match ended, by a fixed number: versus play's first, as they always were. */
+const MATCH_END_CODES: readonly MatchEnd[] = [
+  'elimination',
+  'round_cap',
+  'level_cleared',
+  'level_lost',
+];
 /** The same for loadouts; a variant added goes at the end. */
 const VARIANT_CODES: readonly TowerVariant[] = [
   'bertha2',
@@ -958,7 +1004,8 @@ export function hashMatchState(state: MatchState, version = HASH_VERSION): strin
   h.u32(state.winners.length);
   for (const id of state.winners) h.i32(id);
   h.bool(state.draw);
-  h.u32(state.endedBy === null ? 0 : state.endedBy === 'elimination' ? 1 : 2);
+  // A campaign level's endings by codes after versus play's, which keep theirs.
+  h.u32(state.endedBy === null ? 0 : MATCH_END_CODES.indexOf(state.endedBy) + 1);
   if (version < 2) return h.hex;
 
   // Version 2: what version 1 left out, after all of it, so version 1 is exactly as it

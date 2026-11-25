@@ -359,9 +359,10 @@ export type MatchEvent =
 
 /**
  * How a match ended: by one player outlasting the rest, or by reaching the round cap
- * with several still in, when the highest score among them wins.
+ * with several still in, when the highest score among them wins. A campaign level ends
+ * cleared, every player still in it the winners, or lost (docs/CAMPAIGN.md §8.3, §9).
  */
-export type MatchEnd = 'elimination' | 'round_cap';
+export type MatchEnd = 'elimination' | 'round_cap' | 'level_cleared' | 'level_lost';
 
 export interface RoundResult {
   player: number;

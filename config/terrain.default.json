@@ -1,6 +1,12 @@
 {
   "patterns": [
     {
+      "players": 1,
+      "kind": "grid",
+      "cols": 1,
+      "rows": 1
+    },
+    {
       "players": 2,
       "kind": "grid",
       "cols": 2,

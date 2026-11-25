@@ -27,7 +27,12 @@ export default tseslint.config(
   {
     // The simulation must be bit-for-bit reproducible from (seed, ruleset, input log).
     // Any nondeterminism here silently desyncs clients from the server.
-    files: ['packages/sim/**/*.ts', 'packages/ai/**/*.ts', 'packages/tournament/**/*.ts'],
+    files: [
+      'packages/sim/**/*.ts',
+      'packages/ai/**/*.ts',
+      'packages/tournament/**/*.ts',
+      'packages/campaign/**/*.ts',
+    ],
     rules: {
       'no-restricted-properties': [
         'error',

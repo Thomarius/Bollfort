@@ -26,7 +26,8 @@ export type TeamLayout = z.infer<typeof TeamLayoutSchema>;
 
 export const IslandPatternSchema = z
   .strictObject({
-    players: z.number().int().min(2).max(8),
+    /** One for a campaign's single player until its own maps (docs/CAMPAIGN.md §16, CA1–CA2). */
+    players: z.number().int().min(1).max(8),
     /**
      * For tables of teams of this size only, in place of the count's own pattern; omitted,
      * for every table of this count that has no pattern of its own.

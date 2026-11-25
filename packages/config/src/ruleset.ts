@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { CAMPAIGN_LEVELS, CampaignDifficultySchema, MapShapeSchema } from './campaign.js';
+
 /** Shape of the crater a landed shot punches into a wall. */
 export const CraterPatternSchema = z.enum(['single', 'plus5', 'square9']);
 export type CraterPattern = z.infer<typeof CraterPatternSchema>;
@@ -394,12 +396,43 @@ const SPECIALS_OFF: Specials = {
   rapid: { '2': { footprint: [2, 2], flightFactor: 1 } },
 };
 
+/**
+ * One campaign level as a match plays it (docs/CAMPAIGN.md §15.1), built from the campaign's
+ * config by `campaignRuleset` (`@bollfort/campaign`) so that it travels in the snapshot and the
+ * recording's header: everything the simulation reads of the campaign is here. The fleet, grunts
+ * and fire join it as they are built.
+ */
+export const CampaignLevelSchema = z.strictObject({
+  difficulty: CampaignDifficultySchema,
+  /** The level's index in the campaign's `levels`, 0 to 5. */
+  level: z
+    .number()
+    .int()
+    .min(0)
+    .max(CAMPAIGN_LEVELS - 1),
+  /** The shape its map is generated in (CAMPAIGN §3.1). */
+  shape: MapShapeSchema,
+  /** The level is survived once this many rounds have been played in it (CAMPAIGN §8.3). */
+  maxRounds: z.number().int().positive(),
+  /** The team's lives as the level starts: its pool of continues (CAMPAIGN §9). */
+  lives: z.number().int().nonnegative(),
+  /** The first build phase deals the size schedule's pieces of this round (CAMPAIGN §7.4). */
+  pieceStartRound: z.number().int().min(1),
+  /** What earlier levels left: each player's score, by player, and the rounds played. */
+  carry: z.strictObject({
+    scores: z.array(z.number().int()),
+    roundsPlayed: z.number().int().nonnegative(),
+  }),
+});
+export type CampaignLevelRules = z.infer<typeof CampaignLevelSchema>;
+
 export const RulesetSchema = z
   .strictObject({
     tickRateHz: z.number().int().positive().max(120),
 
     players: z.strictObject({
-      min: z.number().int().min(2),
+      /** One only in a campaign (refined below): versus play needs an opponent. */
+      min: z.number().int().min(1),
       max: z.number().int().max(8),
     }),
 
@@ -608,6 +641,16 @@ export const RulesetSchema = z
        */
       scoreDamageOnFailedRound: z.boolean(),
     }),
+
+    /**
+     * The campaign level this match plays (docs/CAMPAIGN.md §15.1); absent in versus play,
+     * which no campaign rule ever reaches.
+     */
+    campaign: CampaignLevelSchema.optional(),
+  })
+  .refine((r) => r.players.min >= 2 || r.campaign !== undefined, {
+    message: 'players.min may be 1 only in a campaign',
+    path: ['players', 'min'],
   })
   .refine((r) => r.players.max >= r.players.min, {
     message: 'players.max must be >= players.min',

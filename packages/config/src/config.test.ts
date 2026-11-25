@@ -33,8 +33,9 @@ import {
 describe('shipped config files', () => {
   it('all parse against their schemas', () => {
     expect(defaultRuleset.tickRateHz).toBe(30);
-    // One for each count, and the ring and the grid for three and four teams of two.
-    expect(defaultTerrainConfig.patterns).toHaveLength(9);
+    // One for each count — one player's for a campaign until its own maps (CAMPAIGN CA2) —
+    // and the ring and the grid for three and four teams of two.
+    expect(defaultTerrainConfig.patterns).toHaveLength(10);
     expect(defaultArtConfig.players.length).toBeGreaterThanOrEqual(defaultRuleset.players.max);
     expect(defaultServerConfig.port).toBe(8080);
   });

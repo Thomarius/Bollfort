@@ -86,7 +86,7 @@ leave your seat undriven on the way, so you are soon knocked out), `&speed=10`,
 `&bots=thread` to keep a local match's bots off their worker (ARCHIVE 13k),
 `&style=flat|pixel|night|cyberpunk|blueprint|parchment|bricks|glass|chocolate|halloween|sakura|oktoberfest|opera|office|undersea|electric|cartoon|christmas|noir|sports|pirates|anime|mythology|wildwest` for both looks (a one-look style sets only its own)
 (`&buildStyle=`, `&combatStyle=` for one), `&watch=1&level=8` to observe a bot match (`&personality=offensive` fixes every bot's),
-`?demo=1` the demo at once (`&speed=10` to cycle its matches), `?tutorial=1` the tutorial at once
+`?campaign=1&level=N&difficulty=normal|veteran|easier|harder` a campaign level alone (CA1), `?demo=1` the demo at once (`&speed=10` to cycle its matches), `?tutorial=1` the tutorial at once
 (`?tutorialOffer=1` the first start's offer of it again, `docs/TUTORIAL.md`),
 `&rounds=12` for the round cap, `&specials=1` for special towers (`&tower=bertha3`, a tower at its cost, the person's),
 `&teams=2` for teams of two in seat order, `&storeArt=scene` the board alone with the title over it (`&title=`, `&titleWidth=`, `&shade=1|band`, `&split=0.5` a change of look held still; `?storeArt=logo` the title alone, transparent), `&autopilot=1` a bot plays the person's seat, shown as a person plays it (the ghost, the reticle), `&clean=1` without the corner's buttons, `&labels=0` no words on the screen but a phase banner's (`&timer=0` without the big countdown too), `&reticle=0` no aiming cursor nor towers' emblems, `&shake=0.5` the screen's shake at a strength (`0` none), `&cameraZoom=1.9&cameraOn=you|duel` the camera held close in play, `?icons=sheet` every style's cannon icon side by side, `?icons=app&kind=castle|ring|letter|keep|bare` the app's icon candidates
@@ -112,6 +112,7 @@ rounds and lives are the config's, no longer offered in a lobby or a new tournam
 | `ai`             | Bots: min-cut sealing, 0-1 BFS attack, skill levels and personalities.     |
 | `analysis`       | Per-round match statistics, for bot soaks and recorded human play alike.   |
 | `tournament`     | Tournament mode's core: schedule, brackets, quick rolls, saves. No DOM.    |
+| `campaign`       | Campaign mode's core: a level's ruleset from the campaign config. No DOM.  |
 | `server`         | Authoritative match server, rooms, WebSocket, match recordings.            |
 | `client`         | Pixi renderer, 24 visual styles, controls, HUD, netcode client.            |
 | `desktop`        | Electron app for releases: the game, its server's panel on request (PG2).  |
@@ -251,8 +252,8 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 
 - **The users' play of the first supporter style** (2026-11-14), then the next styles (SP4).
 - **Campaign mode** (PLAN §11 item 14; `docs/CAMPAIGN.md`, approved 2026-11-25): one to three
-  people against an enemy fleet over six levels, co-op online, saved between levels; designed, not
-  yet built — start with its work package CA1. A mode of its own: never a change to versus rules or
+  people against an enemy fleet over six levels, co-op online, saved between levels; being built,
+  CA1 done (a solo level on a versus island, `?campaign=1`), CA2 next. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
   listed and a room's code with the real server, a tournament match's end and a person's Rematch.
