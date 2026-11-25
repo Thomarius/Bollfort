@@ -1158,18 +1158,18 @@ export const ArtConfigSchema = z
     /** Effects both styles draw alike, because they carry information. */
     /**
      * The campaign's enemy (docs/CAMPAIGN.md §14.2): one ship drawn for every style, its kind
-     * told by size and sail colour, which no style's palette changes — a fireship's red sails read
-     * as a fireship's on every board.
+     * told by size and sail colour, which no style's palette changes — a frost ship's icy sails read
+     * as a frost ship's on every board.
      */
     campaign: z.strictObject({
       hull: HexColor,
       deck: HexColor,
-      sails: z.strictObject({ raider: HexColor, transport: HexColor, fireship: HexColor }),
+      sails: z.strictObject({ raider: HexColor, transport: HexColor, frostship: HexColor }),
       /** A ship's length against its 2 × 2 footprint, by kind (§14.2: 110% and 120%). */
       lengths: z.strictObject({
         raider: z.number().positive(),
         transport: z.number().positive(),
-        fireship: z.number().positive(),
+        frostship: z.number().positive(),
       }),
       wake: HexColor,
       /** A grunt, the same in every style so it reads as the enemy anywhere (§14.3). */

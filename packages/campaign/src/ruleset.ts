@@ -52,7 +52,7 @@ export function startingLives(
 }
 
 /**
- * A level's ships, raider / transport / fireship: the difficulty's pool for one player, each kind
+ * A level's ships, raider / transport / frostship: the difficulty's pool for one player, each kind
  * scaled for co-op by 1 + `coopPoolFactor` × (players − 1), rounded (CAMPAIGN §8.1).
  */
 export function poolFor(
@@ -145,6 +145,7 @@ export function campaignRuleset(
           (1 + config.coopGruntFactor * (players - 1)),
         timing: { ...config.grunts.timing },
       },
+      ice: { ...config.ice },
       scoring: {
         hitPoints: config.scoring.hitPoints,
         gruntPoints: config.scoring.gruntPoints,

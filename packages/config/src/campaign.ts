@@ -19,7 +19,7 @@ export const MAP_SHAPES = ['coast', 'corner', 'strip', 'island', 'bay'] as const
 export const MapShapeSchema = z.enum(MAP_SHAPES);
 export type MapShape = z.infer<typeof MapShapeSchema>;
 
-export const SHIP_KINDS = ['raider', 'transport', 'fireship'] as const;
+export const SHIP_KINDS = ['raider', 'transport', 'frostship'] as const;
 export const ShipKindSchema = z.enum(SHIP_KINDS);
 export type ShipKind = z.infer<typeof ShipKindSchema>;
 
@@ -31,7 +31,7 @@ export const CAMPAIGN_MAX_PLAYERS = 3;
 
 const count = z.number().int().nonnegative();
 
-/** A level's ships for one player, raider / transport / fireship (CAMPAIGN §8.1). */
+/** A level's ships for one player, raider / transport / frostship (CAMPAIGN §8.1). */
 const PoolSchema = z.tuple([count, count, count]);
 export type ShipPool = z.infer<typeof PoolSchema>;
 
@@ -71,8 +71,8 @@ const DifficultySchema = z.strictObject({
     .min(1),
   /** Ships per level, for one player (CAMPAIGN §8.1). */
   pool: perLevel(PoolSchema),
-  /** Rounds between fireships added to the pool, per level; null for none (CAMPAIGN §8.2). */
-  fireshipEvery: perLevel(z.number().int().positive().nullable()),
+  /** Rounds between frost ships added to the pool, per level; null for none (CAMPAIGN §8.2). */
+  frostshipEvery: perLevel(z.number().int().positive().nullable()),
   /** The team's lives at the campaign's start, for one player (CAMPAIGN §9). */
   lives: z.number().int().positive(),
   livesPerExtraPlayer: count,
@@ -204,7 +204,7 @@ export const CampaignConfigSchema = z
       kinds: z.strictObject({
         raider: ShipKindConfigSchema,
         transport: ShipKindConfigSchema,
-        fireship: ShipKindConfigSchema,
+        frostship: ShipKindConfigSchema,
       }),
       /** From this level's index on, every ship takes `extraHits` more to sink (CAMPAIGN §5.1). */
       toughFromLevel: z
@@ -224,6 +224,16 @@ export const CampaignConfigSchema = z
       /** Grunts a round may land, by rounds played in the campaign, the last for every later. */
       allowance: z.array(count).min(1),
       timing: GruntTimingSchema,
+    }),
+    /**
+     * The ice a frost ship's shot leaves (CAMPAIGN §7, frost ships the user's reading of the
+     * fireships, 2026-11-25): the build phases it lasts, `early` in the campaign's first rounds,
+     * `late` from round `lateFromRound` on.
+     */
+    ice: z.strictObject({
+      early: z.number().int().positive(),
+      late: z.number().int().positive(),
+      lateFromRound: count,
     }),
     threat: z.strictObject({
       /** Each grunt on land adds this to the fleet's threat (CAMPAIGN §8.3)… */

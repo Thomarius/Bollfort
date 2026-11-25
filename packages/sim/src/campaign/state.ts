@@ -10,7 +10,7 @@ import type { SpawnPoint } from './terrain.js';
  * seed and the actions, as it steps everything else.
  */
 
-/** Counts by kind, in `SHIP_KINDS` order: raider, transport, fireship. */
+/** Counts by kind, in `SHIP_KINDS` order: raider, transport, frostship. */
 export type KindCounts = [number, number, number];
 
 /** A straight run across the sea, one per battle in practice (CAMPAIGN §5.3). */
@@ -105,7 +105,7 @@ export interface CampaignState {
   spawnPoints: SpawnPoint[];
 }
 
-const KIND_CODES: readonly ShipKind[] = ['raider', 'transport', 'fireship'];
+const KIND_CODES: readonly ShipKind[] = ['raider', 'transport', 'frostship'];
 
 /** The campaign's part of the fingerprint, after everything versus play hashes. */
 export function hashCampaign(h: Hasher, campaign: CampaignState): void {

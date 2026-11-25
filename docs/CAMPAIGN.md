@@ -1,7 +1,7 @@
 # Campaign mode — design and implementation plan
 
 A mode for one to three people against an enemy fleet: ships that sail in and bombard the walls,
-transports that land grunts, fireships whose shots leave burning ground. Levels on generated maps,
+transports that land grunts, frost ships whose shots leave frozen ground. Levels on generated maps,
 three difficulty settings, progress saved between levels, co-operative online play. Designed with
 the user on 2026-11-25; nothing of it is built yet. Once built and tried, this design is retired
 into the ARCHIVE as every other one is.
@@ -14,10 +14,10 @@ orientation, not as a specification.
 
 ## 0. Decisions so far (the user's, 2026-11-25)
 
-- **A mode of its own.** Nothing of it reaches versus play or tournaments: no ships, grunts, fire
+- **A mode of its own.** Nothing of it reaches versus play or tournaments: no ships, grunts, ice
   or campaign scoring there, and no change to any versus rule or hash.
 - **Bollfort's own piece set** (all 22 pieces and the size schedule) is kept. The _repair deck_
-  (§7.3) is held in reserve, for if rebuilding proves too hard with grunts and fire about.
+  (§7.3) is held in reserve, for if rebuilding proves too hard with grunts and ice about.
 - **Maps are generated**, from a seed, in a few shapes (§3), and **shared**: in co-op all players
   defend one map together.
 - **Lives, as in versus** (a pooled count with continues), the count a lever of the difficulty.
@@ -30,8 +30,9 @@ orientation, not as a specification.
   on; an informed choice between two fronts follows as its own package.
 - **Art**: Medieval and Night first (§14); every other style gets a shared fallback drawing until
   its own is made. **One ship design**, the three kinds told apart by size and by colours that are
-  the same in every style. Fire patches are drawn and behave like the Frost Cannon's ice blocks,
-  only lasting much longer and looking like fire.
+  the same in every style. **Frost ships, not frost ships** (the user's, 2026-11-25): their shots
+  leave the Frost Cannon's own ice blocks, drawn and refused as those are, only lasting build
+  phases (§7). No new picture for it.
 
 ## 1. The game in one page
 
@@ -43,8 +44,7 @@ build — while an enemy **fleet** attacks from the sea.
   ashore, and grunts walk towards the castles, blocking pieces where they stand.
 - In each **combat phase** every ship makes one long straight run and fires at the walls; grunts
   smash the wall in front of them; the players shoot ships and grunts.
-- A ship sinks after a number of hits (2, 3 or 5 by kind). A **fireship's** shot leaves a **fire
-  patch**: nothing can be built there for the next two or three build phases.
+- A ship sinks after a number of hits (2, 3 or 5 by kind). A **frost ship's** shot leaves **ice**: nothing can be built there for the next two or three build phases.
 - A level is **cleared** at the end of a combat phase once the fleet's remaining strength has
   fallen below the level's threshold, or once the level's round limit is reached (§8). The final
   battle cleared, the campaign is won.
@@ -57,7 +57,7 @@ build — while an enemy **fleet** attacks from the sea.
 
 **Each level is one match** — one `createMatch`, one seed, one ruleset, one recording. The
 ruleset carries an optional, strict **`campaign` section** describing that level (§15.1): its map
-shape, castles, fleet, grunts, fire, the difficulty's levers and what is carried in from earlier
+shape, castles, fleet, grunts, ice, the difficulty's levers and what is carried in from earlier
 levels. Its absence is versus play: every campaign code path is gated on `state.campaign`, and
 every new state section is hashed only when present, so versus hashes and old recordings are
 untouched.
@@ -141,7 +141,7 @@ The phases are versus play's (`castle_select`, `cannon_place`, `combat`, `build`
 intermissions and banners), with the same durations by default (`ruleset.phases`: castle 15 s,
 cannons 25 s, combat 10 s, build 20 s, overtime 3 s). What the campaign adds, by phase:
 
-| Phase                              | Fleet                                                               | Grunts                                 | Fire            |
+| Phase                              | Fleet                                                               | Grunts                                 | Ice             |
 | ---------------------------------- | ------------------------------------------------------------------- | -------------------------------------- | --------------- |
 | `castle_select` (start of a level) | the first wave arrives (§5.2)                                       | —                                      | —               |
 | `cannon_place`                     | ships choose targets (§5.5)                                         | stand                                  | blocks cannons  |
@@ -166,7 +166,7 @@ and so on; ships are always processed in id order.
 ```ts
 interface Ship {
   id: number; // from state.campaign.nextShipId
-  kind: ShipKind; // 'raider' | 'transport' | 'fireship'
+  kind: ShipKind; // 'raider' | 'transport' | 'frostship'
   x: number;
   y: number; // top-left tile of its 2x2 footprint, where it last stood
   hits: number; // taken so far
@@ -192,16 +192,16 @@ cross until it ends.
 **The three kinds** (`campaign.fleet.kinds`), told apart at a glance in every style by **size and
 sail colour**, never by a style's palette (§14.2):
 
-| Kind          | Hits to sink | From level 4 | Weight (§8) | Fires | Special                                 |
-| ------------- | ------------ | ------------ | ----------- | ----- | --------------------------------------- |
-| **Raider**    | 2            | 3            | 7           | yes   | —                                       |
-| **Transport** | 3            | 4            | 18          | yes   | lands grunts (§6.2); waits at the coast |
-| **Fireship**  | 5            | 6            | 20          | yes   | its shots leave fire (§7)               |
+| Kind           | Hits to sink | From level 4 | Weight (§8) | Fires | Special                                 |
+| -------------- | ------------ | ------------ | ----------- | ----- | --------------------------------------- |
+| **Raider**     | 2            | 3            | 7           | yes   | —                                       |
+| **Transport**  | 3            | 4            | 18          | yes   | lands grunts (§6.2); waits at the coast |
+| **Frost ship** | 5            | 6            | 20          | yes   | its shots leave ice (§7)                |
 
 ### 5.2 Arrival
 
 - **The level's pool** (`campaign.fleet.pool[difficulty][level]`, counts per kind, §8.1) is the
-  whole fleet the level will send. Fireships are also **added to the pool** on a countdown (§8.2).
+  whole fleet the level will send. Frost ships are also **added to the pool** on a countdown (§8.2).
 - **A wave** is drawn from the pool at the start of each build phase (and, for the first wave, as
   the level opens): its size is
 
@@ -239,7 +239,7 @@ Ships move **only in combat**. As combat opens, every ship without a run plans o
 When a run ends before the battle does, the ship plans the next one at once. A ship never turns
 mid-run. Its heading is re-aimed at the nearest castle at each new run.
 
-**The coast**: a **raider or fireship** whose run ends next to land (an orthogonal neighbour of its
+**The coast**: a **raider or frost ship** whose run ends next to land (an orthogonal neighbour of its
 footprint is land) during combat is **recycled** at the next build phase: it is removed and goes
 back into the wave, to arrive again at a spawn point. (Measured behaviour; it keeps ships off the
 shore, where they would be easy prey.) A **transport** next to land stays there, unloading (§6.2);
@@ -256,7 +256,7 @@ once it has no grunts left to land it stays as well, a target.
   scatter.
 - **What it does**: a team wall tile it hits is cleared (one tile; `lostWalls` as a cannon's).
   Castles and cannons are **not damaged** (versus play's rule; `campaign.fleet.damagesCannons` is a
-  lever, off). A **fireship's** shot also sets fire to the tile it lands on, wall or bare ground
+  lever, off). A **frost ship's** shot also freezes the tile it lands on, wall or bare ground
   (§7). Water: a splash.
 
 ### 5.5 The fleet's aim
@@ -348,7 +348,7 @@ Each grunt steps one tile every **48 ticks** (1.6 s), only in the build phase:
 
 - **Goal**: the nearest castle by Manhattan distance (every castle of the map, held or not); the
   direction one of four, the one nearest the straight line to it.
-- **Free tile ahead** (land, no wall, grunt, cannon, castle, fire): step.
+- **Free tile ahead** (land, no wall, grunt, cannon, castle, ice): step.
 - **Blocked**: try 90° one way, then the other (counter-clockwise first); all three blocked: turn to
   face the goal and wait. Never backwards. Against a wall a grunt slides along it, re-aiming each
   step.
@@ -364,34 +364,34 @@ grunt per battle.
 beside it should count as **besieged** (no cannon reward while besieged) is a lever to try in play
 (`campaign.grunts.besiegeBlocksReward`, off).
 
-## 7. Fire, and the pieces
+## 7. Ice, and the pieces
 
-### 7.1 Fire patches
+### 7.1 Ice
 
-A fireship's shot sets fire to the tile it lands on — wall (the wall is cleared as by any shot) or
-bare ground; not water, castles or cannons. **A burning tile takes no piece, no cannon and no
-grunt.** It does not block the enclosure flood (a burning tile is not wall, so a ring with fire in
-it is open until rebuilt round the fire).
+Frost ships are the design's frost ships read as frost (the user's, 2026-11-25): a frost ship's shot
+freezes the tile it lands on — wall (the wall is cleared as by any shot) or bare ground; not water,
+castles or cannons. **A frozen tile takes no piece, no cannon and no grunt.** It does not block the
+enclosure flood (ice is not wall, so a ring with ice in it is open until rebuilt round the ice).
 
 ### 7.2 Lifetime
 
-Fire **ages as each combat phase begins** (in the intermission before it):
+Ice **ages as each combat phase begins**:
 
 - in the campaign's first **8 rounds**: a new patch lasts through the next **2** build phases;
 - from round 8 on: **3** build phases.
 
-(`campaign.fire.buildPhases: { early: 2, late: 3, lateFromRound: 8 }`.) Measured: the ageing at the
-start of each battle, never during a build phase, so a player always knows at a build phase's
-start what will still burn at its end.
+(`campaign.ice: { early: 2, late: 3, lateFromRound: 8 }`.) Measured: the ageing at the start of
+each battle, never during a build phase, so a player always knows at a build phase's start what
+will still be frozen at its end.
 
 ### 7.3 Implementation: the Frost Cannon's blocks, made to last
 
-Reuse the frost mechanism (`sim/src/frost.ts`): a burning tile is a `Freeze` of a second kind, its
-lifetime counted in build phases instead of thaw ticks (`buildsLeft`), not cleared when a build
-phase ends but decremented when combat opens, and checked by the same refusal (`frozen` →
-a `burning` refusal for the message). Cannon placement and grunt movement check it too (frost only
-blocks pieces). Drawn by the same shared layer (`render/towerMarks.ts`), as a fire block instead of
-ice (§14.3). A continue does not clear fire (the map is shared).
+The frost mechanism (`sim/src/frost.ts`) as it is: a frozen tile is a `Freeze` with `buildsLeft`
+(`sim/src/campaign/ice.ts`), frozen to the end of every build phase it has left, kept when a build
+phase ends where a Frost Cannon's freeze goes, and counted down as each battle opens; refused by the
+same `frozen` rejection. Cannon placement and grunt movement check it too (a Frost Cannon's freeze
+blocks pieces only). Drawn by the same shared layer as a Frost Cannon's ice (`render/towerMarks.ts`),
+the same in every style; a frost ship's freeze plays the Frost Cannon's sound and burst.
 
 ### 7.4 Pieces
 
@@ -402,7 +402,7 @@ once); a continue rewinds that player's schedule to round 1 as in versus.
 
 **The repair deck** (held in reserve, `campaign.pieces.repairDeck`, off): while a player holds no
 sealed castle, their pieces come from a small band (sizes 1–3: single, domino, three in a line and
-corner) — a deliberate help for patching a broken ring among grunts and fire. Further ideas from
+corner) — a deliberate help for patching a broken ring among grunts and ice. Further ideas from
 the reference notes, if needed: no piece dealt twice in a row (except the single block); a fixed,
 shuffled deck rebuilt when empty.
 
@@ -410,7 +410,7 @@ shuffled deck rebuilt when empty.
 
 ### 8.1 The pools
 
-Ships per level, by difficulty, as counts **raider / transport / fireship** for one player
+Ships per level, by difficulty, as counts **raider / transport / frost ship** for one player
 (`campaign.fleet.pool`), scaled for co-op by `1 + 0.6 × (players − 1)` per kind, rounded:
 
 | Difficulty         | Level 1 | Level 2 | Level 3 | Level 4 | Level 5 | Final   |
@@ -420,13 +420,13 @@ Ships per level, by difficulty, as counts **raider / transport / fireship** for 
 | **Veteran**        | 10/0/0  | 15/10/0 | 10/25/0 | 6/30/6  | 2/32/14 | 2/32/14 |
 | (harder, reserved) | 10/0/0  | 15/12/0 | 9/30/6  | 5/35/10 | 2/40/18 | 2/40/18 |
 
-### 8.2 Fireships on a countdown
+### 8.2 Frost ships on a countdown
 
-On top of the pool: a countdown per level (`campaign.fleet.fireshipEvery[difficulty][level]`, in
+On top of the pool: a countdown per level (`campaign.fleet.frostshipEvery[difficulty][level]`, in
 rounds): Normal `[5, 4, 3, 2, 1, 1]`, Veteran `[3, 2, 1, 1, 1, 1]`, easier `[5, 3, 2, 2, 1, 1]`,
 harder `[2, 2, 1, 1, 1, 1]`. It starts at the level's value + 2 and counts down each round; at 0 a
-fireship is added to the pool (and its weight to the threat) and it restarts at the level's value.
-So fireships come rarely early and every round late, whatever the pool says.
+frost ship is added to the pool (and its weight to the threat) and it restarts at the level's value.
+So frost ships come rarely early and every round late, whatever the pool says.
 
 ### 8.3 Threat and the end of a level
 
@@ -453,7 +453,7 @@ must also stop the all-one-team ending of versus play).
   as versus play's continue: that player chooses a castle again among the free ones during the
   coming cannon phase, a fresh ring goes up round it (grunts inside it removed), and they place the
   opening count plus the continue bonus. **The map is not wiped** (it is shared): the walls, other
-  players' cannons, ships and fire stay. The round's points are forfeited for that player.
+  players' cannons, ships and ice stay. The round's points are forfeited for that player.
 - **A free first try**: a failure in a level's first round costs no life (it is easy to lose the
   first ring to an unlucky opening).
 - **Lost**: a player failing with the pool empty loses the level for the team (`endedBy:
@@ -463,11 +463,11 @@ must also stop the all-one-team ending of versus play).
 - **Catch-up lever** (reserved, `campaign.continueShotBonus`, off): after a continue that player's
   shots fly 25% faster, up to twice.
 
-**Difficulty** is a table of levers (`campaign.difficulties`): the pool row, the fireship
+**Difficulty** is a table of levers (`campaign.difficulties`): the pool row, the frost ship
 countdown, lives, retries, the grunt allowance factor, and a score multiplier (Normal 1.0, Veteran
 1.5). **Veteran also starts at level 2** with a bonus of 500 points, skipping level 1 (six levels
 remain: 2, 3, 4, 5, a second 5 and the final battle). The third setting is placed after testing,
-either easier (more lives, the easier pool, no fireship countdown before level 3) or harder (the
+either easier (more lives, the easier pool, no frost ship countdown before level 3) or harder (the
 harder pool, 1 life, no retries).
 
 ## 10. Between levels
@@ -481,7 +481,7 @@ each with its map preview and its **fleet character**, a modifier on the level's
 
 - **Raiders**: +50% raiders, faster (speed +1 tier), no transports;
 - **Landing force**: +50% transports, grunt allowance +50%;
-- **Fire fleet**: the fireship countdown halved;
+- **Frost fleet**: the frost ship countdown halved;
 - **Calm sea**: the plain pool, but a smaller score multiplier.
 
 Each front shows what it means in one line, and a reward multiplier reflecting its difficulty, so
@@ -495,7 +495,7 @@ Per player, summed for the team, × the difficulty's multiplier:
 - **Each round**, banked at the resolution by every player holding a castle, as in versus:
   ground (1 per team territory tile, **shared equally** among the players holding castles, rounded
   down) and guns (5 per own working gun after the resolution). Forfeited by a player who failed.
-- **Hits**: 10 per hit on a ship; on sinking, 20 (raider), 40 (transport), 60 (fireship), to the
+- **Hits**: 10 per hit on a ship; on sinking, 20 (raider), 40 (transport), 60 (frost ship), to the
   player whose shot sank it.
 - **Grunts**: 10 each, shot or walled in.
 - **Level cleared**: 250 × the level's number, to every player; the final battle 2000.
@@ -562,7 +562,7 @@ const CampaignSaveSchema = z.strictObject({
   (`autoFinishCannonPhase`), their guns stand silent, teammates may build for them. They may
   rejoin; a campaign never gives the seat to a bot.
 - **Protocol**: `PROTOCOL_VERSION` 38 → 39; the snapshot gains an optional `campaign` object (fleet,
-  grunts, fire, the level's counters), present only in campaign matches; `players` may be 1 when
+  grunts, ice, the level's counters), present only in campaign matches; `players` may be 1 when
   the ruleset has a campaign section (schema refine). **Recordings**: the header's ruleset carries
   the campaign section; bump `RECORDING_FORMAT` only if the header's shape changes; a recording
   replays one level.
@@ -581,7 +581,7 @@ const CampaignSaveSchema = z.strictObject({
 - **HUD in the match**: the level and round; lives (the team's); the fleet's strength as a bar
   falling towards the level's threshold (a mark where it clears), with ship icons for the pool
   left by kind; each player's score; banners for "Ships approaching", "Transports landing",
-  "Level cleared", "Fireship sighted" (the first of a level), as phase banners are.
+  "Level cleared", "Frost ship sighted" (the first of a level), as phase banners are.
 
 ### 14.2 Ships: one design, three kinds
 
@@ -593,26 +593,23 @@ const CampaignSaveSchema = z.strictObject({
   `campaign.shipColours`, never a style's palette):
   - **Raider**: the base size (2 × 2 tiles), **white** sails;
   - **Transport**: 110% long and wider in the beam, **yellow** (ochre) sails, figures on deck;
-  - **Fireship**: 120%, **red** sails, a glow at the bow.
+  - **Frost ship**: 120%, **icy blue** sails, a cold glow at the bow.
   - The hull's own colour may follow the style; sails and pennant never do.
 - **Hit**: a splinter burst and a smoke puff; damage marks on the sails by hits taken.
   **Sinking**: it lists, sinks, a ring of foam and debris.
 - **Arriving**: fades in at the edge. **Recycled at the coast**: turns and fades out.
 
-### 14.3 Grunts and fire
+### 14.3 Grunts and ice
 
 - **Grunt**: a small figure on one tile, four facings, a bob while walking, a raised club when
   smashing; one colour for all grunts in every style (dark red tunic), so a grunt reads as enemy
   anywhere. Medieval and Night: a soldier; other styles later.
-- **Fire patch**: the frost block's shape and layer (`towerMarks.ts`: a block over the whole tile,
-  rim and shadow), as fire: orange and red, flames flickering, embers; it dims as its last build
-  phase nears, and goes out with smoke. **The same in every style** (as ice is). A red cross under
-  the piece in hand on a burning cell, as for ice.
+- **Ice**: the Frost Cannon's own blocks (`towerMarks.ts`), nothing new (§7).
 
 ### 14.4 Styles
 
 - **Medieval and Night first**: ships, grunts, fleet shots (the style's own cannonball), sinking
-  and fire in both. Night shares Medieval's drawing with its lighting.
+  and ice in both. Night shares Medieval's drawing with its lighting.
 - **Every other style**: a **shared fallback layer** (`render/campaignMarks.ts`, like `TowerMarks`)
   draws ships and grunts plainly, the same in every style, over the style's own board, until the
   style gets its own. A style opts in through optional `Theme` members (`ship?`, `grunt?`), as
@@ -624,7 +621,7 @@ const CampaignSaveSchema = z.strictObject({
 ### 14.5 Sound
 
 v1 reuses the existing, credited cues: a cannon's shot for a ship's, impacts and splashes, the
-seal's fanfare; new cues (ship bell, grunts landing, fire) later, each credited in
+seal's fanfare; new cues (ship bell, grunts landing, freezing) later, each credited in
 `config/audio.manifest.json` as every file must be.
 
 ## 15. Implementation
@@ -643,19 +640,19 @@ seal's fanfare; new cues (ship bell, grunts landing, fire) later, each credited 
 
 ### 15.2 Simulation (`packages/sim/src/campaign/`)
 
-| File         | Contents                                                                                                                                                                   |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `terrain.ts` | `generateCampaignTerrain` (§3)                                                                                                                                             |
-| `state.ts`   | `CampaignState`: pool, waves, ships, grunts, burning tiles, spawn cursor, fireship countdown, rounds in level, aim history, `nextShipId`, `nextGruntId`; its copy and hash |
-| `fleet.ts`   | arrival (§5.2), runs (§5.3), aim and firing (§5.4–5.5), hits (§5.6), recycling                                                                                             |
-| `grunts.ts`  | allowance, landing, reinforcement, walking, smashing (§6.2–6.4)                                                                                                            |
-| `fire.ts`    | burning tiles on frost's mechanism (§7)                                                                                                                                    |
-| `level.ts`   | waves, the fireship countdown, threat, the end of a level (§8)                                                                                                             |
-| `coop.ts`    | castle holders, failing, continues on a shared map (§6.1, §9)                                                                                                              |
+| File         | Contents                                                                                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `terrain.ts` | `generateCampaignTerrain` (§3)                                                                                                                                     |
+| `state.ts`   | `CampaignState`: pool, waves, ships, grunts, ice, spawn cursor, frost ship countdown, rounds in level, aim history, `nextShipId`, `nextGruntId`; its copy and hash |
+| `fleet.ts`   | arrival (§5.2), runs (§5.3), aim and firing (§5.4–5.5), hits (§5.6), recycling                                                                                     |
+| `grunts.ts`  | allowance, landing, reinforcement, walking, smashing (§6.2–6.4)                                                                                                    |
+| `ice.ts`     | frozen tiles on frost's mechanism (§7)                                                                                                                             |
+| `level.ts`   | waves, the frost ship countdown, threat, the end of a level (§8)                                                                                                   |
+| `coop.ts`    | castle holders, failing, continues on a shared map (§6.1, §9)                                                                                                      |
 
 - **Hooks**: `createMatch` (campaign terrain and state); `step()` after `resolveImpacts`:
-  `advanceCampaign(state)`; `enterPhase`/`beginPendingPhase` (waves at build, runs at combat, fire
-  ageing before combat); `resolveImpacts` (ship hits, grunt kills, fire on fireship impacts);
+  `advanceCampaign(state)`; `enterPhase`/`beginPendingPhase` (waves at build, runs at combat, ice
+  ageing before combat); `resolveImpacts` (ship hits, grunt kills, ice on frost ship impacts);
   `resolveRound` (holders, failures, points); `checkGameOver` (level cleared or lost).
 - **Shots from the fleet**: `Shot` gains an optional `ship` (the firing ship's id) with `owner` 0
   and no cannon; `strikable` accepts a fleet shot against a team wall. Versus code never makes one.
@@ -667,7 +664,7 @@ seal's fanfare; new cues (ship bell, grunts landing, fire) later, each credited 
   `ship_recycled`, `grunt_landed`, `grunt_killed`, `wall_smashed`, `fire_started`, `fire_out`,
   `level_cleared`, `level_lost`.
 - **Tests**: `stateFromAscii` gains glyphs for a ship (`S`, top-left of its 2 × 2), a grunt (`g`)
-  and fire (`f`); expectations as ASCII pictures for runs, aim, landing, walking and smashing. A
+  and ice (`f`); expectations as ASCII pictures for runs, aim, landing, walking and smashing. A
   campaign level replayed from its action log reproduces its hashes; a versus match's hashes are
   unchanged by the whole package (the existing determinism tests).
 
@@ -680,13 +677,13 @@ seal's fanfare; new cues (ship bell, grunts landing, fire) later, each credited 
 - **AI**: none in campaign seats; `ai` must not break on campaign state (the rollout copies it or
   ignores it — no bot plays a campaign).
 - **Analysis**: per-round statistics for campaign matches (ships arrived, sunk, recycled, shots,
-  walls lost to ships and grunts, grunts landed and killed, fire tiles, failures), for balancing.
+  walls lost to ships and grunts, grunts landed and killed, ice tiles, failures), for balancing.
 - **Headless**: `--campaign --difficulty normal --level N --players P`, with a stand-in player
   for measuring the fleet: a scripted defender that rebuilds the starting ring and fires at the
   nearest ship (enough to measure the fleet's pressure; a real campaign bot is out of scope).
 - **Achievements**: campaign matches excluded from the existing achievements' counting
   (`matchCounts`); campaign achievements (a level cleared, the campaign won per difficulty, a
-  fireship sunk) proposed later in `docs/STEAM_ACHIEVEMENTS.md`.
+  frost ship sunk) proposed later in `docs/STEAM_ACHIEVEMENTS.md`.
 - **Locale**: every new text in `en`, `de` and `hes` (`locale.test.ts`).
 - **Docs**: PLAN §11 a new item pointing here, §12's "singleplayer campaign" deferral removed;
   CLAUDE.md's Status and layout updated as packages land.
@@ -779,7 +776,7 @@ So a new session need not survey again; line numbers drift, the names do not.
 ### 15.5 Starting
 
 Begin with CA1 in a fresh session: read this document, CLAUDE.md, PLAN §1 (the rules the campaign
-builds on) and SPECIAL_TOWERS.md §2.7 (the frost blocks fire reuses). Ask the user anything this
+builds on) and SPECIAL_TOWERS.md §2.7 (the frost blocks ice reuses). Ask the user anything this
 document leaves open before coding, as every design question is asked. The reference notes are a
 fallback for numbers, never a source of code or text.
 
@@ -789,7 +786,7 @@ In order; each ends with `npm run check` passing and, where marked, the user's p
 
 **Progress.** **CA1 done** (2026-11-25). `config/campaign.default.json` holds the levels,
 difficulties, pools, countdowns, lives, map sizes, ship kinds, threat, pieces and scoring; the
-fleet's, grunts' and fire's timings join it in their packages. `ruleset.campaign` carries
+fleet's, grunts' and ice's timings join it in their packages. `ruleset.campaign` carries
 the level's difficulty, index, shape (drawn from the seed by `campaignRuleset`), round limit,
 lives, piece start round and carry, and grows the same way. A campaign ruleset may take one
 player, has no versus round cap and no towers. The team's pool of continues is the carried lives,
@@ -822,7 +819,7 @@ wave, the ships, the spawn cursor and the guns given; hashed after everything ve
 hashes, only in a campaign. `sim/src/campaign/fleet.ts`: the wave is drawn as the castles are
 chosen and as each build phase opens, from the guns given that round (the opening count, then
 each resolution's awards, as the reference adds them), the level's index and the rounds bonus;
-one ship of each kind arrives a second; raiders and fireships standing at the coast when a build
+one ship of each kind arrives a second; raiders and frost ships standing at the coast when a build
 phase opens go back into the wave. As a battle opens every ship plans its run in id order —
 re-aimed at the nearest castle, the heading's octant found exactly against 29/70 rather than by an
 arctangent — and a run claims every footprint it crosses. Runs may outlast the battle by the
@@ -871,6 +868,17 @@ wall plays each style's own impact. `stateFromAscii` reads `m` as a grunt (the d
 already a gun). And the bots' rollout now copies `state.campaign` (`copyCampaign`): shared, the
 dev fast-forward's autopilot landed some sixty grunts where the allowances allow eighteen.
 
+**CA6 done** (2026-11-25), as **frost ships** (the user's: the fireships reinterpreted, the Frost
+Cannon's ice reused with a slower decay, no new picture). The kind is `frostship`, its sails icy
+blue, `frostshipEvery` the countdown's name. `sim/src/campaign/ice.ts`: a frost ship's shot landing
+on land a piece could go on (the wall it cleared, or bare ground) adds a `Freeze` with `buildsLeft`
+— 2, or 3 once the campaign has played `ice.lateFromRound` rounds — frozen to the end of every build
+phase as a whole-phase freeze is, kept when the build phase ends (a Frost Cannon's freezes still
+go), and counted down by `ageIce` as each battle opens. Ice also refuses a gun and stops a grunt.
+`buildsLeft` is hashed only when present, so a Frost Cannon's freezes hash as before. The event is
+`tile_frozen` with owner −1, so the Frost Cannon's burst and sound play and no achievement counts
+it. A continue still wipes the island's freezes with its walls until co-op's shared map (CA10).
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |
@@ -878,10 +886,10 @@ dev fast-forward's autopilot landed some sixty grunts where the allowances allow
 | CA3  | **Ships arrive and sail**: pool, waves, arrival, runs, recycling; plain fallback drawing                                                                                                                                                    | ships seen arriving and sailing                                        |
 | CA4  | **Ships fire and sink**: aim, fleet shots, hits on ships, sinking, points                                                                                                                                                                   | a level playable against raiders                                       |
 | CA5  | **Grunts**: landing, reinforcement, walking, smashing, kills                                                                                                                                                                                | transports' grunts block and smash                                     |
-| CA6  | **Fire**: burning tiles on frost's mechanism, ageing, fallback drawing                                                                                                                                                                      | fireships' patches block for 2–3 builds                                |
-| CA7  | **Levels**: threat, the fireship countdown, level end, lives, failing, the free first try                                                                                                                                                   | **the user plays levels 1–3 solo**                                     |
+| CA6  | **Ice**: frost ships' frozen tiles on frost's mechanism, ageing                                                                                                                                                                             | frost ships' patches block for 2–3 builds                              |
+| CA7  | **Levels**: threat, the frost ship countdown, level end, lives, failing, the free first try                                                                                                                                                 | **the user plays levels 1–3 solo**                                     |
 | CA8  | **Campaign run and saves**: intro, summary, defeat, victory, saves, resume, retries, Veteran                                                                                                                                                | **the user plays a campaign solo**                                     |
-| CA9  | **Medieval and Night art**: ships, grunts, fire, sinking, HUD fleet bar and icons                                                                                                                                                           | **the user's look**                                                    |
+| CA9  | **Medieval and Night art**: ships, grunts, ice, sinking, HUD fleet bar and icons                                                                                                                                                            | **the user's look**                                                    |
 | CA10 | **Co-op**: castle holders, shared rewards, continues on a shared map, team scores                                                                                                                                                           | co-op tested locally with two pages                                    |
 | CA11 | **Online rooms**: `mode: 'campaign'`, next level and retry in the room, protocol 39, recordings                                                                                                                                             | **an online co-op session with the users**                             |
 | CA12 | **Balance**: statistics, headless runs, the third difficulty decided                                                                                                                                                                        | numbers set by measurement and play                                    |
@@ -895,7 +903,7 @@ dev fast-forward's autopilot landed some sixty grunts where the allowances allow
   wait at the coast and be shot there).
 - Whether grunts should **besiege** castles (no reward while a grunt stands beside it, §6.4).
 - Whether ships should damage cannons (`damagesCannons`, §5.4).
-- The repair deck (§7.4), if rebuilding among grunts and fire proves too hard.
+- The repair deck (§7.4), if rebuilding among grunts and ice proves too hard.
 - The co-op scaling factors (pool 0.6, grunts 0.5, lives +1, castles +2 per extra player).
 - Where the third difficulty goes (§9).
 - Special towers in the campaign: off in v1; perhaps later as rewards between levels.

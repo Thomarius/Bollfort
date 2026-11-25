@@ -343,7 +343,7 @@ export class CampaignMarks {
 /**
  * One ship seen from above, bow up, centred on the origin: a pointed hull, its deck, two masts
  * with their square sails across the beam and a pennant. The kinds differ in length and beam
- * and in the sails' colour; a fireship glows at its bow.
+ * and in the sails' colour; a frost ship glows cold at its bow.
  */
 function drawShip(g: Graphics, tile: number, art: ArtConfig, kind: ShipKind): void {
   const look = art.campaign;
@@ -370,9 +370,9 @@ function drawShip(g: Graphics, tile: number, art: ArtConfig, kind: ShipKind): vo
   g.fill({ color: hex(look.hull) });
   g.poly(hull.map((v) => v * 0.78));
   g.fill({ color: hex(look.deck) });
-  if (kind === 'fireship') {
+  if (kind === 'frostship') {
     g.circle(0, -half * 0.75, beam * 0.45);
-    g.fill({ color: 0xff8a2a, alpha: 0.35 });
+    g.fill({ color: 0xbfeaff, alpha: 0.45 });
   }
   const sail = hex(look.sails[kind]);
   for (const at of [-0.28, 0.25]) {

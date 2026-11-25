@@ -364,6 +364,7 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
         factor: 1,
         timing: { landMs: 1866, breedMs: 11733, stepMs: 1600, smashMs: 6933 },
       },
+      ice: { early: 2, late: 3, lateFromRound: 8 },
       scoring: { hitPoints: 10, gruntPoints: 10, sinkPoints: [20, 40, 60], multiplier: 1 },
     },
   });

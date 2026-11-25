@@ -5,6 +5,7 @@ import { flightTicks } from '../shots.js';
 import { ticksFor } from '../match.js';
 import { Structure, type MatchState, type PlayerState, type Shot } from '../types.js';
 import { SHIP_SIZE, shipPosition } from './fleet.js';
+import { freezeFromFleet } from './ice.js';
 import type { CampaignState, FleetShot, Ship } from './state.js';
 
 /**
@@ -133,6 +134,8 @@ export function landFleetShots(state: MatchState): void {
       fleet.struck = [...fleet.struck, i];
       destroyed = i;
     }
+    // A frost ship's shot freezes where it lands, the wall it cleared too (CAMPAIGN §7).
+    if (shot.kind === 'frostship') freezeFromFleet(state, shot);
     state.events.push({
       kind: 'fleet_landed',
       tick: state.tick,

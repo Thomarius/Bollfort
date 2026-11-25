@@ -293,7 +293,7 @@ export function openBattle(state: MatchState): void {
 }
 
 /**
- * As the walls are rebuilt: raiders and fireships standing at the coast go back into the wave,
+ * As the walls are rebuilt: raiders and frost ships standing at the coast go back into the wave,
  * to come again from the edge (CAMPAIGN §5.3) — transports stay, to land their grunts — and the
  * round's wave is drawn.
  */

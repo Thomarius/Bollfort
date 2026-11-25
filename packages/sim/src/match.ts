@@ -31,6 +31,7 @@ import { advanceFleet, formWave, openBattle, openBuild } from './campaign/fleet.
 import { hashCampaign } from './campaign/state.js';
 import { landFleetShots } from './campaign/gunnery.js';
 import { advanceGrunts, clearRing, clearWalledIn } from './campaign/grunts.js';
+import { ageIce, lasting } from './campaign/ice.js';
 import {
   PHASES,
   Structure,
@@ -663,7 +664,10 @@ function beginPendingPhase(state: MatchState): void {
       player.openingPlacement = false;
     }
     enterPhase(state, 'combat', state.ruleset.phases.combatMs);
-    if (state.campaign !== null) openBattle(state);
+    if (state.campaign !== null) {
+      ageIce(state);
+      openBattle(state);
+    }
     return;
   }
   if (next === 'build') {
@@ -765,7 +769,8 @@ function advancePhase(state: MatchState): void {
       if (state.tick >= state.phaseEndTick || allSpent) {
         state.overtime = false;
         // Every freeze ends with the phase, a whole phase's too: the cannon phase is never frozen.
-        state.frozen = [];
+        // A campaign's ice lasts its build phases, aged as each battle opens (CAMPAIGN §7).
+        state.frozen = state.campaign === null ? [] : state.frozen.filter(lasting);
         resolveRound(state);
       }
       return;
@@ -1103,6 +1108,8 @@ export function hashMatchState(state: MatchState, version = HASH_VERSION): strin
         .i32(f.thawTick)
         .i32(Math.round(f.share * 1e6))
         .bool(f.throughOvertime);
+      // A campaign's ice only, so a Frost Cannon's freezes hash as they always did.
+      if (f.buildsLeft !== undefined) h.i32(f.buildsLeft);
     }
   }
   // The guns asleep or lulled, only while any is: a match without them hashes as it always did.

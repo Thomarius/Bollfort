@@ -12,6 +12,7 @@ import { applyEnclosure } from './enclosure.js';
 import { pieceAt, pieceCells } from './pieces.js';
 import { isFrozen } from './frost.js';
 import { gruntAt } from './campaign/grunts.js';
+import { iced } from './campaign/ice.js';
 import { footprintOf, placedBarrels, specialRefusal } from './specials.js';
 
 /**
@@ -206,6 +207,8 @@ export function canPlaceCannon(
       if (state.structure[i] !== Structure.Empty) return 'occupied';
       if (state.territory[i] !== player.islandId) return 'not_territory';
       if (gruntAt(state, i) !== null) return 'grunt';
+      // A frost ship's ice takes no gun either, whatever the phase (CAMPAIGN §7).
+      if (state.campaign !== null && iced(state, i)) return 'frozen';
     }
   }
   return null;

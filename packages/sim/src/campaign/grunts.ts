@@ -4,6 +4,7 @@ import { ticksFor } from '../match.js';
 import { streamFor } from '../rng.js';
 import { Structure, Terrain, type MatchState, type PlayerState, type Shot } from '../types.js';
 import { SHIP_SIZE } from './fleet.js';
+import { iced } from './ice.js';
 import type { CampaignState, Grunt, Ship } from './state.js';
 
 /**
@@ -55,6 +56,7 @@ function freeForGrunt(state: MatchState, x: number, y: number): boolean {
     state.terrain[i] === Terrain.Land &&
     state.structure[i] === Structure.Empty &&
     state.territory[i] === 0 &&
+    !iced(state, i) &&
     gruntAt(state, i) === null
   );
 }

@@ -192,6 +192,11 @@ export interface Freeze {
   /** Whether a whole phase's freeze lasts through the overtime, from the same variant. */
   throughOvertime: boolean;
   thawTick: number;
+  /**
+   * A campaign's frost ship's ice (docs/CAMPAIGN.md §7): the build phases it has left, counted down
+   * as each battle opens, where a Frost Cannon's lasts the one build phase. Absent for those.
+   */
+  buildsLeft?: number;
 }
 
 export interface Shot {

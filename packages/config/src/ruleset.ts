@@ -440,7 +440,7 @@ export const CampaignLevelSchema = z.strictObject({
   }),
   /** The enemy fleet (CAMPAIGN §5). */
   fleet: z.strictObject({
-    /** Every ship the level will send, raider / transport / fireship, scaled for the players. */
+    /** Every ship the level will send, raider / transport / frostship, scaled for the players. */
     pool: z.tuple([
       z.number().int().nonnegative(),
       z.number().int().nonnegative(),
@@ -448,7 +448,7 @@ export const CampaignLevelSchema = z.strictObject({
     ]),
     /** Ships afloat at once. */
     maxAfloat: z.number().int().positive(),
-    /** Hits each kind takes to sink at this level, raider / transport / fireship (§5.1). */
+    /** Hits each kind takes to sink at this level, raider / transport / frostship (§5.1). */
     hitsToSink: z.tuple([
       z.number().int().positive(),
       z.number().int().positive(),
@@ -466,13 +466,19 @@ export const CampaignLevelSchema = z.strictObject({
     factor: z.number().positive(),
     timing: GruntTimingSchema,
   }),
+  /** The build phases a frost ship's ice lasts, as the campaign's config has them (CAMPAIGN §7). */
+  ice: z.strictObject({
+    early: z.number().int().positive(),
+    late: z.number().int().positive(),
+    lateFromRound: z.number().int().nonnegative(),
+  }),
   /** The campaign's own points, on top of ground and guns (CAMPAIGN §11). */
   scoring: z.strictObject({
     /** Per hit on a ship. */
     hitPoints: z.number().int().nonnegative(),
     /** Per grunt shot. */
     gruntPoints: z.number().int().nonnegative(),
-    /** On sinking one, to whoever's shot sank it, raider / transport / fireship. */
+    /** On sinking one, to whoever's shot sank it, raider / transport / frostship. */
     sinkPoints: z.tuple([
       z.number().int().nonnegative(),
       z.number().int().nonnegative(),
