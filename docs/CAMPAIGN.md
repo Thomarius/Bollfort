@@ -965,6 +965,12 @@ And the time taken no longer changes the fleet: ships arrive one of each kind a 
 chosen at once had left level 1's first battle with one ship of three. As the castle choice ends,
 and as a build phase does, every ship still waiting in the wave comes in at once, while there is
 room afloat (`flushArrivals`).
+An empty board — no ship afloat, no grunt ashore — wins the level at once also while ships are still
+to come, if their threat is already below the threshold (the user's: ships left in the pool had
+kept a beaten level going).
+The "You win" that flashed as a level was won (the user's screenshot, in the desktop app): the end
+screen wrote and measured its summary before holding it back, so the browser styled it shown and
+the hold's transition faded it out again; it is now held first (`EndScreen.showEndScreen`).
 
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |

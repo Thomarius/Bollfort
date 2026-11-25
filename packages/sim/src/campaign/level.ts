@@ -34,14 +34,16 @@ export function threat(state: MatchState): number {
   );
 }
 
-/** Whether nothing is left to fight: no ship afloat, waiting or to come, and no grunt ashore. */
+/**
+ * Whether there is nothing left to fight on the board — no ship afloat, no grunt ashore — and none
+ * that matters to come: none at all, or the threat of those still to come already below the level's
+ * threshold (the user's, 2026-11-25: ships still in the pool had kept a beaten level going).
+ */
 export function fleetGone(state: MatchState): boolean {
   const fleet = state.campaign;
-  if (fleet === null) return false;
+  if (fleet === null || fleet.ships.length > 0 || fleet.grunts.length > 0) return false;
   const none = (counts: readonly number[]): boolean => counts.every((n) => n === 0);
-  return (
-    fleet.ships.length === 0 && fleet.grunts.length === 0 && none(fleet.pool) && none(fleet.wave)
-  );
+  return (none(fleet.pool) && none(fleet.wave)) || fleetBeaten(state);
 }
 
 /**

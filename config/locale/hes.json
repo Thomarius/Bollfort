@@ -1033,5 +1033,6 @@
   "campaign.shipsApproaching": "Schiffe in Sicht!",
   "campaign.troopsLanding": "Die Soldate komme an Land!",
   "campaign.frostSighted": "E Frostschiff in Sicht!",
-  "campaign.threat": "Bedrohung"
+  "campaign.threat": "Bedrohung",
+  "campaign.levelCleared": "Level gepackt!"
 }

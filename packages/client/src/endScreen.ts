@@ -133,12 +133,6 @@ export class EndScreen {
       this.root.append(screen);
       this.endScreenHtml = '';
     }
-    if (html !== this.endScreenHtml) {
-      this.endScreen.innerHTML = html;
-      this.endScreenHtml = html;
-      // Held back, the summary is hidden but laid out, so it is measured as it is written.
-      fitTitles(this.endScreen, AWARD_TITLES);
-    }
     // Held back while the fireworks and the camera's push have the screen to themselves:
     // shown at once, the summary covered the celebration it followed. Timed here rather
     // than by a CSS delay, which would start again whenever the markup was rewritten.
@@ -150,7 +144,16 @@ export class EndScreen {
     } else this.gameOverAt ??= now;
     const held =
       this.gameOverAt !== null && now - this.gameOverAt < defaultArtConfig.summary.delayMs;
+    // Held before the markup is written and measured: measuring makes the browser style it, and
+    // written first it was styled shown, so the hold's transition faded the whole summary out
+    // again — the "You win" that flashed as a campaign level was won (the user's, 2026-11-25).
     this.endScreen.classList.toggle('held', held);
+    if (html !== this.endScreenHtml) {
+      this.endScreen.innerHTML = html;
+      this.endScreenHtml = html;
+      // Held back, the summary is hidden but laid out, so it is measured as it is written.
+      fitTitles(this.endScreen, AWARD_TITLES);
+    }
     if (html !== '' && !held && !this.revealed) {
       this.revealed = true;
       this.countPoints();

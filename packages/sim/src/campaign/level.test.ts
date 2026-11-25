@@ -292,4 +292,36 @@ describe('a campaign level', () => {
     expect(ships(quick)).toBe(3);
     expect(ships(slow)).toBe(3);
   });
+
+  it('is won with the board empty once the ships still to come are below the threshold', () => {
+    const state = solo(campaignRules({ maxRounds: 10 }));
+    stepUntil(state, (s) => s.phase === 'build');
+    const fleet = state.campaign as CampaignState;
+    const rules = state.ruleset.campaign as CampaignLevelRules;
+    // Two raiders still in the pool, 14 against a threshold of 20, and none on the board.
+    state.ruleset = {
+      ...state.ruleset,
+      campaign: { ...rules, threshold: 20, threat: { perGrunt: 4, perCannon: 0 } },
+    };
+    fleet.pool = [2, 0, 0];
+    fleet.wave = [0, 0, 0];
+    fleet.ships = [];
+    step(state);
+    expect(state.endedBy).toBe('level_cleared');
+  });
+
+  it('is not won while the ships still to come are a threat', () => {
+    const state = solo(campaignRules({ maxRounds: 10 }));
+    stepUntil(state, (s) => s.phase === 'build');
+    const fleet = state.campaign as CampaignState;
+    const rules = state.ruleset.campaign as CampaignLevelRules;
+    state.ruleset = {
+      ...state.ruleset,
+      campaign: { ...rules, threshold: 20, threat: { perGrunt: 4, perCannon: 0 } },
+    };
+    fleet.pool = [5, 0, 0];
+    fleet.ships = [];
+    step(state);
+    expect(state.phase).not.toBe('game_over');
+  });
 });

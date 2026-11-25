@@ -665,7 +665,16 @@ export class Hud {
     this.bannerRoot.classList.toggle('game-over', state.phase === 'game_over');
     this.endScreen.update(state, humanPlayer, teamed, avatars);
     const seconds = t('hud.seconds', { seconds: formatNumber(secondsLeft, 1) });
-    const heading = waiting ? t('hud.next', { label }) : label;
+    // A campaign level won: said as soon as it is, while the battle's last shots come down and
+    // once they have, not "Next: Game over" (the user's, 2026-11-25).
+    const cleared =
+      state.ruleset.campaign !== undefined &&
+      (state.pendingPhase === 'game_over' || state.endedBy === 'level_cleared');
+    const heading = cleared
+      ? t('campaign.levelCleared')
+      : waiting
+        ? t('hud.next', { label })
+        : label;
     // A long label — German's run half as long again as English's — is set smaller and
     // tighter, so eight players' figures keep their pips at 1024 pixels.
     // The clock's figures change ten times a second and nothing else does, so they are set

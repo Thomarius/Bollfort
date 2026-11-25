@@ -900,8 +900,8 @@ export function step(state: MatchState): void {
   advanceFleet(state);
   advanceGrunts(state);
   advancePhase(state);
-  // Nothing left at all — no ship afloat, waiting or to come, no grunt ashore — and the last shot
-  // down: the level is won there and then, in whatever phase (the user's, 2026-11-25).
+  // Nothing left on the board — no ship afloat, no grunt ashore — and nothing that matters to come,
+  // the last shot down: the level is won there and then, in whatever phase (the user's, 2026-11-25).
   // (`advancePhase` may have ended the match: the phase read afresh.)
   if (
     state.campaign !== null &&

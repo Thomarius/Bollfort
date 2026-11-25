@@ -1036,5 +1036,6 @@
   "campaign.shipsApproaching": "Ships approaching!",
   "campaign.troopsLanding": "Troops landing!",
   "campaign.frostSighted": "A frost ship sighted!",
-  "campaign.threat": "Threat"
+  "campaign.threat": "Threat",
+  "campaign.levelCleared": "Level cleared!"
 }
