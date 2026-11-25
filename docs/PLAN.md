@@ -2007,6 +2007,13 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     - **Not to be built: a trophy cabinet** of the cups won (the user's, 2026-11-23): a cup won
       is shown once, at the tournament's end, and its save goes with it.
 
+14. **Campaign mode — designed, not yet built** (the user's, 2026-11-25; `docs/CAMPAIGN.md`): one to
+    three people against an enemy fleet — raiders, transports landing grunts, fireships leaving
+    fire — over six levels on generated maps shared in co-op, three difficulty settings, progress
+    saved between levels, co-op online through rooms, no bots in its seats. A mode of its own:
+    nothing of it reaches versus play or tournaments. Its work packages CA1–CA15 are in
+    CAMPAIGN.md §16; start with CA1.
+
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the
 UI polish, all in ARCHIVE 11h; 11.11 the second visual pass and 11.12 the first
@@ -2020,7 +2027,8 @@ ARCHIVE 11zz; 11.20 more languages, in ARCHIVE 12g; 11.21 UPnP, in ARCHIVE 12j; 
 ## 12. Deferred (explicitly out of scope for v1)
 
 Quick-match and matchmaking, accounts and persistence, ranking, mobile
-and touch input, spectator mode, shipped replays, naval units, singleplayer campaign.
+and touch input, spectator mode, shipped replays. (Naval units and a single-player campaign were
+deferred here until 2026-11-25, when the campaign was designed: §11 item 14.)
 
 **Signing the Windows app** (explained 2026-10-06, not pursued for now): unsigned, Windows
 warns of an unknown publisher; a signature names the publisher, though SmartScreen still

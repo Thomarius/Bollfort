@@ -250,6 +250,10 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 **Next** — PLAN §11, towards a first feature-ready version:
 
 - **The users' play of the first supporter style** (2026-11-14), then the next styles (SP4).
+- **Campaign mode** (PLAN §11 item 14; `docs/CAMPAIGN.md`, approved 2026-11-25): one to three
+  people against an enemy fleet over six levels, co-op online, saved between levels; designed, not
+  yet built — start with its work package CA1. A mode of its own: never a change to versus rules or
+  hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
   listed and a room's code with the real server, a tournament match's end and a person's Rematch.
 - **Steam** (PLAN §11 item 8; `docs/STEAM.md`): a free release, the whole game and every style,
