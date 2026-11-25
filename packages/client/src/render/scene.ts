@@ -1,5 +1,5 @@
 import { defaultArtConfig, type ArtConfig, type ArtStyle } from '@bollfort/config';
-import { firesItself, strikesOnFiring, type MatchState, type Shot } from '@bollfort/sim';
+import { firesItself, strikesOnFiring, type MatchState, type Ship, type Shot } from '@bollfort/sim';
 import { Application, BigPool, Container, Graphics, Rectangle, RenderTexture } from 'pixi.js';
 // The text pipe, registered before any renderer starts: Pixi registers it as `Text` is first
 // imported, which is now as a style using it is fetched (`StyleDefinition.theme`), after the renderer
@@ -792,6 +792,15 @@ export class Scene {
    * On the looks on screen only: a hidden style never ages its effects, and a blast
    * noted there would all go off at once when it next came into view.
    */
+  /** A campaign's ship hit, and one sunk where it went down, in 1/256 of a tile (CA4). */
+  noteShipHit(shipId: number): void {
+    this.campaign.noteHit(shipId);
+  }
+
+  noteShipSunk(ship: Ship, x: number, y: number): void {
+    this.campaign.noteSunk(ship, x, y);
+  }
+
   noteImpact(x: number, y: number, debris: readonly Debris[]): void {
     for (const slot of this.visible()) slot.theme.noteImpact(x, y, debris);
   }

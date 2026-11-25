@@ -4,6 +4,7 @@ import { ticksFor } from '../match.js';
 import { streamFor } from '../rng.js';
 import { Terrain, type MatchState } from '../types.js';
 import type { CampaignState, KindCounts, Run, Ship } from './state.js';
+import { fireFleet, openFire } from './gunnery.js';
 
 /**
  * The enemy fleet (docs/CAMPAIGN.md §5): ships drawn from the level's pool into a wave each build
@@ -215,6 +216,7 @@ function launch(state: MatchState, kind: ShipKind): boolean {
       run: null,
       runs: 0,
       arrivedTick: state.tick,
+      shotId: null,
     };
     fleet.ships = [...fleet.ships, ship];
     state.events.push({ kind: 'ship_arrived', tick: state.tick, ship: { ...ship } });
@@ -279,8 +281,9 @@ function sail(state: MatchState): void {
   }
 }
 
-/** Every ship without a run plans one as a battle opens, in id order. */
+/** Every ship without a run plans one as a battle opens, in id order, and the guns get ready. */
 export function openBattle(state: MatchState): void {
+  openFire(state);
   const fleet = fleetOf(state);
   fleet.ships = fleet.ships.map((s) => ({ ...s }));
   for (const ship of fleet.ships) if (ship.run === null) planRun(state, ship);
@@ -309,9 +312,10 @@ export function openBuild(state: MatchState): void {
   formWave(state);
 }
 
-/** The fleet's part of a tick: arrivals, and runs ending. */
+/** The fleet's part of a tick: arrivals, runs ending, and its guns. */
 export function advanceFleet(state: MatchState): void {
   if (state.campaign === null) return;
   sail(state);
   arrive(state);
+  fireFleet(state);
 }

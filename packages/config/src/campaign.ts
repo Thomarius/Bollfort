@@ -112,6 +112,28 @@ export const FleetTimingSchema = z.strictObject({
 });
 export type FleetTiming = z.infer<typeof FleetTimingSchema>;
 
+/**
+ * How the fleet chooses its targets (CAMPAIGN §5.5): each team wall tile scores `base` by its
+ * count of wall neighbours, plus `perGuarded` for each castle or gun beside it, less `perStruck`
+ * for each neighbour struck this battle; the tiles aimed at last are skipped.
+ */
+export const FleetAimSchema = z.strictObject({
+  base: z.tuple([z.number(), z.number(), z.number(), z.number(), z.number()]),
+  perGuarded: z.number(),
+  perStruck: z.number(),
+  skipRecent: z.number().int().nonnegative(),
+});
+export type FleetAim = z.infer<typeof FleetAimSchema>;
+
+/** How the fleet fires (CAMPAIGN §5.4). */
+export const FleetFireSchema = z.strictObject({
+  /** A target is handed to one ship this often (the reference's 22 ticks). */
+  everyMs: z.number().int().positive(),
+  /** A fleet shot's flight against a cannon's over the same distance. */
+  flightFactor: z.number().positive(),
+});
+export type FleetFire = z.infer<typeof FleetFireSchema>;
+
 const MapSizeSchema = z.strictObject({
   players: z.number().int().min(1).max(CAMPAIGN_MAX_PLAYERS),
   width: z.number().int().positive(),
@@ -179,6 +201,8 @@ export const CampaignConfigSchema = z
       maxAfloat: z.number().int().positive(),
       maxAfloatPerExtraPlayer: count,
       timing: FleetTimingSchema,
+      aim: FleetAimSchema,
+      fire: FleetFireSchema,
     }),
     threat: z.strictObject({
       /** Each grunt on land adds this to the fleet's threat (CAMPAIGN §8.3)… */

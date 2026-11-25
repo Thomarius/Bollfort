@@ -3,6 +3,8 @@ import { z } from 'zod';
 import {
   CAMPAIGN_LEVELS,
   CampaignDifficultySchema,
+  FleetAimSchema,
+  FleetFireSchema,
   FleetTimingSchema,
   MapShapeSchema,
 } from './campaign.js';
@@ -445,7 +447,28 @@ export const CampaignLevelSchema = z.strictObject({
     ]),
     /** Ships afloat at once. */
     maxAfloat: z.number().int().positive(),
+    /** Hits each kind takes to sink at this level, raider / transport / fireship (§5.1). */
+    hitsToSink: z.tuple([
+      z.number().int().positive(),
+      z.number().int().positive(),
+      z.number().int().positive(),
+    ]),
     timing: FleetTimingSchema,
+    aim: FleetAimSchema,
+    fire: FleetFireSchema,
+  }),
+  /** The campaign's own points, on top of ground and guns (CAMPAIGN §11). */
+  scoring: z.strictObject({
+    /** Per hit on a ship. */
+    hitPoints: z.number().int().nonnegative(),
+    /** On sinking one, to whoever's shot sank it, raider / transport / fireship. */
+    sinkPoints: z.tuple([
+      z.number().int().nonnegative(),
+      z.number().int().nonnegative(),
+      z.number().int().nonnegative(),
+    ]),
+    /** The difficulty's factor on every campaign point. */
+    multiplier: z.number().positive(),
   }),
   /** The level is survived once this many rounds have been played in it (CAMPAIGN §8.3). */
   maxRounds: z.number().int().positive(),

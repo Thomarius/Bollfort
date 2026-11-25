@@ -154,6 +154,18 @@ export class MatchAudio {
           );
           break;
 
+        // A campaign's ships fire and land with a cannon's sounds, a ship going down with a
+        // heavier landing's, until the campaign has cues of its own (docs/CAMPAIGN.md §14.5).
+        case 'fleet_fired':
+          this.audio.play('cannon_fire', 0.8, 0, this.pan(event.shot.fromX / 256));
+          break;
+        case 'fleet_landed':
+          this.audio.play('shot_impact', 1, 0, this.pan(event.x));
+          break;
+        case 'ship_sunk':
+          this.audio.play('tower_impact', 1, 0, this.pan(event.x / 256));
+          break;
+
         case 'shot_impact':
           // One explosion whatever it hits: a separate cue for a wall was planned and
           // dropped by the user, the impact's sound being enough.

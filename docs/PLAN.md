@@ -2007,12 +2007,12 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     - **Not to be built: a trophy cabinet** of the cups won (the user's, 2026-11-23): a cup won
       is shown once, at the tournament's end, and its save goes with it.
 
-14. **Campaign mode — being built, CA1–CA3 done** (the user's, 2026-11-25; `docs/CAMPAIGN.md`): one to
+14. **Campaign mode — being built, CA1–CA4 done** (the user's, 2026-11-25; `docs/CAMPAIGN.md`): one to
     three people against an enemy fleet — raiders, transports landing grunts, fireships leaving
     fire — over six levels on generated maps shared in co-op, three difficulty settings, progress
     saved between levels, co-op online through rooms, no bots in its seats. A mode of its own:
     nothing of it reaches versus play or tournaments. Its work packages CA1–CA15 are in
-    CAMPAIGN.md §16; CA4 is next.
+    CAMPAIGN.md §16; CA5 is next.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

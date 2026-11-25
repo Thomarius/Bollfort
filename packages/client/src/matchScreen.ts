@@ -829,6 +829,27 @@ export async function runSession(
           if (event.destroyed.length > 0) structuresChanged = true;
           break;
         }
+        case 'fleet_landed': {
+          // A ship's shot lands as any shot does, in every look, without being one of the
+          // players' (docs/CAMPAIGN.md §5.4); a wall it cleared is the person's team's.
+          const { width } = session.state;
+          const debris =
+            event.destroyed === null
+              ? []
+              : [{ x: event.destroyed % width, y: Math.floor(event.destroyed / width), owner: 0 }];
+          scene.noteImpact(event.x, event.y, debris);
+          if (event.destroyed !== null) {
+            structuresChanged = true;
+            if (session.humanPlayer >= 0 && !motionReduced()) scene.shake();
+          }
+          break;
+        }
+        case 'ship_hit':
+          scene.noteShipHit(event.shipId);
+          break;
+        case 'ship_sunk':
+          scene.noteShipSunk(event.ship, event.x, event.y);
+          break;
         case 'shot_fired':
           // A Lightning Tower's has struck already (`lightning_struck`), a Laser Tower's too
           // (`laser_fired`); nothing of either flies.

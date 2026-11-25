@@ -23,6 +23,7 @@ export * from './campaign/terrain.js';
 export * from './campaign/level.js';
 export * from './campaign/state.js';
 export * from './campaign/fleet.js';
+export * from './campaign/gunnery.js';
 export * from './scoring.js';
 export * from './teams.js';
 export * from './playout.js';

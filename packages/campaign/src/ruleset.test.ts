@@ -15,7 +15,7 @@ describe('campaignRuleset', () => {
     expect(ruleset.players.min).toBe(1);
     expect(ruleset.scoring.maxRounds).toBeNull();
     expect(ruleset.specials.enabled).toBe(false);
-    expect(ruleset.campaign).toEqual({
+    expect(ruleset.campaign).toMatchObject({
       difficulty: 'normal',
       level: 1,
       shape: 'corner',
@@ -39,7 +39,10 @@ describe('campaignRuleset', () => {
           tileMs: [2100, 1400, 1050, 850],
           runSlackMs: 2400,
         },
+        hitsToSink: [2, 3, 5],
+        fire: { everyMs: 733, flightFactor: 1 },
       },
+      scoring: { hitPoints: 10, sinkPoints: [20, 40, 60], multiplier: 1 },
       maxRounds: 8,
       lives: 2,
       pieceStartRound: 3,
@@ -78,6 +81,20 @@ describe('campaignRuleset', () => {
       }).campaign?.map;
     expect(map(1)).toMatchObject({ width: 44, height: 32, castles: 2, lakes: 1 });
     expect(map(3)).toMatchObject({ width: 66, height: 40, castles: 6, landFraction: 0.42 });
+  });
+
+  it('makes ships tougher from level 4, and scores Veteran half again', () => {
+    const level = (difficulty: 'normal' | 'veteran', index: number) =>
+      campaignRuleset(config, defaultRuleset, {
+        difficulty,
+        level: index,
+        players: 1,
+        seed: 1,
+        carry: newCarry(config, difficulty, 1),
+      }).campaign;
+    expect(level('normal', 2)?.fleet.hitsToSink).toEqual([2, 3, 5]);
+    expect(level('normal', 3)?.fleet.hitsToSink).toEqual([3, 4, 6]);
+    expect(level('veteran', 1)?.scoring.multiplier).toBe(1.5);
   });
 
   it('scales the pool and the room afloat for co-op', () => {

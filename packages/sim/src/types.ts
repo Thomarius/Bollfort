@@ -1,4 +1,4 @@
-import type { CampaignState, Ship } from './campaign/state.js';
+import type { CampaignState, FleetShot, Ship } from './campaign/state.js';
 import type { Ruleset, SpecialKind, TerrainConfig, TowerVariant } from '@bollfort/config';
 
 export const Terrain = { Water: 0, Land: 1 } as const;
@@ -361,6 +361,41 @@ export type MatchEvent =
       kind: 'ship_recycled';
       tick: number;
       shipId: number;
+    }
+  | {
+      /** A ship has fired at the walls (§5.4). */
+      kind: 'fleet_fired';
+      tick: number;
+      shot: FleetShot;
+    }
+  | {
+      /** A ship's shot has landed: the wall it cleared, if any. */
+      kind: 'fleet_landed';
+      tick: number;
+      shotId: number;
+      shipId: number;
+      x: number;
+      y: number;
+      destroyed: number | null;
+    }
+  | {
+      /** A player's shot has hit a ship: its hits now, and whether that sank it (§5.6). */
+      kind: 'ship_hit';
+      tick: number;
+      shipId: number;
+      player: number;
+      hits: number;
+      sunk: boolean;
+    }
+  | {
+      /** A ship has sunk, where it was on the tick, in 1/256 of a tile; its sinker's points. */
+      kind: 'ship_sunk';
+      tick: number;
+      ship: Ship;
+      x: number;
+      y: number;
+      player: number;
+      points: number;
     }
   | {
       kind: 'game_over';

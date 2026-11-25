@@ -193,6 +193,7 @@ export function stateFromAscii(
       run: null,
       runs: 0,
       arrivedTick: 0,
+      shotId: null,
     }));
     campaign = {
       pool: [...ruleset.campaign.fleet.pool],
@@ -202,6 +203,12 @@ export function stateFromAscii(
       spawnCursor: 0,
       nextArrivalTick: 0,
       cannonsGiven: 0,
+      shots: [],
+      nextShotId: 0,
+      nextFireTick: 0,
+      fireCursor: -1,
+      aimed: [],
+      struck: [],
       sea,
       spawnPoints: spawnPointsOf(sea, width, height),
     };
@@ -331,7 +338,11 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
           tileMs: [2100, 1400, 1050, 850],
           runSlackMs: 2400,
         },
+        hitsToSink: [2, 3, 5],
+        aim: { base: [-10, 0, 10, 15, 0], perGuarded: 5, perStruck: 12, skipRecent: 8 },
+        fire: { everyMs: 733, flightFactor: 1 },
       },
+      scoring: { hitPoints: 10, sinkPoints: [20, 40, 60], multiplier: 1 },
     },
   });
 }

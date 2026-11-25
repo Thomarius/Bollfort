@@ -833,6 +833,24 @@ beam, a wake while sailing, a fade in and out), in colours from `art.campaign` t
 changes; the layer sits over the looks and under the towers' marks. `stateFromAscii` reads `S` as
 a ship's 2 × 2 footprint on water. The snapshot does not carry the fleet yet (CA11).
 
+**CA4 done** (2026-11-25). `sim/src/campaign/gunnery.ts`. **Fleet shots are not `state.shots`**
+but `state.campaign.shots`: every style draws a player's shot in its owner's colour and versus
+play's rules judge a shot by its shooter, and a ship's has neither, so it lives apart, drawn by the
+campaign layer (a ball on an arc, its shadow under it) and landing through `landFleetShots`, which
+calls each style's own `noteImpact` from `matchScreen`; `inFlight` waits for them too. The aim
+(`fleetTarget`) scans columns left to right, scores by `fleet.aim`, skips the last eight aimed at
+and spreads away from the tiles struck this battle (`struck`, the campaign's own list: the
+Architects' `lostWalls` is kept only with towers on). A target goes to the next ship after the last
+to fire with no shot in the air, every 733 ms (22 ticks); its flight is a cannon's from the ship's
+middle. In a campaign `fire` takes any tile; a player's shot is tested against every ship's
+footprint, grown half a tile, where it is on the impact tick (strictly inside, so a ship standing
+still is hit on its own four tiles and a sailing one near where it is drawn). Hits score 10, a
+sinking 20/40/60 by kind, at once and times the difficulty's multiplier (`ruleset.campaign.scoring`);
+`hitsToSink` is the level's, one more from level 4. The client: splinters and smoke at a hit, a ship
+listing and going under in a ring of foam when sunk (told from one recycled, which fades), a
+cannon's sounds for the fleet's shots and a Bertha's landing for a sinking until the campaign has
+cues. The level-end tests play without ships: an idle player's walls no longer last.
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |

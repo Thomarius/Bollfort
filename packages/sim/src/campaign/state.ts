@@ -36,6 +36,25 @@ export interface Ship {
   /** Runs it has planned, which names each run's draw. */
   runs: number;
   arrivedTick: number;
+  /** Its one shot in flight, if any (CAMPAIGN §5.4). */
+  shotId: number | null;
+}
+
+/**
+ * A ship's shot. Apart from the players' (`state.shots`), which every style draws in its
+ * owner's colour and versus play's rules judge by its shooter: a fleet shot has neither.
+ */
+export interface FleetShot {
+  id: number;
+  shipId: number;
+  kind: ShipKind;
+  /** Where it was fired from, the ship's centre, in 1/256 of a tile. */
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+  launchTick: number;
+  impactTick: number;
 }
 
 export interface CampaignState {
@@ -51,6 +70,17 @@ export interface CampaignState {
   nextArrivalTick: number;
   /** The cannons the players were given this round, which the next wave grows by. */
   cannonsGiven: number;
+  /** The fleet's shots in flight. */
+  shots: FleetShot[];
+  nextShotId: number;
+  /** The next tick a target is handed to a ship, in a battle. */
+  nextFireTick: number;
+  /** The ship that fired last, by id: the next to fire is the next after it. */
+  fireCursor: number;
+  /** The tiles aimed at last, newest last, which the aim skips (CAMPAIGN §5.5). */
+  aimed: number[];
+  /** Team wall tiles cleared this battle, which the aim spreads its fire away from. */
+  struck: number[];
   /** Open sea, by tile: from the terrain, never changed, so not hashed. */
   sea: Uint8Array;
   /** Around the map's edge, clockwise: from the terrain too. */
@@ -76,7 +106,8 @@ export function hashCampaign(h: Hasher, campaign: CampaignState): void {
       .i32(s.hits)
       .i32(s.heading)
       .i32(s.runs)
-      .i32(s.arrivedTick);
+      .i32(s.arrivedTick)
+      .nullable(s.shotId);
     if (s.run === null) {
       h.bool(false);
     } else {
@@ -84,4 +115,14 @@ export function hashCampaign(h: Hasher, campaign: CampaignState): void {
       h.bool(true).i32(r.dx).i32(r.dy).i32(r.tiles).i32(r.startTick).i32(r.ticksPerTile);
     }
   }
+  h.i32(campaign.nextShotId).i32(campaign.nextFireTick).i32(campaign.fireCursor);
+  h.u32(campaign.shots.length);
+  for (const s of campaign.shots) {
+    h.i32(s.id).i32(s.shipId).i32(s.fromX).i32(s.fromY).i32(s.toX).i32(s.toY);
+    h.i32(s.launchTick).i32(s.impactTick);
+  }
+  h.u32(campaign.aimed.length);
+  for (const i of campaign.aimed) h.i32(i);
+  h.u32(campaign.struck.length);
+  for (const i of campaign.struck) h.i32(i);
 }

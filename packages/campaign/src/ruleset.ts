@@ -1,6 +1,7 @@
 import {
   CAMPAIGN_MAX_PLAYERS,
   RulesetSchema,
+  SHIP_KINDS,
   type CampaignConfig,
   type CampaignDifficulty,
   type CampaignDifficultyConfig,
@@ -128,7 +129,19 @@ export function campaignRuleset(
       fleet: {
         pool: poolFor(config, difficulty, level, players),
         maxAfloat: config.fleet.maxAfloat + config.fleet.maxAfloatPerExtraPlayer * (players - 1),
+        hitsToSink: SHIP_KINDS.map(
+          (kind) =>
+            config.fleet.kinds[kind].hitsToSink +
+            (level >= config.fleet.toughFromLevel ? config.fleet.extraHits : 0),
+        ) as ShipPool,
         timing: { ...config.fleet.timing, tileMs: [...config.fleet.timing.tileMs] },
+        aim: { ...config.fleet.aim, base: [...config.fleet.aim.base] },
+        fire: { ...config.fleet.fire },
+      },
+      scoring: {
+        hitPoints: config.scoring.hitPoints,
+        sinkPoints: SHIP_KINDS.map((kind) => config.fleet.kinds[kind].sinkPoints) as ShipPool,
+        multiplier: difficultyOf(config, difficulty).scoreMultiplier,
       },
       maxRounds: entry.maxRounds,
       lives: carry.lives,

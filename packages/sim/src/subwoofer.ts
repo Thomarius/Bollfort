@@ -201,6 +201,11 @@ export function advanceWaves(state: MatchState): void {
 }
 
 /** Whether anything is still in the air — a shot or a wave — that the intermission waits for. */
-export function inFlight(state: Pick<MatchState, 'shots' | 'waves'>): boolean {
-  return state.shots.length > 0 || state.waves.length > 0;
+export function inFlight(
+  state: Pick<MatchState, 'shots' | 'waves'> & { campaign?: MatchState['campaign'] },
+): boolean {
+  // A campaign's fleet's shots too, which a phase's end waits for as for the players'.
+  return (
+    state.shots.length > 0 || state.waves.length > 0 || (state.campaign?.shots.length ?? 0) > 0
+  );
 }

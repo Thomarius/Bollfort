@@ -22,6 +22,8 @@ function campaignRules(
     campaign: {
       ...campaign,
       maxRounds: overrides.maxRounds ?? 3,
+      // No ships: these are about the level's end, and an idle player's walls would not last.
+      fleet: { ...campaign.fleet, pool: [0, 0, 0] },
       lives: overrides.lives ?? 2,
       carry: { ...campaign.carry, scores: overrides.scores ?? [0] },
     },

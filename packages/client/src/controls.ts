@@ -67,6 +67,8 @@ export function inputMode(state: MatchState, playerId: number): InputMode {
  * cursor never looks ready over ground the shot would be refused on.
  */
 export function mayTarget(state: MatchState, playerId: number, x: number, y: number): boolean {
+  // A campaign's guns fire anywhere: at the ships, and at what comes ashore (CAMPAIGN §5.6).
+  if (state.campaign !== null) return true;
   const island = state.islandId[y * state.width + x] as number;
   if (island === 0) return true;
   const own = island === state.players[playerId]?.islandId;

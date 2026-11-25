@@ -164,6 +164,16 @@
       "spawnStepRange": 10,
       "tileMs": [2100, 1400, 1050, 850],
       "runSlackMs": 2400
+    },
+    "aim": {
+      "base": [-10, 0, 10, 15, 0],
+      "perGuarded": 5,
+      "perStruck": 12,
+      "skipRecent": 8
+    },
+    "fire": {
+      "everyMs": 733,
+      "flightFactor": 1
     }
   },
   "threat": {

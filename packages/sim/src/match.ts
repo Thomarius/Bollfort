@@ -29,6 +29,7 @@ import { levelCleared, levelEndAtResolution } from './campaign/level.js';
 import { generateCampaignTerrain } from './campaign/terrain.js';
 import { advanceFleet, formWave, openBattle, openBuild } from './campaign/fleet.js';
 import { hashCampaign } from './campaign/state.js';
+import { landFleetShots } from './campaign/gunnery.js';
 import {
   PHASES,
   Structure,
@@ -185,6 +186,12 @@ export function createMatch(options: MatchOptions): MatchState {
       nextArrivalTick: 0,
       // The first wave grows by the opening guns, as every later one by the round's.
       cannonsGiven: ruleset.cannons.startingCount * playerCount,
+      shots: [],
+      nextShotId: 0,
+      nextFireTick: 0,
+      fireCursor: -1,
+      aimed: [],
+      struck: [],
       sea,
       spawnPoints: generated.spawnPoints,
     };
@@ -805,6 +812,8 @@ export function step(state: MatchState): void {
   if (state.phase === 'game_over') return;
   state.tick++;
   resolveImpacts(state);
+  // A campaign's fleet's shots, apart from the players' (docs/CAMPAIGN.md §5.4).
+  if (state.campaign !== null) landFleetShots(state);
   // The Subwoofers' waves travel on, landing in the intermission too, which waits for them.
   advanceWaves(state);
   // The Drone Towers launch on their own — after the barrels this tick freed, and before the

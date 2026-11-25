@@ -19,6 +19,7 @@ import {
   strikesOnFiring,
 } from './specials.js';
 import { sameTeam } from './teams.js';
+import { hitShips } from './campaign/gunnery.js';
 import { Structure, type Cannon, type MatchState, type Shot } from './types.js';
 
 /** Tiles a landed shot clears, relative to the impact tile. */
@@ -149,14 +150,18 @@ export function fire(
   }
   // Refused rather than fired and wasted: a shot here could only ever hit your own
   // wall, which neither damages it nor scores.
+  // In a campaign any tile: the sea for the ships, the team's own land for what comes ashore
+  // (docs/CAMPAIGN.md §5.6). Such a shot never harms the team's walls, `strikable` sees to that.
   const island = state.islandId[ty * state.width + tx] as number;
-  if (!state.ruleset.shots.damagesOwnWalls && island === player.islandId) {
-    return { rejection: 'own_island' };
-  }
-  // A teammate's island never, whatever the rules say about your own: a team cannot
-  // attack itself in any way.
-  if (island !== 0 && island !== player.islandId && sameTeam(state, playerId, island - 1)) {
-    return { rejection: 'teammate_island' };
+  if (state.campaign === null) {
+    if (!state.ruleset.shots.damagesOwnWalls && island === player.islandId) {
+      return { rejection: 'own_island' };
+    }
+    // A teammate's island never, whatever the rules say about your own: a team cannot
+    // attack itself in any way.
+    if (island !== 0 && island !== player.islandId && sameTeam(state, playerId, island - 1)) {
+      return { rejection: 'teammate_island' };
+    }
   }
 
   const cannon = findReadyCannon(state, playerId, tx, ty);
@@ -362,6 +367,8 @@ export function resolveImpacts(state: MatchState): void {
     if (shot.kind === 'frost') freezeTile(state, shot);
     // A Lullaby Tower's, and the enemy gun nearest it falls asleep.
     if (shot.kind === 'lullaby') singLullaby(state, shot);
+    // A campaign's ship near where it lands takes the hit (docs/CAMPAIGN.md §5.6).
+    if (state.campaign !== null) hitShips(state, shot);
   }
 
   state.shots = remaining;
