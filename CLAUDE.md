@@ -257,7 +257,7 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
   CA1–CA6 done (a solo level on its own generated map against ships that sail,
   fire and sink, grunts that land and smash, frost ships' ice, a level cleared by the fleet's
   threat or its round limit; a campaign of levels with its screens and saves, the menu's Campaign
-  button behind `campaign.menuButton`; the first playtest's fixes); CA9 next. A mode of its own: never a change to versus rules or
+  button behind `campaign.menuButton`; the first playtest's fixes; Medieval's and Night's fleet, the threat gauge, the callouts); CA10 next. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
   listed and a room's code with the real server, a tournament match's end and a person's Rematch.

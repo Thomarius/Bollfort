@@ -74,8 +74,10 @@ describe('which look is on screen', () => {
       before: 'combat',
       after: 'combat',
     });
-    // And no banner crosses before the end.
+    // And no banner crosses before the end, nor is the look changed as it comes.
     expect(bannerProgress(at(999, 'intermission', 'game_over'), 0)).toBeNull();
+    const won = { ...at(1000, 'game_over'), campaign: { wonInBattle: true } } as MatchState;
+    expect(looksAround(won)).toEqual({ before: 'combat', after: 'combat' });
   });
 
   it('keeps the phase look outside an intermission', () => {

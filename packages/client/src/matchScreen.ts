@@ -34,6 +34,7 @@ import { onGraphics, storedGraphics } from './graphics.js';
 import { LookRotation, openLookGallery } from './looks.js';
 import { openStyleShowcase, showcaseOpen } from './styleShowcase.js';
 import { t } from './i18n.js';
+import { CampaignCallouts } from './campaignCallouts.js';
 import { Hud } from './hud.js';
 import type { IslandBanner } from './boardLabels.js';
 import { MatchAudio } from './matchAudio.js';
@@ -274,6 +275,7 @@ export async function runSession(
   };
 
   const hud = new Hud(hudRoot, bannerRoot);
+  const campaignCallouts = new CampaignCallouts();
   // The menu's sea stops drifting under the match's canvas (style.css, `#backdrop`).
   document.body.classList.add('in-match');
   // What the end of the match summarises, kept from the events as they come.
@@ -809,6 +811,9 @@ export async function runSession(
     let structuresChanged = false;
     let territoryChanged = false;
     for (const event of events) {
+      // A campaign's callouts: ships approaching, troops landing, a frost ship sighted (CA9).
+      const callout = campaignCallouts.note(event, session.state);
+      if (callout !== null) hud.callout(t(callout));
       switch (event.kind) {
         case 'shot_impact': {
           const { width, islandId } = session.state;

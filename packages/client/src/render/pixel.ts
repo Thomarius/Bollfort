@@ -72,6 +72,8 @@ import { clearDrawn } from './clearDrawn.js';
 import { outline, strokePieceEdge } from './walls.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
 import { FALCON_DRONE } from './droneLooks.js';
+import { MEDIEVAL_FLEET, NIGHT_FLEET, type FleetLook } from './fleetLooks.js';
+import { fleetShotsAsShots } from './campaignMarks.js';
 import { gunSpan } from './fortified.js';
 
 interface Blast {
@@ -223,6 +225,11 @@ export class PixelTheme implements Theme {
   readonly id: ArtStyle;
   /** Its drones, one falcon for Medieval and Night alike (`droneLooks.ts`). */
   readonly drone = FALCON_DRONE;
+
+  /** A campaign's ships and grunts in its pixels; by Night darkened, with lanterns (CA9). */
+  get fleet(): FleetLook {
+    return this.torchlit ? NIGHT_FLEET : MEDIEVAL_FLEET;
+  }
 
   private art!: ArtConfig;
   private textures = new Map<string, Texture>();
@@ -1518,7 +1525,8 @@ export class PixelTheme implements Theme {
     const trail = this.art.generators.fx.shotTrailLengthPx / this.art.tileSizePx;
     this.crowns.draw(view, state, this.art, frame.castleSealed);
     const above = this.aboveCrownsGfx;
-    for (const shot of state.shots) {
+    // A campaign's fleet fires its own cannonballs, drawn as the players' are (CA9).
+    for (const shot of [...state.shots, ...fleetShotsAsShots(state)]) {
       const t = shotProgress(shot, now);
       const x = shot.fromX + (shot.toX - shot.fromX) * t;
       const y = shot.fromY + (shot.toY - shot.fromY) * t;

@@ -9975,3 +9975,100 @@ img.avatar {
   border: 1px solid rgb(0 0 0 / 40%);
   border-radius: 0.2rem;
 }
+
+/* A campaign's threat, in the middle of the bar (CA9, the user's): the enemy fleet's strength as a
+   wide gauge, falling towards the mark where the level is won; green once below it. */
+.bar .threat {
+  position: absolute;
+  top: var(--hud-pad-top, 0.6rem);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  width: min(34rem, 40vw);
+  transform: translateX(-50%);
+}
+
+.bar .threat[hidden] {
+  display: none;
+}
+
+.threat-label {
+  color: var(--hud-muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.threat-gauge {
+  position: relative;
+  width: 100%;
+  height: 0.9rem;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 0.45rem;
+  background: rgb(0 0 0 / 40%);
+  overflow: hidden;
+}
+
+.threat-gauge i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: linear-gradient(90deg, #8a1f1f, #e0402f);
+  transition: width 0.8s ease-out;
+}
+
+.threat-gauge b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #f4f1e8;
+  box-shadow: 0 0 4px rgb(0 0 0 / 60%);
+}
+
+.threat-gauge.beaten i {
+  background: linear-gradient(90deg, #2f7a32, #5fae5a);
+}
+
+/* A campaign's callout over the board (CA9): a few words, in, held, out. */
+.campaign-callout {
+  position: fixed;
+  top: 22%;
+  left: 50%;
+  z-index: 30;
+  padding: 0.4rem 1.2rem;
+  border-radius: 0.5rem;
+  background: rgb(10 12 18 / 72%);
+  color: #f4f1e8;
+  font-family: var(--heading-font, inherit);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%);
+}
+
+.campaign-callout.shown {
+  animation: campaign-callout 2.6s ease-out forwards;
+}
+
+@keyframes campaign-callout {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -0.6rem);
+  }
+
+  12%,
+  75% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 0);
+  }
+}

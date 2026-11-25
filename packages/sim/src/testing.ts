@@ -234,6 +234,7 @@ export function stateFromAscii(
       sunk: [0, 0, 0],
       gruntsKilled: 0,
       boosts: players.map(() => 0),
+      wonInBattle: false,
       sea,
       spawnPoints: spawnPointsOf(sea, width, height),
     };

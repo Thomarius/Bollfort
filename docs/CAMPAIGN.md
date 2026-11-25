@@ -937,6 +937,35 @@ campaign only:
 - **Four difficulties**, Easy, Normal, Veteran and Legend, the reserved two offered (ids `easy` and
   `legend`, `easier` and `harder` before).
 
+**CA9 built** (2026-11-25), for the user's look. A style may hand the campaign layer its own
+drawing of the enemy (`FleetLook`, `render/fleetLooks.ts`, the theme's optional `fleet`, as
+`drone` is); the rest keep the shared one. **Medieval and Night**: ships rasterised a pixel at a
+time from their shape along the heading — hull, deck, two square sails across the beam, a pennant,
+a transport's soldiers, a frost ship's cold bow, holes torn in the sails by the hits taken — once
+straight and once diagonal, and turned only by quarter turns, so the pixels stay square at all
+eight headings; placed on the style's pixel grid. Grunts are small pixel soldiers, kept simple
+(the user's: there may be many), turned to their facing. Night tints both as it darkens its board
+and hangs a lantern at each stern. Medieval's own cannonballs draw the fleet's shots, Night's
+burning (`fleetShotsAsShots`). Sinking, hits and wakes are the shared layer's in every style. The
+**fleet bar** beside the round (`fleetBar`, no figures, the user's): the fleet's threat against the
+whole fleet the level began with, a mark at the threshold, green once below it. **Callouts** over
+the board (`campaignCallouts.ts`, `Hud.callout`): "Ships approaching!" as a wave begins to arrive,
+"Troops landing!" as a build phase's first grunt comes ashore, "A frost ship sighted!" for the
+level's first; each once a phase. "Level cleared" is the end screen's.
+
+**After the user's look at CA9** (2026-11-25): the level is won the moment nothing is left to fight
+— no ship afloat, waiting or to come, no grunt ashore — once the last shot in the air is down, in
+any phase (`fleetGone`, checked after each step); a level won in a battle or the pause after it
+keeps the battle's look at its end (`campaign.wonInBattle`), where it had jumped to the build look
+as the match ended — a jump caught in frames, and the likeliest of the brief flash the user saw
+before the summary. The threat moved to the middle of the HUD's bar, wide, labelled "Threat ·
+round 2 / 8" ("Bedrohung"), the round leaving the left; its gauge slides by its style rather than
+its markup being rewritten.
+And the time taken no longer changes the fleet: ships arrive one of each kind a second, so a castle
+chosen at once had left level 1's first battle with one ship of three. As the castle choice ends,
+and as a build phase does, every ship still waiting in the wave comes in at once, while there is
+room afloat (`flushArrivals`).
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |

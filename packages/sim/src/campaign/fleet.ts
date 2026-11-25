@@ -193,6 +193,32 @@ function arrive(state: MatchState): void {
 }
 
 /**
+ * As a castle choice or a build phase ends: every ship still waiting in the wave comes in at once,
+ * one of each kind in turn, while there is room afloat and a free place at the edge. How long a
+ * player took to choose — or how soon a build phase's overtime ended — must not change the fleet
+ * they face: choosing at once had left level 1's first battle with one ship of three (the user's
+ * playtest, 2026-11-25).
+ */
+export function flushArrivals(state: MatchState): void {
+  if (state.campaign === null) return;
+  const fleet = fleetOf(state);
+  const rules = rulesOf(state);
+  let launched = true;
+  while (launched) {
+    launched = false;
+    const wave: KindCounts = [...fleet.wave];
+    SHIP_KINDS.forEach((kind, k) => {
+      if ((wave[k] as number) <= 0 || fleet.ships.length >= rules.fleet.maxAfloat) return;
+      if (launch(state, kind)) {
+        wave[k] = (wave[k] as number) - 1;
+        launched = true;
+      }
+    });
+    fleet.wave = wave;
+  }
+}
+
+/**
  * A ship at the map's edge: the cursor steps on some way round the spawn points, and the first
  * free one from there takes it. False when none is free: it waits in the wave.
  */

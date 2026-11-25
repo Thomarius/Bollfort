@@ -1,5 +1,5 @@
 import type { TextKey } from '@bollfort/config';
-import { shipsLeft, teamScore, type MatchState, type PlayerState } from '@bollfort/sim';
+import { teamScore, threat, type MatchState, type PlayerState } from '@bollfort/sim';
 
 import { listOf, t, type TextParams } from './i18n.js';
 
@@ -83,16 +83,13 @@ export function teamStandings(state: MatchState): TeamStanding[] {
 }
 
 export function roundLabel(state: MatchState): string {
-  // A campaign level: its rounds against its limit, and the ships still to beat — afloat, waiting
-  // and to come — where the threat's figure against its threshold read as nothing (the user's,
-  // 2026-11-25); the HUD's fleet bar is CA9's.
+  // A campaign level: its rounds against its limit; how far the fleet still is from beaten is
+  // the fleet bar's to show (`fleetBar`).
   const campaign = state.ruleset.campaign;
   if (campaign !== undefined) {
-    const round =
-      state.round === 0
-        ? t('round.opening')
-        : t('round.labelOf', { round: state.round, cap: campaign.maxRounds });
-    return t('round.campaign', { round, ships: shipsLeft(state) });
+    return state.round === 0
+      ? t('round.opening')
+      : t('round.labelOf', { round: state.round, cap: campaign.maxRounds });
   }
   // Round 0 is the opening, castles chosen and the first cannons placed: no round has been
   // played, and "round 0 / 10" read as a fault (PLAN §11 item 4, UP1).
@@ -291,4 +288,23 @@ export function countUp(from: number, to: number, elapsedMs: number, spanMs: num
   const t = Math.max(0, elapsedMs / spanMs);
   const eased = 1 - (1 - t) * (1 - t);
   return Math.round(from + (to - from) * eased);
+}
+
+/**
+ * The campaign's fleet bar (docs/CAMPAIGN.md §14.1), as fractions of its length: `fill` the
+ * fleet's threat against the whole fleet the level began with, `mark` the threshold it must fall
+ * below for the level to be won — no figures (the user's, 2026-11-25), only how far there is
+ * still to go. A fleet grown past its start, with grunts ashore or frost ships come, fills it.
+ * Whole percents, so the HUD's markup changes only when the bar visibly does. Null in versus play.
+ */
+export function fleetBar(state: MatchState): { fill: number; mark: number } | null {
+  const campaign = state.ruleset.campaign;
+  if (campaign === undefined || state.campaign === null) return null;
+  const whole = campaign.fleet.pool.reduce(
+    (sum, n, k) => sum + n * (campaign.fleet.weights[k] as number),
+    0,
+  );
+  if (whole <= 0) return { fill: 0, mark: 0 };
+  const share = (v: number): number => Math.round(Math.min(1, Math.max(0, v / whole)) * 100) / 100;
+  return { fill: share(threat(state)), mark: share(campaign.threshold) };
 }

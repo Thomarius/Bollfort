@@ -25,9 +25,14 @@ import { launchDrones } from './drone.js';
 import { repairWalls } from './specials.js';
 import { denseTeams, tableTeamSize, teamScore } from './teams.js';
 import { generateTerrain } from './terrain.js';
-import { fleetBeaten, levelEndAtResolution, roundLimitReached } from './campaign/level.js';
+import {
+  fleetBeaten,
+  fleetGone,
+  levelEndAtResolution,
+  roundLimitReached,
+} from './campaign/level.js';
 import { generateCampaignTerrain } from './campaign/terrain.js';
-import { advanceFleet, formWave, openBattle, openBuild } from './campaign/fleet.js';
+import { advanceFleet, flushArrivals, formWave, openBattle, openBuild } from './campaign/fleet.js';
 import { hashCampaign } from './campaign/state.js';
 import { landFleetShots } from './campaign/gunnery.js';
 import { advanceGrunts, clearRing, clearWalledIn } from './campaign/grunts.js';
@@ -205,6 +210,7 @@ export function createMatch(options: MatchOptions): MatchState {
       sunk: [0, 0, 0],
       gruntsKilled: 0,
       boosts: players.map(() => 0),
+      wonInBattle: false,
       sea,
       spawnPoints: generated.spawnPoints,
     };
@@ -327,6 +333,8 @@ function buildStartingRing(state: MatchState, castle: Castle): void {
 }
 
 function finishCastleSelect(state: MatchState): void {
+  // The first wave in whole, however soon the castles were chosen (CAMPAIGN §5.2).
+  flushArrivals(state);
   for (const player of state.players) {
     if (player.startingCastleId !== null) continue;
     // Timed out: take the lowest-numbered castle on this player's island, so an
@@ -435,6 +443,26 @@ function checkGameOver(state: MatchState): boolean {
     );
   }
   return true;
+}
+
+/**
+ * A campaign level won: everyone still in has cleared it. Whether it was won in a battle — the
+ * battle or the pause after it — is kept, so the screen stays in the battle's look rather than
+ * jumping to the build look as the match ends.
+ */
+function winLevel(state: MatchState): void {
+  if (state.campaign !== null) {
+    state.campaign.wonInBattle =
+      state.phase === 'combat' ||
+      (state.phase === 'intermission' &&
+        (state.pendingPhase === 'build' || state.pendingPhase === 'game_over'));
+  }
+  endMatch(
+    state,
+    alivePlayers(state).map((p) => p.id),
+    false,
+    'level_cleared',
+  );
 }
 
 function endMatch(state: MatchState, winners: number[], draw: boolean, endedBy: MatchEnd): void {
@@ -803,6 +831,8 @@ function advancePhase(state: MatchState): void {
         // Every freeze ends with the phase, a whole phase's too: the cannon phase is never frozen.
         // A campaign's ice lasts its build phases, aged as each battle opens (CAMPAIGN §7).
         state.frozen = state.campaign === null ? [] : state.frozen.filter(lasting);
+        // The build phase's wave in whole, however soon its overtime ended (CAMPAIGN §5.2).
+        flushArrivals(state);
         resolveRound(state);
       }
       return;
@@ -842,12 +872,7 @@ function advancePhase(state: MatchState): void {
       // Or the level's round limit reached, as the intermission ends: everyone still in has
       // survived it (CAMPAIGN §8.3).
       if (won || (state.pendingPhase === 'build' && roundLimitReached(state))) {
-        endMatch(
-          state,
-          alivePlayers(state).map((p) => p.id),
-          false,
-          'level_cleared',
-        );
+        winLevel(state);
         return;
       }
       beginPendingPhase(state);
@@ -875,6 +900,17 @@ export function step(state: MatchState): void {
   advanceFleet(state);
   advanceGrunts(state);
   advancePhase(state);
+  // Nothing left at all — no ship afloat, waiting or to come, no grunt ashore — and the last shot
+  // down: the level is won there and then, in whatever phase (the user's, 2026-11-25).
+  // (`advancePhase` may have ended the match: the phase read afresh.)
+  if (
+    state.campaign !== null &&
+    (state.phase as Phase) !== 'game_over' &&
+    fleetGone(state) &&
+    !inFlight(state)
+  ) {
+    winLevel(state);
+  }
 }
 
 /** Advances to an absolute tick. */

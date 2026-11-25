@@ -231,7 +231,6 @@
   "round.label": "Runde {round}",
   "round.labelOf": "Runde {round} / {cap}",
   "round.finalOf": "letzte Runde {round} / {cap}",
-  "round.campaign": "{round} · Schiffe übrig: {ships}",
   "announce.finalRound": "Letzte Runde",
   "announce.fire": "Feuer!",
   "end.draw": "Unentschieden — niemand hielt eine Burg",
@@ -1030,5 +1029,9 @@
   "campaign.legend": "Legende",
   "campaign.easyHint": "Vier Leben, beliebig viele Wiederholungen, Punkte × 0,75",
   "campaign.legendHint": "Ein Leben, keine Wiederholung, ab Level 2, Punkte × 2",
-  "campaign.tougher": "Ab diesem Level verträgt jedes Schiff einen Treffer mehr."
+  "campaign.tougher": "Ab diesem Level verträgt jedes Schiff einen Treffer mehr.",
+  "campaign.shipsApproaching": "Schiffe in Sicht!",
+  "campaign.troopsLanding": "Truppen landen!",
+  "campaign.frostSighted": "Ein Frostschiff in Sicht!",
+  "campaign.threat": "Bedrohung"
 }

@@ -7,7 +7,7 @@ import {
   type Ruleset,
 } from '@bollfort/config';
 
-import { createMatch, hashMatchState, step } from '../match.js';
+import { applyAction, createMatch, hashMatchState, step } from '../match.js';
 import { campaignLevelRuleset, fastRuleset, stateFromAscii } from '../testing.js';
 import { fire } from '../shots.js';
 import { openBuild } from './fleet.js';
@@ -28,7 +28,9 @@ function campaignRules(
       maxRounds: overrides.maxRounds ?? 3,
       // No ships: these are about the level's end, and an idle player's walls would not last.
       // And no threat, so only the round limit or the lives can end the level.
-      fleet: { ...campaign.fleet, pool: [0, 0, 0] },
+      // One ship that never fires (`solo` puts it at sea), so the level is never won for having
+      // nothing left to fight.
+      fleet: { ...campaign.fleet, pool: [0, 0, 0], fire: { ...campaign.fleet.fire, everyMs: 1e9 } },
       threshold: 0,
       threat: { perGrunt: 0, perCannon: 0 },
       lives: overrides.lives ?? 2,
@@ -38,12 +40,33 @@ function campaignRules(
 }
 
 function solo(ruleset: Ruleset, seed = 7): MatchState {
-  return createMatch({
+  const state = createMatch({
     seed,
     ruleset,
     terrainConfig: defaultTerrainConfig,
     players: [{ name: 'You', isBot: false }],
   });
+  // A level with no fleet of its own gets the dormant ship its rules ask for.
+  const fleet = state.campaign as CampaignState;
+  const at = fleet.spawnPoints[0];
+  if (fleet.pool.every((n) => n === 0) && at !== undefined) {
+    fleet.ships = [
+      {
+        id: 999,
+        kind: 'raider',
+        x: at.x,
+        y: at.y,
+        hits: 0,
+        heading: 0,
+        run: null,
+        runs: 0,
+        arrivedTick: 0,
+        shotId: null,
+        nextLandTick: 0,
+      },
+    ];
+  }
+  return state;
 }
 
 /** Steps until the phase is reached or the match is over, never more than `limit` ticks. */
@@ -213,8 +236,9 @@ describe('a campaign level', () => {
     const landing = 'shot' in fired ? fired.shot.impactTick : 0;
     stepUntil(state, (s) => s.phase === 'game_over');
     expect(state.endedBy).toBe('level_cleared');
-    // Ended on the tick the shot came down, not after the pause and the banner.
+    // Ended on the tick the shot came down, not after the pause and the banner, in the battle's look.
     expect(state.tick).toBe(landing);
+    expect((state.campaign as CampaignState).wonInBattle).toBe(true);
   });
 
   it('gives a player faster shots for each life lost, twice at most', () => {
@@ -239,5 +263,33 @@ describe('a campaign level', () => {
     if (!('shot' in plain)) return;
     const slow = plain.shot.impactTick - plain.shot.launchTick;
     expect(Math.abs(flight * 1.5 - slow)).toBeLessThanOrEqual(1.5);
+  });
+
+  it('is won the moment nothing is left to fight, the last shot down, in any phase', () => {
+    const state = solo(campaignRules({ maxRounds: 10 }));
+    stepUntil(state, (s) => s.phase === 'build');
+    expect(state.phase).toBe('build');
+    // The last ship gone, nothing to come, no grunt ashore: won in the build phase itself.
+    (state.campaign as CampaignState).ships = [];
+    step(state);
+    expect(state.phase).toBe('game_over');
+    expect(state.endedBy).toBe('level_cleared');
+    // Won while building, so the screen keeps the build look.
+    expect((state.campaign as CampaignState).wonInBattle).toBe(false);
+  });
+
+  it('brings the first wave in whole however soon the castle is chosen', () => {
+    // Chosen at once, and chosen at the last moment: the same ships face the first battle.
+    const quick = solo(campaignLevelRuleset(fastRuleset(defaultRuleset)), 5);
+    const slow = solo(campaignLevelRuleset(fastRuleset(defaultRuleset)), 5);
+    stepUntil(quick, (s) => s.phase === 'castle_select');
+    const castle = quick.castles[0];
+    expect(castle).toBeDefined();
+    applyAction(quick, { kind: 'select_castle', player: 0, castleId: castle?.id ?? 0 });
+    stepUntil(quick, (s) => s.phase === 'combat');
+    stepUntil(slow, (s) => s.phase === 'combat');
+    const ships = (s: MatchState): number => (s.campaign as CampaignState).ships.length;
+    expect(ships(quick)).toBe(3);
+    expect(ships(slow)).toBe(3);
   });
 });

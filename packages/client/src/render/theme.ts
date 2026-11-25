@@ -9,6 +9,7 @@ import { EMBLEMS } from '../towerIcons.js';
 import type { DrainWash, SealGlow } from '../seal.js';
 
 import type { DroneLook } from './drones.js';
+import type { FleetLook } from './fleetLooks.js';
 import { viewKey } from './stamps.js';
 import { PETALS, drawPetal } from './ukiyo.js';
 import { drawLyre, drawRose } from './music.js';
@@ -80,6 +81,12 @@ export interface Theme {
    * look in front; the first quadcopter where it brings none.
    */
   readonly drone?: DroneLook;
+
+  /**
+   * How it draws a campaign's ships and grunts (`fleetLooks.ts`), drawn by the shared campaign
+   * layer in the look in front; the plain drawing every style shares where it brings none.
+   */
+  readonly fleet?: FleetLook;
 
   /** Releases textures and display objects. */
   destroy(): void;

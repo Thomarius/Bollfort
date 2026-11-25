@@ -231,7 +231,6 @@
   "round.label": "round {round}",
   "round.labelOf": "round {round} / {cap}",
   "round.finalOf": "final round {round} / {cap}",
-  "round.campaign": "{round} · ships left: {ships}",
   "announce.finalRound": "Final round",
   "announce.fire": "Fire!",
   "end.draw": "Draw — nobody held a castle",
@@ -1033,5 +1032,9 @@
   "campaign.legend": "Legend",
   "campaign.easyHint": "Four lives, retries without limit, points × 0.75",
   "campaign.legendHint": "One life, no retry, from level 2, points × 2",
-  "campaign.tougher": "From this level on every ship takes one hit more."
+  "campaign.tougher": "From this level on every ship takes one hit more.",
+  "campaign.shipsApproaching": "Ships approaching!",
+  "campaign.troopsLanding": "Troops landing!",
+  "campaign.frostSighted": "A frost ship sighted!",
+  "campaign.threat": "Threat"
 }

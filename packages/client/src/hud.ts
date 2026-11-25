@@ -16,6 +16,7 @@ import {
   isTeamMatch,
   lifePips,
   roundLabel,
+  fleetBar,
   standings,
   teamLetter,
   teamStandings,
@@ -131,6 +132,28 @@ export class Hud {
 
   /** The announcement crossing the screen, if one is. */
   private phaseCall: HTMLElement | null = null;
+
+  /** A campaign's callout over the board, made when first needed (`callout`). */
+  private calloutEl: HTMLElement | null = null;
+
+  /**
+   * A few words over the board for a moment — a campaign's "Ships approaching!" — in an element of
+   * its own beside the HUD, never in the banner layer, whose children are the announcement's and
+   * the islands' labels.
+   */
+  callout(text: string): void {
+    if (this.calloutEl === null) {
+      this.calloutEl = document.createElement('div');
+      this.calloutEl.className = 'campaign-callout';
+      this.root.append(this.calloutEl);
+    }
+    const el = this.calloutEl;
+    el.textContent = text;
+    // Started again from its beginning, however far the last one had come.
+    el.classList.remove('shown');
+    void el.offsetWidth;
+    el.classList.add('shown');
+  }
 
   private skin: string | null = null;
 
@@ -330,6 +353,8 @@ export class Hud {
     phase: HTMLElement;
     roster: HTMLElement;
     rest: HTMLElement;
+    threat: HTMLElement;
+    threatLabel: string;
     phaseHtml: string;
     timer: HTMLElement | null;
     seconds: string;
@@ -353,13 +378,15 @@ export class Hud {
   private layout(): NonNullable<Hud['frame']> {
     if (this.frame !== null && this.frame.roster.isConnected) return this.frame;
     this.root.innerHTML =
-      '<div class="bar"><div class="phase"></div><ul class="roster"></ul></div>' +
+      '<div class="bar"><div class="phase"></div><div class="threat"></div><ul class="roster"></ul></div>' +
       '<div class="hud-rest"></div>';
     this.entries.clear();
     this.frame = {
       phase: this.root.querySelector<HTMLElement>('.phase')!,
       roster: this.root.querySelector<HTMLElement>('.roster')!,
       rest: this.root.querySelector<HTMLElement>('.hud-rest')!,
+      threat: this.root.querySelector<HTMLElement>('.threat')!,
+      threatLabel: '',
       phaseHtml: '',
       timer: null,
       seconds: '',
@@ -368,6 +395,34 @@ export class Hud {
       fillWidth: '',
     };
     return this.frame;
+  }
+
+  /**
+   * A campaign's threat in the middle of the bar (the user's, 2026-11-25): labelled, with the
+   * round, over a wide gauge whose fill is the fleet's strength and whose mark is where the level
+   * is won (`fleetBar`). The label is written when it changes; the gauge is moved by its style,
+   * so it slides rather than jumps. Hidden in versus play.
+   */
+  private drawThreat(frame: NonNullable<Hud['frame']>, state: MatchState): void {
+    const bar = fleetBar(state);
+    const root = frame.threat;
+    root.hidden = bar === null;
+    if (bar === null) return;
+    const label = `${t('campaign.threat')} · ${roundLabel(state)}`;
+    if (label !== frame.threatLabel) {
+      frame.threatLabel = label;
+      root.innerHTML =
+        `<span class="threat-label">${escape(label)}</span>` +
+        `<span class="threat-gauge"><i></i><b></b></span>`;
+    }
+    const gauge = root.querySelector<HTMLElement>('.threat-gauge');
+    gauge?.classList.toggle('beaten', bar.fill <= bar.mark);
+    const fill = root.querySelector<HTMLElement>('.threat-gauge i');
+    const mark = root.querySelector<HTMLElement>('.threat-gauge b');
+    const width = `${Math.round(bar.fill * 100)}%`;
+    const left = `${Math.round(bar.mark * 100)}%`;
+    if (fill !== null && fill.style.width !== width) fill.style.width = width;
+    if (mark !== null && mark.style.left !== left) mark.style.left = left;
   }
 
   /** A score as shown: counting up to a new total over `tallyMs`, as banked points do. */
@@ -622,7 +677,10 @@ export class Hud {
       (waiting || state.phase === 'game_over' || !showsClock(state)
         ? `<span class="timer" style="visibility:hidden"></span>`
         : `<span class="timer"></span>`) +
-      `<span class="round${inFinalRound(state) ? ' final' : ''}">${roundLabel(state)}</span>`;
+      (state.ruleset.campaign === undefined
+        ? `<span class="round${inFinalRound(state) ? ' final' : ''}">${roundLabel(state)}</span>`
+        : '');
+    this.drawThreat(frame, state);
     // Measured again when the clock loses or gains a figure, from 10.0 s to 9.9 s.
     const rewrite = phaseHtml !== frame.phaseHtml;
     const remeasure = rewrite || seconds.length !== frame.seconds.length;

@@ -48,6 +48,10 @@ export function holdsCombatEnclosure(state: Pick<MatchState, 'phase' | 'pendingP
  * straight to combat, and comes out right with no rule of its own.
  */
 export function looksAround(state: MatchState): { before: Look; after: Look } {
+  // A campaign level won in a battle ends in the battle's look, not with a jump to the build look.
+  if (state.phase === 'game_over' && state.campaign?.wonInBattle === true) {
+    return { before: 'combat', after: 'combat' };
+  }
   if (state.phase !== 'intermission') {
     const look = lookOf(state.phase);
     return { before: look, after: look };

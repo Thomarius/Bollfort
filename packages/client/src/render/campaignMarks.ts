@@ -8,10 +8,12 @@ import {
   type Grunt,
   type MatchState,
   type Ship,
+  type Shot,
 } from '@bollfort/sim';
 
 import { motionReduced } from '../motion.js';
 import { Discs, StampBook, Stamps } from './stamps.js';
+import type { FleetLook } from './fleetLooks.js';
 import { hex, tileX, tileY, type ViewTransform } from './theme.js';
 
 /**
@@ -26,7 +28,7 @@ interface Leaving {
   ship: Ship;
   x: number;
   y: number;
-  angle: number;
+  heading: number;
   /** Milliseconds left of its fade. */
   left: number;
 }
@@ -36,7 +38,7 @@ interface Sinking {
   ship: Ship;
   x: number;
   y: number;
-  angle: number;
+  heading: number;
   /** Milliseconds since it was sunk. */
   age: number;
 }
@@ -84,7 +86,7 @@ export class CampaignMarks {
   /** Splinters, smoke and the fleet's balls in the air, over the ships. */
   private readonly air = new Discs();
   /** Where each ship was drawn last frame, by id, so one gone fades out there. */
-  private seen = new Map<number, { ship: Ship; x: number; y: number; angle: number }>();
+  private seen = new Map<number, { ship: Ship; x: number; y: number; heading: number }>();
   private leaving: Leaving[] = [];
   private sinking: Sinking[] = [];
   /** Ships just hit, by id, and how long ago. */
@@ -123,7 +125,7 @@ export class CampaignMarks {
       ship,
       x: x / 256 + SHIP_SIZE / 2,
       y: y / 256 + SHIP_SIZE / 2,
-      angle: last?.angle ?? 0,
+      heading: last?.heading ?? 0,
       age: 0,
     });
   }
@@ -134,6 +136,8 @@ export class CampaignMarks {
     art: ArtConfig,
     tickFraction: number,
     deltaMs: number,
+    /** The front look's own drawing of the enemy, where it has one; the shared one otherwise. */
+    style: FleetLook | undefined = undefined,
   ): void {
     const fleet = state.campaign;
     const idle =
@@ -152,7 +156,7 @@ export class CampaignMarks {
     this.ships.begin();
     this.air.begin(tile);
 
-    const seen = new Map<number, { ship: Ship; x: number; y: number; angle: number }>();
+    const seen = new Map<number, { ship: Ship; x: number; y: number; heading: number }>();
     for (const ship of fleet?.ships ?? []) {
       // Between this tick's place and the next's, as shots are drawn between ticks.
       const a = shipPosition(ship, state.tick);
@@ -163,12 +167,12 @@ export class CampaignMarks {
         ship.run === null
           ? (HEADINGS[ship.heading] as readonly [number, number])
           : [ship.run.dx, ship.run.dy];
-      const angle = Math.atan2(hx, -hy);
+      const heading = HEADINGS.findIndex(([dx, dy]) => dx === hx && dy === hy);
       const sailing = ship.run !== null && (b.x !== a.x || b.y !== a.y);
       if (sailing && moving) this.drawWake(view, x, y, hx, hy, look.wake);
       const alpha = Math.min(1, (now - ship.arrivedTick) / Math.max(1, fadeTicks));
-      this.place(view, art, ship.kind, x, y, angle, { alpha });
-      seen.set(ship.id, { ship, x, y, angle });
+      this.place(view, art, style, ship, x, y, heading, { alpha });
+      seen.set(ship.id, { ship, x, y, heading });
       const hit = this.hits.get(ship.id);
       if (hit !== undefined) this.drawHit(view, x, y, hit / HIT_MS, look.hull);
     }
@@ -185,7 +189,7 @@ export class CampaignMarks {
     this.leaving = this.leaving.filter((l) => (l.left -= deltaMs) > 0);
     for (const l of this.leaving) {
       const alpha = l.left / Math.max(1, look.fadeMs);
-      this.place(view, art, l.ship.kind, l.x, l.y, l.angle, { alpha });
+      this.place(view, art, style, l.ship, l.x, l.y, l.heading, { alpha });
     }
 
     // Sinking: it lists, settles and goes under, a ring of foam spreading where it was.
@@ -200,16 +204,20 @@ export class CampaignMarks {
         hex(look.wake),
         0.5 * (1 - p),
       );
-      this.place(view, art, s.ship.kind, s.x, s.y, s.angle + (moving ? p * 0.5 : 0), {
+      this.place(view, art, style, s.ship, s.x, s.y, s.heading, {
         alpha: 1 - p,
         scale: 1 - 0.45 * p,
+        list: moving ? p * 0.5 : 0,
       });
       if (p < 0.4) this.drawHit(view, s.x, s.y, p / 0.4, look.hull);
     }
 
-    this.drawGrunts(view, art, fleet?.grunts ?? [], deltaMs, moving);
+    this.drawGrunts(view, art, style, fleet?.grunts ?? [], deltaMs, moving);
 
-    for (const shot of fleet?.shots ?? []) this.drawBall(view, shot, now);
+    // A style with cannonballs of its own draws the fleet's shots with them (`fleetShotsAsShots`).
+    if (style?.drawsShots !== true) {
+      for (const shot of fleet?.shots ?? []) this.drawBall(view, shot, now);
+    }
 
     this.water.end();
     this.ships.end();
@@ -223,6 +231,7 @@ export class CampaignMarks {
   private drawGrunts(
     view: ViewTransform,
     art: ArtConfig,
+    style: FleetLook | undefined,
     grunts: readonly Grunt[],
     deltaMs: number,
     moving: boolean,
@@ -242,13 +251,29 @@ export class CampaignMarks {
       const x = track.fromX + (track.x - track.fromX) * p + 0.5;
       const bob = !track.landed && p < 1 ? Math.sin(p * Math.PI) * 0.12 : 0;
       const y = track.fromY + (track.y - track.fromY) * p + 0.5 - bob;
-      const pose = this.smashes.has(grunt.id) ? 'smash' : 'stand';
-      const body = this.book.get(`grunt:${pose}:${grunt.facing}`, tile, (g) =>
-        drawGrunt(g, tile, art, grunt.facing, pose === 'smash'),
-      );
+      const smashing = this.smashes.has(grunt.id);
+      const pose = smashing ? 'smash' : 'stand';
+      // A style's grunt is drawn facing up and turned; the shared one is drawn for each facing.
+      const body =
+        style === undefined
+          ? this.book.get(`grunt:${pose}:${grunt.facing}`, tile, (g) =>
+              drawGrunt(g, tile, art, grunt.facing, smashing),
+            )
+          : this.book.get(`grunt:${style.key}:${pose}`, tile, (g) =>
+              style.grunt(g, tile, art, smashing),
+            );
       const alpha = track.landed ? Math.min(1, track.since / LAND_MS) : 1;
       this.water.disc(tileX(view, x), tileY(view, y + 0.3 + bob), tile * 0.22, SHADOW, 0.2 * alpha);
-      this.ships.place(body, tileX(view, x), tileY(view, y), { alpha });
+      this.ships.place(
+        body,
+        this.snap(view, style, tileX(view, x), view.originX),
+        this.snap(view, style, tileY(view, y), view.originY),
+        {
+          alpha,
+          rotation: style === undefined ? 0 : (grunt.facing * Math.PI) / 2,
+          ...(style?.tint === undefined ? {} : { tint: style.tint }),
+        },
+      );
     }
     this.tracks = tracks;
     for (const [id, age] of this.smashes) {
@@ -303,18 +328,70 @@ export class CampaignMarks {
     }
   }
 
+  /**
+   * A ship at its centre (x, y), heading one of the eight ways. The shared drawing is turned to
+   * the heading; a style's in pixels is its straight or its diagonal sprite turned by quarter
+   * turns, its sails marked by the hits taken, on the style's pixel grid, tinted as its board is.
+   */
   private place(
     view: ViewTransform,
     art: ArtConfig,
-    kind: ShipKind,
+    style: FleetLook | undefined,
+    ship: Ship,
     x: number,
     y: number,
-    angle: number,
-    options: { alpha: number; scale?: number },
+    heading: number,
+    options: { alpha: number; scale?: number; list?: number },
   ): void {
     const tile = view.tile;
-    const body = this.book.get(`ship:${kind}`, tile, (g) => drawShip(g, tile, art, kind));
-    this.ships.place(body, tileX(view, x), tileY(view, y), { rotation: angle, ...options });
+    const { kind } = ship;
+    const list = options.list ?? 0;
+    const placed = {
+      alpha: options.alpha,
+      ...(options.scale === undefined ? {} : { scale: options.scale }),
+    };
+    if (style === undefined) {
+      const body = this.book.get(`ship:${kind}`, tile, (g) => drawShip(g, tile, art, kind));
+      const rotation = (heading * Math.PI) / 4 + list;
+      this.ships.place(body, tileX(view, x), tileY(view, y), { rotation, ...placed });
+      return;
+    }
+    const diagonal = heading % 2 === 1;
+    const hits = Math.min(ship.hits, 4);
+    const body = this.book.get(
+      `ship:${style.key}:${kind}:${hits}:${diagonal ? 'd' : 's'}`,
+      tile,
+      (g) => style.ship(g, tile, art, kind, hits, diagonal),
+    );
+    const rotation = Math.floor(heading / 2) * (Math.PI / 2) + list;
+    const sx = this.snap(view, style, tileX(view, x), view.originX);
+    const sy = this.snap(view, style, tileY(view, y), view.originY);
+    this.ships.place(body, sx, sy, {
+      rotation,
+      ...placed,
+      ...(style.tint === undefined ? {} : { tint: style.tint }),
+    });
+    // By night a lantern burns at the stern.
+    if (style.lantern !== undefined) {
+      const [hx, hy] = HEADINGS[heading] as readonly [number, number];
+      const back = 0.55 / Math.hypot(hx, hy);
+      const lx = tileX(view, x - hx * back);
+      const ly = tileY(view, y - hy * back);
+      this.air.disc(lx, ly, tile * 0.4, style.lantern, 0.22 * options.alpha);
+      this.air.disc(lx, ly, tile * 0.1, style.lantern, 0.9 * options.alpha);
+    }
+  }
+
+  /** A position on the style's pixel grid, from the board's origin, where its look is in pixels. */
+  private snap(
+    view: ViewTransform,
+    style: FleetLook | undefined,
+    v: number,
+    origin: number,
+  ): number {
+    if (style?.pixels === undefined) return v;
+    const pixel = view.tile / style.pixels;
+    return origin + Math.round((v - origin) / pixel) * pixel;
   }
 
   private drawWake(
@@ -444,3 +521,26 @@ const FACING_STEPS: readonly (readonly [number, number])[] = [
   [0, 1],
   [-1, 0],
 ];
+
+/**
+ * A campaign's fleet shots as the players' shots are, for a style that draws them with its own
+ * cannonballs: tiles where the fleet's are in 1/256, the ship's middle read as a gun's is (half a
+ * tile in from its footprint's corner), and no owner — no player's target ring is drawn for one.
+ */
+export function fleetShotsAsShots(state: MatchState): Shot[] {
+  const fleet = state.campaign;
+  if (fleet === null || fleet.shots.length === 0) return [];
+  return fleet.shots.map((s) => ({
+    id: -1 - s.id,
+    cannonId: -1,
+    owner: -1,
+    kind: 'cannon',
+    cost: 1,
+    fromX: s.fromX / 256 - 0.5,
+    fromY: s.fromY / 256 - 0.5,
+    toX: s.toX,
+    toY: s.toY,
+    launchTick: s.launchTick,
+    impactTick: s.impactTick,
+  }));
+}

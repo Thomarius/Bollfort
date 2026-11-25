@@ -103,6 +103,8 @@ export interface CampaignState {
   frostshipCountdown: number | null;
   /** Each player's comeback, by player: the continues that have made their shots faster (§9). */
   boosts: number[];
+  /** The level was won in a battle or the pause after it, its look kept to the end (CA9). */
+  wonInBattle: boolean;
   /** Ships sunk this level by kind, and grunts killed, for its summary. */
   sunk: KindCounts;
   gruntsKilled: number;
@@ -154,6 +156,7 @@ export function hashCampaign(h: Hasher, campaign: CampaignState): void {
   h.i32(campaign.nextGruntId).i32(campaign.gruntsLeft).nullable(campaign.frostshipCountdown);
   for (const n of campaign.sunk) h.i32(n);
   for (const n of campaign.boosts) h.i32(n);
+  h.bool(campaign.wonInBattle);
   h.i32(campaign.gruntsKilled);
   h.u32(campaign.grunts.length);
   for (const g of campaign.grunts) {

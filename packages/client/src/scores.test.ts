@@ -16,6 +16,7 @@ import {
   finalRoundNext,
   lifePips,
   roundLabel,
+  fleetBar,
   standings,
   yourPlace,
 } from './scores.js';
@@ -73,14 +74,19 @@ describe('the round counter', () => {
     expect(roundLabel(state({ round: 3, maxRounds: null }))).toBe('round 3');
   });
 
-  it('counts a campaign level against its limit, beside the ships left to beat', () => {
+  it('counts a campaign level against its limit, and shows its fleet as a bar', () => {
     const level = stateFromAscii(',,,,\n,**,\n,**,', campaignLevelRuleset());
     (level.campaign as CampaignState).pool = [5, 0, 0];
     level.round = 2;
-    // The five raiders still to come.
-    expect(roundLabel(level)).toBe('round 2 / 3 · ships left: 5');
+    expect(roundLabel(level)).toBe('round 2 / 3');
     level.round = 0;
-    expect(roundLabel(level)).toBe('opening · ships left: 5');
+    expect(roundLabel(level)).toBe('opening');
+    // Five raiders at 7 less the gun's 7, of the ten the level began with at 7: 28 of 70; the
+    // threshold of 20 is the mark.
+    expect(fleetBar(level)).toEqual({ fill: 0.4, mark: 0.29 });
+    (level.campaign as CampaignState).pool = [0, 0, 0];
+    expect(fleetBar(level)).toEqual({ fill: 0, mark: 0.29 });
+    expect(fleetBar(state({ round: 1 }))).toBeNull();
   });
 
   it('names the opening rather than counting a round 0', () => {

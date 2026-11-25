@@ -34,14 +34,13 @@ export function threat(state: MatchState): number {
   );
 }
 
-/** The ships still to beat: afloat, waiting in the wave, and still to come in the pool. */
-export function shipsLeft(state: MatchState): number {
+/** Whether nothing is left to fight: no ship afloat, waiting or to come, and no grunt ashore. */
+export function fleetGone(state: MatchState): boolean {
   const fleet = state.campaign;
-  if (fleet === null) return 0;
+  if (fleet === null) return false;
+  const none = (counts: readonly number[]): boolean => counts.every((n) => n === 0);
   return (
-    fleet.ships.length +
-    fleet.wave.reduce((a, b) => a + b, 0) +
-    fleet.pool.reduce((a, b) => a + b, 0)
+    fleet.ships.length === 0 && fleet.grunts.length === 0 && none(fleet.pool) && none(fleet.wave)
   );
 }
 

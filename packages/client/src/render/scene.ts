@@ -721,7 +721,7 @@ export class Scene {
     this.towers.drawWaves(state, this.view, art, tickFraction);
     this.towers.drawDrones(state, this.view, art, humanPlayer, tickFraction, front.theme.drone);
     this.towers.drawEffects(this.view, deltaMs);
-    this.campaign.draw(state, this.view, art, tickFraction, deltaMs);
+    this.campaign.draw(state, this.view, art, tickFraction, deltaMs, front.theme.fleet);
     const shown = this.drawnState(state);
     for (const slot of this.visible()) {
       slot.theme.drawEffects(shown, this.view, {
