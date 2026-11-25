@@ -13,6 +13,7 @@ import {
   isImpactTower,
   isAwake,
   isLoaded,
+  choosableCastles,
   owesCastleChoice,
   specialRefusal,
   pieceCells,
@@ -493,9 +494,11 @@ export class Controls {
   }
 
   private castleAt(x: number, y: number) {
-    const islandId = this.state.players[this.humanPlayer]?.islandId;
-    return this.state.castles.find(
-      (c) => c.islandId === islandId && x >= c.x && y >= c.y && x < c.x + c.w && y < c.y + c.h,
+    const player = this.state.players[this.humanPlayer];
+    if (player === undefined) return undefined;
+    // A teammate's castle is not on offer in a campaign (CAMPAIGN §6.1).
+    return choosableCastles(this.state, player).find(
+      (c) => x >= c.x && y >= c.y && x < c.x + c.w && y < c.y + c.h,
     );
   }
 
@@ -529,11 +532,10 @@ export class Controls {
     const state = this.state;
     const player = this.humanPlayer;
     const tile = this.hover;
-    const islandId = state.players[player]?.islandId;
+    const me = state.players[player];
 
     const mode = inputMode(state, player);
-    const selectable =
-      mode === 'castle' ? state.castles.filter((c) => c.islandId === islandId) : [];
+    const selectable = mode === 'castle' && me !== undefined ? choosableCastles(state, me) : [];
 
     if (tile === null) {
       return {

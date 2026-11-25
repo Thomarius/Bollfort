@@ -1,12 +1,22 @@
 import { defaultCampaignConfig as config } from '@bollfort/config';
-import { newCampaign, recordLevel, retryLevel, type LevelOutcome } from '@bollfort/campaign';
+import {
+  levelSetup,
+  newCampaign,
+  recordLevel,
+  retryLevel,
+  type LevelOutcome,
+} from '@bollfort/campaign';
+import type { Seat } from '@bollfort/protocol';
 import { describe, expect, it } from 'vitest';
 
 import { setLanguage } from './i18n.js';
 import { deleteCampaign, loadCampaign, savedCampaigns, writeCampaign } from './campaignSaves.js';
 import {
   campaignMenuMarkup,
+  campaignRoomMarkup,
+  campaignStartBlocked,
   defeatMarkup,
+  type CampaignRoomView,
   introMarkup,
   summaryMarkup,
   victoryMarkup,
@@ -120,5 +130,91 @@ describe('the campaign screens', () => {
     expect(markup).toContain('Campaign won!');
     expect(markup).toContain('5750 points in all');
     expect(markup).toContain('Level 6: 2000 points');
+  });
+});
+
+describe("a co-op campaign's room (CAMPAIGN §13)", () => {
+  const save = newCampaign(config, {
+    id: 'c-coop',
+    difficulty: 'normal',
+    names: ['Ada', 'Bo'],
+    seed: 3,
+    now: NOW,
+  });
+  const seat = (playerId: number, name: string, ready: boolean, connected = true): Seat => ({
+    playerId,
+    name,
+    isBot: false,
+    connected,
+    ready,
+    special: null,
+  });
+  const view = (over: Partial<CampaignRoomView> = {}): CampaignRoomView => ({
+    save,
+    level: levelSetup(config, save),
+    shape: 'coast',
+    seats: [seat(0, 'Ada', false), seat(1, 'Bo', false)],
+    playerCount: 2,
+    hostId: 0,
+    humanPlayer: 0,
+    code: 'ABCD',
+    invite: null,
+    justCleared: false,
+    ...over,
+  });
+
+  it('offers co-op for two and three in the campaign menu', () => {
+    const html = campaignMenuMarkup(config, 'normal', [], null, null, 2);
+    expect(html).toContain('data-players="1"');
+    expect(html).toContain('Co-op: 2 players');
+    expect(html).toMatch(/class="players primary" data-players="2"/);
+  });
+
+  it('holds the start until every seat is taken and everyone is ready', () => {
+    expect(campaignStartBlocked(view({ seats: [seat(0, 'Ada', false)] }))).toContain(
+      '1 more player',
+    );
+    expect(campaignStartBlocked(view())).toContain('1 player to be ready');
+    expect(
+      campaignStartBlocked(view({ seats: [seat(0, 'Ada', false), seat(1, 'Bo', true)] })),
+    ).toBe(null);
+    expect(
+      campaignStartBlocked(view({ seats: [seat(0, 'Ada', false), seat(1, 'Bo', true, false)] })),
+    ).not.toBe(null);
+  });
+
+  it("shows the host Play and the room's code, and a teammate Ready", () => {
+    const host = campaignRoomMarkup(config, view(), ['#fff', '#ec3', '#9df']);
+    expect(host).toContain('id="start-level"');
+    expect(host).toContain('disabled');
+    expect(host).toContain('ABCD');
+    expect(host).toContain('Ada');
+    const guest = campaignRoomMarkup(config, view({ humanPlayer: 1 }), []);
+    expect(guest).toContain('id="ready"');
+    expect(guest).not.toContain('id="start-level"');
+  });
+
+  it('shows a defeat with its retry to the host alone, and waits without a save', () => {
+    const lost = recordLevel(config, save, { ...outcome(false, 10), scores: [10, 5] }, NOW);
+    const host = campaignRoomMarkup(config, view({ save: lost, level: null, shape: null }), []);
+    expect(host).toContain('id="retry-level"');
+    const guest = campaignRoomMarkup(
+      config,
+      view({ save: lost, level: null, shape: null, humanPlayer: 1 }),
+      [],
+    );
+    expect(guest).not.toContain('id="retry-level"');
+    expect(guest).toContain('Waiting for the host');
+    expect(campaignRoomMarkup(config, view({ save: null }), [])).toContain('Waiting for the host');
+  });
+
+  it("puts the level just cleared over the next one's intro", () => {
+    const cleared = recordLevel(config, save, { ...outcome(true, 100), scores: [100, 80] }, NOW);
+    const html = campaignRoomMarkup(
+      config,
+      view({ save: cleared, level: levelSetup(config, cleared), justCleared: true }),
+      [],
+    );
+    expect(html).toContain('Level 1 cleared!');
   });
 });

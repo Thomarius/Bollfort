@@ -374,7 +374,8 @@ export async function runSession(
   // corners the one farther from the timer: the larger tags met it at the map's centre.
   const islandTops = new Map<number, { x: number; y: number }>();
   const timerAt = timerSpot(session.state);
-  if (isTeamMatch(session.state)) {
+  // Not a campaign's team, one island for all of it, where every tag would fall on one corner.
+  if (isTeamMatch(session.state) && session.state.campaign === null) {
     const { width, islandId } = session.state;
     for (const player of session.state.players) {
       let top = Number.POSITIVE_INFINITY;
@@ -402,6 +403,22 @@ export async function runSession(
     }
   }
 
+  /**
+   * In a campaign, where every player stands on the one island, each player's banners sit over
+   * their main castle, the last they held where they are choosing again (CAMPAIGN §6.1).
+   */
+  const castleSpot = new Map<number, { x: number; y: number }>();
+  const bannerSpot = (player: number): { x: number; y: number } | undefined => {
+    const state = session.state;
+    if (state.campaign === null) return islandCentre.get(player);
+    const id = state.players[player]?.startingCastleId ?? null;
+    const castle = id === null ? undefined : state.castles.find((c) => c.id === id);
+    if (castle !== undefined) {
+      castleSpot.set(player, { x: castle.x + castle.w / 2, y: castle.y + castle.h / 2 });
+    }
+    return castleSpot.get(player) ?? islandCentre.get(player);
+  };
+
   function drawIslandBanners(): void {
     hud.labels.showTeamTags(
       [...islandTops].map(([player, at]) => ({
@@ -418,7 +435,7 @@ export async function runSession(
       gained,
       tutorial?.bannersAtEnd() ?? false,
     )) {
-      const centre = islandCentre.get(banner.player);
+      const centre = bannerSpot(banner.player);
       if (centre === undefined) continue;
       banners.push({
         ...banner,
@@ -615,7 +632,12 @@ export async function runSession(
   const watching = new WatchingStrip(leaveMatch);
 
   let frame = 0;
+  let cleaned = false;
+  // Once only: a campaign room's Continue takes the match down, then the room's answer, bringing
+  // every page back to its lobby, asks it again (`endMatch`), and Pixi throws on a second destroy.
   const cleanup = (): void => {
+    if (cleaned) return;
+    cleaned = true;
     cancelAnimationFrame(frame);
     controls.detach();
     zoomButton.destroy();

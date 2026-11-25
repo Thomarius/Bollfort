@@ -39,8 +39,13 @@ export function buildHints(
   // Something sealed is a round survived; the rest is ambition, and not ours to outline.
   if ((live.enclosedCastlesByPlayer[humanPlayer] ?? 0) > 0)
     return { unsealed: [], cornerGaps: gaps };
+  // In a campaign the team's castles are many and shared: a player's own is the one to seal.
+  const main = state.castles.find((c) => c.id === player.startingCastleId);
   return {
-    unsealed: state.castles.filter((c) => c.islandId === player.islandId),
+    unsealed:
+      state.campaign !== null && main !== undefined
+        ? [main]
+        : state.castles.filter((c) => c.islandId === player.islandId),
     cornerGaps: gaps,
   };
 }

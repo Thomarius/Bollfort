@@ -97,8 +97,12 @@ export class Gateway {
       if (text.length > Math.max(maxMessageBytes, maxTournamentBytes)) return;
 
       const message = decodeClientMessage(text);
-      // Only a tournament's table or end, which carry its save, may be longer than any other.
-      const carriesSave = message?.type === 'tournament' || message?.type === 'tournamentEnd';
+      // Only a tournament's table or end and a campaign's level, which carry their save, may be
+      // longer than any other.
+      const carriesSave =
+        message?.type === 'tournament' ||
+        message?.type === 'tournamentEnd' ||
+        message?.type === 'campaign';
       if (text.length > maxMessageBytes && !carriesSave) return;
       if (message === null) {
         connection.send({ type: 'error', code: 'bad_message', message: 'unparseable message' });
@@ -120,7 +124,7 @@ export class Gateway {
       }
 
       if (message.type === 'create') {
-        const room = rooms.create(message.players, message.public ?? true);
+        const room = rooms.create(message.players, message.public ?? true, message.mode ?? null);
         if (room === null) {
           connection.send({ type: 'error', code: 'no_capacity', message: 'server is full' });
           return;

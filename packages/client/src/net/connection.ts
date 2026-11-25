@@ -249,7 +249,8 @@ export class ServerConnection {
     };
   }
 
-  createRoom(name: string, players: number, isPublic = true): void {
+  /** A room for `players`; `campaign` for a co-op campaign's, people's seats alone. */
+  createRoom(name: string, players: number, isPublic = true, campaign = false): void {
     this.name = name;
     this.send({
       type: 'create',
@@ -258,6 +259,7 @@ export class ServerConnection {
       players,
       public: isPublic,
       ...(this.browserId === null ? {} : { browserId: this.browserId }),
+      ...(campaign ? { mode: 'campaign' as const } : {}),
     });
   }
 

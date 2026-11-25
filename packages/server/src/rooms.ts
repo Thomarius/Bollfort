@@ -1,4 +1,4 @@
-import type { ConfigBundle } from '@bollfort/config';
+import { CAMPAIGN_MAX_PLAYERS, type ConfigBundle } from '@bollfort/config';
 import { Rng } from '@bollfort/sim';
 
 import type { RecordingLine, RoomListing } from '@bollfort/protocol';
@@ -49,8 +49,15 @@ export class RoomManager {
     return [...this.rooms.values()].flatMap((room) => (room.ended ? [] : (room.listing() ?? [])));
   }
 
-  create(playerCount: number, isPublic = true): Room | null {
+  /** A room, or null when the server is full or the count of players is not the mode's. */
+  create(playerCount: number, isPublic = true, mode: 'campaign' | null = null): Room | null {
     if (this.rooms.size >= this.config.server.rooms.maxConcurrent) return null;
+    const campaign = mode === 'campaign';
+    // A campaign takes one to three people (CAMPAIGN §13); versus play its ruleset's range.
+    const { min, max } = campaign
+      ? { min: 1, max: CAMPAIGN_MAX_PLAYERS }
+      : this.config.ruleset.players;
+    if (playerCount < min || playerCount > max) return null;
     const room = new Room({
       code: this.newCode(),
       playerCount,
@@ -62,6 +69,7 @@ export class RoomManager {
       seed: this.rng.nextU32(),
       publicUrl: this.publicUrl,
       endsWithHost: this.endsWithHost,
+      ...(campaign ? { campaign: this.config.campaign } : {}),
       ...(this.recorder === undefined ? {} : { record: this.recorder() }),
     });
     this.rooms.set(room.code, room);

@@ -9953,6 +9953,61 @@ img.avatar {
   image-rendering: pixelated;
 }
 
+/* A co-op campaign's room (CAMPAIGN §13): the level beside the team, the code and the way in. */
+.menu.campaign-room {
+  width: min(58rem, 96vw);
+}
+
+.campaign-room-body {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (width <= 44rem) {
+  .campaign-room-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.campaign-room-go {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.campaign-seats {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.campaign-seats .seat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.3rem 0;
+  padding: 0.45rem 0.7rem;
+  border: var(--panel-edge);
+  border-radius: 0.4rem;
+}
+
+.campaign-seats .seat small {
+  opacity: 0.75;
+}
+
+.campaign-seats .seat.ready {
+  border-color: rgb(120 200 120 / 60%);
+}
+
+.campaign-seats .seat.empty {
+  border-style: dashed;
+  opacity: 0.65;
+}
+
 .campaign-fleet,
 .campaign-record {
   margin: 0 0 1rem;

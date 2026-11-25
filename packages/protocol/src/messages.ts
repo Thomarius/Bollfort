@@ -1,5 +1,7 @@
 import {
   BotTowerSchema,
+  CAMPAIGN_MAX_PLAYERS,
+  CampaignDifficultySchema,
   LevelSchema,
   MatchSettingsSchema,
   PersonalitySchema,
@@ -23,9 +25,10 @@ import { SnapshotSchema } from './snapshot.js';
  * (STEAM.md K and B, 2026-11-03). 36: a seat's Steam ID, for its avatar (STEAM.md §7.3, S3).
  * 37: the Drone Tower, its variants, its ruleset key and a player's anchor (2026-11-20). 38: the
  * Fortified Tower on trial, its variants, its ruleset key, a gun's barrels and a wave's absorbed
- * lanes (2026-11-21).
+ * lanes (2026-11-21). 39: campaign rooms — a level's setup and the host's save, the
+ * snapshot's fleet, one player in a campaign (docs/CAMPAIGN.md §13, 2026-11-25).
  */
-export const PROTOCOL_VERSION = 38;
+export const PROTOCOL_VERSION = 39;
 
 /**
  * A player's intent. The server overwrites `player` with the sender's own seat before
@@ -130,18 +133,48 @@ export const TournamentTableSchema = z.strictObject({
 });
 export type TournamentTable = z.infer<typeof TournamentTableSchema>;
 
+/**
+ * A campaign level as the host sends it to the room (docs/CAMPAIGN.md §13): what
+ * `campaignRuleset` builds the level's rules from, which the server does itself from its own
+ * campaign config. The carry is the host's to send, checked by schema and bounds only: a co-op
+ * host cheating only cheats their own team.
+ */
+export const CampaignSetupSchema = z
+  .strictObject({
+    difficulty: CampaignDifficultySchema,
+    level: z.number().int().nonnegative().max(15),
+    players: z.number().int().min(1).max(CAMPAIGN_MAX_PLAYERS),
+    seed: z.number().int().nonnegative().max(0xffffffff),
+    carry: z.strictObject({
+      scores: z.array(z.number().int().min(-1e8).max(1e8)).max(CAMPAIGN_MAX_PLAYERS),
+      lives: z.number().int().nonnegative().max(99),
+      roundsPlayed: z.number().int().nonnegative().max(9999),
+    }),
+  })
+  .refine((setup) => setup.carry.scores.length === setup.players, {
+    message: 'a score for each player',
+    path: ['carry', 'scores'],
+  });
+export type CampaignSetup = z.infer<typeof CampaignSetupSchema>;
+
 export const ClientMessageSchema = z.discriminatedUnion('type', [
   z.strictObject({
     type: z.literal('create'),
     protocol: z.number().int(),
     name: z.string().min(1).max(24),
-    players: z.number().int().min(2).max(8),
+    /** 2 to 8; 1 to 3 for a campaign's room. */
+    players: z.number().int().min(1).max(8),
     /**
      * Listed in the open games browser, the default; a private room is joined by its
      * code alone. Chosen once, as the room is made.
      */
     public: z.boolean().optional(),
     browserId: BrowserIdSchema.optional(),
+    /**
+     * A campaign's room (protocol 39): its seats are people's alone, never bots', and it plays
+     * the campaign levels its host sends.
+     */
+    mode: z.literal('campaign').optional(),
   }),
   z.strictObject({
     type: z.literal('join'),
@@ -220,6 +253,18 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
    * for a host who had gone (the tournament tests, 2026-10-09). Up to `maxTournamentBytes`.
    */
   z.strictObject({ type: z.literal('tournamentEnd'), save: z.string() }),
+  /**
+   * The host of a campaign's room, before a level or once one is over: the room plays this level
+   * next and goes back to its lobby to wait for it — or, with `level` null, the campaign is over
+   * and only the save goes on. `save` is the host's campaign as it stands, as JSON, passed on
+   * untouched for the teammates' pages to show (the host keeps the only save, the user's,
+   * 2026-11-25). Up to `maxTournamentBytes`, as a tournament's.
+   */
+  z.strictObject({
+    type: z.literal('campaign'),
+    level: CampaignSetupSchema.nullable(),
+    save: z.string(),
+  }),
   z.strictObject({ type: z.literal('action'), action: ActionSchema }),
   /** Anyone at the table may pause a running match, and anyone may resume it. */
   z.strictObject({ type: z.literal('pause'), paused: z.boolean() }),
@@ -242,7 +287,7 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
     code: z.string(),
     seats: z.array(SeatSchema),
     /** Total seats at the table; any beyond the joined players are filled by bots. */
-    playerCount: z.number().int().min(2).max(8),
+    playerCount: z.number().int().min(1).max(8),
     /** Skill level of the bot in each seat, so everyone can see what they are about to face. */
     bots: z.array(LevelSchema),
     /**
@@ -273,6 +318,11 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
     internet: z.string().nullable(),
     /** The tournament's match the room is set for, or null for a room of its own choosing. */
     tournament: TournamentTableSchema.nullable(),
+    /**
+     * A campaign's room (protocol 39): the level it is set for, or null while its host has sent
+     * none yet — or once the campaign is over. Absent from every other room.
+     */
+    campaign: z.strictObject({ level: CampaignSetupSchema.nullable() }).optional(),
   }),
   z.strictObject({ type: z.literal('snapshot'), snapshot: SnapshotSchema }),
   /**
@@ -311,6 +361,8 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
    * table, and to whoever joins, so a teammate's lobby shows what the host's does.
    */
   z.strictObject({ type: z.literal('tournamentSave'), save: z.string() }),
+  /** The host's campaign as it stands, as JSON, as `tournamentSave` is a tournament's. */
+  z.strictObject({ type: z.literal('campaignSave'), save: z.string() }),
   /** To a guest the host has removed: back to the menu, and no rejoining this room. */
   z.strictObject({ type: z.literal('removed') }),
   z.strictObject({ type: z.literal('error'), code: z.string(), message: z.string() }),
@@ -326,12 +378,16 @@ export const RoomListingSchema = z.strictObject({
   host: z.string(),
   /** People seated; the rest of `playerCount` are bots until somebody takes them. */
   people: z.number().int().nonnegative(),
-  playerCount: z.number().int().min(2).max(8),
+  playerCount: z.number().int().min(1).max(8),
   teamSize: z.number().int().min(1),
   /** Special towers played at this table. */
   towers: z.boolean(),
   /** The tournament team whose room it is, or null for a match of its own. */
   tournament: z.string().nullable(),
+  /** A campaign's room: its difficulty and the level it is set for (protocol 39). */
+  campaign: z
+    .strictObject({ difficulty: CampaignDifficultySchema, level: z.number().int().nullable() })
+    .optional(),
 });
 export type RoomListing = z.infer<typeof RoomListingSchema>;
 

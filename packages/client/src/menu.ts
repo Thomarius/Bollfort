@@ -97,7 +97,7 @@ function quitRow(): string {
   return `<div class="split quit-row">${hosting}<button id="quit" class="quiet">${withIcon('power', t('menu.quit'))}</button></div>`;
 }
 
-function readCommon(): Common {
+export function readCommon(): Common {
   // Under Steam a player is their Steam name: there is no name field (STEAM.md §7.2).
   const steam = steamPlay();
   if (steam !== null) return { styles: readStyles(), name: steam.name, isPublic: true };

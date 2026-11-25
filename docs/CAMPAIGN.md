@@ -972,6 +972,51 @@ The "You win" that flashed as a level was won (the user's screenshot, in the des
 screen wrote and measured its summary before holding it back, so the browser styled it shown and
 the hold's transition faded it out again; it is now held first (`EndScreen.showEndScreen`).
 
+**CA10 and CA11 built together** (2026-11-25, the user's: co-op is only tried through rooms). The
+user's choices: a campaign's count of people is **fixed as it starts** (resuming a co-op save needs
+that many, anyone in the seats); co-op starts from the **campaign screen** (Solo, Co-op: 2, Co-op: 3
+beside the difficulties), its room listed in Find a game; **the host keeps the only save**.
+
+- **The sim** (`sim/src/campaign/coop.ts`): every campaign player stands on island 1, so placement,
+  guns and territory need no branch of their own; a gun fires on its owner's island's ground
+  (`enclosure.ts` asks the player's island rather than `owner + 1`). `castleHolders` hands out
+  the sealed castles at every enclosure, as §6.1 says — each player's main castle if sealed, then
+  the nearest sealed one left to a player without, then the rest dealt one each, the fewest guns
+  first — and `enclosedCastlesByPlayer` counts them, so a player holding none has failed. A castle
+  nobody chose is nobody's, so one player is unchanged only once they have chosen. A pocket counts
+  while anyone holds a castle; the ground's tiles are shared equally among the players holding one
+  (`holdingsOf`). A teammate's main castle is refused (`castle_taken`) and never offered
+  (`choosableCastles`); one not chosen in time is the free castle nearest the land's middle
+  (`fallbackCastle`), at the start and after a continue.
+- **Protocol 39**: `create` takes `mode: 'campaign'` and one to three players; the host's
+  `campaign` message carries the level's setup (`CampaignSetupSchema`: difficulty, level, players,
+  seed, carry, checked by bounds) and the save as JSON, or no level at a defeat or the end; the room
+  answers with `campaign` in its `room` message and passes the save on as `campaignSave`, as a
+  tournament's. The server builds the level's rules itself, from its own campaign config
+  (`campaignRuleset`), so a page cannot send rules. The snapshot carries the fleet
+  (`campaign`, everything of `state.campaign` but the terrain's sea and spawn points) and a frost
+  ship's ice's `buildsLeft`, and takes one player where the ruleset allows it.
+- **The room** (`server/src/room.ts`): seats are people's alone, in seat order (one island, nothing
+  to deal); Start only with every seat a person's, here and ready; no bot ever, not even for a
+  person who drops — their seat waits, their choices and guns made as the phase closes, as for
+  anyone who does not choose. Once a level is over the host's next `campaign` brings the room back
+  to its lobby with the next level, its map's seed the level's. Recorded as any server match.
+  `roomCampaign.test.ts` plays a level between two pages, every hash agreeing, a page rejoining
+  mid-level from the snapshot in step too.
+- **The client**: the campaign menu's Solo and Co-op; a co-op save opens a room on the server the
+  page came from (under Steam the host's app), and a notice where none answers
+  (`campaign.noServer`). The room's screen (`campaignRoom.ts`, `campaignRoomMarkup`) is the next
+  level's intro beside the team, the room's code and Play for the host, Ready for the others; the
+  level just cleared shown over it; a defeat with its retry for the host; the end. The lobby
+  (`lobbyFlow.ts`) hands a campaign's room to it, so a code, Find a game and Steam's joins reach
+  it. The host's page records each level as it ends, the save's names the people's, and its
+  Continue sends the room on. Banners sit over each player's main castle; the team tags, one
+  corner for all, are not drawn; the outline of what to seal is a player's own castle.
+- **Not done, for later**: walls, ground and castles are drawn in the first player's colour
+  (every style colours them by island, and the island is the team's); a person away holds the
+  cannon phase to its clock rather than having it finished (§13); the statistics count walls and
+  frost by island.
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |

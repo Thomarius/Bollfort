@@ -1037,5 +1037,16 @@
   "campaign.troopsLanding": "Troops landing!",
   "campaign.frostSighted": "A frost ship sighted!",
   "campaign.threat": "Threat",
-  "campaign.levelCleared": "Level cleared!"
+  "campaign.levelCleared": "Level cleared!",
+  "campaign.solo": "Solo",
+  "campaign.coop": "Co-op: {n} players",
+  "campaign.waitHost": "Waiting for the host.",
+  "campaign.seatFree": "A seat free",
+  "campaign.waitingFor": {
+    "one": "Waiting for {n} more player: give them the room's code.",
+    "other": "Waiting for {n} more players: give them the room's code."
+  },
+  "campaign.team": "The team",
+  "campaign.noServer": "No server answered, and co-op is played in a room on a server.",
+  "campaign.player": "Player {n}"
 }

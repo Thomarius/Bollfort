@@ -1,10 +1,11 @@
 import {
   RulesetSchema,
+  SHIP_KINDS,
   SPECIAL_KINDS,
   TerrainConfigSchema,
   TowerVariantSchema,
 } from '@bollfort/config';
-import { PHASES, type MatchState } from '@bollfort/sim';
+import { PHASES, copyCampaign, type CampaignState, type MatchState } from '@bollfort/sim';
 import { z } from 'zod';
 
 /**
@@ -132,52 +133,138 @@ const ShotSchema = z.strictObject({
  * The ruleset travels with it, so a client can never be running different rules from
  * the server — a mismatch would desync the simulation rather than merely look wrong.
  */
-export const SnapshotSchema = z.strictObject({
-  seed: z.number().int(),
-  ruleset: RulesetSchema,
-  terrain: TerrainConfigSchema,
-  tick: z.number().int().nonnegative(),
-  round: z.number().int().nonnegative(),
-  phase: z.enum(PHASES),
-  pendingPhase: z.enum(PHASES).nullable(),
-  phaseEndTick: z.number().int(),
-  overtime: z.boolean(),
-  players: z.array(PlayerSchema).min(2),
-  teams: z.array(
+const int = z.number().int();
+const counts = z.tuple([int.nonnegative(), int.nonnegative(), int.nonnegative()]);
+
+/**
+ * A campaign level's fleet and counters (docs/CAMPAIGN.md §13, protocol 39): everything of
+ * `state.campaign` a match changes as it steps. The open sea and the spawn points come from the
+ * terrain, which the page draws from the seed itself.
+ */
+const CampaignSnapshotSchema = z.strictObject({
+  pool: counts,
+  wave: counts,
+  ships: z.array(
     z.strictObject({
-      id: z.number().int().nonnegative(),
-      continuesRemaining: z.number().int().nonnegative(),
-      continuesAtStart: z.number().int().nonnegative(),
+      id: int.nonnegative(),
+      kind: z.enum(SHIP_KINDS),
+      x: int,
+      y: int,
+      hits: int.nonnegative(),
+      heading: int,
+      run: z
+        .strictObject({
+          dx: int,
+          dy: int,
+          tiles: int.nonnegative(),
+          startTick: int,
+          ticksPerTile: int.positive(),
+        })
+        .nullable(),
+      runs: int.nonnegative(),
+      arrivedTick: int,
+      shotId: int.nonnegative().nullable(),
+      nextLandTick: int,
     }),
   ),
-  /** The teams' names where the table gave them (a tournament's), or null for letters. */
-  teamNames: z.array(z.string().max(32)).nullable(),
-  structure: z.array(z.number().int().nonnegative()),
-  owner: z.array(z.number().int().nonnegative()),
-  territory: z.array(z.number().int().nonnegative()),
-  castles: z.array(CastleSchema),
-  cannons: z.array(CannonSchema),
-  shots: z.array(ShotSchema),
-  lostWalls: z.array(z.number().int().nonnegative()),
-  /** The Frost Cannons' freezes; absent from a snapshot of a match without them. */
-  frozen: z
-    .array(
-      z.strictObject({
-        tile: z.number().int().nonnegative(),
-        share: z.number().positive().max(1),
-        throughOvertime: z.boolean(),
-        thawTick: z.number().int(),
-      }),
-    )
-    .optional(),
-  /** The Subwoofers' waves in flight; absent from a snapshot of a match without any. */
-  waves: z.array(WaveSchema).optional(),
-  nextCannonId: z.number().int().nonnegative(),
-  nextShotId: z.number().int().nonnegative(),
-  winners: z.array(z.number().int().nonnegative()),
-  draw: z.boolean(),
-  endedBy: z.enum(['elimination', 'round_cap', 'level_cleared', 'level_lost']).nullable(),
+  nextShipId: int.nonnegative(),
+  spawnCursor: int.nonnegative(),
+  nextArrivalTick: int,
+  cannonsGiven: int.nonnegative(),
+  shots: z.array(
+    z.strictObject({
+      id: int.nonnegative(),
+      shipId: int.nonnegative(),
+      kind: z.enum(SHIP_KINDS),
+      fromX: int,
+      fromY: int,
+      toX: int,
+      toY: int,
+      launchTick: int,
+      impactTick: int,
+    }),
+  ),
+  nextShotId: int.nonnegative(),
+  nextFireTick: int,
+  fireCursor: int,
+  aimed: z.array(int.nonnegative()),
+  struck: z.array(int.nonnegative()),
+  grunts: z.array(
+    z.strictObject({
+      id: int.nonnegative(),
+      x: int,
+      y: int,
+      facing: int.min(0).max(3),
+      nextStepTick: int,
+      nextActTick: int,
+      nextBreedTick: int,
+    }),
+  ),
+  nextGruntId: int.nonnegative(),
+  gruntsLeft: int.nonnegative(),
+  frostshipCountdown: int.nullable(),
+  boosts: z.array(int.nonnegative()),
+  wonInBattle: z.boolean(),
+  sunk: counts,
+  gruntsKilled: int.nonnegative(),
 });
+
+export const SnapshotSchema = z
+  .strictObject({
+    seed: z.number().int(),
+    ruleset: RulesetSchema,
+    terrain: TerrainConfigSchema,
+    tick: z.number().int().nonnegative(),
+    round: z.number().int().nonnegative(),
+    phase: z.enum(PHASES),
+    pendingPhase: z.enum(PHASES).nullable(),
+    phaseEndTick: z.number().int(),
+    overtime: z.boolean(),
+    /** One and up in a campaign, whose ruleset says so; checked against it below. */
+    players: z.array(PlayerSchema).min(1),
+    teams: z.array(
+      z.strictObject({
+        id: z.number().int().nonnegative(),
+        continuesRemaining: z.number().int().nonnegative(),
+        continuesAtStart: z.number().int().nonnegative(),
+      }),
+    ),
+    /** The teams' names where the table gave them (a tournament's), or null for letters. */
+    teamNames: z.array(z.string().max(32)).nullable(),
+    structure: z.array(z.number().int().nonnegative()),
+    owner: z.array(z.number().int().nonnegative()),
+    territory: z.array(z.number().int().nonnegative()),
+    castles: z.array(CastleSchema),
+    cannons: z.array(CannonSchema),
+    shots: z.array(ShotSchema),
+    lostWalls: z.array(z.number().int().nonnegative()),
+    /** The Frost Cannons' freezes; absent from a snapshot of a match without them. */
+    frozen: z
+      .array(
+        z.strictObject({
+          tile: z.number().int().nonnegative(),
+          share: z.number().positive().max(1),
+          throughOvertime: z.boolean(),
+          thawTick: z.number().int(),
+          /** A campaign's frost ship's ice: the build phases it has left. */
+          buildsLeft: z.number().int().nonnegative().optional(),
+        }),
+      )
+      .optional(),
+    /** The Subwoofers' waves in flight; absent from a snapshot of a match without any. */
+    waves: z.array(WaveSchema).optional(),
+    nextCannonId: z.number().int().nonnegative(),
+    nextShotId: z.number().int().nonnegative(),
+    winners: z.array(z.number().int().nonnegative()),
+    draw: z.boolean(),
+    endedBy: z.enum(['elimination', 'round_cap', 'level_cleared', 'level_lost']).nullable(),
+    /** A campaign level's fleet; absent from versus play's snapshots. */
+    campaign: CampaignSnapshotSchema.optional(),
+  })
+  .refine((s) => s.players.length >= s.ruleset.players.min, {
+    message: 'fewer players than the ruleset allows',
+    path: ['players'],
+  });
 
 export type Snapshot = z.infer<typeof SnapshotSchema>;
 
@@ -217,7 +304,14 @@ export function captureSnapshot(state: MatchState): Snapshot {
     winners: [...state.winners],
     draw: state.draw,
     endedBy: state.endedBy,
+    ...(state.campaign === null ? {} : { campaign: campaignSnapshot(state.campaign) }),
   };
+}
+
+/** The part of a campaign's state the snapshot carries: `copyCampaign`, less the terrain's. */
+function campaignSnapshot(campaign: CampaignState): z.infer<typeof CampaignSnapshotSchema> {
+  const { sea: _sea, spawnPoints: _spawnPoints, ...changing } = copyCampaign(campaign);
+  return changing;
 }
 
 /**
@@ -255,7 +349,12 @@ export function applySnapshot(state: MatchState, snapshot: Snapshot): void {
   }));
   state.shots = snapshot.shots.map((s) => ({ ...s }));
   state.lostWalls = [...snapshot.lostWalls];
-  state.frozen = (snapshot.frozen ?? []).map((f) => ({ ...f }));
+  // Ice without builds left carries no `buildsLeft` at all, as the match makes it (it is hashed
+  // only when present).
+  state.frozen = (snapshot.frozen ?? []).map(({ buildsLeft, ...f }) => ({
+    ...f,
+    ...(buildsLeft === undefined ? {} : { buildsLeft }),
+  }));
   state.waves = (snapshot.waves ?? []).map(({ absorbed, ...w }) => ({
     ...w,
     lanes: w.lanes.map((l) => ({ ...l })),
@@ -266,5 +365,13 @@ export function applySnapshot(state: MatchState, snapshot: Snapshot): void {
   state.winners = [...snapshot.winners];
   state.draw = snapshot.draw;
   state.endedBy = snapshot.endedBy;
+  // The fleet over the one `createMatch` made, which keeps the terrain's sea and spawn points.
+  if (snapshot.campaign !== undefined && state.campaign !== null) {
+    state.campaign = copyCampaign({
+      ...snapshot.campaign,
+      sea: state.campaign.sea,
+      spawnPoints: state.campaign.spawnPoints,
+    });
+  }
   state.events = [];
 }

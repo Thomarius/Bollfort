@@ -1034,5 +1034,16 @@
   "campaign.troopsLanding": "Die Soldate komme an Land!",
   "campaign.frostSighted": "E Frostschiff in Sicht!",
   "campaign.threat": "Bedrohung",
-  "campaign.levelCleared": "Level gepackt!"
+  "campaign.levelCleared": "Level gepackt!",
+  "campaign.solo": "Allaa",
+  "campaign.coop": "Zesamme: {n} Leit",
+  "campaign.waitHost": "Mer waade uff de Gastgeber.",
+  "campaign.seatFree": "En Platz frei",
+  "campaign.waitingFor": {
+    "one": "Es fehlt noch {n} Mitschbieler: Gebb'em de Code vom Raum.",
+    "other": "Es fehle noch {n} Mitschbieler: Gebb'ene de Code vom Raum."
+  },
+  "campaign.team": "Die Bande",
+  "campaign.noServer": "Kaan Server hat sich gemeldt, unn zesamme schbielt mer nur in em Raum uff em Server.",
+  "campaign.player": "Mitschbieler {n}"
 }

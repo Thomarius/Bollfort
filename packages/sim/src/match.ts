@@ -32,6 +32,7 @@ import {
   roundLimitReached,
 } from './campaign/level.js';
 import { generateCampaignTerrain } from './campaign/terrain.js';
+import { castleTaken, fallbackCastle } from './campaign/coop.js';
 import { advanceFleet, flushArrivals, formWave, openBattle, openBuild } from './campaign/fleet.js';
 import { hashCampaign } from './campaign/state.js';
 import { landFleetShots } from './campaign/gunnery.js';
@@ -112,7 +113,8 @@ export function createMatch(options: MatchOptions): MatchState {
 
   const players: PlayerState[] = options.players.map((p, id) => ({
     id,
-    islandId: id + 1,
+    // A campaign's players are one team on one island, the map's (CAMPAIGN §6.1).
+    islandId: campaign === undefined ? id + 1 : 1,
     name: p.name,
     isBot: p.isBot,
     eliminated: false,
@@ -338,8 +340,12 @@ function finishCastleSelect(state: MatchState): void {
   for (const player of state.players) {
     if (player.startingCastleId !== null) continue;
     // Timed out: take the lowest-numbered castle on this player's island, so an
-    // absent or disconnected player still starts a valid game.
-    const fallback = state.castles.find((c) => c.islandId === player.islandId);
+    // absent or disconnected player still starts a valid game — in a campaign the free
+    // castle nearest the land's middle (CAMPAIGN §6.1).
+    const fallback =
+      state.campaign === null
+        ? state.castles.find((c) => c.islandId === player.islandId)
+        : fallbackCastle(state, player);
     if (!fallback) continue;
     player.startingCastleId = fallback.id;
     buildStartingRing(state, fallback);
@@ -774,7 +780,12 @@ function autoFinishCannonPhase(state: MatchState): void {
       // An island with no castles cannot happen through generation, but drawing from
       // an empty range throws rather than returning nothing, so it is checked.
       if (mine.length === 0) continue;
-      const pick = mine[rng.nextInt(mine.length)] as Castle;
+      // A campaign's: the free castle nearest the land's middle, as at the start (§6.1).
+      const pick =
+        state.campaign === null
+          ? (mine[rng.nextInt(mine.length)] as Castle)
+          : fallbackCastle(state, player);
+      if (pick === null) continue;
       player.startingCastleId = pick.id;
       buildStartingRing(state, pick);
       applyEnclosure(state);
@@ -933,6 +944,9 @@ export function applyAction(state: MatchState, action: Action): Rejection | null
       const castle = state.castles.find((c) => c.id === action.castleId);
       if (!castle) return 'unknown_castle';
       if (castle.islandId !== player.islandId) return 'wrong_island';
+      // In a campaign two players never hold one castle: first come (CAMPAIGN §6.1).
+      if (state.campaign !== null && castleTaken(state, castle.id, player.id))
+        return 'castle_taken';
       player.startingCastleId = castle.id;
       // Raise the ring straight away rather than when the last player has chosen:
       // waiting left the player staring at an empty island for up to 15 seconds.

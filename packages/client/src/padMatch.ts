@@ -1,4 +1,4 @@
-import { owesCastleChoice, type MatchState } from '@bollfort/sim';
+import { choosableCastles, owesCastleChoice, type MatchState } from '@bollfort/sim';
 
 import { inputMode, type InputMode } from './controls.js';
 import {
@@ -172,9 +172,10 @@ export class PadMatch {
   private choices(): { at: Vec; item: number }[] {
     const player = this.state.players[this.player];
     if (player === undefined || !owesCastleChoice(player)) return [];
-    return this.state.castles
-      .filter((c) => c.islandId === player.islandId)
-      .map((c) => ({ at: { x: c.x + c.w / 2, y: c.y + c.h / 2 }, item: c.id }));
+    return choosableCastles(this.state, player).map((c) => ({
+      at: { x: c.x + c.w / 2, y: c.y + c.h / 2 },
+      item: c.id,
+    }));
   }
 
   /**

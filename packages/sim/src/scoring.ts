@@ -85,7 +85,21 @@ export function holdingsOf(state: MatchState, enclosure?: ScoredEnclosure): Hold
       holding.guns += gunsWorth(cannon);
     }
   }
+  if (state.campaign !== null) shareGround(holdings);
   return holdings;
+}
+
+/**
+ * A campaign's ground is the team's, every tile of it marked as the one island's and so counted
+ * for its first player: it is shared equally among the players holding a castle, rounded down
+ * (CAMPAIGN §11). One player keeps every tile.
+ */
+function shareGround(holdings: Holding[]): void {
+  const total = holdings.reduce((n, h) => n + h.tiles, 0);
+  const holders = holdings.filter((h) => h.castles > 0).length;
+  for (const holding of holdings) {
+    holding.tiles = holders > 0 && holding.castles > 0 ? Math.floor(total / holders) : 0;
+  }
 }
 
 /** One player's holding, as `holdingsOf` counts it. */

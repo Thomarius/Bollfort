@@ -8,6 +8,7 @@ import {
   teamsBalanced,
   type AiConfig,
   type BotSetup,
+  type CampaignConfig,
   type BotTower,
   type MatchSettings,
   type Personality,
@@ -17,6 +18,7 @@ import {
   type TerrainConfig,
 } from '@bollfort/config';
 import { Bot, botTowerOf, dealSeats, tableSlots } from '@bollfort/ai';
+import { campaignRuleset } from '@bollfort/campaign';
 import {
   ActionSchema,
   MatchRecorder,
@@ -24,6 +26,7 @@ import {
   recordingId,
   type RecordingLine,
   type RoomListing,
+  type CampaignSetup,
   type ClientMessage,
   type ServerMessage,
   type Seat as WireSeat,
@@ -109,6 +112,11 @@ export interface RoomOptions {
    * of its own keeps the room, the host's seat handed on as anyone's.
    */
   endsWithHost?: boolean;
+  /**
+   * A campaign's room (docs/CAMPAIGN.md §13), with the campaign config its levels' rules are
+   * built from: its seats are people's alone, and it plays the levels its host sends.
+   */
+  campaign?: CampaignConfig;
 }
 
 /**
@@ -171,6 +179,10 @@ export class Room {
   private tournament: TournamentTable | null = null;
   /** The host's tournament as it stands, as JSON, for the teammates' pages; never read here. */
   private tournamentSave: string | null = null;
+  /** A campaign's room: the level its host has set it for, and that level's rules, or null. */
+  private campaignLevel: { setup: CampaignSetup; ruleset: Ruleset } | null = null;
+  /** The host's campaign as it stands, as JSON, for the teammates' pages; never read here. */
+  private campaignSave: string | null = null;
   /**
    * Whom the host has removed, for the room's life (STEAM.md §5): by their browser's ID, which
    * outlasts a tab, and by their seat's token, for a page that sent no ID.
@@ -185,8 +197,17 @@ export class Room {
     this.botTowers = new Array<BotTower>(options.playerCount).fill('drawn');
     this.settings = defaultSettings(options.ruleset, options.server.lobbySettings);
     this.playerCount = options.playerCount;
-    this.teams = defaultTeams(this.playerCount, this.settings.teamSize);
+    // A campaign's players are one team (CAMPAIGN §6.1).
+    this.teams =
+      options.campaign === undefined
+        ? defaultTeams(this.playerCount, this.settings.teamSize)
+        : new Array<number>(this.playerCount).fill(0);
     this.seed = this.rng.nextU32();
+  }
+
+  /** A campaign's room: people only, playing the levels its host sends. */
+  get isCampaign(): boolean {
+    return this.options.campaign !== undefined;
   }
 
   get started(): boolean {
@@ -246,7 +267,14 @@ export class Room {
       teamSize: this.settings.teamSize,
       towers: this.settings.specials,
       tournament: this.tournament?.teamNames[this.tournament.seats[this.hostId]?.team ?? 0] ?? null,
+      ...(this.isCampaign ? { campaign: this.campaignListing() } : {}),
     };
+  }
+
+  /** A campaign's room as the games browser lists it: its difficulty and level, once sent. */
+  private campaignListing(): NonNullable<RoomListing['campaign']> {
+    const setup = this.campaignLevel?.setup;
+    return { difficulty: setup?.difficulty ?? 'normal', level: setup?.level ?? null };
   }
 
   /**
@@ -271,6 +299,16 @@ export class Room {
    * Start is their ready, and the bots are always ready.
    */
   get everyoneReady(): boolean {
+    // A campaign's every seat a person's, here and ready: no bot ever fills one (CAMPAIGN §13).
+    if (this.isCampaign) {
+      return (
+        this.campaignLevel !== null &&
+        this.seats.length === this.playerCount &&
+        this.seats.every(
+          (seat) => seat.connection !== null && (seat.playerId === this.hostId || seat.ready),
+        )
+      );
+    }
     // A seat held for a guest who dropped (S3.6) does not hold the start up: it goes at it.
     return this.seats.every(
       (seat) => seat.playerId === this.hostId || seat.bot || seat.ready || seat.connection === null,
@@ -417,7 +455,7 @@ export class Room {
       case 'special':
         // Each person their own, while the table is being set; kept whether or not the
         // match plays towers, so switching them on does not lose the choice.
-        if (this.match !== null) return;
+        if (this.match !== null || this.isCampaign) return;
         // A tower the rules do not offer (the Rapid Cannon, retired 2026-11-20) is none: every
         // lobby would fail to describe it.
         seat.special = this.offered(message.special) ? message.special : null;
@@ -448,11 +486,18 @@ export class Room {
         return;
       }
       case 'rematch':
-        // A tournament's next match is its host's to send, not this one again.
-        if (seat.playerId === this.hostId && this.tournament === null) this.rematch();
+        // A tournament's next match is its host's to send, not this one again, and so is a
+        // campaign's next level.
+        if (seat.playerId === this.hostId && this.tournament === null && !this.isCampaign)
+          this.rematch();
+        return;
+      case 'campaign':
+        if (seat.playerId === this.hostId && this.isCampaign)
+          this.setCampaign(message.level, message.save);
         return;
       case 'tournament':
-        if (seat.playerId === this.hostId) this.setTournament(message.table, message.save);
+        if (seat.playerId === this.hostId && !this.isCampaign)
+          this.setTournament(message.table, message.save);
         return;
       case 'tournamentEnd':
         // Only at a tournament's table, and not while its match is under way.
@@ -464,7 +509,7 @@ export class Room {
       case 'configure': {
         // Only the host, and only while the table is still being set.
         if (seat.playerId !== this.hostId || this.match !== null) return;
-        if (this.tournament !== null) {
+        if (this.tournament !== null || this.isCampaign) {
           // The tournament's table is fixed: only who sits in which open seat may change.
           if (message.move !== undefined) this.moveSeat(message.move.from, message.move.to);
           this.broadcastRoom();
@@ -583,6 +628,33 @@ export class Room {
    * seat — the one they had, while it stays open. Sent once a match is over, it brings the
    * room back to its lobby first, as a rematch does. Refused while a match is under way.
    */
+  private setCampaign(setup: CampaignSetup | null, save: string): void {
+    if (this.match !== null && !this.match.finished) return;
+    let level: { setup: CampaignSetup; ruleset: Ruleset } | null = null;
+    if (setup !== null) {
+      // The level's rules are the server's own, from its campaign config; a setup they cannot be
+      // built from, or for another count of people, is turned away.
+      if (setup.players !== this.playerCount) return;
+      try {
+        level = {
+          setup,
+          ruleset: campaignRuleset(this.options.campaign!, this.options.ruleset, setup),
+        };
+      } catch {
+        return;
+      }
+    }
+    if (this.match !== null) this.backToLobby();
+    this.campaignLevel = level;
+    this.campaignSave = save;
+    if (level !== null) this.seed = level.setup.seed;
+    for (const seat of this.seats) {
+      seat.ready = false;
+      this.sendWelcome(seat);
+    }
+    this.broadcastRoom();
+  }
+
   private setTournament(table: TournamentTable, save: string): void {
     if (this.match !== null && !this.match.finished) return;
     const hostSeat = table.seats.findIndex((seat) => seat.level === null);
@@ -685,6 +757,10 @@ export class Room {
 
   start(): void {
     if (this.match !== null) return;
+    if (this.isCampaign) {
+      this.startCampaign();
+      return;
+    }
     // Unequal teams cannot start. The host's controls never produce them, so this only
     // turns away a crafted message.
     if (!teamsBalanced(this.teams, this.settings.teamSize)) return;
@@ -827,6 +903,54 @@ export class Room {
   }
 
   /**
+   * A campaign's level (CAMPAIGN §13): every seat a person's, in seat order — one island, so
+   * nothing to deal — one team, the level's rules, and no bots, not even to cover a person who
+   * drops: their seat waits for them, their guns silent, their castle choice and cannons made
+   * for them as the phase closes, as for anyone who does not choose.
+   */
+  private startCampaign(): void {
+    const level = this.campaignLevel;
+    if (level === null || !this.everyoneReady) return;
+    this.lobbySeats = new Map(this.seats.map((s) => [s.token, s.playerId] as const));
+    this.lobbyHost = this.hostId;
+    this.seats.sort((a, b) => a.playerId - b.playerId);
+    const players = this.seats.map((seat) => ({
+      name: seat.name,
+      isBot: false,
+      team: 0,
+      special: null,
+    }));
+    const { seed } = level.setup;
+    const state = createMatch({
+      seed,
+      ruleset: level.ruleset,
+      terrainConfig: this.options.terrain,
+      players,
+    });
+    let recorder: MatchRecorder | null = null;
+    if (this.options.record !== undefined) {
+      const startedAt = new Date();
+      recorder = new MatchRecorder(this.options.record, {
+        id: recordingId('server', startedAt, this.code),
+        source: 'server',
+        startedAt: startedAt.toISOString(),
+        code: this.code,
+        seed,
+        ruleset: level.ruleset,
+        terrain: this.options.terrain,
+        players: players.map((p) => ({ ...p, level: null, personality: null })),
+      });
+    }
+    const match = new MatchRunner(state, new Map(), recorder, this.rng, this.seats, (message) =>
+      this.broadcast(message),
+    );
+    this.match = match;
+    for (const seat of this.seats) this.sendWelcome(seat);
+    this.broadcastRoom();
+    for (const seat of this.seats) match.sendSnapshot(seat);
+  }
+
+  /**
    * Back to the lobby once a match is over (PLAN 11.18 Y6): everyone still connected in the
    * seat they had before the start, the table — levels, teams, settings — as it was, the
    * bots that filled the empty seats gone, and a new map. Each person is told their seat
@@ -904,6 +1028,10 @@ export class Room {
     if (this.tournamentSave !== null) {
       seat.connection?.send({ type: 'tournamentSave', save: this.tournamentSave });
     }
+    // And a campaign's room its campaign, as the host's page last sent it.
+    if (this.campaignSave !== null) {
+      seat.connection?.send({ type: 'campaignSave', save: this.campaignSave });
+    }
   }
 
   private broadcastRoom(): void {
@@ -924,6 +1052,7 @@ export class Room {
       started: this.started,
       internet: this.options.publicUrl?.() ?? null,
       tournament: this.tournament,
+      ...(this.isCampaign ? { campaign: { level: this.campaignLevel?.setup ?? null } } : {}),
     });
   }
 

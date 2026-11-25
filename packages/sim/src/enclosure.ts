@@ -1,4 +1,5 @@
 import { NEIGHBOURS_4, NEIGHBOURS_8 } from './grid.js';
+import { heldCastles } from './campaign/coop.js';
 import { isWallLike, Structure, type MatchState } from './types.js';
 
 /**
@@ -108,12 +109,19 @@ export function computeEnclosure(state: MatchState): EnclosureResult {
   }
 
   // Counted before the regions, since whether a pocket is territory depends on it.
-  const enclosedCastlesByPlayer = new Array<number>(state.players.length).fill(0);
+  // A campaign's castles stand on the team's one island and go to the players who hold them
+  // (CAMPAIGN §6.1); versus play's are their island's player's.
+  const campaign = state.campaign !== null;
+  const enclosedCastlesByPlayer = campaign
+    ? heldCastles(state, castleEnclosed)
+    : new Array<number>(state.players.length).fill(0);
   for (const castle of state.castles) {
-    if (!castleEnclosed[castle.id]) continue;
+    if (campaign || !castleEnclosed[castle.id]) continue;
     const player = castle.islandId - 1;
     enclosedCastlesByPlayer[player] = (enclosedCastlesByPlayer[player] as number) + 1;
   }
+  // In a campaign a pocket counts while the team holds a sealed castle anywhere.
+  const teamHolds = campaign && enclosedCastlesByPlayer.some((n) => n > 0);
 
   // A sealed region holding one of an island's castles is that island's territory. One
   // holding none — a pocket — is too, as in the original, while its island's player
@@ -157,7 +165,9 @@ export function computeEnclosure(state: MatchState): EnclosureResult {
     }
     if (owner === 0 && pockets && island > 0) {
       const player = state.players[island - 1];
-      if (
+      if (campaign) {
+        if (teamHolds) owner = island;
+      } else if (
         player !== undefined &&
         !player.eliminated &&
         (enclosedCastlesByPlayer[player.id] as number) > 0
@@ -174,21 +184,23 @@ export function computeEnclosure(state: MatchState): EnclosureResult {
     if (id >= 0) territory[i] = (regionOwner[id] ?? 0) as number;
   }
 
-  // A cannon fires only from inside its owner's sealed territory.
+  // A cannon fires only from inside its owner's sealed territory: their island's, which in a
+  // campaign is the team's.
+  const islandOf = (player: number): number => state.players[player]?.islandId ?? player + 1;
   const cannonActive: boolean[] = [];
   for (let c = 0; c < state.cannons.length; c++) {
     const cannon = state.cannons[c] as (typeof state.cannons)[number];
     if (cannon.kind === 'fortified') {
       // Wall itself, never territory: active while it touches its owner's sealed ground.
       cannonActive[c] = state.ruleset.cannons.inertWhenNotEnclosed
-        ? touchesTerritory(territory, w, h, cannon, cannon.owner + 1)
+        ? touchesTerritory(territory, w, h, cannon, islandOf(cannon.owner))
         : true;
       continue;
     }
     let active = true;
     for (let oy = 0; oy < cannon.h && active; oy++) {
       for (let ox = 0; ox < cannon.w; ox++) {
-        if (territory[(cannon.y + oy) * w + cannon.x + ox] !== cannon.owner + 1) {
+        if (territory[(cannon.y + oy) * w + cannon.x + ox] !== islandOf(cannon.owner)) {
           active = false;
           break;
         }

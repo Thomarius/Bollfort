@@ -257,6 +257,8 @@ describe('the grunts', () => {
       `,
       rules(),
     );
+    // The castle is the player's: a castle nobody chose is nobody's (CAMPAIGN §6.1).
+    (state.players[0] as PlayerState).startingCastleId = 0;
     applyEnclosure(state);
     clearWalledIn(state, 0);
     // The one by the castle and the one in the pocket beside it; the one outside stands.

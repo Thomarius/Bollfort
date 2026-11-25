@@ -204,7 +204,8 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 ## Status
 
-The latest release is **v0.11.2** (2026-11-20): protocol 37, recording format 4 — a test session
+The latest release is **v0.11.2** (2026-11-20): protocol 37, recording format 4; the code since is
+at protocol 39 (the Fortified Tower's 38, the campaign's rooms' 39) — a test session
 needs the server rebuilt and every page reloaded after either changes. Releases before v0.10.3
 were deleted with their tags, since their notes and menu named the original (ARCHIVE 15zx); the
 history was rewritten without AI attribution lines before v0.10.0, the old hashes in
@@ -254,10 +255,12 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 - **The users' play of the first supporter style** (2026-11-14), then the next styles (SP4).
 - **Campaign mode** (PLAN §11 item 14; `docs/CAMPAIGN.md`, approved 2026-11-25): one to three
   people against an enemy fleet over six levels, co-op online, saved between levels; being built,
-  CA1–CA6 done (a solo level on its own generated map against ships that sail,
+  CA1–CA11 done (a solo level on its own generated map against ships that sail,
   fire and sink, grunts that land and smash, frost ships' ice, a level cleared by the fleet's
   threat or its round limit; a campaign of levels with its screens and saves, the menu's Campaign
-  button behind `campaign.menuButton`; the first playtest's fixes; Medieval's and Night's fleet, the threat gauge, the callouts); CA10 next. A mode of its own: never a change to versus rules or
+  button behind `campaign.menuButton`; the first playtest's fixes; Medieval's and Night's fleet, the threat gauge, the callouts;
+  co-op in campaign rooms, protocol 39, CA10 and CA11 built together); the users' online co-op
+  session next, then CA12. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
   listed and a room's code with the real server, a tournament match's end and a person's Rematch.

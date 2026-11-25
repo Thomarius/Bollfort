@@ -68,6 +68,8 @@ import { preferredSpecials, preferredTower, saveSpecials, saveTower } from './to
 import { saveTable, storedTable, type RememberedTable } from './tableMemory.js';
 import { tournamentEnded } from './steam/achievements.js';
 import { showTitle } from './pageTitle.js';
+import { CampaignRoom, openCampaignConnection, type CampaignRoomLink } from './campaignRoom.js';
+import type { CampaignSave } from '@bollfort/campaign';
 
 /** The lobby, one screen whether a server holds the table or the browser does. */
 
@@ -785,6 +787,22 @@ function roomLobby(
   /** The tab open, and the tournament's step it was chosen at: each match opens on its own. */
   let tab: LobbyTab = 'match';
   let tabStep = -1;
+  /** A co-op campaign's room (CAMPAIGN §13): its own screen, its levels the host's to send. */
+  const campaign = new CampaignRoom();
+  let isCampaign = false;
+  const campaignLink: CampaignRoomLink = {
+    send: (message) => connection.send(message),
+    leave: () => {
+      started = true;
+      connection.close();
+      leaveSteam();
+      showMenu();
+    },
+    wireCopies: (code, invite) => {
+      wireCopy('#copy-code', '#room-code', code);
+      if (invite !== null) wireCopy('#copy-invite', '#invite-link', invite);
+    },
+  };
 
   const tableOf = (v: LobbyView): TableState => ({
     settings: v.settings,
@@ -802,6 +820,18 @@ function roomLobby(
 
   const render = (): void => {
     if (started || view === null) return;
+    if (isCampaign) {
+      campaign.draw(
+        view.seats,
+        view.playerCount,
+        hostId,
+        match.humanPlayer,
+        view.code ?? roomCode,
+        view.invite ?? null,
+        campaignLink,
+      );
+      return;
+    }
     const step = view.tournament?.tournament ?? null;
     const same = tournament !== null && step !== null && tournament.save.id === step.id;
     if (step !== null && step.step !== tabStep) {
@@ -856,6 +886,7 @@ function roomLobby(
 
   connection.onMessage((message) => {
     match.receive(message);
+    campaign.heard(message);
     switch (message.type) {
       case 'welcome':
         roomCode = message.code;
@@ -864,6 +895,7 @@ function roomLobby(
         break;
       case 'room': {
         hostId = message.hostId;
+        isCampaign = message.campaign !== undefined;
         hostHere = message.seats.some((s) => s.playerId === hostId && s.connected);
         // Somebody new at the table: marked as they arrive, and heard.
         const ids = new Set(message.seats.map((seat) => seat.playerId));
@@ -895,6 +927,7 @@ function roomLobby(
         if (
           !message.started &&
           message.tournament === null &&
+          !isCampaign &&
           match.humanPlayer === hostId &&
           askedRounds() === null
         ) {
@@ -913,6 +946,9 @@ function roomLobby(
         }
         break;
       }
+      case 'campaignSave':
+        render();
+        break;
       case 'tournamentSave':
         tournament = readTournament(message.save);
         // The tournament over, sent as the host's room closes: its end, as the host sees it,
@@ -952,8 +988,13 @@ function roomLobby(
               steam?.inviteBack,
             ),
             setup,
-            // The next match is the host's to send from their tournament.
-            tournament === null ? {} : { waitLabel: 'tournament.waitHost' },
+            // A campaign's next level is its host's to send, and the result theirs to save; the
+            // next match is the host's to send from their tournament.
+            isCampaign
+              ? campaign.exits(match.humanPlayer === hostId, campaignLink)
+              : tournament === null
+                ? {}
+                : { waitLabel: 'tournament.waitHost' },
           ).then(
             (end) => (endMatch = end),
             (e: unknown) => showError(t('error.matchFailed'), e),
@@ -1032,6 +1073,28 @@ function roomLobby(
       leaveSteam();
     } else connection.ping();
   }, 2000);
+}
+
+/**
+ * A co-op campaign's room, opened by its host for a saved campaign (CAMPAIGN §13): on the server
+ * this page came from — or, under Steam, the host's own app's, reached by the others over P2P. A
+ * notice in the campaign menu where no server answered.
+ */
+export async function openCampaignRoom(
+  common: Common,
+  save: CampaignSave,
+  noServer: () => void,
+): Promise<void> {
+  app!.innerHTML = `<div class="menu interim"><h1>${t('campaign.title')}</h1><p class="note">${t('menu.lookingForServer')}</p></div>`;
+  const opened = await openCampaignConnection(save, common.name, common.isPublic);
+  if (opened === null) {
+    noServer();
+    return;
+  }
+  const steam = steamPlay();
+  const steamRoom =
+    steam === null ? null : await hostSteamRoom(steam, opened.welcome.code, lobbyKind());
+  roomLobby(common, opened.connection, null, opened.welcome, steamRoom);
 }
 
 /**

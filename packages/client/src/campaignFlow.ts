@@ -13,13 +13,7 @@ import {
   won,
   type CampaignSave,
 } from '@bollfort/campaign';
-import {
-  PHASES,
-  Terrain,
-  generateCampaignTerrain,
-  type MatchState,
-  type Phase,
-} from '@bollfort/sim';
+import { PHASES, type Phase } from '@bollfort/sim';
 
 import { app, audio, params, showError } from './app.js';
 import {
@@ -37,6 +31,10 @@ import {
   victoryMarkup,
 } from './campaignScreens.js';
 import { t } from './i18n.js';
+import { drawMapPreview } from './campaignMap.js';
+import { outcomeOf } from './campaignRoom.js';
+import { openCampaignRoom } from './lobbyFlow.js';
+import { readCommon } from './menu.js';
 import { runSession, type MatchExits } from './matchScreen.js';
 import { preferredStyles, storedName } from './prefs.js';
 import { DEFAULT_SETTINGS, localMatchFor, localSession, type Setup } from './session.js';
@@ -60,9 +58,17 @@ const config = defaultConfigBundle.campaign;
 export function openCampaignMenu(exits: CampaignExits, notice: string | null = null): void {
   audio.music('music_menu');
   let chosen: CampaignDifficulty = 'normal';
+  let players = 1;
   let confirming: string | null = null;
   const draw = (): void => {
-    app!.innerHTML = campaignMenuMarkup(config, chosen, savedCampaigns(), confirming, notice);
+    app!.innerHTML = campaignMenuMarkup(
+      config,
+      chosen,
+      savedCampaigns(),
+      confirming,
+      notice,
+      players,
+    );
   };
   draw();
   const root = app!;
@@ -71,7 +77,9 @@ export function openCampaignMenu(exits: CampaignExits, notice: string | null = n
     if (button === null || !root.contains(button) || button.disabled) return;
     audio.play('select');
     const id = button.dataset.id ?? null;
-    if (button.classList.contains('difficulty')) {
+    if (button.classList.contains('players')) {
+      players = Number(button.dataset.players ?? 1);
+    } else if (button.classList.contains('difficulty')) {
       chosen = (button.dataset.difficulty as CampaignDifficulty | undefined) ?? chosen;
     } else if (button.id === 'start-campaign') {
       leave();
@@ -79,7 +87,11 @@ export function openCampaignMenu(exits: CampaignExits, notice: string | null = n
       const save = newCampaign(config, {
         id: newCampaignId(now),
         difficulty: chosen,
-        names: [storedName()],
+        // The others' names are labels until they take their seats (CAMPAIGN §12).
+        names: [
+          storedName(),
+          ...Array.from({ length: players - 1 }, (_, i) => t('campaign.player', { n: i + 2 })),
+        ],
         seed: Math.floor(Math.random() * 0x100000000),
         now: now.toISOString(),
       });
@@ -126,6 +138,13 @@ export function playCampaign(id: string, exits: CampaignExits): void {
  */
 function showCampaign(save: CampaignSave, exits: CampaignExits, notice: string | null): void {
   audio.music('music_menu');
+  // A co-op campaign is played in a room, opened by its host, where it is shown (CAMPAIGN §13).
+  if (save.players.length > 1 && !save.finished) {
+    void openCampaignRoom(readCommon(), save, () =>
+      openCampaignMenu(exits, t('campaign.noServer')),
+    );
+    return;
+  }
   if (save.finished) {
     deleteCampaign(save.id);
     app!.innerHTML = won(config, save) ? victoryMarkup(save) : defeatMarkup(config, save);
@@ -229,40 +248,4 @@ function playLevel(save: CampaignSave, ruleset: Ruleset, exits: CampaignExits): 
   void runSession(localSession(match, null), setup, matchExits).catch((error: unknown) =>
     showError(t('error.failedToStart'), error),
   );
-}
-
-/** How the match left the level, for the campaign's record. */
-function outcomeOf(state: MatchState): Parameters<typeof recordLevel>[2] {
-  const fleet = state.campaign;
-  return {
-    cleared: state.endedBy === 'level_cleared',
-    scores: state.players.map((p) => p.score),
-    lives: state.teams[0]?.continuesRemaining ?? 0,
-    rounds: state.round,
-    shape: state.ruleset.campaign?.shape ?? 'coast',
-    sunk: fleet === null ? [0, 0, 0] : [...fleet.sunk],
-    grunts: fleet?.gruntsKilled ?? 0,
-  };
-}
-
-/** The level's real map, small: land, sea and castles, from the seed it will be played on. */
-function drawMapPreview(rules: CampaignLevelRules, seed: number): void {
-  const canvas = app!.querySelector<HTMLCanvasElement>('#campaign-map');
-  const context = canvas?.getContext('2d') ?? null;
-  if (canvas === undefined || canvas === null || context === null) return;
-  const map = generateCampaignTerrain(rules, defaultConfigBundle.terrain, seed);
-  const scale = 6;
-  canvas.width = map.width * scale;
-  canvas.height = map.height * scale;
-  for (let i = 0; i < map.terrain.length; i++) {
-    const x = i % map.width;
-    const y = Math.floor(i / map.width);
-    const land = map.terrain[i] === Terrain.Land;
-    context.fillStyle = land ? '#6f9a4f' : map.sea[i] === 1 ? '#25507a' : '#3a6f9c';
-    context.fillRect(x * scale, y * scale, scale, scale);
-  }
-  context.fillStyle = '#c8283c';
-  for (const castle of map.castles) {
-    context.fillRect(castle.x * scale, castle.y * scale, castle.w * scale, castle.h * scale);
-  }
 }
