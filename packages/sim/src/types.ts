@@ -1,3 +1,4 @@
+import type { CampaignState, Ship } from './campaign/state.js';
 import type { Ruleset, SpecialKind, TerrainConfig, TowerVariant } from '@bollfort/config';
 
 export const Terrain = { Water: 0, Land: 1 } as const;
@@ -350,6 +351,18 @@ export type MatchEvent =
     }
   | { kind: 'player_eliminated'; tick: number; player: number; round: number }
   | {
+      /** A campaign's ship has come in at the map's edge (docs/CAMPAIGN.md §5.2). */
+      kind: 'ship_arrived';
+      tick: number;
+      ship: Ship;
+    }
+  | {
+      /** A ship that stood at the coast has gone, to come again from the edge (§5.3). */
+      kind: 'ship_recycled';
+      tick: number;
+      shipId: number;
+    }
+  | {
       kind: 'game_over';
       tick: number;
       winners: number[];
@@ -434,6 +447,8 @@ export interface MatchState {
    * waits for them as for shots. Empty in a match without them, and then not hashed.
    */
   waves: Wave[];
+  /** A campaign level's fleet and counters (docs/CAMPAIGN.md); null in versus play. */
+  campaign: CampaignState | null;
 
   nextCannonId: number;
   nextShotId: number;

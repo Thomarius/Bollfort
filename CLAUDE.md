@@ -254,7 +254,8 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 - **The users' play of the first supporter style** (2026-11-14), then the next styles (SP4).
 - **Campaign mode** (PLAN §11 item 14; `docs/CAMPAIGN.md`, approved 2026-11-25): one to three
   people against an enemy fleet over six levels, co-op online, saved between levels; being built,
-  CA1–CA2 done (a solo level on its own generated map, `?campaign=1`), CA3 next. A mode of its own: never a change to versus rules or
+  CA1–CA3 done (a solo level on its own generated map, ships arriving and sailing,
+  `?campaign=1`), CA4 next. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
   listed and a room's code with the real server, a tournament match's end and a person's Rematch.

@@ -815,6 +815,24 @@ built. Every level generates at 1–3 players for sixty seeds each, in one draw 
 `--map --campaign N [--players P] [--difficulty D]` prints one. The `players: 1` pattern in the
 terrain config stays: seating asks `patternFor` even for one seat, until co-op seats (CA10).
 
+**CA3 done** (2026-11-25). `state.campaign` (`sim/src/campaign/state.ts`) holds the pool, the
+wave, the ships, the spawn cursor and the guns given; hashed after everything versus play
+hashes, only in a campaign. `sim/src/campaign/fleet.ts`: the wave is drawn as the castles are
+chosen and as each build phase opens, from the guns given that round (the opening count, then
+each resolution's awards, as the reference adds them), the level's index and the rounds bonus;
+one ship of each kind arrives a second; raiders and fireships standing at the coast when a build
+phase opens go back into the wave. As a battle opens every ship plans its run in id order —
+re-aimed at the nearest castle, the heading's octant found exactly against 29/70 rather than by an
+arctangent — and a run claims every footprint it crosses. Runs may outlast the battle by the
+slack and finish in the intermission; no run is planned outside a battle. The level's section
+gains `fleet` (the pool scaled for co-op, `maxAfloat`, `timing` in milliseconds: arrival 1000,
+tiles 2100/1400/1050/850, slack 2400, the spawn step 3 to 9). "Rounds played" counts
+resolutions, so level 1's first battle is at the slowest speed. Ships are drawn by a shared
+stamped layer over every look (`render/campaignMarks.ts`: hull, deck, two square sails across the
+beam, a wake while sailing, a fade in and out), in colours from `art.campaign` that no style
+changes; the layer sits over the looks and under the towers' marks. `stateFromAscii` reads `S` as
+a ship's 2 × 2 footprint on water. The snapshot does not carry the fleet yet (CA11).
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |

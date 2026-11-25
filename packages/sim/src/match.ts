@@ -27,6 +27,8 @@ import { denseTeams, tableTeamSize, teamScore } from './teams.js';
 import { generateTerrain } from './terrain.js';
 import { levelCleared, levelEndAtResolution } from './campaign/level.js';
 import { generateCampaignTerrain } from './campaign/terrain.js';
+import { advanceFleet, formWave, openBattle, openBuild } from './campaign/fleet.js';
+import { hashCampaign } from './campaign/state.js';
 import {
   PHASES,
   Structure,
@@ -163,6 +165,7 @@ export function createMatch(options: MatchOptions): MatchState {
     lostWalls: [],
     frozen: [],
     waves: [],
+    campaign: null,
     nextCannonId: 0,
     nextShotId: 0,
     winners: [],
@@ -170,6 +173,22 @@ export function createMatch(options: MatchOptions): MatchState {
     endedBy: null,
     events: [],
   };
+
+  if (ruleset.campaign !== undefined && 'spawnPoints' in generated) {
+    const sea = generated.sea;
+    state.campaign = {
+      pool: [...ruleset.campaign.fleet.pool],
+      wave: [0, 0, 0],
+      ships: [],
+      nextShipId: 0,
+      spawnCursor: 0,
+      nextArrivalTick: 0,
+      // The first wave grows by the opening guns, as every later one by the round's.
+      cannonsGiven: ruleset.cannons.startingCount * playerCount,
+      sea,
+      spawnPoints: generated.spawnPoints,
+    };
+  }
 
   state.events.push({
     kind: 'phase_changed',
@@ -529,6 +548,10 @@ function resolveRound(state: MatchState): void {
   }
 
   state.events.push({ kind: 'round_resolved', tick: state.tick, round: state.round, results });
+  // The next wave grows by the guns just given (CAMPAIGN §5.2).
+  if (state.campaign !== null) {
+    state.campaign.cannonsGiven = results.reduce((n, r) => n + r.cannonsAwarded, 0);
+  }
   for (const id of continued) {
     state.events.push({
       kind: 'player_continued',
@@ -620,6 +643,7 @@ function beginPendingPhase(state: MatchState): void {
       player.openingPlacement = false;
     }
     enterPhase(state, 'combat', state.ruleset.phases.combatMs);
+    if (state.campaign !== null) openBattle(state);
     return;
   }
   if (next === 'build') {
@@ -643,6 +667,9 @@ function beginPendingPhase(state: MatchState): void {
   enterPhase(state, next, durations[next] ?? 0);
   // The Frost Cannons' freezes run from the build phase's first tick.
   if (next === 'build') startFreezes(state);
+  // The fleet's first wave comes as the castles are chosen, and another with every build phase.
+  if (state.campaign !== null && next === 'castle_select') formWave(state);
+  if (state.campaign !== null && next === 'build') openBuild(state);
 }
 
 /**
@@ -783,6 +810,8 @@ export function step(state: MatchState): void {
   // The Drone Towers launch on their own — after the barrels this tick freed, and before the
   // phase may end, as a click on this tick would have been.
   launchDrones(state);
+  // A campaign's fleet: arrivals, and runs ending (docs/CAMPAIGN.md §5).
+  advanceFleet(state);
   advancePhase(state);
 }
 
@@ -1078,5 +1107,7 @@ export function hashMatchState(state: MatchState, version = HASH_VERSION): strin
   if (state.players.some((p) => p.droneAnchor !== undefined)) {
     for (const p of state.players) h.nullable(p.droneAnchor);
   }
+  // A campaign's fleet, only in a campaign: versus play hashes as it always did.
+  if (state.campaign !== null) hashCampaign(h, state.campaign);
   return h.hex;
 }

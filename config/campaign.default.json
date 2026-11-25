@@ -157,7 +157,14 @@
     "toughFromLevel": 3,
     "extraHits": 1,
     "maxAfloat": 16,
-    "maxAfloatPerExtraPlayer": 4
+    "maxAfloatPerExtraPlayer": 4,
+    "timing": {
+      "arrivalMs": 1000,
+      "spawnStepMin": 3,
+      "spawnStepRange": 10,
+      "tileMs": [2100, 1400, 1050, 850],
+      "runSlackMs": 2400
+    }
   },
   "threat": {
     "perGrunt": 4,

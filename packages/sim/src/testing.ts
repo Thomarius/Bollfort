@@ -6,6 +6,8 @@ import {
 } from '@bollfort/config';
 
 import { step } from './match.js';
+import type { CampaignState, Ship } from './campaign/state.js';
+import { seaOf, spawnPointsOf } from './campaign/terrain.js';
 import { placedBarrels } from './specials.js';
 import {
   Structure,
@@ -89,7 +91,8 @@ export function stateFromAscii(
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const ch = at(x, y);
-      if (ch === '.') continue;
+      // A ship (`S`, its 2 × 2 footprint) floats on water.
+      if (ch === '.' || ch === 'S') continue;
       const i = y * width + x;
       terrain[i] = Terrain.Land;
       islandId[i] = ch >= '1' && ch <= '9' ? Number(ch) : 1;
@@ -175,6 +178,35 @@ export function stateFromAscii(
     openingPlacement: false,
   }));
 
+  // A campaign's board has its fleet: raiders where the picture shows ships, the level's pool
+  // still to come.
+  let campaign: CampaignState | null = null;
+  if (ruleset.campaign !== undefined) {
+    const sea = seaOf(terrain, width, height);
+    const ships: Ship[] = blocks('S').map((b, id) => ({
+      id,
+      kind: 'raider',
+      x: b.x,
+      y: b.y,
+      hits: 0,
+      heading: 0,
+      run: null,
+      runs: 0,
+      arrivedTick: 0,
+    }));
+    campaign = {
+      pool: [...ruleset.campaign.fleet.pool],
+      wave: [0, 0, 0],
+      ships,
+      nextShipId: ships.length,
+      spawnCursor: 0,
+      nextArrivalTick: 0,
+      cannonsGiven: 0,
+      sea,
+      spawnPoints: spawnPointsOf(sea, width, height),
+    };
+  }
+
   return {
     seed: 1,
     ruleset,
@@ -204,6 +236,7 @@ export function stateFromAscii(
     waves: [],
     nextCannonId: cannons.length,
     nextShotId: 0,
+    campaign,
     winners: [],
     draw: false,
     endedBy: null,
@@ -288,6 +321,17 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
       lives: 2,
       pieceStartRound: 3,
       carry: { scores: [0], roundsPlayed: 0 },
+      fleet: {
+        pool: [10, 0, 0],
+        maxAfloat: 16,
+        timing: {
+          arrivalMs: 1000,
+          spawnStepMin: 3,
+          spawnStepRange: 10,
+          tileMs: [2100, 1400, 1050, 850],
+          runSlackMs: 2400,
+        },
+      },
     },
   });
 }

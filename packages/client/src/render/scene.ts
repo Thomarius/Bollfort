@@ -19,6 +19,7 @@ import type { ThemeMaker } from '../styles/definition.js';
 import { release } from './release.js';
 import { FortifiedDisplay } from './fortified.js';
 import { TowerMarks } from './towerMarks.js';
+import { CampaignMarks } from './campaignMarks.js';
 import {
   hex,
   playerColour,
@@ -220,6 +221,8 @@ export class Scene {
    * kept last under the camera as looks come and go.
    */
   private readonly towers = new TowerMarks();
+  /** A campaign's ships, one plain layer over every look until a style draws its own (CA3). */
+  private readonly campaign = new CampaignMarks();
   /** The Fortified Towers as the styles draw them: wall with small guns on top. */
   private readonly fortified = new FortifiedDisplay();
   /** The camera as applied: zoom, and the screen offset of the board under it. */
@@ -253,7 +256,7 @@ export class Scene {
     this.app.ticker.autoStart = false;
     this.app.ticker.stop();
     this.app.stage.addChild(this.cameraRoot);
-    this.cameraRoot.addChild(this.towers.root);
+    this.cameraRoot.addChild(this.campaign.root, this.towers.root);
 
     const build = await this.slotFor(looks.build);
     const combat = looks.combat === looks.build ? build : await this.slotFor(looks.combat);
@@ -468,8 +471,8 @@ export class Scene {
       // own frame, outside its share, up to 168 ms of one, and the warming found it done
       // (PLAN §11 item 3, P1). Off the stage it is rendered only by the warming.
       if (slot.root.visible && slot.root.parent !== this.cameraRoot) {
-        // Under the towers' marks, which stay over every look.
-        this.cameraRoot.addChildAt(slot.root, this.cameraRoot.getChildIndex(this.towers.root));
+        // Under the campaign's ships and the towers' marks, which stay over every look.
+        this.cameraRoot.addChildAt(slot.root, this.cameraRoot.getChildIndex(this.campaign.root));
       } else if (!slot.root.visible && slot.root.parent !== null) {
         slot.root.parent.removeChild(slot.root);
       }
@@ -718,6 +721,7 @@ export class Scene {
     this.towers.drawWaves(state, this.view, art, tickFraction);
     this.towers.drawDrones(state, this.view, art, humanPlayer, tickFraction, front.theme.drone);
     this.towers.drawEffects(this.view, deltaMs);
+    this.campaign.draw(state, this.view, art, tickFraction, deltaMs);
     const shown = this.drawnState(state);
     for (const slot of this.visible()) {
       slot.theme.drawEffects(shown, this.view, {

@@ -1533,6 +1533,14 @@
     "climaxCraneSpeed": 3,
     "climaxHookSpeed": 4
   },
+  "campaign": {
+    "hull": "#6b4a2e",
+    "deck": "#a07a50",
+    "sails": { "raider": "#f4f1e8", "transport": "#d9a531", "fireship": "#d2352b" },
+    "lengths": { "raider": 1, "transport": 1.1, "fireship": 1.2 },
+    "wake": "#e8f4ff",
+    "fadeMs": 800
+  },
   "effects": {
     "sealFloodTilesPerSecond": 16,
     "drainTilesPerSecond": 6,

@@ -5,6 +5,7 @@ import {
   type CampaignDifficulty,
   type CampaignDifficultyConfig,
   type Ruleset,
+  type ShipPool,
 } from '@bollfort/config';
 import { streamFor } from '@bollfort/sim';
 
@@ -47,6 +48,22 @@ export function startingLives(
 ): number {
   const d = difficultyOf(config, difficulty);
   return d.lives + d.livesPerExtraPlayer * (players - 1);
+}
+
+/**
+ * A level's ships, raider / transport / fireship: the difficulty's pool for one player, each kind
+ * scaled for co-op by 1 + `coopPoolFactor` × (players − 1), rounded (CAMPAIGN §8.1).
+ */
+export function poolFor(
+  config: CampaignConfig,
+  difficulty: CampaignDifficulty,
+  level: number,
+  players: number,
+): ShipPool {
+  const pool = difficultyOf(config, difficulty).pool[level];
+  if (pool === undefined) throw new RangeError(`no campaign level ${level}`);
+  const factor = 1 + config.coopPoolFactor * (players - 1);
+  return pool.map((n) => Math.round(n * factor)) as ShipPool;
 }
 
 /** A new campaign's carry: Veteran's start bonus to everyone, the starting lives. */
@@ -107,6 +124,11 @@ export function campaignRuleset(
         lakes: entry.lakes,
         lakeRadiusTiles: config.map.lakeRadiusTiles,
         castles: entry.castles + config.castlesPerExtraPlayer * (players - 1),
+      },
+      fleet: {
+        pool: poolFor(config, difficulty, level, players),
+        maxAfloat: config.fleet.maxAfloat + config.fleet.maxAfloatPerExtraPlayer * (players - 1),
+        timing: { ...config.fleet.timing, tileMs: [...config.fleet.timing.tileMs] },
       },
       maxRounds: entry.maxRounds,
       lives: carry.lives,

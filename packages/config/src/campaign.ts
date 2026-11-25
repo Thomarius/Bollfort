@@ -95,6 +95,23 @@ const ShipKindConfigSchema = z.strictObject({
   sinkPoints: count,
 });
 
+/**
+ * How the fleet moves (CAMPAIGN §5.2–§5.3), in milliseconds as the ruleset's phases are: the
+ * reference's frames at 60 a second, rounded where a tick at 30 would have split them.
+ */
+export const FleetTimingSchema = z.strictObject({
+  /** One ship of each kind still in the wave arrives this often. */
+  arrivalMs: z.number().int().positive(),
+  /** An arrival steps this many spawn points on at least, and fewer than `spawnStepRange`. */
+  spawnStepMin: z.number().int().positive(),
+  spawnStepRange: z.number().int().positive(),
+  /** A tile's sailing at each speed, slowest first (CAMPAIGN §5.3: 2.1 s down to 0.85 s). */
+  tileMs: z.array(z.number().int().positive()).min(1),
+  /** A run may last this much beyond the battle's end. */
+  runSlackMs: z.number().int().nonnegative(),
+});
+export type FleetTiming = z.infer<typeof FleetTimingSchema>;
+
 const MapSizeSchema = z.strictObject({
   players: z.number().int().min(1).max(CAMPAIGN_MAX_PLAYERS),
   width: z.number().int().positive(),
@@ -161,6 +178,7 @@ export const CampaignConfigSchema = z
       /** Ships afloat at once, for one player, and more for each other (CAMPAIGN §5.2). */
       maxAfloat: z.number().int().positive(),
       maxAfloatPerExtraPlayer: count,
+      timing: FleetTimingSchema,
     }),
     threat: z.strictObject({
       /** Each grunt on land adds this to the fleet's threat (CAMPAIGN §8.3)… */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultCampaignConfig as config, defaultRuleset } from '@bollfort/config';
 
-import { campaignRuleset, newCarry, startingLives } from './ruleset.js';
+import { campaignRuleset, newCarry, poolFor, startingLives } from './ruleset.js';
 
 describe('campaignRuleset', () => {
   it("builds a level's ruleset from the campaign's config", () => {
@@ -28,6 +28,17 @@ describe('campaignRuleset', () => {
         lakes: 0,
         lakeRadiusTiles: 4,
         castles: 5,
+      },
+      fleet: {
+        pool: [16, 8, 0],
+        maxAfloat: 16,
+        timing: {
+          arrivalMs: 1000,
+          spawnStepMin: 3,
+          spawnStepRange: 10,
+          tileMs: [2100, 1400, 1050, 850],
+          runSlackMs: 2400,
+        },
       },
       maxRounds: 8,
       lives: 2,
@@ -67,6 +78,21 @@ describe('campaignRuleset', () => {
       }).campaign?.map;
     expect(map(1)).toMatchObject({ width: 44, height: 32, castles: 2, lakes: 1 });
     expect(map(3)).toMatchObject({ width: 66, height: 40, castles: 6, landFraction: 0.42 });
+  });
+
+  it('scales the pool and the room afloat for co-op', () => {
+    // 1 + 0.6 for each other player, rounded per kind (CAMPAIGN §8.1).
+    expect(poolFor(config, 'normal', 4, 1)).toEqual([2, 25, 10]);
+    expect(poolFor(config, 'normal', 4, 2)).toEqual([3, 40, 16]);
+    expect(poolFor(config, 'veteran', 4, 3)).toEqual([4, 70, 31]);
+    const afloat = campaignRuleset(config, defaultRuleset, {
+      difficulty: 'normal',
+      level: 0,
+      players: 3,
+      seed: 1,
+      carry: newCarry(config, 'normal', 3),
+    }).campaign?.fleet.maxAfloat;
+    expect(afloat).toBe(24);
   });
 
   it('starts a campaign with its lives and, on Veteran, a bonus', () => {

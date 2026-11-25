@@ -1156,6 +1156,25 @@ export const ArtConfigSchema = z
     mythology: MythologyStyleSchema,
     scenery: ScenerySchema,
     /** Effects both styles draw alike, because they carry information. */
+    /**
+     * The campaign's enemy (docs/CAMPAIGN.md §14.2): one ship drawn for every style, its kind
+     * told by size and sail colour, which no style's palette changes — a fireship's red sails read
+     * as a fireship's on every board.
+     */
+    campaign: z.strictObject({
+      hull: HexColor,
+      deck: HexColor,
+      sails: z.strictObject({ raider: HexColor, transport: HexColor, fireship: HexColor }),
+      /** A ship's length against its 2 × 2 footprint, by kind (§14.2: 110% and 120%). */
+      lengths: z.strictObject({
+        raider: z.number().positive(),
+        transport: z.number().positive(),
+        fireship: z.number().positive(),
+      }),
+      wake: HexColor,
+      /** A ship fades in at the edge, and out when it leaves, over this long. */
+      fadeMs: z.number().int().nonnegative(),
+    }),
     effects: z.strictObject({
       /** How fast newly sealed ground floods out from the castle. */
       sealFloodTilesPerSecond: z.number().positive(),

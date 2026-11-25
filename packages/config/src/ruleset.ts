@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import { CAMPAIGN_LEVELS, CampaignDifficultySchema, MapShapeSchema } from './campaign.js';
+import {
+  CAMPAIGN_LEVELS,
+  CampaignDifficultySchema,
+  FleetTimingSchema,
+  MapShapeSchema,
+} from './campaign.js';
 
 /** Shape of the crater a landed shot punches into a wall. */
 export const CraterPatternSchema = z.enum(['single', 'plus5', 'square9']);
@@ -429,6 +434,18 @@ export const CampaignLevelSchema = z.strictObject({
     lakeRadiusTiles: z.number().int().positive(),
     /** Castles on the map, for every player together (CAMPAIGN §3.4). */
     castles: z.number().int().positive(),
+  }),
+  /** The enemy fleet (CAMPAIGN §5). */
+  fleet: z.strictObject({
+    /** Every ship the level will send, raider / transport / fireship, scaled for the players. */
+    pool: z.tuple([
+      z.number().int().nonnegative(),
+      z.number().int().nonnegative(),
+      z.number().int().nonnegative(),
+    ]),
+    /** Ships afloat at once. */
+    maxAfloat: z.number().int().positive(),
+    timing: FleetTimingSchema,
   }),
   /** The level is survived once this many rounds have been played in it (CAMPAIGN §8.3). */
   maxRounds: z.number().int().positive(),
