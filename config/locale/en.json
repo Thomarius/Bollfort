@@ -231,6 +231,7 @@
   "round.label": "round {round}",
   "round.labelOf": "round {round} / {cap}",
   "round.finalOf": "final round {round} / {cap}",
+  "round.campaign": "{round} · fleet {threat} / {threshold}",
   "announce.finalRound": "Final round",
   "announce.fire": "Fire!",
   "end.draw": "Draw — nobody held a castle",

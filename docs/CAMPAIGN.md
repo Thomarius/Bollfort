@@ -877,7 +877,21 @@ phase as a whole-phase freeze is, kept when the build phase ends (a Frost Cannon
 go), and counted down by `ageIce` as each battle opens. Ice also refuses a gun and stops a grunt.
 `buildsLeft` is hashed only when present, so a Frost Cannon's freezes hash as before. The event is
 `tile_frozen` with owner −1, so the Frost Cannon's burst and sound play and no achievement counts
-it. A continue still wipes the island's freezes with its walls until co-op's shared map (CA10).
+it. A continue wiped the island's freezes with its walls until CA7 kept the map.
+
+**CA7 done** (2026-11-25). The fleet's `threat` (`sim/src/campaign/level.ts`): the ships in the
+pool, the wave and afloat by their weights (7/18/20), plus 4 a grunt, less 7 a gun of the team's.
+The level is cleared in the intermission after a battle, its last shot down, once the threat is
+below the level's threshold (scaled by the co-op pool factor) or its round limit is reached. The
+frost ships' countdown (`fleet.frostshipEvery`, the difficulty's per level) starts at its value + 2
+and counts down as each build phase opens, before the wave is drawn, adding a frost ship to the pool
+at 0. A failure in a level's first round costs no life. A continue in a campaign keeps the map —
+walls, ice, ships, grunts — and removes only the failing player's guns and shots (`removeGuns`;
+versus play's `stripEliminated` would have made the team's walls ownerless); they choose a castle
+again and the ring goes up round it, as before. Until the HUD's fleet bar (CA9) the round label
+reads "round 2 / 8 · fleet 241 / 30": the level's rounds and the threat against its threshold
+(`round.campaign`, in every locale). The end screen still says only "You win" or "Nobody wins"
+(CA8); the battle's early end with nothing left to shoot is not built.
 
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |

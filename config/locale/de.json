@@ -231,6 +231,7 @@
   "round.label": "Runde {round}",
   "round.labelOf": "Runde {round} / {cap}",
   "round.finalOf": "letzte Runde {round} / {cap}",
+  "round.campaign": "{round} · Flotte {threat} / {threshold}",
   "announce.finalRound": "Letzte Runde",
   "announce.fire": "Feuer!",
   "end.draw": "Unentschieden — niemand hielt eine Burg",

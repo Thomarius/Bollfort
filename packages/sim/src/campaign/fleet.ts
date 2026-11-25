@@ -312,6 +312,16 @@ export function openBuild(state: MatchState): void {
   }
   fleet.ships = kept;
   fleet.wave = wave;
+  // A frost ship on top of the pool every so many rounds, whatever it holds (CAMPAIGN §8.2):
+  // rarely early, every round late.
+  const every = rulesOf(state).fleet.frostshipEvery;
+  if (fleet.frostshipCountdown !== null && every !== null) {
+    fleet.frostshipCountdown--;
+    if (fleet.frostshipCountdown <= 0) {
+      fleet.pool = [fleet.pool[0], fleet.pool[1], fleet.pool[2] + 1];
+      fleet.frostshipCountdown = every;
+    }
+  }
   formWave(state);
   openGruntsBuild(state, rulesOf(state).carry.roundsPlayed + roundsInLevel(state));
 }

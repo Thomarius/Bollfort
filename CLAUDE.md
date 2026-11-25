@@ -255,7 +255,8 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 - **Campaign mode** (PLAN §11 item 14; `docs/CAMPAIGN.md`, approved 2026-11-25): one to three
   people against an enemy fleet over six levels, co-op online, saved between levels; being built,
   CA1–CA6 done (a solo level on its own generated map against ships that sail,
-  fire and sink, grunts that land and smash, frost ships' ice, `?campaign=1`), CA7 next. A mode of its own: never a change to versus rules or
+  fire and sink, grunts that land and smash, frost ships' ice, a level cleared by the fleet's
+  threat or its round limit, `?campaign=1`); the user's play of levels 1–3 solo next, then CA8. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
   listed and a room's code with the real server, a tournament match's end and a person's Rematch.

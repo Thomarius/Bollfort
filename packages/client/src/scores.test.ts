@@ -1,4 +1,9 @@
-import type { MatchState } from '@bollfort/sim';
+import {
+  campaignLevelRuleset,
+  stateFromAscii,
+  type CampaignState,
+  type MatchState,
+} from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -66,6 +71,16 @@ describe('the round counter', () => {
   it('counts against the cap, and alone when there is none', () => {
     expect(roundLabel(state({ round: 3 }))).toBe('round 3 / 10');
     expect(roundLabel(state({ round: 3, maxRounds: null }))).toBe('round 3');
+  });
+
+  it("counts a campaign level against its limit, beside the fleet's threat", () => {
+    const level = stateFromAscii(',,,,\n,**,\n,**,', campaignLevelRuleset());
+    (level.campaign as CampaignState).pool = [5, 0, 0];
+    level.round = 2;
+    // Five raiders at 7, less the one gun's 7, against level 1's threshold of 20.
+    expect(roundLabel(level)).toBe('round 2 / 3 · fleet 28 / 20');
+    level.round = 0;
+    expect(roundLabel(level)).toBe('opening · fleet 28 / 20');
   });
 
   it('names the opening rather than counting a round 0', () => {

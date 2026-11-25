@@ -99,6 +99,8 @@ export interface CampaignState {
   nextGruntId: number;
   /** Grunts still to land or be bred this round (CAMPAIGN §6.2). */
   gruntsLeft: number;
+  /** Rounds until a frost ship joins the pool; null on a level without the countdown (§8.2). */
+  frostshipCountdown: number | null;
   /** Open sea, by tile: from the terrain, never changed, so not hashed. */
   sea: Uint8Array;
   /** Around the map's edge, clockwise: from the terrain too. */
@@ -144,7 +146,7 @@ export function hashCampaign(h: Hasher, campaign: CampaignState): void {
   for (const i of campaign.aimed) h.i32(i);
   h.u32(campaign.struck.length);
   for (const i of campaign.struck) h.i32(i);
-  h.i32(campaign.nextGruntId).i32(campaign.gruntsLeft);
+  h.i32(campaign.nextGruntId).i32(campaign.gruntsLeft).nullable(campaign.frostshipCountdown);
   h.u32(campaign.grunts.length);
   for (const g of campaign.grunts) {
     h.i32(g.id).i32(g.x).i32(g.y).i32(g.facing);

@@ -448,6 +448,14 @@ export const CampaignLevelSchema = z.strictObject({
     ]),
     /** Ships afloat at once. */
     maxAfloat: z.number().int().positive(),
+    /** Each kind's share of the fleet's threat, raider / transport / frost ship (§8.3). */
+    weights: z.tuple([
+      z.number().int().nonnegative(),
+      z.number().int().nonnegative(),
+      z.number().int().nonnegative(),
+    ]),
+    /** Rounds between frost ships added to the pool on top of it; null for none (§8.2). */
+    frostshipEvery: z.number().int().positive().nullable(),
     /** Hits each kind takes to sink at this level, raider / transport / frostship (§5.1). */
     hitsToSink: z.tuple([
       z.number().int().positive(),
@@ -489,6 +497,13 @@ export const CampaignLevelSchema = z.strictObject({
   }),
   /** The level is survived once this many rounds have been played in it (CAMPAIGN §8.3). */
   maxRounds: z.number().int().positive(),
+  /** Or once the fleet's threat has fallen below this, scaled for the players (§8.3). */
+  threshold: z.number().nonnegative(),
+  /** A grunt on land adds to the threat, a gun of the team's takes from it (§8.3). */
+  threat: z.strictObject({
+    perGrunt: z.number().int().nonnegative(),
+    perCannon: z.number().int().nonnegative(),
+  }),
   /** The team's lives as the level starts: its pool of continues (CAMPAIGN §9). */
   lives: z.number().int().nonnegative(),
   /** The first build phase deals the size schedule's pieces of this round (CAMPAIGN §7.4). */

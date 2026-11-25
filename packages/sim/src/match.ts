@@ -197,6 +197,11 @@ export function createMatch(options: MatchOptions): MatchState {
       grunts: [],
       nextGruntId: 0,
       gruntsLeft: 0,
+      // It starts two rounds longer than it runs after (CAMPAIGN §8.2).
+      frostshipCountdown:
+        ruleset.campaign.fleet.frostshipEvery === null
+          ? null
+          : ruleset.campaign.fleet.frostshipEvery + 2,
       sea,
       spawnPoints: generated.spawnPoints,
     };
@@ -361,8 +366,8 @@ function wipeIsland(state: MatchState, playerId: number): void {
   }
 }
 
-function stripEliminated(state: MatchState, playerId: number): void {
-  const islandId = (state.players[playerId] as PlayerState).islandId;
+/** A player's guns and their shots in the air, gone; their island's walls untouched. */
+function removeGuns(state: MatchState, playerId: number): void {
   state.cannons = state.cannons.filter((cannon) => {
     if (cannon.owner !== playerId) return true;
     for (let oy = 0; oy < cannon.h; oy++) {
@@ -375,6 +380,11 @@ function stripEliminated(state: MatchState, playerId: number): void {
     return false;
   });
   state.shots = state.shots.filter((shot) => shot.owner !== playerId);
+}
+
+function stripEliminated(state: MatchState, playerId: number): void {
+  const islandId = (state.players[playerId] as PlayerState).islandId;
+  removeGuns(state, playerId);
   state.waves = state.waves.filter((wave) => wave.owner !== playerId);
   for (let i = 0; i < state.owner.length; i++) {
     if (state.owner[i] === islandId && state.structure[i] === Structure.Wall) state.owner[i] = 0;
@@ -489,7 +499,11 @@ function resolveRound(state: MatchState): void {
   for (const player of failing) {
     const team = state.teams[player.team] as TeamState;
     if (doomed.has(team.id)) continue;
-    if (team.continuesRemaining > 0) {
+    // A campaign level's first round is a free try: losing the first ring to an unlucky
+    // opening costs no life (CAMPAIGN §9).
+    if (state.campaign !== null && state.round === 1) {
+      continuing.add(player.id);
+    } else if (team.continuesRemaining > 0) {
       team.continuesRemaining--;
       continuing.add(player.id);
     } else {
@@ -523,7 +537,10 @@ function resolveRound(state: MatchState): void {
       // again in the coming cannon phase, and the ring is raised around it — so this is
       // a fresh start on the same ground rather than a reprieve on a ruin.
       const spent = team.continuesAtStart - team.continuesRemaining;
-      wipeIsland(state, player.id);
+      // A campaign's map is the team's and stays as it is, walls, ice and enemy alike: only the
+      // failing player's guns go, as they choose a castle again (CAMPAIGN §9).
+      if (state.campaign === null) wipeIsland(state, player.id);
+      else removeGuns(state, player.id);
       player.startingCastleId = null;
       player.enclosedCastles = 0;
       player.openingPlacement = true;

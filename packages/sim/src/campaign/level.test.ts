@@ -8,7 +8,10 @@ import {
 } from '@bollfort/config';
 
 import { createMatch, hashMatchState, step } from '../match.js';
-import { campaignLevelRuleset, fastRuleset } from '../testing.js';
+import { campaignLevelRuleset, fastRuleset, stateFromAscii } from '../testing.js';
+import { openBuild } from './fleet.js';
+import { levelCleared, threat } from './level.js';
+import type { CampaignState } from './state.js';
 import { Structure, type MatchState } from '../types.js';
 
 /** A fast campaign level, with the overrides these tests turn. */
@@ -23,7 +26,10 @@ function campaignRules(
       ...campaign,
       maxRounds: overrides.maxRounds ?? 3,
       // No ships: these are about the level's end, and an idle player's walls would not last.
+      // And no threat, so only the round limit or the lives can end the level.
       fleet: { ...campaign.fleet, pool: [0, 0, 0] },
+      threshold: 0,
+      threat: { perGrunt: 0, perCannon: 0 },
       lives: overrides.lives ?? 2,
       carry: { ...campaign.carry, scores: overrides.scores ?? [0] },
     },
@@ -97,16 +103,17 @@ describe('a campaign level', () => {
     expect(state.players[0]?.score).toBeGreaterThan(0);
   });
 
-  it('spends a life on a failed seal, and is lost once none is left', () => {
+  it('forgives the first round, spends a life later, and is lost once none is left', () => {
     const state = solo(campaignRules({ lives: 1, maxRounds: 10 }));
-    for (let failures = 0; failures < 2; failures++) {
+    for (let failures = 0; failures < 3; failures++) {
       stepUntil(state, (s) => s.phase === 'combat');
       breachRing(state);
       stepUntil(state, (s) => s.phase !== 'combat');
       stepUntil(state, (s) => s.phase === 'cannon_place' || s.phase === 'combat');
-      if (failures === 0) {
+      // The first round's failure is free; the second spends the one life.
+      if (failures < 2) {
         expect(state.phase).not.toBe('game_over');
-        expect(state.teams[0]?.continuesRemaining).toBe(0);
+        expect(state.teams[0]?.continuesRemaining).toBe(failures === 0 ? 1 : 0);
       }
     }
     expect(state.phase).toBe('game_over');
@@ -128,5 +135,62 @@ describe('a campaign level', () => {
       return seen;
     };
     expect(hashes(a)).toEqual(hashes(b));
+  });
+
+  it('keeps the map through a continue: only the failing guns go', () => {
+    const state = solo(campaignRules({ lives: 2, maxRounds: 10 }));
+    stepUntil(state, (s) => s.phase === 'combat');
+    breachRing(state);
+    const walls = state.structure.filter((t) => t === Structure.Wall).length;
+    expect(state.cannons.length).toBeGreaterThan(0);
+    stepUntil(state, (s) => s.phase === 'cannon_place');
+    // The ring stands but for the breach's two loose ends, swept as orphans at the resolution —
+    // where versus play would have wiped it whole; the guns are gone, a castle to choose again.
+    expect(state.structure.filter((t) => t === Structure.Wall).length).toBe(walls - 2);
+    expect(state.cannons).toEqual([]);
+  });
+
+  it("weighs the fleet's threat by kind, grunts for it and guns against it", () => {
+    const state = stateFromAscii(
+      `
+      ........,,,,,,
+      .SS.....,**,m,
+      .SS.....,**,,,
+      `,
+      campaignLevelRuleset(),
+    );
+    const fleet = state.campaign as CampaignState;
+    fleet.pool = [2, 1, 0];
+    fleet.wave = [0, 0, 1];
+    // 7 × (2 + the raider afloat) + 18 + 20, a grunt's 4, less a gun's 7.
+    expect(threat(state)).toBe(7 * 3 + 18 + 20 + 4 - 7);
+    // Below level 1's threshold of 20 after a battle, the level is cleared.
+    expect(levelCleared(state)).toBe(false);
+    fleet.pool = [0, 0, 0];
+    fleet.wave = [0, 0, 0];
+    expect(threat(state)).toBe(7 + 4 - 7);
+    expect(levelCleared(state)).toBe(true);
+  });
+
+  it('adds a frost ship to the pool on its countdown, which starts two rounds long', () => {
+    const rules = campaignLevelRuleset();
+    const campaign = rules.campaign as CampaignLevelRules;
+    const state = solo({
+      ...rules,
+      campaign: { ...campaign, fleet: { ...campaign.fleet, frostshipEvery: 2 } },
+    });
+    const fleet = state.campaign as CampaignState;
+    expect(fleet.frostshipCountdown).toBe(4);
+    const added: number[] = [];
+    for (let round = 1; round <= 6; round++) {
+      fleet.pool = [0, 0, 0];
+      fleet.wave = [0, 0, 0];
+      state.phase = 'build';
+      state.round = round;
+      openBuild(state);
+      added.push(fleet.pool[2] + fleet.wave[2]);
+    }
+    // Every second round once it has run its first four.
+    expect(added).toEqual([0, 0, 0, 1, 0, 1]);
   });
 });

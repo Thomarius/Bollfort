@@ -231,6 +231,7 @@
   "round.label": "Rund {round}",
   "round.labelOf": "Rund {round} / {cap}",
   "round.finalOf": "letzt Rund {round} / {cap}",
+  "round.campaign": "{round} · Flott {threat} / {threshold}",
   "announce.finalRound": "Letzt Rund",
   "announce.fire": "Druff!",
   "end.draw": "Unentschiede — kaaner hot e Burch gehalte",

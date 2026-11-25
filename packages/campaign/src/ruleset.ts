@@ -129,6 +129,8 @@ export function campaignRuleset(
       fleet: {
         pool: poolFor(config, difficulty, level, players),
         maxAfloat: config.fleet.maxAfloat + config.fleet.maxAfloatPerExtraPlayer * (players - 1),
+        weights: SHIP_KINDS.map((kind) => config.fleet.kinds[kind].weight) as ShipPool,
+        frostshipEvery: difficultyOf(config, difficulty).frostshipEvery[level] ?? null,
         hitsToSink: SHIP_KINDS.map(
           (kind) =>
             config.fleet.kinds[kind].hitsToSink +
@@ -153,6 +155,8 @@ export function campaignRuleset(
         multiplier: difficultyOf(config, difficulty).scoreMultiplier,
       },
       maxRounds: entry.maxRounds,
+      threshold: entry.threshold * (1 + config.coopPoolFactor * (players - 1)),
+      threat: { ...config.threat },
       lives: carry.lives,
       pieceStartRound: config.pieces.levelStartRound,
       carry: { scores: [...carry.scores], roundsPlayed: carry.roundsPlayed },

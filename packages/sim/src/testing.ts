@@ -226,6 +226,11 @@ export function stateFromAscii(
       grunts,
       nextGruntId: grunts.length,
       gruntsLeft: 0,
+      // It starts two rounds longer than it runs after (CAMPAIGN §8.2).
+      frostshipCountdown:
+        ruleset.campaign.fleet.frostshipEvery === null
+          ? null
+          : ruleset.campaign.fleet.frostshipEvery + 2,
       sea,
       spawnPoints: spawnPointsOf(sea, width, height),
     };
@@ -342,6 +347,8 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
         castles: 6,
       },
       maxRounds: 3,
+      threshold: 20,
+      threat: { perGrunt: 4, perCannon: 7 },
       lives: 2,
       pieceStartRound: 3,
       carry: { scores: [0], roundsPlayed: 0 },
@@ -355,6 +362,8 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
           tileMs: [2100, 1400, 1050, 850],
           runSlackMs: 2400,
         },
+        weights: [7, 18, 20],
+        frostshipEvery: null,
         hitsToSink: [2, 3, 5],
         aim: { base: [-10, 0, 10, 15, 0], perGuarded: 5, perStruck: 12, skipRecent: 8 },
         fire: { everyMs: 733, flightFactor: 1 },
