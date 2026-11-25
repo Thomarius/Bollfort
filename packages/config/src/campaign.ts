@@ -158,6 +158,12 @@ const MapSizeSchema = z.strictObject({
 
 export const CampaignConfigSchema = z
   .strictObject({
+    /**
+     * Whether the main menu shows the Campaign button (the user's, 2026-11-25): the campaign is
+     * early work, so it can be taken out of the menu with one switch, `?campaign=menu` still
+     * opening its screen for trying it.
+     */
+    menuButton: z.boolean(),
     levels: perLevel(LevelSchema),
     difficulties: z.strictObject({
       easier: DifficultySchema,

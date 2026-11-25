@@ -34,6 +34,7 @@ import type { RoomListing } from '@bollfort/protocol';
 import { openNewTournament, openResumeList, type TournamentExits } from './tournamentMenu.js';
 import { savedTournaments } from './tournamentSaves.js';
 import { playTournament } from './tournamentFlow.js';
+import { openCampaignMenu } from './campaignFlow.js';
 import { showTitle } from './pageTitle.js';
 
 /** The menu: who you are and how the game looks. */
@@ -182,6 +183,15 @@ function wireSteamRows(): void {
   });
 }
 
+/**
+ * The Campaign button, while the config shows it: the campaign is early work, and one switch
+ * (`campaign.menuButton`) takes it out of the menu (the user's, 2026-11-25).
+ */
+function campaignRow(): string {
+  if (!defaultConfigBundle.campaign.menuButton) return '';
+  return `<div class="split campaign-row"><button id="campaign">${withIcon('flag', t('menu.campaign'))}</button></div>`;
+}
+
 /** Where the tournament screens lead: back to the menu, or on into a tournament. */
 export function tournamentExits(isPublic: boolean): TournamentExits {
   const exits: TournamentExits = {
@@ -220,6 +230,7 @@ export function showMenu(notice: string | null = null, findGame = false): void {
         <button id="new-tournament">${withIcon('trophy', t('menu.newTournament'))}</button>
         <button id="resume-tournament"${savedTournaments().length === 0 ? ' disabled' : ''}>${withIcon('resume', t('menu.resumeTournament'))}</button>
       </div>
+      ${campaignRow()}
       <div class="split">
         <button id="tutorial" class="quiet${tutorialDone() ? '' : ' fresh'}">${withIcon('flag', t('menu.tutorial'))}</button>
         <button id="how-to-play" class="quiet${howToPlaySeen() ? '' : ' fresh'}">${withIcon('help', t('menu.howToPlay'))}</button>
@@ -361,6 +372,12 @@ export function showMenu(notice: string | null = null, findGame = false): void {
   document.querySelector('#resume-tournament')?.addEventListener('click', () => {
     audio.play('select');
     openResumeList(exits());
+  });
+
+  // The campaign (docs/CAMPAIGN.md), early work, its button behind `campaign.menuButton`.
+  document.querySelector('#campaign')?.addEventListener('click', () => {
+    audio.play('select');
+    openCampaignMenu({ menu: () => showMenu() });
   });
 
   document.querySelector('#play')?.addEventListener('click', () => {

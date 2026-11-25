@@ -290,6 +290,7 @@ function kill(
   const killed = fleet.grunts.filter(doomed);
   if (killed.length === 0) return;
   fleet.grunts = fleet.grunts.filter((g) => !killed.includes(g));
+  fleet.gruntsKilled += killed.length;
   const { gruntPoints, multiplier } = rulesOf(state).scoring;
   for (const grunt of killed) {
     const points = player === undefined ? 0 : Math.round(gruntPoints * multiplier);

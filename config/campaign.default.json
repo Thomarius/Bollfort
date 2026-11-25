@@ -1,4 +1,5 @@
 {
+  "menuButton": true,
   "levels": [
     {
       "shapes": ["coast"],

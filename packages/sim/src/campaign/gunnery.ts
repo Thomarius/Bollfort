@@ -204,6 +204,7 @@ export function hitShips(state: MatchState, shot: Shot): void {
   }
   points += award(state, player, rules.scoring.sinkPoints[kind] as number);
   fleet.ships = fleet.ships.filter((s) => s.id !== ship.id);
+  fleet.sunk = fleet.sunk.map((n, k) => (k === kind ? n + 1 : n)) as CampaignState['sunk'];
   // Where it went down, for the picture of its sinking: the ship removed has no run to place it by.
   const at = shipPosition(ship, state.tick);
   state.events.push({

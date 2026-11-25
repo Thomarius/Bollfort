@@ -176,10 +176,12 @@ export async function runSession(
   // every step from here. Asked before the board is built, so no step can come first; a board
   // joined after its start was played in part by a bot, which the detector is told.
   const tutorial = exits.tutorial ?? null;
-  // The tutorial counts for nothing but its own achievement (docs/TUTORIAL.md §6).
+  // The tutorial counts for nothing but its own achievement (docs/TUTORIAL.md §6), and a
+  // campaign level for none of versus play's (docs/CAMPAIGN.md §15.3).
   if (
     achievementsOn() &&
     tutorial === null &&
+    session.state.ruleset.campaign === undefined &&
     matchCounts(params, session.humanPlayer, exits.demo === true)
   ) {
     const joinedLate = session.state.tick > 0;

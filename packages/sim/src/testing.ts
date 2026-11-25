@@ -231,6 +231,8 @@ export function stateFromAscii(
         ruleset.campaign.fleet.frostshipEvery === null
           ? null
           : ruleset.campaign.fleet.frostshipEvery + 2,
+      sunk: [0, 0, 0],
+      gruntsKilled: 0,
       sea,
       spawnPoints: spawnPointsOf(sea, width, height),
     };

@@ -101,6 +101,9 @@ export interface CampaignState {
   gruntsLeft: number;
   /** Rounds until a frost ship joins the pool; null on a level without the countdown (§8.2). */
   frostshipCountdown: number | null;
+  /** Ships sunk this level by kind, and grunts killed, for its summary. */
+  sunk: KindCounts;
+  gruntsKilled: number;
   /** Open sea, by tile: from the terrain, never changed, so not hashed. */
   sea: Uint8Array;
   /** Around the map's edge, clockwise: from the terrain too. */
@@ -147,6 +150,8 @@ export function hashCampaign(h: Hasher, campaign: CampaignState): void {
   h.u32(campaign.struck.length);
   for (const i of campaign.struck) h.i32(i);
   h.i32(campaign.nextGruntId).i32(campaign.gruntsLeft).nullable(campaign.frostshipCountdown);
+  for (const n of campaign.sunk) h.i32(n);
+  h.i32(campaign.gruntsKilled);
   h.u32(campaign.grunts.length);
   for (const g of campaign.grunts) {
     h.i32(g.id).i32(g.x).i32(g.y).i32(g.facing);
@@ -169,5 +174,6 @@ export function copyCampaign(campaign: CampaignState): CampaignState {
     aimed: [...campaign.aimed],
     struck: [...campaign.struck],
     grunts: campaign.grunts.map((g) => ({ ...g })),
+    sunk: [...campaign.sunk],
   };
 }

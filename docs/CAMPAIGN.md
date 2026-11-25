@@ -893,6 +893,23 @@ reads "round 2 / 8 · fleet 241 / 30": the level's rounds and the threat against
 (`round.campaign`, in every locale). The end screen still says only "You win" or "Nobody wins"
 (CA8); the battle's early end with nothing left to shoot is not built.
 
+**CA8 done** (2026-11-25). `packages/campaign`: the save (`save.ts`, version 1, as §12 with
+`stage` — the next level's place in the difficulty's `levelOrder` — and `defeated`, so a lost
+level left unretried reopens on its defeat) and the run (`run.ts`: `newCampaign`, `levelSetup`,
+`levelSeed` from the campaign's seed, the stage and the losses there, `recordLevel`, `retryLevel`;
+pure, every function a new save). A cleared level adds its clear points (× the multiplier) to every
+player, a life back up to the starting count, its rounds, and moves on; a lost one keeps the carry,
+so a retry is the level from its start on a fresh map; Veteran's two retries spent, a loss ends
+the campaign. `state.campaign` counts ships sunk by kind and grunts killed for the summary. The
+client: `campaignSaves.ts` (`bollfort.campaign.` keys), `campaignScreens.ts` (pure markup: the
+campaign menu with Normal and Veteran and the third setting greyed, the saved campaigns; a level's
+intro with its real map drawn small, its shape and the fleet by kind; the summary, the defeat with
+its retry, the victory) and `campaignFlow.ts` (the save written as a level ends, before its summary;
+a level left is played again from its start). The main menu's Campaign button stands behind
+`campaign.menuButton` (the user's, 2026-11-25: early work, one switch to take it out);
+`?campaign=menu` opens the screen either way, and `&snapshot=game_over` plays each level out at once.
+Campaign levels count for none of versus play's achievements. Texts in every locale.
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |

@@ -9919,3 +9919,59 @@ img.avatar {
 .how-to-play.tutorial-offer .panel button {
   width: 100%;
 }
+
+/* The campaign's screens (docs/CAMPAIGN.md §14.1, CA8): working layouts in the menus' frame,
+   polished after the users' play. */
+.menu.campaign-intro,
+.menu.campaign-summary,
+.menu.campaign-defeat,
+.menu.campaign-victory {
+  width: min(40rem, 94vw);
+  max-height: 94vh;
+  overflow-y: auto;
+}
+
+.campaign-difficulties .difficulty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  text-align: left;
+}
+
+.campaign-difficulties .difficulty small {
+  opacity: 0.8;
+  font-weight: normal;
+}
+
+.campaign-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0.5rem 0;
+  border-radius: 0.4rem;
+  image-rendering: pixelated;
+}
+
+.campaign-fleet,
+.campaign-record {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.campaign-fleet li,
+.campaign-record li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.campaign-fleet .sail {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1px solid rgb(0 0 0 / 40%);
+  border-radius: 0.2rem;
+}

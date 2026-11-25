@@ -202,6 +202,8 @@ export function createMatch(options: MatchOptions): MatchState {
         ruleset.campaign.fleet.frostshipEvery === null
           ? null
           : ruleset.campaign.fleet.frostshipEvery + 2,
+      sunk: [0, 0, 0],
+      gruntsKilled: 0,
       sea,
       spawnPoints: generated.spawnPoints,
     };

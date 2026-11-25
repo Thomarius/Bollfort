@@ -34,6 +34,7 @@ import { createTournament } from '@bollfort/tournament';
 import { openLobby } from './lobbyFlow.js';
 import { runSession } from './matchScreen.js';
 import { campaignLevelSetup } from './campaignLevel.js';
+import { openCampaignMenu } from './campaignFlow.js';
 import { showLoading } from './loading.js';
 import { installDemo, startDemo } from './demo.js';
 import { openKeyboard } from './padKeyboard.js';
@@ -144,6 +145,9 @@ function start(): void {
     // Straight into the demo, for looking at it; a click comes back to the menu.
     showMenu();
     startDemo();
+  } else if (params.get('campaign') === 'menu') {
+    // The campaign's screen, whether or not the menu shows its button (CA8).
+    openCampaignMenu({ menu: () => showMenu() });
   } else if (params.get('campaign') === '1') {
     // A campaign level alone, for trying it until the campaign has its screens (CA1).
     playLocal(campaignLevelSetup(params, chosenSeed(), t('menu.defaultName'), preferredStyles()));
