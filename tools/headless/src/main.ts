@@ -4,6 +4,8 @@ import { parseArgs as parseFlags } from 'node:util';
 
 import {
   BALANCED,
+  CAMPAIGN_DIFFICULTIES,
+  CAMPAIGN_LEVELS,
   MAX_LEVEL,
   MIN_LEVEL,
   RulesetSchema,
@@ -13,16 +15,20 @@ import {
   validateConfigBundle,
   type AiConfig,
   type BotSetup,
+  type CampaignDifficulty,
+  type CampaignLevelRules,
   type Personality,
   type Ruleset,
   type TowerVariant,
 } from '@bollfort/config';
 import { loadConfigBundle } from '@bollfort/config/node';
+import { campaignRuleset, newCarry } from '@bollfort/campaign';
 import { Bot, PlanningSlots, dealPersonalities, drawnSpecial, takeBotTurns } from '@bollfort/ai';
 import {
   Rng,
   createMatch,
   drainEvents,
+  generateCampaignTerrain,
   generateTerrain,
   hashMatchState,
   renderAscii,
@@ -61,6 +67,9 @@ interface Args {
   seed: number;
   maxTicks: number;
   map: boolean;
+  /** A campaign level, 1 to 6, whose map `--map` prints; null for versus play's. */
+  campaign: number | null;
+  difficulty: CampaignDifficulty;
   /** Skill level per seat, repeating if shorter than the table. */
   levels: number[];
   /** Personality per seat, repeating; `dealt` deals one from the seed as a match does. */
@@ -174,7 +183,7 @@ function parsePersonalities(value: string | undefined): (Personality | 'dealt')[
 const USAGE =
   'usage: npm start -w @bollfort/headless -- [--matches N] [--players N] [--seed N] ' +
   '[--max-ticks N] [--max-rounds N|none] [--teams N] [--level 1-10[,...]] ' +
-  '[--personality offensive|dealt|...[,...]] [--specials on|off] [--special bertha2|bertha3|architect2|architect3|lightning2|lightning3|biggest2|biggest3|laser2|laser3|frost2|frost3|lullaby2|lullaby3|subwoofer2|subwoofer3|drone2|drone3|none|random[,...]] [--plans 1,0[,...]] [--set path=json ...] [--stats FILE] [--outcomes FILE] [--record DIR] [--map]\n' +
+  '[--personality offensive|dealt|...[,...]] [--specials on|off] [--special bertha2|bertha3|architect2|architect3|lightning2|lightning3|biggest2|biggest3|laser2|laser3|frost2|frost3|lullaby2|lullaby3|subwoofer2|subwoofer3|drone2|drone3|none|random[,...]] [--plans 1,0[,...]] [--set path=json ...] [--stats FILE] [--outcomes FILE] [--record DIR] [--map [--campaign 1-6 [--difficulty normal|veteran|easier|harder]]]\n' +
   '       npm start -w @bollfort/headless -- --replay recordings/ [more files or dirs] [--stats FILE] [--achievements]\n' +
   '       npm start -w @bollfort/headless -- --tournament [--help for its flags]';
 
@@ -224,10 +233,17 @@ function parseArgs(argv: string[]): Args {
   };
   return {
     matches: number('matches', 20, 1),
-    players: number('players', 3, 2),
+    // A campaign is played by one to three; versus play needs two at least.
+    players: number(
+      'players',
+      values.campaign === undefined ? 3 : 1,
+      values.campaign === undefined ? 2 : 1,
+    ),
     seed: number('seed', 1, 0),
     maxTicks: number('max-ticks', 150_000, 1),
     map: values.map === true,
+    campaign: campaignLevel(values.campaign),
+    difficulty: campaignDifficulty(values.difficulty),
     levels,
     personalities,
     specials: values.specials === 'on',
@@ -276,6 +292,8 @@ const FLAGS = {
   stats: { type: 'string' },
   outcomes: { type: 'string' },
   map: { type: 'boolean' },
+  campaign: { type: 'string' },
+  difficulty: { type: 'string' },
   replay: { type: 'boolean' },
   achievements: { type: 'boolean' },
   help: { type: 'boolean' },
@@ -417,6 +435,40 @@ if (args.replay.length > 0) {
     console.log(`\n${rows.length} row(s) written to ${args.stats}`);
   }
   summariseStats(rows);
+  process.exit(0);
+}
+
+if (args.map && args.campaign !== null) {
+  // A campaign level's map (docs/CAMPAIGN.md §3): `--players` 1 to 3.
+  const rules = campaignRuleset(bundle.campaign, bundle.ruleset, {
+    difficulty: args.difficulty,
+    level: args.campaign - 1,
+    players: args.players,
+    seed: args.seed,
+    carry: newCarry(bundle.campaign, args.difficulty, args.players),
+  }).campaign as CampaignLevelRules;
+  const map = generateCampaignTerrain(rules, bundle.terrain, args.seed);
+  const structure = new Uint8Array(map.width * map.height);
+  for (const castle of map.castles) {
+    for (let oy = 0; oy < castle.h; oy++) {
+      for (let ox = 0; ox < castle.w; ox++) {
+        structure[(castle.y + oy) * map.width + castle.x + ox] = 2;
+      }
+    }
+  }
+  const edges = Object.entries(map.edges)
+    .filter(([, open]) => open)
+    .map(([side]) => side)
+    .join('+');
+  const lake = map.sea.reduce((n, s, i) => n + (s === 0 && map.terrain[i] === 0 ? 1 : 0), 0);
+  console.log(
+    `campaign level ${args.campaign} (${rules.shape}, sea ${edges}), ${args.players}p seed ` +
+      `${args.seed} — ${map.width}x${map.height}, land ${map.landArea} ` +
+      `(${Math.round((100 * map.landArea) / (map.width * map.height))}%), lake ${lake}, ` +
+      `${map.castles.length} castles, ${map.spawnPoints.length} spawn points, ` +
+      `${map.attempts} attempt(s)`,
+  );
+  console.log(renderAscii({ ...map, structure }));
   process.exit(0);
 }
 
@@ -702,4 +754,21 @@ if (unfinished > 0) {
     `\n${unfinished} match(es) did not finish within ${args.maxTicks} ticks. ` +
       `Two evenly matched defenders can hold each other off indefinitely.`,
   );
+}
+
+/** `--campaign N`: a campaign level, 1 to 6. */
+function campaignLevel(value: string | undefined): number | null {
+  if (value === undefined) return null;
+  const level = wholeNumber('campaign', value, 1);
+  if (level > CAMPAIGN_LEVELS) usageError(`--campaign wants 1-${CAMPAIGN_LEVELS}`);
+  return level;
+}
+
+/** `--difficulty`: a campaign's, Normal unless named. */
+function campaignDifficulty(value: string | undefined): CampaignDifficulty {
+  if (value === undefined) return 'normal';
+  if (!(CAMPAIGN_DIFFICULTIES as readonly string[]).includes(value)) {
+    usageError(`--difficulty wants ${CAMPAIGN_DIFFICULTIES.join(', ')}`);
+  }
+  return value as CampaignDifficulty;
 }

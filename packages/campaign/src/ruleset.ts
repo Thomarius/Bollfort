@@ -86,6 +86,8 @@ export function campaignRuleset(
   // Drawn as the level is set up, so the shape is in the ruleset and the terrain needs no draw.
   const shape = entry.shapes[streamFor(seed, 'campaign-shape').nextInt(entry.shapes.length)];
   if (shape === undefined) throw new RangeError(`campaign level ${level} has no shape`);
+  const size = config.map.sizes.find((s) => s.players === players);
+  if (size === undefined) throw new RangeError(`no campaign map size for ${players} players`);
 
   return RulesetSchema.parse({
     ...base,
@@ -96,6 +98,16 @@ export function campaignRuleset(
       difficulty,
       level,
       shape,
+      map: {
+        width: size.width,
+        height: size.height,
+        seaMarginTiles: config.map.seaMarginTiles,
+        landFraction: config.map.landFraction[shape],
+        coastNoise: { ...config.map.coastNoise },
+        lakes: entry.lakes,
+        lakeRadiusTiles: config.map.lakeRadiusTiles,
+        castles: entry.castles + config.castlesPerExtraPlayer * (players - 1),
+      },
       maxRounds: entry.maxRounds,
       lives: carry.lives,
       pieceStartRound: config.pieces.levelStartRound,

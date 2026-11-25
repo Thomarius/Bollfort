@@ -1,4 +1,9 @@
-import { defaultRuleset, defaultTerrainConfig, type Ruleset } from '@bollfort/config';
+import {
+  defaultRuleset,
+  defaultTerrainConfig,
+  RulesetSchema,
+  type Ruleset,
+} from '@bollfort/config';
 
 import { step } from './match.js';
 import { placedBarrels } from './specials.js';
@@ -253,4 +258,36 @@ export function fastRuleset(ruleset: Ruleset = defaultRuleset): Ruleset {
       continueBannerMs: 200,
     },
   };
+}
+
+/**
+ * A campaign level's ruleset as `campaignRuleset` (`@bollfort/campaign`, which depends on this
+ * package) builds one for one player on Normal: level 1, a coast, three rounds, two lives.
+ */
+export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset {
+  return RulesetSchema.parse({
+    ...ruleset,
+    players: { min: 1, max: 3 },
+    specials: { ...ruleset.specials, enabled: false },
+    scoring: { ...ruleset.scoring, maxRounds: null },
+    campaign: {
+      difficulty: 'normal',
+      level: 0,
+      shape: 'coast',
+      map: {
+        width: 44,
+        height: 32,
+        seaMarginTiles: 4,
+        landFraction: 0.6,
+        coastNoise: { amplitudeTiles: 7, frequency: 0.06 },
+        lakes: 0,
+        lakeRadiusTiles: 4,
+        castles: 6,
+      },
+      maxRounds: 3,
+      lives: 2,
+      pieceStartRound: 3,
+      carry: { scores: [0], roundsPlayed: 0 },
+    },
+  });
 }

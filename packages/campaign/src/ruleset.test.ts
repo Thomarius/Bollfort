@@ -19,6 +19,16 @@ describe('campaignRuleset', () => {
       difficulty: 'normal',
       level: 1,
       shape: 'corner',
+      map: {
+        width: 44,
+        height: 32,
+        seaMarginTiles: 4,
+        landFraction: 0.5,
+        coastNoise: { amplitudeTiles: 7, frequency: 0.06 },
+        lakes: 0,
+        lakeRadiusTiles: 4,
+        castles: 5,
+      },
       maxRounds: 8,
       lives: 2,
       pieceStartRound: 3,
@@ -44,6 +54,19 @@ describe('campaignRuleset', () => {
       ),
     );
     expect(shapes).toEqual(new Set(config.levels[4]?.shapes));
+  });
+
+  it('sizes the map and its castles for the players', () => {
+    const map = (players: number) =>
+      campaignRuleset(config, defaultRuleset, {
+        difficulty: 'normal',
+        level: 5,
+        players,
+        seed: 1,
+        carry: newCarry(config, 'normal', players),
+      }).campaign?.map;
+    expect(map(1)).toMatchObject({ width: 44, height: 32, castles: 2, lakes: 1 });
+    expect(map(3)).toMatchObject({ width: 66, height: 40, castles: 6, landFraction: 0.42 });
   });
 
   it('starts a campaign with its lives and, on Veteran, a bonus', () => {

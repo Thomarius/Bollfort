@@ -123,6 +123,27 @@ export const CampaignConfigSchema = z
       sizes: z.array(MapSizeSchema).length(CAMPAIGN_MAX_PLAYERS),
       /** Open water along every sea edge, for the ships to manoeuvre in. */
       seaMarginTiles: z.number().int().positive(),
+      /**
+       * The land's share of the map, by shape (CAMPAIGN §3.2: 55–65% for a coast, less where
+       * the sea comes from more sides).
+       */
+      landFraction: z.strictObject(
+        Object.fromEntries(MAP_SHAPES.map((s) => [s, z.number().gt(0).lt(1)])) as Record<
+          MapShape,
+          z.ZodNumber
+        >,
+      ),
+      /**
+       * The coastline's noise: how far in or out it moves the shore, in tiles either way, and
+       * its frequency. Larger than an island's, whose distances to the sea are a few tiles where
+       * a campaign map's run to forty.
+       */
+      coastNoise: z.strictObject({
+        amplitudeTiles: z.number().nonnegative(),
+        frequency: z.number().positive(),
+      }),
+      /** A lake's radius, before the noise roughens its shore. */
+      lakeRadiusTiles: z.number().int().positive(),
     }),
     fleet: z.strictObject({
       kinds: z.strictObject({

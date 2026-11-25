@@ -3,31 +3,29 @@ import {
   defaultRuleset,
   defaultTerrainConfig,
   RulesetSchema,
+  type CampaignLevelRules,
   type Ruleset,
 } from '@bollfort/config';
 
 import { createMatch, hashMatchState, step } from '../match.js';
-import { fastRuleset } from '../testing.js';
+import { campaignLevelRuleset, fastRuleset } from '../testing.js';
 import { Structure, type MatchState } from '../types.js';
 
-/** A campaign level's ruleset as `campaignRuleset` builds it, without its package (a cycle). */
+/** A fast campaign level, with the overrides these tests turn. */
 function campaignRules(
   overrides: { maxRounds?: number; lives?: number; scores?: number[] } = {},
 ): Ruleset {
-  return RulesetSchema.parse({
-    ...fastRuleset(defaultRuleset),
-    players: { min: 1, max: 3 },
-    scoring: { ...defaultRuleset.scoring, maxRounds: null },
+  const rules = campaignLevelRuleset(fastRuleset(defaultRuleset));
+  const campaign = rules.campaign as CampaignLevelRules;
+  return {
+    ...rules,
     campaign: {
-      difficulty: 'normal',
-      level: 0,
-      shape: 'coast',
+      ...campaign,
       maxRounds: overrides.maxRounds ?? 3,
       lives: overrides.lives ?? 2,
-      pieceStartRound: 3,
-      carry: { scores: overrides.scores ?? [0], roundsPlayed: 0 },
+      carry: { ...campaign.carry, scores: overrides.scores ?? [0] },
     },
-  });
+  };
 }
 
 function solo(ruleset: Ruleset, seed = 7): MatchState {

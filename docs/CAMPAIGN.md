@@ -799,6 +799,22 @@ played on a one-island versus map, from a `players: 1` pattern added to the terr
 `?campaign=1&level=N&difficulty=` opens one. The protocol is unchanged (CA11 bumps it), and so
 is the end screen ("You win" when cleared).
 
+**CA2 done** (2026-11-25). `generateCampaignTerrain` (`sim/src/campaign/terrain.ts`) draws the
+level's map at its configured size: a distance from the sea edges, the corner where two meet
+rounded as versus play's boxes are, plus noise, cut at the sea level that gives the land its
+share (`map.landFraction` by shape: coast 60%, corner and strip 50%, island 42%). The sea margin
+is kept open, the largest piece of land kept, and the area checked before lakes are cut (with
+the lake counted against it, the final battle's map needed up to 38 draws). The coastline's
+noise is the campaign's own (`map.coastNoise`, ±7 tiles at frequency 0.06): versus play's ±3,
+sized for a box a few tiles from the sea, left a campaign coast nearly straight. Lakes sit near
+the land's middle, clear of every shore by their radius and three. Castles are placed by
+versus play's farthest-point sampling (`placeCastles`, now given a count and a clearance from the
+map's edge); spawn points run clockwise round the edge wherever a 2 × 2 ship fits in open sea,
+and the sea is told from lakes by a flood from the edge (`seaOf`). `bay` throws until it is
+built. Every level generates at 1–3 players for sixty seeds each, in one draw (2 ms a map).
+`--map --campaign N [--players P] [--difficulty D]` prints one. The `players: 1` pattern in the
+terrain config stays: seating asks `patternFor` even for one seat, until co-op seats (CA10).
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |

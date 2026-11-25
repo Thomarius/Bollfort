@@ -364,7 +364,7 @@ function buildField(config: TerrainConfig, seed: number): Float64Array {
 }
 
 /** Chooses the sea level that yields an island closest to the requested area. */
-function thresholdForArea(field: Float64Array, targetArea: number): number {
+export function thresholdForArea(field: Float64Array, targetArea: number): number {
   // Bounds come from the data: the field is a distance in tiles, so a fixed range
   // would either never reach the target or spend every iteration outside it.
   let lo = Infinity;
@@ -389,7 +389,7 @@ function thresholdForArea(field: Float64Array, targetArea: number): number {
 }
 
 /** Keeps only the largest 4-connected land region, discarding offshore islets. */
-function largestComponent(mask: Uint8Array, w: number, h: number): number {
+export function largestComponent(mask: Uint8Array, w: number, h: number): number {
   const label = new Int32Array(mask.length).fill(-1);
   const queue = new Int32Array(mask.length);
   let best = -1;
@@ -437,7 +437,7 @@ function largestComponent(mask: Uint8Array, w: number, h: number): number {
  * Smooths the coastline: drops spurs and one-tile isthmuses, fills pinholes.
  * Both rules read a snapshot, so the result does not depend on scan order.
  */
-function erode(mask: Uint8Array, w: number, h: number, passes: number): void {
+export function erode(mask: Uint8Array, w: number, h: number, passes: number): void {
   for (let pass = 0; pass < passes; pass++) {
     const before = mask.slice();
     for (let y = 0; y < h; y++) {
@@ -458,7 +458,7 @@ function erode(mask: Uint8Array, w: number, h: number, passes: number): void {
 }
 
 /** Distance from each land tile to the nearest water tile, in orthogonal steps. */
-function distanceToWater(mask: Uint8Array, w: number, h: number): Int32Array {
+export function distanceToWater(mask: Uint8Array, w: number, h: number): Int32Array {
   const dist = new Int32Array(mask.length).fill(-1);
   const queue = new Int32Array(mask.length);
   let head = 0;
@@ -508,13 +508,20 @@ function ringsClear(ax: number, ay: number, bx: number, by: number, clearance: n
  * what gives the enclosure decision its bite — a loop around all three is a long
  * perimeter to defend.
  */
-function placeCastles(
+export function placeCastles(
   mask: Uint8Array,
   dist: Int32Array,
   w: number,
   h: number,
   config: TerrainConfig,
+  /**
+   * A campaign's map (docs/CAMPAIGN.md §3.3): its count of castles rather than an island's, and
+   * rings kept this many tiles off the map's edge, where its land may reach it.
+   */
+  options: { count?: number; borderClearance?: number } = {},
 ): { x: number; y: number }[] | null {
+  const count = options.count ?? config.castles.perIsland;
+  const border = options.borderClearance ?? 0;
   const [cw, ch] = config.castles.footprint;
   const minShore = config.castles.minDistanceFromShoreTiles;
   const ring = config.startingWall.ringRadiusTiles;
@@ -539,7 +546,14 @@ function placeCastles(
       // Every castle must be a viable starting choice, so the whole block the
       // auto-built wall ring occupies has to be solid ground. Without this a
       // player could pick a coastal castle and start the match already breached.
-      if (x - ring < 0 || y - ring < 0 || x + cw + ring > w || y + ch + ring > h) continue;
+      if (
+        x - ring < border ||
+        y - ring < border ||
+        x + cw + ring > w - border ||
+        y + ch + ring > h - border
+      ) {
+        continue;
+      }
       for (let oy = -ring; oy < ch + ring && ok; oy++) {
         for (let ox = -ring; ox < cw + ring; ox++) {
           if (mask[(y + oy) * w + x + ox] !== Terrain.Land) {
@@ -554,7 +568,7 @@ function placeCastles(
     }
   }
 
-  if (candidates.length < config.castles.perIsland) return null;
+  if (candidates.length < count) return null;
 
   const chosen: { x: number; y: number; cx: number; cy: number }[] = [];
   const minSpacing2 = config.castles.minSpacingTiles * config.castles.minSpacingTiles;
@@ -565,7 +579,7 @@ function placeCastles(
   for (const c of candidates) if (c.inland > first.inland) first = c;
   chosen.push(first);
 
-  while (chosen.length < config.castles.perIsland) {
+  while (chosen.length < count) {
     let best: (typeof candidates)[number] | null = null;
     let bestScore = -1;
     for (const c of candidates) {

@@ -412,6 +412,24 @@ export const CampaignLevelSchema = z.strictObject({
     .max(CAMPAIGN_LEVELS - 1),
   /** The shape its map is generated in (CAMPAIGN §3.1). */
   shape: MapShapeSchema,
+  /** Its map (CAMPAIGN §3): configured for the player count, where versus play measures it. */
+  map: z.strictObject({
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+    /** Open water along every sea edge. */
+    seaMarginTiles: z.number().int().positive(),
+    /** The land's share of the map. */
+    landFraction: z.number().gt(0).lt(1),
+    /** The coastline's noise, in tiles either way, and its frequency. */
+    coastNoise: z.strictObject({
+      amplitudeTiles: z.number().nonnegative(),
+      frequency: z.number().positive(),
+    }),
+    lakes: z.number().int().nonnegative(),
+    lakeRadiusTiles: z.number().int().positive(),
+    /** Castles on the map, for every player together (CAMPAIGN §3.4). */
+    castles: z.number().int().positive(),
+  }),
   /** The level is survived once this many rounds have been played in it (CAMPAIGN §8.3). */
   maxRounds: z.number().int().positive(),
   /** The team's lives as the level starts: its pool of continues (CAMPAIGN §9). */

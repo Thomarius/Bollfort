@@ -137,7 +137,16 @@
       { "players": 2, "width": 56, "height": 36 },
       { "players": 3, "width": 66, "height": 40 }
     ],
-    "seaMarginTiles": 4
+    "seaMarginTiles": 4,
+    "landFraction": {
+      "coast": 0.6,
+      "corner": 0.5,
+      "strip": 0.5,
+      "island": 0.42,
+      "bay": 0.55
+    },
+    "coastNoise": { "amplitudeTiles": 7, "frequency": 0.06 },
+    "lakeRadiusTiles": 4
   },
   "fleet": {
     "kinds": {

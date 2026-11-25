@@ -26,6 +26,7 @@ import { repairWalls } from './specials.js';
 import { denseTeams, tableTeamSize, teamScore } from './teams.js';
 import { generateTerrain } from './terrain.js';
 import { levelCleared, levelEndAtResolution } from './campaign/level.js';
+import { generateCampaignTerrain } from './campaign/terrain.js';
 import {
   PHASES,
   Structure,
@@ -81,7 +82,11 @@ export function createMatch(options: MatchOptions): MatchState {
   }
 
   const labels = options.players.map((p) => p.team);
-  const generated = generateTerrain(terrainConfig, playerCount, seed, tableTeamSize(labels));
+  // A campaign level's map is its own: one stretch of land, the sea along its edges (CAMPAIGN §3).
+  const generated =
+    ruleset.campaign === undefined
+      ? generateTerrain(terrainConfig, playerCount, seed, tableTeamSize(labels))
+      : generateCampaignTerrain(ruleset.campaign, terrainConfig, seed);
   const size = generated.width * generated.height;
 
   // Team labels to dense ids in label order, so the table's Team A is team 0.
