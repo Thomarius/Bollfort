@@ -1,4 +1,4 @@
-import type { CampaignState, FleetShot, Ship } from './campaign/state.js';
+import type { CampaignState, FleetShot, Grunt, Ship } from './campaign/state.js';
 import type { Ruleset, SpecialKind, TerrainConfig, TowerVariant } from '@bollfort/config';
 
 export const Terrain = { Water: 0, Land: 1 } as const;
@@ -386,6 +386,30 @@ export type MatchEvent =
       player: number;
       hits: number;
       sunk: boolean;
+    }
+  | {
+      /** A grunt has come ashore, or been brought beside another (§6.2). */
+      kind: 'grunt_landed';
+      tick: number;
+      grunt: Grunt;
+    }
+  | {
+      /** A grunt is gone, shot where it stood or walled in; the player's points for it. */
+      kind: 'grunt_killed';
+      tick: number;
+      gruntId: number;
+      x: number;
+      y: number;
+      player: number;
+      points: number;
+      how: 'shot' | 'walled';
+    }
+  | {
+      /** A grunt has smashed the wall it faced (§6.4). */
+      kind: 'wall_smashed';
+      tick: number;
+      gruntId: number;
+      tile: number;
     }
   | {
       /** A ship has sunk, where it was on the tick, in 1/256 of a tile; its sinker's points. */

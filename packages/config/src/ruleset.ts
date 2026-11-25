@@ -6,6 +6,7 @@ import {
   FleetAimSchema,
   FleetFireSchema,
   FleetTimingSchema,
+  GruntTimingSchema,
   MapShapeSchema,
 } from './campaign.js';
 
@@ -457,10 +458,20 @@ export const CampaignLevelSchema = z.strictObject({
     aim: FleetAimSchema,
     fire: FleetFireSchema,
   }),
+  /** The grunts the transports land (CAMPAIGN §6.2). */
+  grunts: z.strictObject({
+    /** Grunts a round may land, by rounds played in the campaign, the last for every later. */
+    allowance: z.array(z.number().int().nonnegative()).min(1),
+    /** The allowance's factor: the difficulty's, and more for more players. */
+    factor: z.number().positive(),
+    timing: GruntTimingSchema,
+  }),
   /** The campaign's own points, on top of ground and guns (CAMPAIGN §11). */
   scoring: z.strictObject({
     /** Per hit on a ship. */
     hitPoints: z.number().int().nonnegative(),
+    /** Per grunt shot. */
+    gruntPoints: z.number().int().nonnegative(),
     /** On sinking one, to whoever's shot sank it, raider / transport / fireship. */
     sinkPoints: z.tuple([
       z.number().int().nonnegative(),

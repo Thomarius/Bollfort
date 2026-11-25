@@ -847,6 +847,19 @@ export async function runSession(
         case 'ship_hit':
           scene.noteShipHit(event.shipId);
           break;
+        case 'wall_smashed': {
+          // A grunt's blow lands on the wall as a shot would, in every look.
+          const { width } = session.state;
+          const x = event.tile % width;
+          const y = Math.floor(event.tile / width);
+          scene.noteSmash(event.gruntId);
+          scene.noteImpact(x, y, [{ x, y, owner: 0 }]);
+          structuresChanged = true;
+          break;
+        }
+        case 'grunt_killed':
+          scene.noteGruntKilled(event.x, event.y);
+          break;
         case 'ship_sunk':
           scene.noteShipSunk(event.ship, event.x, event.y);
           break;

@@ -30,6 +30,7 @@ import { generateCampaignTerrain } from './campaign/terrain.js';
 import { advanceFleet, formWave, openBattle, openBuild } from './campaign/fleet.js';
 import { hashCampaign } from './campaign/state.js';
 import { landFleetShots } from './campaign/gunnery.js';
+import { advanceGrunts, clearRing, clearWalledIn } from './campaign/grunts.js';
 import {
   PHASES,
   Structure,
@@ -192,6 +193,9 @@ export function createMatch(options: MatchOptions): MatchState {
       fireCursor: -1,
       aimed: [],
       struck: [],
+      grunts: [],
+      nextGruntId: 0,
+      gruntsLeft: 0,
       sea,
       spawnPoints: generated.spawnPoints,
     };
@@ -296,6 +300,15 @@ export function startingRingTiles(
 
 /** Lays the auto-built wall ring around a player's chosen castle. */
 function buildStartingRing(state: MatchState, castle: Castle): void {
+  // A campaign's grunts inside the ring's square go: it is raised on clear ground (CAMPAIGN §6.2).
+  const ring = state.terrainConfig.startingWall.ringRadiusTiles;
+  clearRing(
+    state,
+    castle.x - ring,
+    castle.y - ring,
+    castle.x + castle.w - 1 + ring,
+    castle.y + castle.h - 1 + ring,
+  );
   for (const i of startingRingTiles(state, castle)) {
     state.structure[i] = Structure.Wall;
     state.owner[i] = castle.islandId;
@@ -819,8 +832,9 @@ export function step(state: MatchState): void {
   // The Drone Towers launch on their own — after the barrels this tick freed, and before the
   // phase may end, as a click on this tick would have been.
   launchDrones(state);
-  // A campaign's fleet: arrivals, and runs ending (docs/CAMPAIGN.md §5).
+  // A campaign's fleet: arrivals, runs ending, its guns (docs/CAMPAIGN.md §5); its grunts (§6).
   advanceFleet(state);
+  advanceGrunts(state);
   advancePhase(state);
 }
 
@@ -870,6 +884,9 @@ export function applyAction(state: MatchState, action: Action): Rejection | null
       // goes down. Combat deliberately does not do this: territory shown during a
       // barrage is the territory you earned, not what is left of it.
       applyEnclosure(state);
+      // A campaign's grunts walled in are done for, to the builder's credit (the user's,
+      // 2026-11-25): building round them is play, not only shooting at them.
+      if (state.campaign !== null) clearWalledIn(state, action.player);
       // Overtime ending early, once everyone has used it, is noticed by the next step
       // rather than here: a resolution can end the match, and one run from inside an
       // action would end it before the tick it belongs to had been stepped.

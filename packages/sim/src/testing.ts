@@ -6,7 +6,7 @@ import {
 } from '@bollfort/config';
 
 import { step } from './match.js';
-import type { CampaignState, Ship } from './campaign/state.js';
+import type { CampaignState, Grunt, Ship } from './campaign/state.js';
 import { seaOf, spawnPointsOf } from './campaign/terrain.js';
 import { placedBarrels } from './specials.js';
 import {
@@ -194,7 +194,21 @@ export function stateFromAscii(
       runs: 0,
       arrivedTick: 0,
       shotId: null,
+      nextLandTick: 0,
     }));
+    // And its grunts (`m`, on land), facing north, their clocks at zero.
+    const grunts: Grunt[] = blocks('m').flatMap((b) =>
+      Array.from({ length: b.w * b.h }, (_, k) => ({
+        id: 0,
+        x: b.x + (k % b.w),
+        y: b.y + Math.floor(k / b.w),
+        facing: 0,
+        nextStepTick: 0,
+        nextActTick: 0,
+        nextBreedTick: 0,
+      })),
+    );
+    grunts.forEach((g, id) => (g.id = id));
     campaign = {
       pool: [...ruleset.campaign.fleet.pool],
       wave: [0, 0, 0],
@@ -209,6 +223,9 @@ export function stateFromAscii(
       fireCursor: -1,
       aimed: [],
       struck: [],
+      grunts,
+      nextGruntId: grunts.length,
+      gruntsLeft: 0,
       sea,
       spawnPoints: spawnPointsOf(sea, width, height),
     };
@@ -342,7 +359,12 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
         aim: { base: [-10, 0, 10, 15, 0], perGuarded: 5, perStruck: 12, skipRecent: 8 },
         fire: { everyMs: 733, flightFactor: 1 },
       },
-      scoring: { hitPoints: 10, sinkPoints: [20, 40, 60], multiplier: 1 },
+      grunts: {
+        allowance: [5, 6, 7, 8, 9, 10, 12, 13],
+        factor: 1,
+        timing: { landMs: 1866, breedMs: 11733, stepMs: 1600, smashMs: 6933 },
+      },
+      scoring: { hitPoints: 10, gruntPoints: 10, sinkPoints: [20, 40, 60], multiplier: 1 },
     },
   });
 }

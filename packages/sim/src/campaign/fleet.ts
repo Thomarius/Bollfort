@@ -5,6 +5,7 @@ import { streamFor } from '../rng.js';
 import { Terrain, type MatchState } from '../types.js';
 import type { CampaignState, KindCounts, Run, Ship } from './state.js';
 import { fireFleet, openFire } from './gunnery.js';
+import { openGruntsBattle, openGruntsBuild } from './grunts.js';
 
 /**
  * The enemy fleet (docs/CAMPAIGN.md §5): ships drawn from the level's pool into a wave each build
@@ -49,7 +50,7 @@ function fleetOf(state: MatchState): CampaignState {
 }
 
 /** Rounds finished in this level: a round counts once its walls have been resolved. */
-function roundsInLevel(state: MatchState): number {
+export function roundsInLevel(state: MatchState): number {
   return state.phase === 'combat' || state.pendingPhase === 'build' || state.phase === 'build'
     ? Math.max(0, state.round - 1)
     : state.round;
@@ -217,6 +218,7 @@ function launch(state: MatchState, kind: ShipKind): boolean {
       runs: 0,
       arrivedTick: state.tick,
       shotId: null,
+      nextLandTick: 0,
     };
     fleet.ships = [...fleet.ships, ship];
     state.events.push({ kind: 'ship_arrived', tick: state.tick, ship: { ...ship } });
@@ -284,6 +286,7 @@ function sail(state: MatchState): void {
 /** Every ship without a run plans one as a battle opens, in id order, and the guns get ready. */
 export function openBattle(state: MatchState): void {
   openFire(state);
+  openGruntsBattle(state);
   const fleet = fleetOf(state);
   fleet.ships = fleet.ships.map((s) => ({ ...s }));
   for (const ship of fleet.ships) if (ship.run === null) planRun(state, ship);
@@ -310,6 +313,7 @@ export function openBuild(state: MatchState): void {
   fleet.ships = kept;
   fleet.wave = wave;
   formWave(state);
+  openGruntsBuild(state, rulesOf(state).carry.roundsPlayed + roundsInLevel(state));
 }
 
 /** The fleet's part of a tick: arrivals, runs ending, and its guns. */

@@ -20,6 +20,7 @@ import {
 } from './specials.js';
 import { sameTeam } from './teams.js';
 import { hitShips } from './campaign/gunnery.js';
+import { hitGrunts } from './campaign/grunts.js';
 import { Structure, type Cannon, type MatchState, type Shot } from './types.js';
 
 /** Tiles a landed shot clears, relative to the impact tile. */
@@ -347,11 +348,13 @@ export function resolveImpacts(state: MatchState): void {
 
     const offsets = craterTilesOf(state.ruleset, shot.kind, shot.cost);
     const destroyed: number[] = [];
+    const crater: number[] = [];
     for (const [ox, oy] of offsets) {
       const tx = shot.toX + ox;
       const ty = shot.toY + oy;
       if (tx < 0 || ty < 0 || tx >= state.width || ty >= state.height) continue;
       const i = ty * state.width + tx;
+      crater.push(i);
       if (strikeWall(state, shot.owner, i)) destroyed.push(i);
     }
 
@@ -367,8 +370,12 @@ export function resolveImpacts(state: MatchState): void {
     if (shot.kind === 'frost') freezeTile(state, shot);
     // A Lullaby Tower's, and the enemy gun nearest it falls asleep.
     if (shot.kind === 'lullaby') singLullaby(state, shot);
-    // A campaign's ship near where it lands takes the hit (docs/CAMPAIGN.md §5.6).
-    if (state.campaign !== null) hitShips(state, shot);
+    // A campaign's ship near where it lands takes the hit (docs/CAMPAIGN.md §5.6), and a grunt
+    // where it lands dies (§6.2).
+    if (state.campaign !== null) {
+      hitShips(state, shot);
+      hitGrunts(state, shot, crater);
+    }
   }
 
   state.shots = remaining;

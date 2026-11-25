@@ -165,6 +165,14 @@ export class MatchAudio {
         case 'ship_sunk':
           this.audio.play('tower_impact', 1, 0, this.pan(event.x / 256));
           break;
+        case 'wall_smashed':
+          this.audio.play(
+            'shot_impact',
+            0.6,
+            0,
+            this.pan(this.stereo === null ? 0 : event.tile % this.stereo.width),
+          );
+          break;
 
         case 'shot_impact':
           // One explosion whatever it hits: a separate cue for a wall was planned and

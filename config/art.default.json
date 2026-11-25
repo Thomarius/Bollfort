@@ -1539,6 +1539,7 @@
     "sails": { "raider": "#f4f1e8", "transport": "#d9a531", "fireship": "#d2352b" },
     "lengths": { "raider": 1, "transport": 1.1, "fireship": 1.2 },
     "wake": "#e8f4ff",
+    "grunt": { "tunic": "#7a1e1e", "skin": "#e0b48a", "club": "#5a3b22" },
     "fadeMs": 800
   },
   "effects": {

@@ -134,6 +134,22 @@ export const FleetFireSchema = z.strictObject({
 });
 export type FleetFire = z.infer<typeof FleetFireSchema>;
 
+/**
+ * The grunts transports land (CAMPAIGN §6.2–§6.4): how many a round, and how often they come
+ * ashore, multiply, step and smash, in milliseconds (the reference's 56, 352, 48 and 208 ticks).
+ */
+export const GruntTimingSchema = z.strictObject({
+  /** A transport beside the shore lands one this often while the allowance lasts. */
+  landMs: z.number().int().positive(),
+  /** Each grunt on land brings another beside it this often, from the same allowance. */
+  breedMs: z.number().int().positive(),
+  /** A grunt steps a tile this often, in the build phase. */
+  stepMs: z.number().int().positive(),
+  /** A grunt smashes the wall it faces this often, in a battle. */
+  smashMs: z.number().int().positive(),
+});
+export type GruntTiming = z.infer<typeof GruntTimingSchema>;
+
 const MapSizeSchema = z.strictObject({
   players: z.number().int().min(1).max(CAMPAIGN_MAX_PLAYERS),
   width: z.number().int().positive(),
@@ -203,6 +219,11 @@ export const CampaignConfigSchema = z
       timing: FleetTimingSchema,
       aim: FleetAimSchema,
       fire: FleetFireSchema,
+    }),
+    grunts: z.strictObject({
+      /** Grunts a round may land, by rounds played in the campaign, the last for every later. */
+      allowance: z.array(count).min(1),
+      timing: GruntTimingSchema,
     }),
     threat: z.strictObject({
       /** Each grunt on land adds this to the fleet's threat (CAMPAIGN §8.3)… */

@@ -38,6 +38,20 @@ export interface Ship {
   arrivedTick: number;
   /** Its one shot in flight, if any (CAMPAIGN §5.4). */
   shotId: number | null;
+  /** A transport's next landing, in a build phase (CAMPAIGN §6.2). */
+  nextLandTick: number;
+}
+
+/** One of the enemy's soldiers on land, standing on one tile (CAMPAIGN §6.2). */
+export interface Grunt {
+  id: number;
+  x: number;
+  y: number;
+  /** 0 north, 1 east, 2 south, 3 west: the way it walks, and the wall it smashes. */
+  facing: number;
+  nextStepTick: number;
+  nextActTick: number;
+  nextBreedTick: number;
 }
 
 /**
@@ -81,6 +95,10 @@ export interface CampaignState {
   aimed: number[];
   /** Team wall tiles cleared this battle, which the aim spreads its fire away from. */
   struck: number[];
+  grunts: Grunt[];
+  nextGruntId: number;
+  /** Grunts still to land or be bred this round (CAMPAIGN §6.2). */
+  gruntsLeft: number;
   /** Open sea, by tile: from the terrain, never changed, so not hashed. */
   sea: Uint8Array;
   /** Around the map's edge, clockwise: from the terrain too. */
@@ -107,7 +125,8 @@ export function hashCampaign(h: Hasher, campaign: CampaignState): void {
       .i32(s.heading)
       .i32(s.runs)
       .i32(s.arrivedTick)
-      .nullable(s.shotId);
+      .nullable(s.shotId)
+      .i32(s.nextLandTick);
     if (s.run === null) {
       h.bool(false);
     } else {
@@ -125,4 +144,28 @@ export function hashCampaign(h: Hasher, campaign: CampaignState): void {
   for (const i of campaign.aimed) h.i32(i);
   h.u32(campaign.struck.length);
   for (const i of campaign.struck) h.i32(i);
+  h.i32(campaign.nextGruntId).i32(campaign.gruntsLeft);
+  h.u32(campaign.grunts.length);
+  for (const g of campaign.grunts) {
+    h.i32(g.id).i32(g.x).i32(g.y).i32(g.facing);
+    h.i32(g.nextStepTick).i32(g.nextActTick).i32(g.nextBreedTick);
+  }
+}
+
+/**
+ * A copy a simulation ahead may change — a bot's rollout, the person's seat driven by one in a dev
+ * fast-forward or on autopilot — sharing only what never changes: shared whole, a rollout stepping
+ * a build phase landed its grunts in the match itself.
+ */
+export function copyCampaign(campaign: CampaignState): CampaignState {
+  return {
+    ...campaign,
+    pool: [...campaign.pool],
+    wave: [...campaign.wave],
+    ships: campaign.ships.map((s) => ({ ...s, run: s.run === null ? null : { ...s.run } })),
+    shots: campaign.shots.map((s) => ({ ...s })),
+    aimed: [...campaign.aimed],
+    struck: [...campaign.struck],
+    grunts: campaign.grunts.map((g) => ({ ...g })),
+  };
 }

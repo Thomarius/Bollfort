@@ -176,6 +176,15 @@
       "flightFactor": 1
     }
   },
+  "grunts": {
+    "allowance": [5, 6, 7, 8, 9, 10, 12, 13],
+    "timing": {
+      "landMs": 1866,
+      "breedMs": 11733,
+      "stepMs": 1600,
+      "smashMs": 6933
+    }
+  },
   "threat": {
     "perGrunt": 4,
     "perCannon": 7

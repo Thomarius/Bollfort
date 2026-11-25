@@ -138,8 +138,16 @@ export function campaignRuleset(
         aim: { ...config.fleet.aim, base: [...config.fleet.aim.base] },
         fire: { ...config.fleet.fire },
       },
+      grunts: {
+        allowance: [...config.grunts.allowance],
+        factor:
+          difficultyOf(config, difficulty).gruntFactor *
+          (1 + config.coopGruntFactor * (players - 1)),
+        timing: { ...config.grunts.timing },
+      },
       scoring: {
         hitPoints: config.scoring.hitPoints,
+        gruntPoints: config.scoring.gruntPoints,
         sinkPoints: SHIP_KINDS.map((kind) => config.fleet.kinds[kind].sinkPoints) as ShipPool,
         multiplier: difficultyOf(config, difficulty).scoreMultiplier,
       },

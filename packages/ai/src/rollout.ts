@@ -1,5 +1,6 @@
 import {
   applyAction,
+  copyCampaign,
   inFlight,
   step,
   type MatchState,
@@ -160,6 +161,8 @@ function copyOf(state: MatchState, events: MatchState['events'] = []): MatchStat
     // build phase gives each freeze its thaw tick, which must not reach the match it copies.
     frozen: state.frozen.map((f) => ({ ...f })),
     waves: state.waves.map((w) => ({ ...w, lanes: w.lanes.map((l) => ({ ...l })) })),
+    // A campaign's fleet and grunts move as a rollout steps, so they are its own (CAMPAIGN CA5).
+    campaign: state.campaign === null ? null : copyCampaign(state.campaign),
     winners: [...state.winners],
     events: [...events],
   };

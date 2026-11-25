@@ -5,6 +5,7 @@ import {
   SHIP_SIZE,
   shipPosition,
   type FleetShot,
+  type Grunt,
   type MatchState,
   type Ship,
 } from '@bollfort/sim';
@@ -51,6 +52,24 @@ const SINK_MS = 1600;
 /** Splinters and smoke a hit throws, as fractions of a turn round the ship. */
 const SPLINTERS = [0.05, 0.21, 0.38, 0.55, 0.71, 0.88];
 
+/** A grunt's step drawn over this long, its club raised this long after a smash. */
+const STEP_MS = 280;
+const SMASH_MS = 450;
+/** A killed grunt's puff, and a landed one's fade in. */
+const POOF_MS = 500;
+const LAND_MS = 400;
+
+/** A grunt where it was last drawn, to slide it from there to its new tile. */
+interface GruntTrack {
+  x: number;
+  y: number;
+  fromX: number;
+  fromY: number;
+  /** Milliseconds since it last stepped, or since it landed. */
+  since: number;
+  landed: boolean;
+}
+
 /** A fleet shot's ball, its shadow and the arc it rises in, against its range. */
 const BALL = 0x23201d;
 const SHADOW = 0x000000;
@@ -70,6 +89,12 @@ export class CampaignMarks {
   private sinking: Sinking[] = [];
   /** Ships just hit, by id, and how long ago. */
   private hits = new Map<number, number>();
+  /** The grunts, by id, where they were drawn. */
+  private tracks = new Map<number, GruntTrack>();
+  /** Grunts that just smashed a wall, by id, and how long ago. */
+  private smashes = new Map<number, number>();
+  /** Grunts just killed, where, and how long ago. */
+  private poofs: { x: number; y: number; age: number }[] = [];
 
   constructor() {
     this.root.addChild(this.water.container, this.ships.container, this.air.container);
@@ -78,6 +103,16 @@ export class CampaignMarks {
   /** A ship hit: splinters fly from it a moment. */
   noteHit(shipId: number): void {
     this.hits.set(shipId, 0);
+  }
+
+  /** A grunt smashed the wall it faces: its club comes down. */
+  noteSmash(gruntId: number): void {
+    this.smashes.set(gruntId, 0);
+  }
+
+  /** A grunt killed on its tile: a puff where it stood. */
+  noteGruntKilled(x: number, y: number): void {
+    this.poofs.push({ x: x + 0.5, y: y + 0.5, age: 0 });
   }
 
   /** A ship sunk at (x, y), its corner in 1/256 of a tile: it goes down there, not fading. */
@@ -101,7 +136,12 @@ export class CampaignMarks {
     deltaMs: number,
   ): void {
     const fleet = state.campaign;
-    const idle = this.seen.size === 0 && this.leaving.length === 0 && this.sinking.length === 0;
+    const idle =
+      this.seen.size === 0 &&
+      this.leaving.length === 0 &&
+      this.sinking.length === 0 &&
+      this.tracks.size === 0 &&
+      this.poofs.length === 0;
     if (fleet === null && idle) return;
     const tile = view.tile;
     const look = art.campaign;
@@ -167,11 +207,60 @@ export class CampaignMarks {
       if (p < 0.4) this.drawHit(view, s.x, s.y, p / 0.4, look.hull);
     }
 
+    this.drawGrunts(view, art, fleet?.grunts ?? [], deltaMs, moving);
+
     for (const shot of fleet?.shots ?? []) this.drawBall(view, shot, now);
 
     this.water.end();
     this.ships.end();
     this.air.end();
+  }
+
+  /**
+   * The grunts: each slid from its last tile to its new one as it steps, bobbing, faded in as it
+   * lands, its club brought down as it smashes; a puff where one was killed.
+   */
+  private drawGrunts(
+    view: ViewTransform,
+    art: ArtConfig,
+    grunts: readonly Grunt[],
+    deltaMs: number,
+    moving: boolean,
+  ): void {
+    const tile = view.tile;
+    const tracks = new Map<number, GruntTrack>();
+    for (const grunt of grunts) {
+      const old = this.tracks.get(grunt.id);
+      const track: GruntTrack =
+        old === undefined
+          ? { x: grunt.x, y: grunt.y, fromX: grunt.x, fromY: grunt.y, since: 0, landed: true }
+          : old.x !== grunt.x || old.y !== grunt.y
+            ? { x: grunt.x, y: grunt.y, fromX: old.x, fromY: old.y, since: 0, landed: false }
+            : { ...old, since: old.since + deltaMs };
+      tracks.set(grunt.id, track);
+      const p = moving ? Math.min(1, track.since / STEP_MS) : 1;
+      const x = track.fromX + (track.x - track.fromX) * p + 0.5;
+      const bob = !track.landed && p < 1 ? Math.sin(p * Math.PI) * 0.12 : 0;
+      const y = track.fromY + (track.y - track.fromY) * p + 0.5 - bob;
+      const pose = this.smashes.has(grunt.id) ? 'smash' : 'stand';
+      const body = this.book.get(`grunt:${pose}:${grunt.facing}`, tile, (g) =>
+        drawGrunt(g, tile, art, grunt.facing, pose === 'smash'),
+      );
+      const alpha = track.landed ? Math.min(1, track.since / LAND_MS) : 1;
+      this.water.disc(tileX(view, x), tileY(view, y + 0.3 + bob), tile * 0.22, SHADOW, 0.2 * alpha);
+      this.ships.place(body, tileX(view, x), tileY(view, y), { alpha });
+    }
+    this.tracks = tracks;
+    for (const [id, age] of this.smashes) {
+      if (age + deltaMs >= SMASH_MS || !tracks.has(id)) this.smashes.delete(id);
+      else this.smashes.set(id, age + deltaMs);
+    }
+    this.poofs = this.poofs.filter((p) => (p.age += deltaMs) < POOF_MS);
+    for (const poof of this.poofs) {
+      const p = poof.age / POOF_MS;
+      const radius = tile * (0.2 + p * 0.45);
+      this.air.disc(tileX(view, poof.x), tileY(view, poof.y), radius, 0xb8b0a8, 0.6 * (1 - p));
+    }
   }
 
   /** A fleet shot in flight: its ball rising and falling over the line it flies, its shadow under. */
@@ -316,3 +405,42 @@ function drawShip(g: Graphics, tile: number, art: ArtConfig, kind: ShipKind): vo
     }
   }
 }
+
+/**
+ * A grunt from above, centred on its tile: a dark red tunic, a head, and a club held out the way
+ * it faces — swung up ahead of it as it smashes. The same in every style, so it reads as the enemy.
+ */
+function drawGrunt(
+  g: Graphics,
+  tile: number,
+  art: ArtConfig,
+  facing: number,
+  smashing: boolean,
+): void {
+  const colours = art.campaign.grunt;
+  const [fx, fy] = FACING_STEPS[facing] as readonly [number, number];
+  g.circle(0, 0, tile * 0.3);
+  g.fill({ color: hex(colours.tunic) });
+  g.stroke({ color: 0x000000, alpha: 0.45, width: Math.max(1, tile * 0.04) });
+  g.circle(fx * tile * 0.08, fy * tile * 0.08, tile * 0.14);
+  g.fill({ color: hex(colours.skin) });
+  const reach = smashing ? 0.5 : 0.38;
+  const side = smashing ? 0 : 0.16;
+  const sx = -fy * side;
+  const sy = fx * side;
+  g.moveTo((fx * 0.15 + sx) * tile, (fy * 0.15 + sy) * tile);
+  g.lineTo((fx * reach + sx) * tile, (fy * reach + sy) * tile);
+  g.stroke({
+    color: hex(colours.club),
+    width: Math.max(2, tile * (smashing ? 0.13 : 0.09)),
+    cap: 'round',
+  });
+}
+
+/** A grunt's facings as steps, clockwise from north (the sim's `FACINGS`). */
+const FACING_STEPS: readonly (readonly [number, number])[] = [
+  [0, -1],
+  [1, 0],
+  [0, 1],
+  [-1, 0],
+];

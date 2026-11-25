@@ -1172,6 +1172,8 @@ export const ArtConfigSchema = z
         fireship: z.number().positive(),
       }),
       wake: HexColor,
+      /** A grunt, the same in every style so it reads as the enemy anywhere (§14.3). */
+      grunt: z.strictObject({ tunic: HexColor, skin: HexColor, club: HexColor }),
       /** A ship fades in at the edge, and out when it leaves, over this long. */
       fadeMs: z.number().int().nonnegative(),
     }),

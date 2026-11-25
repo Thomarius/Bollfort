@@ -254,8 +254,8 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 - **The users' play of the first supporter style** (2026-11-14), then the next styles (SP4).
 - **Campaign mode** (PLAN §11 item 14; `docs/CAMPAIGN.md`, approved 2026-11-25): one to three
   people against an enemy fleet over six levels, co-op online, saved between levels; being built,
-  CA1–CA4 done (a solo level on its own generated map against raiders that sail,
-  fire and sink, `?campaign=1`), CA5 next. A mode of its own: never a change to versus rules or
+  CA1–CA5 done (a solo level on its own generated map against ships that sail,
+  fire and sink and grunts that land and smash, `?campaign=1`), CA6 next. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
   listed and a room's code with the real server, a tournament match's end and a person's Rematch.
@@ -389,6 +389,10 @@ its header but the simulation does not — so the server stamps each header with
   castle adds only its tiles at its resolution; valued so, the widening walled a strip of land
   rather than the castle beside it. Its guns, at the planning's `weights.gun`, are what make
   it worth sealing — and only as many as the wall leaves room for (the user's rule).
+- **A bot's rollout copies the match** (`copyOf` in `ai/src/rollout.ts`): any state the sim
+  changes as it steps must be copied there, not shared by the spread. A campaign's fleet and grunts
+  once were, and a dev fast-forward driving the person's seat landed every grunt it played ahead in
+  the match itself, three times the allowance (`copyCampaign`, CAMPAIGN CA5).
 - **A bot's build may read only its own island.** Anything it reads from elsewhere, such as
   another island's wall in a search across the map, makes its phase depend on its
   neighbours, and a rollout can no longer predict it. `rollout.test.ts` catches it.

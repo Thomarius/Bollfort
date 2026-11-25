@@ -11,6 +11,7 @@ import {
 import { applyEnclosure } from './enclosure.js';
 import { pieceAt, pieceCells } from './pieces.js';
 import { isFrozen } from './frost.js';
+import { gruntAt } from './campaign/grunts.js';
 import { footprintOf, placedBarrels, specialRefusal } from './specials.js';
 
 /**
@@ -42,7 +43,9 @@ export type Rejection =
   | 'special_this_round'
   | 'special_cap'
   | 'special_too_dear'
-  | 'frozen';
+  | 'frozen'
+  /** A campaign's grunt stands there (docs/CAMPAIGN.md §6.2). */
+  | 'grunt';
 
 export function playerOf(state: MatchState, id: number): PlayerState | null {
   return state.players[id] ?? null;
@@ -103,6 +106,7 @@ export function cellsRefusal(
     if (state.terrain[i] !== Terrain.Land) return 'not_land';
     if (state.structure[i] !== Structure.Empty) return 'occupied';
     if (isFrozen(state, i)) return 'frozen';
+    if (gruntAt(state, i) !== null) return 'grunt';
     if (
       state.ruleset.build.restrictToOwnIsland &&
       !mayBuildOn(state, player, state.islandId[i] as number)
@@ -201,6 +205,7 @@ export function canPlaceCannon(
       if (state.terrain[i] !== Terrain.Land) return 'not_land';
       if (state.structure[i] !== Structure.Empty) return 'occupied';
       if (state.territory[i] !== player.islandId) return 'not_territory';
+      if (gruntAt(state, i) !== null) return 'grunt';
     }
   }
   return null;

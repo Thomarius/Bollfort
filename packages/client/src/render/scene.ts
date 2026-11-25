@@ -801,6 +801,15 @@ export class Scene {
     this.campaign.noteSunk(ship, x, y);
   }
 
+  /** A campaign's grunt smashing a wall, and one killed on its tile (CA5). */
+  noteSmash(gruntId: number): void {
+    this.campaign.noteSmash(gruntId);
+  }
+
+  noteGruntKilled(x: number, y: number): void {
+    this.campaign.noteGruntKilled(x, y);
+  }
+
   noteImpact(x: number, y: number, debris: readonly Debris[]): void {
     for (const slot of this.visible()) slot.theme.noteImpact(x, y, debris);
   }

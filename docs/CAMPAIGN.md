@@ -336,9 +336,11 @@ enclosure flood (it is not wall) and is not damaged by fleet shots.
   tile beside it every **56 ticks** (1.9 s) while the allowance lasts.
 - **Reinforcement**: every **352 ticks** (11.7 s) per grunt on land, a new grunt appears on a
   random free tile beside it, from the same allowance. Small landings grow.
-- **Removed**: by a player's shot landing on its tile (§11 points); and at a level's end. When a
-  player's continue raises a new ring, grunts inside the ring's 8 × 8 are removed. Being walled in
-  does nothing to a grunt.
+- **Removed**: by a player's shot landing on its tile (§11 points); by being **walled in** — a
+  piece that seals ground, pockets too, clears every grunt on it at once, the points to whoever
+  placed it (the user's, 2026-11-25: building round a landing is a way to fight it); and at a
+  level's end. When a player's continue raises a new ring, grunts inside the ring's 8 × 8 are
+  removed.
 
 ### 6.3 Grunts walking (build phase only)
 
@@ -495,7 +497,7 @@ Per player, summed for the team, × the difficulty's multiplier:
   down) and guns (5 per own working gun after the resolution). Forfeited by a player who failed.
 - **Hits**: 10 per hit on a ship; on sinking, 20 (raider), 40 (transport), 60 (fireship), to the
   player whose shot sank it.
-- **Grunts**: 10 each.
+- **Grunts**: 10 each, shot or walled in.
 - **Level cleared**: 250 × the level's number, to every player; the final battle 2000.
 - No points for walls (there are no opponents' walls).
 
@@ -850,6 +852,24 @@ sinking 20/40/60 by kind, at once and times the difficulty's multiplier (`rulese
 listing and going under in a ring of foam when sunk (told from one recycled, which fades), a
 cannon's sounds for the fleet's shots and a Bertha's landing for a sinking until the campaign has
 cues. The level-end tests play without ships: an idle player's walls no longer last.
+
+**CA5 done** (2026-11-25). `sim/src/campaign/grunts.ts`. Each grunt carries its own clocks (step
+1600 ms, smash 6933, breed 11733) and each transport its landing clock (1866): the milliseconds
+round to the reference's 48, 208, 352 and 56 ticks. The allowance is set as each build phase opens
+(`grunts.allowance` by rounds played in the campaign, times `factor`: the difficulty's and 1 + 0.5
+per extra player), and landing and breeding share it. A transport at rest lands on the first free
+tile round its footprint, clockwise from above its top left; a grunt breeds onto a random free one
+of its eight neighbours. Walking: the nearest castle by Manhattan distance to its middle, the axis
+it is farther along (ties across), then straight, counter-clockwise, clockwise, else face it and
+wait; a castle tile ahead stops it. Smashing clears the faced team wall into `struck`, so the
+fleet's aim spreads away from it too. A grunt blocks pieces and guns (the rejection `grunt`); a
+player's shot kills the grunts on its crater for 10 points each, and a piece that seals ground
+clears every grunt on it for the same, to its placer (`clearWalledIn`, the user's addition after
+trying CA5); a ring raised by a castle choice clears the grunts in its square. Drawn in the campaign layer: a red-tunicked figure facing its way,
+slid and bobbed from tile to tile, its club swung as it smashes, a puff where it dies; a smashed
+wall plays each style's own impact. `stateFromAscii` reads `m` as a grunt (the design's `g` is
+already a gun). And the bots' rollout now copies `state.campaign` (`copyCampaign`): shared, the
+dev fast-forward's autopilot landed some sixty grunts where the allowances allow eighteen.
 
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
