@@ -2,7 +2,13 @@ import { defaultArtConfig } from '@bollfort/config';
 import { describe, expect, it } from 'vitest';
 
 import { ICON_ANGLE, iconFrame } from './render/theme.js';
-import { cannonImg, cannonSvg, placeIconsHtml, switchHintHtml } from './towerIcons.js';
+import {
+  cannonImg,
+  cannonSvg,
+  placeIconsHtml,
+  switchHintHtml,
+  turnHintHtml,
+} from './towerIcons.js';
 
 const styled = cannonImg('data:image/png;base64,AAAA');
 
@@ -44,5 +50,14 @@ describe('the frame a style draws its icon in', () => {
     expect(view.originX + cannon.w * view.tile).toBe(25);
     expect(cannon).toMatchObject({ owner: 3, active: true, kind: 'cannon', shotIds: [] });
     expect(aim).toEqual({ angle: ICON_ANGLE, firedAgo: Number.POSITIVE_INFINITY });
+  });
+});
+
+describe('turnHintHtml', () => {
+  it('shows the wheel beside the right button only while the wheel turns the piece', () => {
+    const icons = (html: string) => html.match(/class="icon mouse"/g)?.length ?? 0;
+    expect(icons(turnHintHtml('#fff'))).toBe(2);
+    expect(icons(turnHintHtml('#fff', null, false))).toBe(1);
+    expect(turnHintHtml('#fff', '<b>Y</b>', false)).toContain('<b>Y</b>');
   });
 });

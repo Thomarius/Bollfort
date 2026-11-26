@@ -800,7 +800,7 @@ export async function runSession(
       hud.labels.showPlaceIcons(
         scene.screenAt(ghost.tile.x + right + 0.3, ghost.tile.y),
         '',
-        turnHintHtml(playerCssColour(human), turnButton),
+        turnHintHtml(playerCssColour(human), turnButton, !wheelZooms()),
       );
       return;
     }

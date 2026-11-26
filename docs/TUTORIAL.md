@@ -73,7 +73,8 @@ words under it. It comes in afresh with every step, so a new one is noticed. Two
   helps with it as a smaller hint line. **A task is never interrupted by a note** (the user's).
 
 **No button is named in the words** (the user's): the cursor shows it — while a piece is to be
-turned, the mouse's right button and wheel or the controller's Turn, beside a turning arrow; while
+turned, the mouse's right button and wheel (the right button alone where the wheel is set to zoom)
+or the controller's Turn, beside a turning arrow; while
 the tower may be chosen, the game's own switch hint, with the controller's button where a pad is in
 use. _Skip tutorial_ in the card's corner; Esc pauses as ever.
 

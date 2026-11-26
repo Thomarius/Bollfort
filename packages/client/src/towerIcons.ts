@@ -212,11 +212,16 @@ export function rightClickSvg(colour: string): string {
 /**
  * The hint by the cursor while a piece is to be turned (the tutorial's, docs/TUTORIAL.md §4): the
  * button that turns it — a controller's glyph, or the mouse's right button and wheel — and the
- * turn. So the words need name no button.
+ * turn. So the words need name no button. The wheel only while it turns: set to zoom, it would
+ * zoom the island instead, and the right button alone is shown.
  */
-export function turnHintHtml(colour: string, button: string | null = null): string {
+export function turnHintHtml(
+  colour: string,
+  button: string | null = null,
+  wheelTurns = true,
+): string {
   return (
-    (button ?? rightClickSvg(colour) + wheelSvg()) +
+    (button ?? rightClickSvg(colour) + (wheelTurns ? wheelSvg() : '')) +
     `<span class="turn" aria-hidden="true">↻</span>`
   );
 }
