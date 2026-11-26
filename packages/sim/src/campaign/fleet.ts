@@ -57,6 +57,15 @@ export function roundsInLevel(state: MatchState): number {
 }
 
 /**
+ * The rounds the fleet reckons played in the level: those played, and on every level but the
+ * campaign's first a few more (`fleet.roundOffset`), so later levels press from their first round.
+ * Never shown; `state.round` is.
+ */
+export function fleetRounds(state: MatchState): number {
+  return roundsInLevel(state) + rulesOf(state).fleet.roundOffset;
+}
+
+/**
  * The heading from a ship to the castle nearest it, in eighths of a turn. Exact: the octant by
  * comparing the offset's sides against tan 22.5° ≈ 29/70, rather than by an arctangent.
  */
@@ -156,7 +165,7 @@ export function formWave(state: MatchState): void {
   const rules = rulesOf(state);
   const inLevel = roundsInLevel(state);
   const inCampaign = rules.carry.roundsPlayed + inLevel;
-  const bonus = Math.min(inCampaign, inLevel) + Math.max(0, inCampaign - 2);
+  const bonus = Math.min(inCampaign, fleetRounds(state)) + Math.max(0, inCampaign - 2);
   const left = fleet.pool[0] + fleet.pool[1] + fleet.pool[2];
   let size = Math.min(left, fleet.cannonsGiven + rules.level + bonus);
   const rng = streamFor(state.seed, `campaign-wave:${state.round}`);
@@ -277,7 +286,7 @@ function planRun(state: MatchState, ship: Ship): void {
   if (step === null) return;
   const [dx, dy] = step;
   const speeds = rules.fleet.timing.tileMs;
-  const speed = Math.min(rng.nextInt(rules.level + roundsInLevel(state) + 1), speeds.length - 1);
+  const speed = Math.min(rng.nextInt(rules.level + fleetRounds(state) + 1), speeds.length - 1);
   const ticksPerTile = ticksFor(speeds[speed] as number, rate);
   const budget = state.phaseEndTick - state.tick + ticksFor(rules.fleet.timing.runSlackMs, rate);
   let tiles = 1;

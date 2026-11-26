@@ -6,7 +6,7 @@
       "lakes": 0,
       "castles": 6,
       "threshold": 20,
-      "maxRounds": 3,
+      "maxRounds": 4,
       "clearPoints": 250
     },
     {
@@ -14,7 +14,7 @@
       "lakes": 0,
       "castles": 5,
       "threshold": 30,
-      "maxRounds": 8,
+      "maxRounds": 5,
       "clearPoints": 500
     },
     {
@@ -22,7 +22,7 @@
       "lakes": 0,
       "castles": 5,
       "threshold": 60,
-      "maxRounds": 17,
+      "maxRounds": 14,
       "clearPoints": 750
     },
     {
@@ -30,7 +30,7 @@
       "lakes": 0,
       "castles": 4,
       "threshold": 80,
-      "maxRounds": 19,
+      "maxRounds": 16,
       "clearPoints": 1000
     },
     {
@@ -38,7 +38,7 @@
       "lakes": 0,
       "castles": 3,
       "threshold": 80,
-      "maxRounds": 21,
+      "maxRounds": 18,
       "clearPoints": 1250
     },
     {
@@ -46,7 +46,7 @@
       "lakes": 1,
       "castles": 2,
       "threshold": 80,
-      "maxRounds": 21,
+      "maxRounds": 18,
       "clearPoints": 2000
     }
   ],
@@ -178,6 +178,7 @@
     "extraHits": 1,
     "maxAfloat": 16,
     "maxAfloatPerExtraPlayer": 4,
+    "laterLevelRoundOffset": 4,
     "timing": {
       "arrivalMs": 1000,
       "spawnStepMin": 3,

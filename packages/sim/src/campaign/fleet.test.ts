@@ -154,6 +154,31 @@ describe('the fleet', () => {
     expect(fleet(later).pool).toEqual([0, 0, 0]);
   });
 
+  it('reckons a later level four rounds in from its first round: a bigger first wave', () => {
+    // Level 2's first build phase, two rounds played before it and none in it: 0 guns + 1 (the
+    // level's index) + min(2, r) + (2 − 2).
+    const wave = (roundOffset: number): number => {
+      const state = stateFromAscii(
+        CHANNEL,
+        rules((c) => ({
+          ...c,
+          level: 1,
+          fleet: { ...c.fleet, roundOffset },
+          carry: { ...c.carry, roundsPlayed: 2 },
+        })),
+      );
+      state.phase = 'build';
+      state.round = 1;
+      fleet(state).pool = [20, 0, 0];
+      fleet(state).cannonsGiven = 0;
+      formWave(state);
+      return fleet(state).wave[0];
+    };
+    // Reckoned from 0: min(2, 0) = 0, so 1; from 4: min(2, 4) = 2, so 3.
+    expect(wave(0)).toBe(1);
+    expect(wave(4)).toBe(3);
+  });
+
   it('brings one ship of each kind a second, at the edge, while there is room', () => {
     const state = stateFromAscii(
       `

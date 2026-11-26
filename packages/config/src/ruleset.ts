@@ -450,6 +450,11 @@ export const CampaignLevelSchema = z.strictObject({
     ]),
     /** Ships afloat at once. */
     maxAfloat: z.number().int().positive(),
+    /**
+     * Rounds the fleet reckons the level already in at its start: 0 on the campaign's first level,
+     * more on later ones, for its ships' speed and its waves' round bonus (§5.2–§5.3). Not shown.
+     */
+    roundOffset: z.number().int().nonnegative(),
     /** Each kind's share of the fleet's threat, raider / transport / frost ship (§8.3). */
     weights: z.tuple([
       z.number().int().nonnegative(),

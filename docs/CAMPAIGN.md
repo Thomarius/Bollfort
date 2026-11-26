@@ -210,9 +210,12 @@ sail colour**, never by a style's palette (§14.2):
   the level opens): its size is
 
   `wave = Σ players' cannons to place this round + level index + bonus`, where
-  `bonus = min(rounds played in the campaign, rounds played in this level) + max(0, rounds played in the campaign − 2)`,
+  `bonus = min(rounds played in the campaign, the fleet's rounds in this level) + max(0, rounds played in the campaign − 2)`,
 
-  capped by what is left in the pool. Each ship of the wave is drawn at random from the pool,
+  capped by what is left in the pool. **The fleet's rounds in this level** are those played in it,
+  plus `fleet.laterLevelRoundOffset` (4) on every level but level 1 (Veteran's first level, level 2,
+  too): later levels press from their first round, their first ships already fast (the user's,
+  2026-11-26). It is never shown; the rounds on screen count from 1 on every level. Each ship of the wave is drawn at random from the pool,
   weighted by the counts left of each kind. **More cannons bring more ships**: the fleet keeps up
   with the defenders.
 
@@ -233,9 +236,9 @@ Ships move **only in combat**. As combat opens, every ship without a run plans o
    relative to its heading: `[0, −1, +1, −2, +2]`, `[−1, 0, +1, +2, −2]`, `[+1, 0, −1, −2, +2]`.
    It takes the first direction whose next 2 × 2 is free water. Never backwards. None free: it
    waits this battle.
-2. **Speed**: `s = min(random(level index + rounds in this level), 3)`; ticks per tile from
+2. **Speed**: `s = min(random(level index + the fleet's rounds in this level), 3)` (§5.2); ticks per tile from
    `[64, 43, 32, 26]` (2.1 s down to 0.85 s a tile). In level 1's first round every ship is at the
-   slowest; later they are faster.
+   slowest; later they are faster, and from level 2 fast from the start.
 3. **Length**: one tile, then as many more in the same direction as are free water and still fit
    `combat ticks left + 72` at that speed (6 tiles at the slowest at the battle's start, 15 at the
    fastest). It claims those tiles.
@@ -465,7 +468,7 @@ The fleet's **threat** = Σ weight × (ships of each kind still in the pool, in 
 
 * **Cleared** when `threat < threshold[level]` (`[20, 30, 60, 80, 80, 80]`, × the co-op pool
   factor), **or** when the rounds played in the level reach `maxRounds[level]`
-  (`[3, 8, 17, 19, 21, 21]`): the level is survived. Ships still afloat sail off.
+  (`[4, 5, 14, 16, 18, 18]` battles; the user's, 2026-11-26): the level is survived. Ships still afloat sail off.
 * Otherwise the round goes on to its build phase.
 
 Every cannon counts against the threat, so a well-armed team finishes sooner; a level is never
@@ -1081,6 +1084,10 @@ level all but lost it). Every change in the campaign only, on protocol 40 and sa
   same map again. `campaign.firepower` replaces the comeback and its per-player `boosts`; the
   level's ruleset carries its `shotSpeed`, `firstHitExtra` and `openingCannons`. A finished
   campaign is kept, listed under "Finished campaigns".
+- **The levels' lengths and pace** (§5.2, §8.3): `maxRounds` is the most battles a level lasts,
+  `[4, 5, 14, 16, 18, 18]` (was `[3, 8, 17, 19, 21, 21]`), and every level but level 1 is reckoned
+  four rounds in by the fleet (`fleet.roundOffset`, from `laterLevelRoundOffset`): its ships' speed
+  and its waves' round bonus. The round label still reads "Round 1 / 5" as a level opens.
 - **The team fails together** (§6.1): `castleHolders` gives each main castle to its player and
   deals the rest among everyone, fewest guns first; `resolveRound` fails a campaign's team only
   when no player holds a castle, and the ground is shared among all (`shareGround`).

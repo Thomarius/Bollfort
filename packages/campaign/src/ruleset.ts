@@ -131,6 +131,9 @@ export function campaignRuleset(
       fleet: {
         pool: poolFor(config, difficulty, level, players),
         maxAfloat: config.fleet.maxAfloat + config.fleet.maxAfloatPerExtraPlayer * (players - 1),
+        // Level 1 alone starts the fleet's reckoning at nothing; Veteran, starting at level 2,
+        // starts it late as every later level does.
+        roundOffset: level === 0 ? 0 : config.fleet.laterLevelRoundOffset,
         weights: SHIP_KINDS.map((kind) => config.fleet.kinds[kind].weight) as ShipPool,
         frostshipEvery: difficultyOf(config, difficulty).frostshipEvery[level] ?? null,
         hitsToSink: SHIP_KINDS.map(

@@ -33,6 +33,8 @@ describe('campaignRuleset', () => {
       fleet: {
         pool: [16, 8, 0],
         maxAfloat: 16,
+        // Level 2: the fleet reckons it four rounds in from its start.
+        roundOffset: 4,
         timing: {
           arrivalMs: 1000,
           spawnStepMin: 3,
@@ -44,7 +46,7 @@ describe('campaignRuleset', () => {
         fire: { everyMs: 733, flightFactor: 1 },
       },
       scoring: { hitPoints: 10, sinkPoints: [20, 40, 60], multiplier: 1 },
-      maxRounds: 8,
+      maxRounds: 5,
       firepower: { level: 0, shotSpeed: 1, firstHitExtra: 0, openingCannons: 0 },
       pieceStartRound: 3,
       carry: { scores: [300], roundsPlayed: 3 },
@@ -70,6 +72,22 @@ describe('campaignRuleset', () => {
       ),
     );
     expect(shapes).toEqual(new Set(config.levels[4]?.shapes));
+  });
+
+  it("starts the fleet's reckoning late on every level but the first", () => {
+    const offset = (difficulty: 'normal' | 'veteran', level: number) =>
+      campaignRuleset(config, defaultRuleset, {
+        difficulty,
+        level,
+        players: 1,
+        seed: 1,
+        carry: newCarry(config, difficulty, 1),
+        continued: false,
+      }).campaign?.fleet.roundOffset;
+    expect(offset('normal', 0)).toBe(0);
+    expect(offset('normal', 1)).toBe(4);
+    expect(offset('veteran', 1)).toBe(4);
+    expect(offset('normal', 5)).toBe(4);
   });
 
   it('sizes the map and its castles for the players', () => {

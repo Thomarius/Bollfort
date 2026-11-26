@@ -359,6 +359,7 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
       fleet: {
         pool: [10, 0, 0],
         maxAfloat: 16,
+        roundOffset: 0,
         timing: {
           arrivalMs: 1000,
           spawnStepMin: 3,

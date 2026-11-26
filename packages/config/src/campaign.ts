@@ -234,6 +234,12 @@ export const CampaignConfigSchema = z
       /** Ships afloat at once, for one player, and more for each other (CAMPAIGN §5.2). */
       maxAfloat: z.number().int().positive(),
       maxAfloatPerExtraPlayer: count,
+      /**
+       * Every level but the campaign's first is reckoned this many rounds in from its start by the
+       * fleet: its ships' speed and its waves' round bonus (CAMPAIGN §5.2–§5.3), so later levels
+       * press from their first round. Never shown: the rounds on screen count from 1.
+       */
+      laterLevelRoundOffset: count,
       timing: FleetTimingSchema,
       aim: FleetAimSchema,
       fire: FleetFireSchema,
