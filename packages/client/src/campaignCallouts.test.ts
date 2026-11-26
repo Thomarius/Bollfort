@@ -37,6 +37,16 @@ describe("a campaign's callouts", () => {
     expect(callouts.note(landed, state)).toBe('campaign.troopsLanding');
   });
 
+  it('call out every castle the grunts take', () => {
+    const state = stateFromAscii(',,,,', campaignLevelRuleset());
+    const callouts = new CampaignCallouts();
+    state.phase = 'combat';
+    const castle = { id: 0, islandId: 1, x: 0, y: 0, w: 2, h: 2, enclosed: false };
+    const taken: MatchEvent = { kind: 'castle_taken', tick: 0, gruntId: 0, castle };
+    expect(callouts.note(taken, state)).toBe('campaign.castleTaken');
+    expect(callouts.note(taken, state)).toBe('campaign.castleTaken');
+  });
+
   it('call nothing out in versus play', () => {
     const state = stateFromAscii(',,,,');
     expect(new CampaignCallouts().note(arrived('raider', 0), state)).toBeNull();

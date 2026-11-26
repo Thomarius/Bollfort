@@ -476,10 +476,16 @@ export const CampaignLevelSchema = z.strictObject({
     factor: z.number().positive(),
     timing: GruntTimingSchema,
   }),
-  /** A player's shots fly this much faster for each continue, at most so many times (§9). */
-  comeback: z.strictObject({
-    shotSpeedup: z.number().nonnegative(),
-    maxBoosts: z.number().int().nonnegative(),
+  /**
+   * The team's firepower as the level starts (CAMPAIGN §9), raised by its continues: its shots
+   * fly `shotSpeed` times as fast, a ship takes `firstHitExtra` hits more from the first shot
+   * that strikes it, and every player opens with `openingCannons` cannons more.
+   */
+  firepower: z.strictObject({
+    level: z.number().int().nonnegative(),
+    shotSpeed: z.number().min(1),
+    firstHitExtra: z.number().int().nonnegative(),
+    openingCannons: z.number().int().nonnegative(),
   }),
   /** The build phases a frost ship's ice lasts, as the campaign's config has them (CAMPAIGN §7). */
   ice: z.strictObject({
@@ -511,8 +517,6 @@ export const CampaignLevelSchema = z.strictObject({
     perGrunt: z.number().int().nonnegative(),
     perCannon: z.number().int().nonnegative(),
   }),
-  /** The team's lives as the level starts: its pool of continues (CAMPAIGN §9). */
-  lives: z.number().int().nonnegative(),
   /** The first build phase deals the size schedule's pieces of this round (CAMPAIGN §7.4). */
   pieceStartRound: z.number().int().min(1),
   /** What earlier levels left: each player's score, by player, and the rounds played. */

@@ -42,6 +42,7 @@ export function campaignLevelSetup(
       players: 1,
       seed,
       carry: newCarry(campaign, difficulty, 1),
+      continued: false,
     }),
   };
 }

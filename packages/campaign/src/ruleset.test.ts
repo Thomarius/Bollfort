@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultCampaignConfig as config, defaultRuleset } from '@bollfort/config';
 
-import { campaignRuleset, newCarry, poolFor, startingLives } from './ruleset.js';
+import { campaignRuleset, newCarry, poolFor, startingContinues } from './ruleset.js';
 
 describe('campaignRuleset', () => {
   it("builds a level's ruleset from the campaign's config", () => {
@@ -10,7 +10,8 @@ describe('campaignRuleset', () => {
       level: 1,
       players: 1,
       seed: 5,
-      carry: { scores: [300], lives: 2, roundsPlayed: 3 },
+      carry: { scores: [300], roundsPlayed: 3, firepower: 0 },
+      continued: false,
     });
     expect(ruleset.players.min).toBe(1);
     expect(ruleset.scoring.maxRounds).toBeNull();
@@ -44,7 +45,7 @@ describe('campaignRuleset', () => {
       },
       scoring: { hitPoints: 10, sinkPoints: [20, 40, 60], multiplier: 1 },
       maxRounds: 8,
-      lives: 2,
+      firepower: { level: 0, shotSpeed: 1, firstHitExtra: 0, openingCannons: 0 },
       pieceStartRound: 3,
       carry: { scores: [300], roundsPlayed: 3 },
     });
@@ -64,6 +65,7 @@ describe('campaignRuleset', () => {
             players: 1,
             seed,
             carry: newCarry(config, 'normal', 1),
+            continued: false,
           }).campaign?.shape,
       ),
     );
@@ -78,6 +80,7 @@ describe('campaignRuleset', () => {
         players,
         seed: 1,
         carry: newCarry(config, 'normal', players),
+        continued: false,
       }).campaign?.map;
     expect(map(1)).toMatchObject({ width: 44, height: 32, castles: 2, lakes: 1 });
     expect(map(3)).toMatchObject({ width: 66, height: 40, castles: 6, landFraction: 0.42 });
@@ -91,6 +94,7 @@ describe('campaignRuleset', () => {
         players: 1,
         seed: 1,
         carry: newCarry(config, difficulty, 1),
+        continued: false,
       }).campaign;
     expect(level('normal', 2)?.fleet.hitsToSink).toEqual([2, 3, 5]);
     expect(level('normal', 3)?.fleet.hitsToSink).toEqual([3, 4, 6]);
@@ -108,20 +112,55 @@ describe('campaignRuleset', () => {
       players: 3,
       seed: 1,
       carry: newCarry(config, 'normal', 3),
+      continued: false,
     }).campaign?.fleet.maxAfloat;
     expect(afloat).toBe(24);
   });
 
-  it('starts a campaign with its lives and, on Veteran, a bonus', () => {
-    expect(newCarry(config, 'normal', 1)).toEqual({ scores: [0], lives: 3, roundsPlayed: 0 });
+  it('starts a campaign with no firepower, its continues and, on Veteran, a bonus', () => {
+    expect(newCarry(config, 'normal', 1)).toEqual({ scores: [0], roundsPlayed: 0, firepower: 0 });
     expect(newCarry(config, 'veteran', 3)).toEqual({
       scores: [500, 500, 500],
-      lives: 4,
       roundsPlayed: 0,
+      firepower: 0,
     });
-    expect(startingLives(config, 'normal', 2)).toBe(4);
+    expect(startingContinues(config, 'easy')).toBeNull();
+    expect(startingContinues(config, 'normal')).toBe(4);
+    expect(startingContinues(config, 'veteran')).toBe(4);
+    expect(startingContinues(config, 'legend')).toBe(0);
     // Veteran starts at level 2 and plays level 5 twice.
     expect(config.difficulties.veteran.levelOrder).toEqual([1, 2, 3, 4, 4, 5]);
+  });
+
+  it("builds the team's firepower into the level, and a continue's cannons", () => {
+    const rules = (firepower: number, continued: boolean) =>
+      campaignRuleset(config, defaultRuleset, {
+        difficulty: 'normal',
+        level: 2,
+        players: 1,
+        seed: 1,
+        carry: { ...newCarry(config, 'normal', 1), firepower },
+        continued,
+      }).campaign?.firepower;
+    expect(rules(1, true)).toEqual({
+      level: 1,
+      shotSpeed: 1.25,
+      firstHitExtra: 0,
+      openingCannons: 2,
+    });
+    expect(rules(3, false)).toEqual({
+      level: 3,
+      shotSpeed: 1.5,
+      firstHitExtra: 1,
+      openingCannons: 0,
+    });
+    // Never beyond the most.
+    expect(rules(9, false)).toEqual({
+      level: 4,
+      shotSpeed: 1.5,
+      firstHitExtra: 2,
+      openingCannons: 0,
+    });
   });
 
   it('refuses a table a campaign cannot take', () => {
@@ -130,6 +169,7 @@ describe('campaignRuleset', () => {
       level: 0,
       seed: 1,
       carry: newCarry(config, 'normal', 1),
+      continued: false,
     };
     expect(() => campaignRuleset(config, defaultRuleset, { ...setup, players: 4 })).toThrow();
     expect(() => campaignRuleset(config, defaultRuleset, { ...setup, players: 2 })).toThrow();

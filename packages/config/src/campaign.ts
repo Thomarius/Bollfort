@@ -74,11 +74,11 @@ const DifficultySchema = z.strictObject({
   pool: perLevel(PoolSchema),
   /** Rounds between frost ships added to the pool, per level; null for none (CAMPAIGN §8.2). */
   frostshipEvery: perLevel(z.number().int().positive().nullable()),
-  /** The team's lives at the campaign's start, for one player (CAMPAIGN §9). */
-  lives: z.number().int().positive(),
-  livesPerExtraPlayer: count,
-  /** Retries of a lost level in a campaign; null for unlimited. */
-  retries: count.nullable(),
+  /**
+   * Continues in a campaign (CAMPAIGN §9): each plays a lost level again from its start, the
+   * team's firepower raised; null for unlimited.
+   */
+  continues: count.nullable(),
   /** The grunts' allowance, as a factor (CAMPAIGN §6.2). */
   gruntFactor: z.number().positive(),
   /** Every point earned, as a factor (CAMPAIGN §11). */
@@ -146,8 +146,15 @@ export const GruntTimingSchema = z.strictObject({
   breedMs: z.number().int().positive(),
   /** A grunt steps a tile this often, in the build phase. */
   stepMs: z.number().int().positive(),
-  /** A grunt smashes the wall it faces this often, in a battle. */
-  smashMs: z.number().int().positive(),
+  /**
+   * When in a battle each grunt strikes what it faces, once: a time drawn for it between these,
+   * from the battle's start (CAMPAIGN §6.4). One blow a battle, never two.
+   */
+  smashWindowMs: z
+    .tuple([z.number().int().nonnegative(), z.number().int().nonnegative()])
+    .refine(([from, to]) => from <= to, {
+      message: 'smashWindowMs runs from its first to its last',
+    }),
 });
 export type GruntTiming = z.infer<typeof GruntTimingSchema>;
 
@@ -178,8 +185,6 @@ export const CampaignConfigSchema = z
     coopPoolFactor: z.number().nonnegative(),
     /** The grunts' allowance, scaled for co-op the same way (CAMPAIGN §6.2). */
     coopGruntFactor: z.number().nonnegative(),
-    /** A life back for each level cleared, up to the count the campaign started with (§9). */
-    lifePerLevel: z.boolean(),
     map: z.strictObject({
       /** By player count (CAMPAIGN §3.2): the map's size is configured here, not measured. */
       sizes: z.array(MapSizeSchema).length(CAMPAIGN_MAX_PLAYERS),
@@ -255,13 +260,23 @@ export const CampaignConfigSchema = z
       perCannon: count,
     }),
     /**
-     * A way back after a life is lost (CAMPAIGN §9, the user's choice after playtesting): each
-     * continue makes that player's shots fly `shotSpeedup` faster, at most `maxBoosts` times.
+     * The team's firepower (CAMPAIGN §9): raised by one with every continue, up to `max`, and kept
+     * from level to level, though a level cleared leaves at most `keptAfterLevel` of it. Each step
+     * of it, from 0, by its index: how much faster the team's shots fly, and how many hits more a
+     * ship takes from the first shot that strikes it. A level played again after a continue opens
+     * with `continueCannons` cannons more for every player.
      */
-    comeback: z.strictObject({
-      shotSpeedup: z.number().nonnegative(),
-      maxBoosts: z.number().int().nonnegative(),
-    }),
+    firepower: z
+      .strictObject({
+        max: z.number().int().nonnegative(),
+        keptAfterLevel: count,
+        shotSpeed: z.array(z.number().min(1)).min(1),
+        firstHitExtra: z.array(count).min(1),
+        continueCannons: count,
+      })
+      .refine((f) => f.shotSpeed.length === f.max + 1 && f.firstHitExtra.length === f.max + 1, {
+        message: 'firepower needs a shotSpeed and a firstHitExtra for every step, 0 to max',
+      }),
     pieces: z.strictObject({
       /** Each level deals pieces from this round of the size schedule on (CAMPAIGN §7.4). */
       levelStartRound: z.number().int().min(1),

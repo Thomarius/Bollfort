@@ -203,7 +203,7 @@ const CampaignSnapshotSchema = z.strictObject({
   nextGruntId: int.nonnegative(),
   gruntsLeft: int.nonnegative(),
   frostshipCountdown: int.nullable(),
-  boosts: z.array(int.nonnegative()),
+  castlesTaken: int.nonnegative(),
   wonInBattle: z.boolean(),
   sunk: counts,
   gruntsKilled: int.nonnegative(),

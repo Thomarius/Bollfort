@@ -205,7 +205,8 @@ Full detail in PLAN.md §1. The parts that surprise people:
 ## Status
 
 The latest release is **v0.11.2** (2026-11-20): protocol 37, recording format 4; the code since is
-at protocol 39 (the Fortified Tower's 38, the campaign's rooms' 39) — a test session
+at protocol 40 (the Fortified Tower's 38, the campaign's rooms' 39, the campaign's continues and
+taken castles 40) — a test session
 needs the server rebuilt and every page reloaded after either changes. Releases before v0.10.3
 were deleted with their tags, since their notes and menu named the original (ARCHIVE 15zx); the
 history was rewritten without AI attribution lines before v0.10.0, the old hashes in
@@ -259,7 +260,9 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
   fire and sink, grunts that land and smash, frost ships' ice, a level cleared by the fleet's
   threat or its round limit; a campaign of levels with its screens and saves, the menu's Campaign
   button behind `campaign.menuButton`; the first playtest's fixes; Medieval's and Night's fleet, the threat gauge, the callouts;
-  co-op in campaign rooms, protocol 39, CA10 and CA11 built together); the users' online co-op
+  co-op in campaign rooms, protocol 39, CA10 and CA11 built together; the second playtest's
+  changes: grunts striking once a battle and taking unheld castles, continues that replay a lost
+  level with more firepower in place of lives, a co-op team failing together); the users' online co-op
   session next, then CA12. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games

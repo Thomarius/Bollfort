@@ -2,7 +2,14 @@ import type { CampaignLevelRules } from '@bollfort/config';
 
 import { ticksFor } from '../match.js';
 import { streamFor } from '../rng.js';
-import { Structure, Terrain, type MatchState, type PlayerState, type Shot } from '../types.js';
+import {
+  Structure,
+  Terrain,
+  type Castle,
+  type MatchState,
+  type PlayerState,
+  type Shot,
+} from '../types.js';
 import { SHIP_SIZE } from './fleet.js';
 import { iced } from './ice.js';
 import type { CampaignState, Grunt, Ship } from './state.js';
@@ -10,8 +17,9 @@ import type { CampaignState, Grunt, Ship } from './state.js';
 /**
  * The enemy ashore (docs/CAMPAIGN.md §6.2–§6.4): grunts that transports land while the round's
  * allowance lasts and that bring more beside them; that walk towards the nearest castle while the
- * walls are rebuilt, blocking pieces and guns where they stand; and that smash the wall they face
- * in a battle. A shot landing on one kills it. Driven from `step()` as the fleet is, from named
+ * walls are rebuilt, blocking pieces and guns where they stand; and that strike once in a battle,
+ * smashing the wall they face or taking the castle they face if nobody held it. A shot landing on
+ * one kills it. Driven from `step()` as the fleet is, from named
  * streams only, every list in id order.
  */
 
@@ -81,7 +89,8 @@ function spawn(state: MatchState, x: number, y: number, facing: number): Grunt {
     y,
     facing,
     nextStepTick: state.tick + ticks(state, timing.stepMs),
-    nextActTick: state.tick + ticks(state, timing.smashMs),
+    // Its blow is timed as a battle opens (`openGruntsBattle`).
+    nextActTick: -1,
     nextBreedTick: state.tick + ticks(state, timing.breedMs),
   };
   fleet.grunts = [...fleet.grunts, grunt];
@@ -203,24 +212,54 @@ function walk(state: MatchState): void {
   }
 }
 
-/** In a battle each grunt smashes the wall it faces, now and then (CAMPAIGN §6.4). */
+/**
+ * In a battle each grunt strikes once, at the time drawn for it as the battle opened (CAMPAIGN
+ * §6.4): the tile it faces, if it is team wall, is smashed; if it is a castle nobody held at the
+ * resolution before, the castle is taken (§6.5). Facing anything else, its blow falls on nothing.
+ */
 function smash(state: MatchState): void {
   const fleet = fleetOf(state);
-  const every = ticks(state, rulesOf(state).grunts.timing.smashMs);
   for (const grunt of fleet.grunts) {
-    if (state.tick < grunt.nextActTick) continue;
-    grunt.nextActTick = state.tick + every;
+    if (grunt.nextActTick < 0 || state.tick < grunt.nextActTick) continue;
+    grunt.nextActTick = -1;
     const [dx, dy] = FACINGS[grunt.facing] as readonly [number, number];
     const x = grunt.x + dx;
     const y = grunt.y + dy;
     if (x < 0 || y < 0 || x >= state.width || y >= state.height) continue;
     const i = y * state.width + x;
+    if (state.structure[i] === Structure.Castle) {
+      takeCastle(state, grunt.id, x, y);
+      continue;
+    }
     if (state.structure[i] !== Structure.Wall || state.owner[i] === 0) continue;
     state.structure[i] = Structure.Empty;
     state.owner[i] = 0;
     fleet.struck = [...fleet.struck, i];
     state.events.push({ kind: 'wall_smashed', tick: state.tick, gruntId: grunt.id, tile: i });
   }
+}
+
+/**
+ * A castle struck by a grunt (CAMPAIGN §6.5): taken if nobody held it — not sealed at the
+ * resolution before this battle, which `enclosed` still says, shots not refreshing it. Gone from
+ * the map for the rest of the level: its tiles plain land, out of the castles every rule reads, so
+ * it seals nothing, earns nothing and is chosen by nobody, and a main castle among them stays lost
+ * to its player. The grunts make for the next castle.
+ */
+function takeCastle(state: MatchState, gruntId: number, x: number, y: number): void {
+  const castle = state.castles.find((c) => x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + c.h);
+  if (castle === undefined || castle.enclosed) return;
+  for (let oy = 0; oy < castle.h; oy++) {
+    for (let ox = 0; ox < castle.w; ox++) {
+      const i = (castle.y + oy) * state.width + castle.x + ox;
+      state.structure[i] = Structure.Empty;
+      state.owner[i] = 0;
+    }
+  }
+  state.castles = state.castles.filter((c) => c !== castle);
+  fleetOf(state).castlesTaken++;
+  const taken: Castle = { ...castle };
+  state.events.push({ kind: 'castle_taken', tick: state.tick, gruntId, castle: taken });
 }
 
 /**
@@ -257,20 +296,20 @@ export function openGruntsBuild(state: MatchState, roundsPlayed: number): void {
 }
 
 /**
- * As a battle opens: every grunt turns to its castle, its first smash a while off. A grunt held
- * up by a wall had slid along it and faced along it, not into it, and so smashed nothing: one wall
- * in some two hundred grunts' battles (the user's playtest, 2026-11-25).
+ * As a battle opens: each grunt's one blow timed, at a moment drawn for it within the window, so
+ * the grunts strike one by one rather than together, and never twice (CAMPAIGN §6.4). It strikes
+ * whatever it faces then, as its last step left it: a grunt that slid along a wall faces along it.
+ * (Turning every grunt to its castle as the battle opened made them far too strong: the users'
+ * playtest, 2026-11-26.)
  */
 export function openGruntsBattle(state: MatchState): void {
   const fleet = fleetOf(state);
-  const every = ticks(state, rulesOf(state).grunts.timing.smashMs);
+  const [from, to] = rulesOf(state).grunts.timing.smashWindowMs;
+  const first = ticks(state, from);
+  const last = Math.max(first, ticks(state, to));
   fleet.grunts = fleet.grunts.map((g) => {
-    const goal = towardsCastle(state, g);
-    return {
-      ...g,
-      facing: goal === null ? g.facing : facingTowards(goal.dx, goal.dy),
-      nextActTick: state.tick + every,
-    };
+    const rng = streamFor(state.seed, `campaign-smash:${g.id}:${state.round}`);
+    return { ...g, nextActTick: state.tick + first + rng.nextInt(last - first + 1) };
   });
 }
 

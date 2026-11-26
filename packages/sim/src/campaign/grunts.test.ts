@@ -137,7 +137,7 @@ describe('the grunts', () => {
     expect(grunts(boxed)).toEqual([[1, 1, 1]]);
   });
 
-  it('smash the wall they face, in a battle only', () => {
+  it('strike the wall they face once in a battle, at a moment drawn for each', () => {
     const state = stateFromAscii(
       `
       ,,,,,,,,,
@@ -153,10 +153,14 @@ describe('the grunts', () => {
     run(state, 300);
     expect(state.structure[wall]).toBe(Structure.Wall);
     state.phase = 'combat';
-    state.phaseEndTick = state.tick + 600;
+    state.phaseEndTick = state.tick + 300;
+    const opened = state.tick;
     openGruntsBattle(state);
-    // 6933 ms: 208 ticks.
-    run(state, 207);
+    const due = fleet(state).grunts[0]?.nextActTick as number;
+    // Within the window, 500 to 9500 ms of the battle: 15 to 285 ticks.
+    expect(due - opened).toBeGreaterThanOrEqual(15);
+    expect(due - opened).toBeLessThanOrEqual(285);
+    run(state, due - opened - 1);
     expect(state.structure[wall]).toBe(Structure.Wall);
     run(state, 1);
     expect(state.structure[wall]).toBe(Structure.Empty);
@@ -167,6 +171,20 @@ describe('the grunts', () => {
       gruntId: 0,
       tile: wall,
     });
+    // Never twice: the wall raised again stands to the battle's end.
+    state.structure[wall] = Structure.Wall;
+    state.owner[wall] = 1;
+    run(state, state.phaseEndTick - state.tick);
+    expect(state.structure[wall]).toBe(Structure.Wall);
+  });
+
+  it('strike one by one, each grunt at its own moment', () => {
+    const state = stateFromAscii(',,,,,,,,\n,mmmmmm,\n,,,,,,,,', rules());
+    state.phase = 'combat';
+    state.phaseEndTick = state.tick + 300;
+    openGruntsBattle(state);
+    const due = new Set(fleet(state).grunts.map((g) => g.nextActTick));
+    expect(due.size).toBeGreaterThan(1);
   });
 
   it('bring more beside them from the allowance', () => {
@@ -288,8 +306,8 @@ describe('the grunts', () => {
     ]);
   });
 
-  it('turn to their castle as a battle opens, and smash the wall in its way', () => {
-    // It slid along the wall and faces north, along it: in the battle it turns east, at the wall.
+  it('keep facing the way they last walked as a battle opens', () => {
+    // It slid along the wall and faces north, along it: it strikes nothing.
     const state = stateFromAscii(
       `
       ,,,,,,,,,,
@@ -300,12 +318,75 @@ describe('the grunts', () => {
       `,
       rules(),
     );
+    fleet(state).grunts = fleet(state).grunts.map((g) => ({ ...g, facing: 0 }));
     state.phase = 'combat';
-    state.phaseEndTick = state.tick + 600;
+    state.phaseEndTick = state.tick + 300;
     openGruntsBattle(state);
-    expect(grunts(state)).toEqual([[2, 2, 1]]);
-    run(state, 208);
-    expect(state.structure[2 * state.width + 3]).toBe(Structure.Empty);
+    expect(grunts(state)).toEqual([[2, 2, 0]]);
+    run(state, 300);
+    expect(state.structure[2 * state.width + 3]).toBe(Structure.Wall);
+  });
+
+  it('take a castle nobody held: gone from the map, its ground plain land', () => {
+    const state = stateFromAscii(
+      `
+      ,,,,,,,,
+      ,,m@@,,,
+      ,,,@@,,,
+      ,,,,,,,,
+      `,
+      rules(),
+    );
+    fleet(state).grunts = fleet(state).grunts.map((g) => ({ ...g, facing: 1 }));
+    const castle = { ...(state.castles[0] as (typeof state.castles)[number]) };
+    expect(castle.enclosed).toBe(false);
+    state.phase = 'combat';
+    state.phaseEndTick = state.tick + 300;
+    openGruntsBattle(state);
+    run(state, 300);
+    expect(state.castles).toEqual([]);
+    for (const i of [1 * state.width + 3, 1 * state.width + 4, 2 * state.width + 3]) {
+      expect(state.structure[i]).toBe(Structure.Empty);
+    }
+    expect(fleet(state).castlesTaken).toBe(1);
+    expect(state.events.filter((e) => e.kind === 'castle_taken')).toEqual([
+      expect.objectContaining({ kind: 'castle_taken', gruntId: 0, castle }),
+    ]);
+  });
+
+  it('leave a castle held at the resolution before the battle standing', () => {
+    const state = stateFromAscii(',,,,,,,,\n,,m@@,,,\n,,,@@,,,\n,,,,,,,,', rules());
+    fleet(state).grunts = fleet(state).grunts.map((g) => ({ ...g, facing: 1 }));
+    (state.castles[0] as (typeof state.castles)[number]).enclosed = true;
+    state.phase = 'combat';
+    state.phaseEndTick = state.tick + 300;
+    openGruntsBattle(state);
+    run(state, 300);
+    expect(state.castles).toHaveLength(1);
+    expect(fleet(state).castlesTaken).toBe(0);
+  });
+
+  it('make for the next castle once the nearest is taken', () => {
+    const state = stateFromAscii(
+      `
+      ,,,,,,,,,,,,,,
+      ,,m@@,,,,,,@@,
+      ,,,@@,,,,,,@@,
+      ,,,,,,,,,,,,,,
+      `,
+      rules(),
+    );
+    fleet(state).grunts = fleet(state).grunts.map((g) => ({ ...g, facing: 1 }));
+    state.phase = 'combat';
+    state.phaseEndTick = state.tick + 300;
+    openGruntsBattle(state);
+    run(state, 300);
+    expect(state.castles).toHaveLength(1);
+    building(state);
+    openGruntsBuild(state, 0);
+    run(state, STEP);
+    // Off towards the far castle: east, over the ground the first one stood on.
+    expect(grunts(state)).toEqual([[3, 1, 1]]);
   });
 
   it("clear a ring's square of walls and ice as well as grunts", () => {

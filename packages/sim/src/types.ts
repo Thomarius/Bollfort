@@ -417,6 +417,16 @@ export type MatchEvent =
       tile: number;
     }
   | {
+      /**
+       * A grunt has taken a castle nobody held (§6.5): gone from the map, its ground plain land,
+       * a main castle among them lost to its player for the rest of the level.
+       */
+      kind: 'castle_taken';
+      tick: number;
+      gruntId: number;
+      castle: Castle;
+    }
+  | {
       /** A ship has sunk, where it was on the tick, in 1/256 of a tile; its sinker's points. */
       kind: 'ship_sunk';
       tick: number;

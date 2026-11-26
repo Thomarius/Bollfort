@@ -446,6 +446,7 @@ if (args.map && args.campaign !== null) {
     players: args.players,
     seed: args.seed,
     carry: newCarry(bundle.campaign, args.difficulty, args.players),
+    continued: false,
   }).campaign as CampaignLevelRules;
   const map = generateCampaignTerrain(rules, bundle.terrain, args.seed);
   const structure = new Uint8Array(map.width * map.height);

@@ -187,7 +187,8 @@ export function hitShips(state: MatchState, shot: Shot): void {
   if (ship === null || player === undefined) return;
   const rules = rulesOf(state);
   const kind = SHIP_KINDS.indexOf(ship.kind);
-  const hits = ship.hits + 1;
+  // The team's firepower, high enough, makes the first shot to strike a ship count for more (§9).
+  const hits = ship.hits + 1 + (ship.hits === 0 ? rules.firepower.firstHitExtra : 0);
   let points = award(state, player, rules.scoring.hitPoints);
   const sunk = hits >= (rules.fleet.hitsToSink[kind] as number);
   state.events.push({

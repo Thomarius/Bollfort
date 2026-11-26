@@ -1,7 +1,7 @@
 import type { CampaignConfig, CampaignDifficulty } from '@bollfort/config';
 import { streamFor } from '@bollfort/sim';
 
-import { newCarry, startingLives, type CampaignLevelSetup } from './ruleset.js';
+import { newCarry, startingContinues, type CampaignLevelSetup } from './ruleset.js';
 import { CAMPAIGN_SAVE_VERSION, type CampaignSave, type LevelRecord } from './save.js';
 
 /**
@@ -30,7 +30,8 @@ export function newCampaign(config: CampaignConfig, options: NewCampaign): Campa
     seed: options.seed >>> 0,
     players: names.map((name) => ({ name })),
     stage: 0,
-    carry: { ...carry, retriesUsed: 0 },
+    carry: { ...carry, continuesUsed: 0 },
+    continued: false,
     history: [],
     defeated: false,
     finished: false,
@@ -53,19 +54,27 @@ export function finalStage(config: CampaignConfig, save: CampaignSave): boolean 
   return save.stage >= levelOrder(config, save).length - 1;
 }
 
-/** Retries of a lost level the campaign has left; null where they are unlimited (§9). */
-export function retriesLeft(config: CampaignConfig, save: CampaignSave): number | null {
-  const allowed = config.difficulties[save.difficulty].retries;
-  return allowed === null ? null : Math.max(0, allowed - save.carry.retriesUsed);
+/** Continues the campaign has left; null where they are unlimited (CAMPAIGN §9). */
+export function continuesLeft(config: CampaignConfig, save: CampaignSave): number | null {
+  const allowed = startingContinues(config, save.difficulty);
+  return allowed === null ? null : Math.max(0, allowed - save.carry.continuesUsed);
 }
 
 /**
- * The next level's seed: from the campaign's, the stage and how often it has been lost there, so
- * a retry is a fresh map of the level's shapes and a save resumes the very map it left.
+ * Whether the level just lost was lost in its first round, which costs no continue and brings no
+ * firepower (CAMPAIGN §9): an unlucky opening is simply played again.
+ */
+export function freeRetry(save: CampaignSave): boolean {
+  const last = save.history.at(-1);
+  return save.defeated && last?.result === 'lost' && last.rounds <= 1;
+}
+
+/**
+ * The next level's seed: from the campaign's and the stage, so a level played again after a defeat
+ * is the same map (the user's, 2026-11-26), and a save resumes the very map it left.
  */
 export function levelSeed(save: CampaignSave): number {
-  const tries = save.history.filter((h) => h.result === 'lost').length;
-  return streamFor(save.seed, `campaign-level:${save.stage}:${tries}`).nextU32();
+  return streamFor(save.seed, `campaign-level:${save.stage}`).nextU32();
 }
 
 /** What the next level is played with: everything `campaignRuleset` needs. */
@@ -77,9 +86,10 @@ export function levelSetup(config: CampaignConfig, save: CampaignSave): Campaign
     seed: levelSeed(save),
     carry: {
       scores: [...save.carry.scores],
-      lives: save.carry.lives,
       roundsPlayed: save.carry.roundsPlayed,
+      firepower: save.carry.firepower,
     },
+    continued: save.continued,
   };
 }
 
@@ -88,8 +98,6 @@ export interface LevelOutcome {
   cleared: boolean;
   /** Each player's score at the end, the carried score in it. */
   scores: readonly number[];
-  /** The team's lives left. */
-  lives: number;
   rounds: number;
   shape: string;
   sunk: readonly [number, number, number];
@@ -97,10 +105,11 @@ export interface LevelOutcome {
 }
 
 /**
- * A level's result into the campaign. Cleared: the level's bonus to every player, a life back up
- * to the count the campaign began with, the rounds counted, and on to the next level — or the
- * campaign won after the last. Lost: recorded, and the carry kept as it was, so a retry plays the
- * level again from its start; with no retry left the campaign is over.
+ * A level's result into the campaign. Cleared: the level's bonus to every player, the rounds
+ * counted, the firepower brought down to what a cleared level keeps, and on to the next level — or
+ * the campaign won after the last. Lost: recorded, and the carry kept as it was, so the level is
+ * played again from its start (`continueLevel`); lost after its first round with no continue left,
+ * the campaign is over, its save kept as its record.
  */
 export function recordLevel(
   config: CampaignConfig,
@@ -124,16 +133,9 @@ export function recordLevel(
   };
   const history = [...save.history, record];
   if (!outcome.cleared) {
-    return {
-      ...save,
-      playedAt: now,
-      history,
-      defeated: true,
-      finished: retriesLeft(config, save) === 0,
-    };
+    const lost = { ...save, playedAt: now, history, defeated: true };
+    return { ...lost, finished: !freeRetry(lost) && continuesLeft(config, save) === 0 };
   }
-  const most = startingLives(config, save.difficulty, save.players.length);
-  const lives = config.lifePerLevel ? Math.min(most, outcome.lives + 1) : outcome.lives;
   const stage = save.stage + 1;
   return {
     ...save,
@@ -142,22 +144,37 @@ export function recordLevel(
     carry: {
       ...save.carry,
       scores,
-      lives: Math.max(outcome.lives, lives),
       roundsPlayed: save.carry.roundsPlayed + outcome.rounds,
+      firepower: Math.min(save.carry.firepower, config.firepower.keptAfterLevel),
     },
+    continued: false,
     history,
     defeated: false,
     finished: stage >= levelOrder(config, save).length,
   };
 }
 
-/** A lost level played again from its start, one retry spent. */
-export function retryLevel(save: CampaignSave, now: string): CampaignSave {
+/**
+ * A lost level played again from its start, on the same map (CAMPAIGN §9). Lost in its first
+ * round, for free; otherwise one continue spent, the team's firepower raised by one up to the
+ * most, and the level opening with more cannons.
+ */
+export function continueLevel(
+  config: CampaignConfig,
+  save: CampaignSave,
+  now: string,
+): CampaignSave {
+  if (freeRetry(save)) return { ...save, playedAt: now, defeated: false };
   return {
     ...save,
     playedAt: now,
     defeated: false,
-    carry: { ...save.carry, retriesUsed: save.carry.retriesUsed + 1 },
+    continued: true,
+    carry: {
+      ...save.carry,
+      continuesUsed: save.carry.continuesUsed + 1,
+      firepower: Math.min(config.firepower.max, save.carry.firepower + 1),
+    },
   };
 }
 

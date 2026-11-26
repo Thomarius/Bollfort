@@ -63,9 +63,7 @@
         [3, 24, 3]
       ],
       "frostshipEvery": [5, 3, 2, 2, 1, 1],
-      "lives": 4,
-      "livesPerExtraPlayer": 1,
-      "retries": null,
+      "continues": null,
       "gruntFactor": 1,
       "scoreMultiplier": 0.75,
       "startBonus": 0
@@ -82,9 +80,7 @@
         [2, 25, 10]
       ],
       "frostshipEvery": [5, 4, 3, 2, 1, 1],
-      "lives": 3,
-      "livesPerExtraPlayer": 1,
-      "retries": null,
+      "continues": 4,
       "gruntFactor": 1,
       "scoreMultiplier": 1,
       "startBonus": 0
@@ -101,9 +97,7 @@
         [2, 32, 14]
       ],
       "frostshipEvery": [3, 2, 1, 1, 1, 1],
-      "lives": 2,
-      "livesPerExtraPlayer": 1,
-      "retries": 2,
+      "continues": 4,
       "gruntFactor": 1,
       "scoreMultiplier": 1.5,
       "startBonus": 500
@@ -120,9 +114,7 @@
         [2, 40, 18]
       ],
       "frostshipEvery": [2, 2, 1, 1, 1, 1],
-      "lives": 1,
-      "livesPerExtraPlayer": 1,
-      "retries": 0,
+      "continues": 0,
       "gruntFactor": 1,
       "scoreMultiplier": 2,
       "startBonus": 500
@@ -131,7 +123,6 @@
   "castlesPerExtraPlayer": 2,
   "coopPoolFactor": 0.6,
   "coopGruntFactor": 0.5,
-  "lifePerLevel": true,
   "map": {
     "sizes": [
       {
@@ -211,7 +202,7 @@
       "landMs": 1866,
       "breedMs": 11733,
       "stepMs": 1600,
-      "smashMs": 6933
+      "smashWindowMs": [500, 9500]
     }
   },
   "ice": {
@@ -223,9 +214,12 @@
     "perGrunt": 4,
     "perCannon": 7
   },
-  "comeback": {
-    "shotSpeedup": 0.25,
-    "maxBoosts": 2
+  "firepower": {
+    "max": 4,
+    "keptAfterLevel": 3,
+    "shotSpeed": [1, 1.25, 1.5, 1.5, 1.5],
+    "firstHitExtra": [0, 0, 0, 1, 2],
+    "continueCannons": 2
   },
   "pieces": {
     "levelStartRound": 3,

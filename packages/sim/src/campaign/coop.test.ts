@@ -47,11 +47,13 @@ describe('co-op castles (CAMPAIGN §6.1)', () => {
     expect(state.players.map((p) => p.enclosedCastles)).toEqual([1, 1]);
   });
 
-  it('hands a player whose main castle fell a sealed castle nobody holds', () => {
-    // Player 1's main castle is the open middle one; castle 0 is player 0's.
+  it('deals a sealed castle nobody chose in turn, a breached main castle earning nothing', () => {
+    // Player 1's main castle is the open middle one; castle 0 is player 0's. Castle 2 is
+    // nobody's main: dealt to the first in turn, both without guns, so to player 0 by seat.
     const state = mains(team(stateFromAscii(THREE, campaignLevelRuleset()), 2), [0, 1]);
     const { castleEnclosed } = applyEnclosure(state);
-    expect(castleHolders(state, castleEnclosed)).toEqual([0, -1, 1]);
+    expect(castleHolders(state, castleEnclosed)).toEqual([0, -1, 0]);
+    expect(state.players.map((p) => p.enclosedCastles)).toEqual([2, 0]);
   });
 
   it('deals the sealed castles nobody holds to the player with the fewest guns first', () => {
@@ -75,7 +77,7 @@ describe('co-op castles (CAMPAIGN §6.1)', () => {
     expect(state.players.map((p) => p.enclosedCastles)).toEqual([1, 2]);
   });
 
-  it('leaves a player with nothing when every sealed castle is held, so they fail', () => {
+  it('leaves a player with nothing when every sealed castle is held, to play on with the team', () => {
     // Player 1's main castle is the open one, and the two sealed are players 0's and 2's.
     const state = mains(team(stateFromAscii(THREE, campaignLevelRuleset()), 3), [0, 1, 2]);
     applyEnclosure(state);
@@ -122,11 +124,12 @@ describe('co-op ground and guns', () => {
     expect(canPlaceCannon(state, 1, 5, 3)).toBeNull();
   });
 
-  it('shares the ground equally among the players holding a castle, rounded down', () => {
+  it('shares the ground equally among every player while the team holds a castle', () => {
     const state = mains(team(stateFromAscii(THREE, campaignLevelRuleset()), 3), [0, 1, 2]);
     applyEnclosure(state);
-    // Two sealed rings of 16 tiles each, held by players 0 and 2; player 1 holds nothing.
-    expect(holdingsOf(state).map((h) => h.tiles)).toEqual([16, 0, 16]);
+    // Two sealed rings of 16 tiles each, held by players 0 and 2; player 1 holds no castle but
+    // shares the team's ground, rounded down.
+    expect(holdingsOf(state).map((h) => h.tiles)).toEqual([10, 10, 10]);
   });
 
   it('counts a pocket while anyone on the team holds a sealed castle', () => {

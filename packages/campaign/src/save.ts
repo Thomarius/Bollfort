@@ -8,8 +8,11 @@ import { z } from 'zod';
  * which is what `carry` is.
  */
 
-/** Bumped on any change a save from before could not be read by: such saves are only deleted. */
-export const CAMPAIGN_SAVE_VERSION = 1;
+/**
+ * Bumped on any change a save from before could not be read by: such saves are only deleted.
+ * 2: continues and the team's firepower in place of lives and retries (2026-11-26).
+ */
+export const CAMPAIGN_SAVE_VERSION = 2;
 
 const int = z.number().int();
 
@@ -44,14 +47,17 @@ export const CampaignSaveSchema = z.strictObject({
   stage: int.min(0),
   carry: z.strictObject({
     scores: z.array(int),
-    lives: int.min(0),
     roundsPlayed: int.min(0),
-    retriesUsed: int.min(0),
+    /** The team's firepower, raised by each continue and kept from level to level (§9). */
+    firepower: int.min(0),
+    continuesUsed: int.min(0),
   }),
+  /** The next level is a lost one played again after a continue: it opens with more cannons. */
+  continued: z.boolean(),
   history: z.array(LevelRecordSchema),
   /** The last level was lost and not yet retried: the campaign opens on its defeat. */
   defeated: z.boolean(),
-  /** Won, or lost with no retry left: shown its end once more, then gone. */
+  /** Won, or lost with no continue left: kept as its record, its end shown when opened. */
   finished: z.boolean(),
 });
 export type CampaignSave = z.infer<typeof CampaignSaveSchema>;

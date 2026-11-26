@@ -17,7 +17,11 @@ import { Structure, type MatchState } from '../types.js';
 
 /** A fast campaign level, with the overrides these tests turn. */
 function campaignRules(
-  overrides: { maxRounds?: number; lives?: number; scores?: number[] } = {},
+  overrides: {
+    maxRounds?: number;
+    scores?: number[];
+    firepower?: CampaignLevelRules['firepower'];
+  } = {},
 ): Ruleset {
   const rules = campaignLevelRuleset(fastRuleset(defaultRuleset));
   const campaign = rules.campaign as CampaignLevelRules;
@@ -27,13 +31,13 @@ function campaignRules(
       ...campaign,
       maxRounds: overrides.maxRounds ?? 3,
       // No ships: these are about the level's end, and an idle player's walls would not last.
-      // And no threat, so only the round limit or the lives can end the level.
+      // And no threat, so only the round limit or a failure can end the level.
       // One ship that never fires (`solo` puts it at sea), so the level is never won for having
       // nothing left to fight.
       fleet: { ...campaign.fleet, pool: [0, 0, 0], fire: { ...campaign.fleet.fire, everyMs: 1e9 } },
       threshold: 0,
       threat: { perGrunt: 0, perCannon: 0 },
-      lives: overrides.lives ?? 2,
+      firepower: overrides.firepower ?? campaign.firepower,
       carry: { ...campaign.carry, scores: overrides.scores ?? [0] },
     },
   };
@@ -103,10 +107,11 @@ describe('a campaign level', () => {
     ).toThrow(RangeError);
   });
 
-  it('brings the carried score and lives, and deals from its later pieces', () => {
-    const state = solo(campaignRules({ lives: 4, scores: [1250] }));
+  it('brings the carried score and no continues, and deals from its later pieces', () => {
+    const state = solo(campaignRules({ scores: [1250] }));
     expect(state.players[0]?.score).toBe(1250);
-    expect(state.teams[0]?.continuesRemaining).toBe(4);
+    // A failure ends the level: continues are the campaign's, which plays it again (§9).
+    expect(state.teams[0]?.continuesRemaining).toBe(0);
     stepUntil(state, (s) => s.phase === 'build');
     // The first build phase deals the size schedule's third round.
     expect(state.round).toBe(1);
@@ -127,21 +132,15 @@ describe('a campaign level', () => {
     expect(state.players[0]?.score).toBeGreaterThan(0);
   });
 
-  it('forgives the first round, spends a life later, and is lost once none is left', () => {
-    const state = solo(campaignRules({ lives: 1, maxRounds: 10 }));
-    for (let failures = 0; failures < 3; failures++) {
-      stepUntil(state, (s) => s.phase === 'combat');
-      breachRing(state);
-      stepUntil(state, (s) => s.phase !== 'combat');
-      stepUntil(state, (s) => s.phase === 'cannon_place' || s.phase === 'combat');
-      // The first round's failure is free; the second spends the one life.
-      if (failures < 2) {
-        expect(state.phase).not.toBe('game_over');
-        expect(state.teams[0]?.continuesRemaining).toBe(failures === 0 ? 1 : 0);
-      }
-    }
+  it('is lost at the first failure, its first round too: the campaign decides what is free', () => {
+    const state = solo(campaignRules({ maxRounds: 10 }));
+    stepUntil(state, (s) => s.phase === 'combat');
+    breachRing(state);
+    stepUntil(state, (s) => s.phase !== 'combat');
+    stepUntil(state, (s) => s.phase === 'cannon_place' || s.phase === 'combat');
     expect(state.phase).toBe('game_over');
     expect(state.endedBy).toBe('level_lost');
+    expect(state.round).toBe(1);
     expect(state.winners).toEqual([]);
     expect(state.draw).toBe(false);
   });
@@ -159,19 +158,6 @@ describe('a campaign level', () => {
       return seen;
     };
     expect(hashes(a)).toEqual(hashes(b));
-  });
-
-  it('keeps the map through a continue: only the failing guns go', () => {
-    const state = solo(campaignRules({ lives: 2, maxRounds: 10 }));
-    stepUntil(state, (s) => s.phase === 'combat');
-    breachRing(state);
-    const walls = state.structure.filter((t) => t === Structure.Wall).length;
-    expect(state.cannons.length).toBeGreaterThan(0);
-    stepUntil(state, (s) => s.phase === 'cannon_place');
-    // The ring stands but for the breach's two loose ends, swept as orphans at the resolution —
-    // where versus play would have wiped it whole; the guns are gone, a castle to choose again.
-    expect(state.structure.filter((t) => t === Structure.Wall).length).toBe(walls - 2);
-    expect(state.cannons).toEqual([]);
   });
 
   it("weighs the fleet's threat by kind, grunts for it and guns against it", () => {
@@ -241,28 +227,27 @@ describe('a campaign level', () => {
     expect((state.campaign as CampaignState).wonInBattle).toBe(true);
   });
 
-  it('gives a player faster shots for each life lost, twice at most', () => {
-    const state = solo(campaignRules({ lives: 3, maxRounds: 10 }));
-    const fleet = state.campaign as CampaignState;
-    for (let failures = 0; failures < 3; failures++) {
-      stepUntil(state, (s) => s.phase === 'combat');
-      breachRing(state);
-      stepUntil(state, (s) => s.phase === 'cannon_place');
-      expect(fleet.boosts).toEqual([Math.min(2, failures + 1)]);
-    }
-    // The flight over the same distance: 25% faster twice is a factor of 1.5.
+  it("flies the team's shots faster with its firepower, and opens with its continue's cannons", () => {
+    const firepower = { level: 2, shotSpeed: 1.5, firstHitExtra: 0, openingCannons: 2 };
+    const state = solo(campaignRules({ maxRounds: 10, firepower }));
+    stepUntil(state, (s) => s.phase === 'cannon_place');
+    expect(state.players[0]?.cannonsToPlace).toBe(state.ruleset.cannons.startingCount + 2);
     stepUntil(state, (s) => s.phase === 'combat');
     const shot = fire(state, 0, 1, 1);
-    expect('shot' in shot).toBe(true);
-    if (!('shot' in shot)) return;
-    const flight = shot.shot.impactTick - shot.shot.launchTick;
-    fleet.boosts = [0];
+    if (!('shot' in shot)) throw new Error('no shot');
+    const fast = shot.shot.impactTick - shot.shot.launchTick;
+    // The same gun at the same tile without the firepower.
+    const rules = state.ruleset.campaign as CampaignLevelRules;
+    state.ruleset = {
+      ...state.ruleset,
+      campaign: { ...rules, firepower: { ...firepower, shotSpeed: 1 } },
+    };
     state.shots = [];
     for (const c of state.cannons) c.shotIds = [];
     const plain = fire(state, 0, 1, 1);
-    if (!('shot' in plain)) return;
+    if (!('shot' in plain)) throw new Error('no shot');
     const slow = plain.shot.impactTick - plain.shot.launchTick;
-    expect(Math.abs(flight * 1.5 - slow)).toBeLessThanOrEqual(1.5);
+    expect(Math.abs(fast * 1.5 - slow)).toBeLessThanOrEqual(1.5);
   });
 
   it('is won the moment nothing is left to fight, the last shot down, in any phase', () => {

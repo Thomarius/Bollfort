@@ -233,7 +233,7 @@ export function stateFromAscii(
           : ruleset.campaign.fleet.frostshipEvery + 2,
       sunk: [0, 0, 0],
       gruntsKilled: 0,
-      boosts: players.map(() => 0),
+      castlesTaken: 0,
       wonInBattle: false,
       sea,
       spawnPoints: spawnPointsOf(sea, width, height),
@@ -328,7 +328,7 @@ export function fastRuleset(ruleset: Ruleset = defaultRuleset): Ruleset {
 
 /**
  * A campaign level's ruleset as `campaignRuleset` (`@bollfort/campaign`, which depends on this
- * package) builds one for one player on Normal: level 1, a coast, three rounds, two lives.
+ * package) builds one for one player on Normal: level 1, a coast, three rounds.
  */
 export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset {
   return RulesetSchema.parse({
@@ -354,7 +354,6 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
       maxRounds: 3,
       threshold: 20,
       threat: { perGrunt: 4, perCannon: 7 },
-      lives: 2,
       pieceStartRound: 3,
       carry: { scores: [0], roundsPlayed: 0 },
       fleet: {
@@ -376,10 +375,10 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
       grunts: {
         allowance: [5, 6, 7, 8, 9, 10, 12, 13],
         factor: 1,
-        timing: { landMs: 1866, breedMs: 11733, stepMs: 1600, smashMs: 6933 },
+        timing: { landMs: 1866, breedMs: 11733, stepMs: 1600, smashWindowMs: [500, 9500] },
       },
       ice: { early: 2, late: 3, lateFromRound: 8 },
-      comeback: { shotSpeedup: 0.25, maxBoosts: 2 },
+      firepower: { level: 0, shotSpeed: 1, firstHitExtra: 0, openingCannons: 0 },
       scoring: { hitPoints: 10, gruntPoints: 10, sinkPoints: [20, 40, 60], multiplier: 1 },
     },
   });

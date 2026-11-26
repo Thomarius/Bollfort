@@ -2,8 +2,8 @@ import { defaultCampaignConfig as config } from '@bollfort/config';
 import {
   levelSetup,
   newCampaign,
+  continueLevel,
   recordLevel,
-  retryLevel,
   type LevelOutcome,
 } from '@bollfort/campaign';
 import type { Seat } from '@bollfort/protocol';
@@ -41,16 +41,15 @@ function memoryStorage(): Storage {
   };
 }
 
-function campaign(difficulty: 'normal' | 'veteran' = 'normal', id = 'c-1', now = NOW) {
+function campaign(difficulty: 'normal' | 'veteran' | 'legend' = 'normal', id = 'c-1', now = NOW) {
   return newCampaign(config, { id, difficulty, names: ['Ada'], seed: 3, now });
 }
 
-function outcome(cleared: boolean, score: number): LevelOutcome {
+function outcome(cleared: boolean, score: number, rounds = 3): LevelOutcome {
   return {
     cleared,
     scores: [score],
-    lives: 2,
-    rounds: 3,
+    rounds,
     shape: 'coast',
     sunk: [5, 1, 0],
     grunts: 4,
@@ -63,7 +62,7 @@ describe('the campaign screens', () => {
     const order = [...markup.matchAll(/data-difficulty="(\w+)"/g)].map((m) => m[1]);
     expect(order).toEqual(['easy', 'normal', 'veteran', 'legend']);
     expect(markup).toContain('class="difficulty primary" data-difficulty="veteran"');
-    expect(markup).toContain('One life, no retry, from level 2, points × 2');
+    expect(markup).toContain('No continue, from level 2, points × 2');
     expect(markup).toContain('No campaign saved yet.');
   });
 
@@ -104,7 +103,7 @@ describe('the campaign screens', () => {
     expect(final).toContain('From this level on every ship takes one hit more.');
   });
 
-  it('sum a cleared level up, and offer a lost one again while retries last', () => {
+  it('sum a cleared level up, and offer a lost one again while continues last', () => {
     const cleared = recordLevel(config, campaign(), outcome(true, 400), NOW);
     const summary = summaryMarkup(cleared);
     expect(summary).toContain('Level 1 cleared!');
@@ -112,14 +111,32 @@ describe('the campaign screens', () => {
     expect(summary).toContain('Ships sunk: 5 raiders, 1 transports, 0 frost ships');
 
     const veteran = recordLevel(config, campaign('veteran'), outcome(false, 0), NOW);
-    expect(defeatMarkup(config, veteran)).toContain('Retries left: 2');
+    expect(defeatMarkup(config, veteran)).toContain('Continues left: 4');
+    expect(defeatMarkup(config, veteran)).toContain('Continue: the level again, firepower +1');
     expect(defeatMarkup(config, veteran)).toContain('id="retry-level"');
     let out = veteran;
-    for (let i = 0; i < 2; i++)
-      out = recordLevel(config, retryLevel(out, NOW), outcome(false, 0), NOW);
+    for (let i = 0; i < 4; i++)
+      out = recordLevel(config, continueLevel(config, out, NOW), outcome(false, 0), NOW);
+    expect(defeatMarkup(config, continueLevel(config, veteran, NOW))).toContain('Firepower: 1');
     expect(out.finished).toBe(true);
     expect(defeatMarkup(config, out)).toContain('The campaign is over.');
     expect(defeatMarkup(config, out)).not.toContain('retry-level');
+    // Lost in its first round: played again for nothing.
+    const early = recordLevel(config, campaign('legend'), outcome(false, 0, 1), NOW);
+    expect(defeatMarkup(config, early)).toContain('played again at no cost');
+    expect(defeatMarkup(config, early)).toContain('Play the level again');
+  });
+
+  it('keep a finished campaign as its record, listed apart and opened on its end', () => {
+    const area = memoryStorage();
+    writeCampaign(campaign('normal', 'c-1'), area);
+    const over = recordLevel(config, campaign('legend', 'c-2'), outcome(false, 0), NOW);
+    expect(over.finished).toBe(true);
+    writeCampaign(over, area);
+    const markup = campaignMenuMarkup(config, 'normal', savedCampaigns(area), null, null);
+    expect(markup).toContain('Finished campaigns');
+    expect(markup).toContain('>View<');
+    expect(markup.indexOf('c-1')).toBeLessThan(markup.indexOf('Finished campaigns'));
   });
 
   it('show the victory with every level', () => {

@@ -20,7 +20,8 @@ orientation, not as a specification.
   (§7.3) is held in reserve, for if rebuilding proves too hard with grunts and ice about.
 - **Maps are generated**, from a seed, in a few shapes (§3), and **shared**: in co-op all players
   defend one map together.
-- **Lives, as in versus** (a pooled count with continues), the count a lever of the difficulty.
+- **Continues, not lives** (the user's, 2026-11-26): failing ends the level, and a continue plays it
+  again from its start, the team's firepower raised; their count a lever of the difficulty (§9).
 - **Four difficulty settings**: Easy, Normal, Veteran and Legend (the user's, 2026-11-25, after the
   first campaign played; §9).
 - **Progress is saved** between levels, as tournaments are (§12).
@@ -43,13 +44,14 @@ build — while an enemy **fleet** attacks from the sea.
 - In each **build phase** new ships arrive at the sea's edge, transports at the coast put **grunts**
   ashore, and grunts walk towards the castles, blocking pieces where they stand.
 - In each **combat phase** every ship makes one long straight run and fires at the walls; grunts
-  smash the wall in front of them; the players shoot ships and grunts.
+  strike once each, smashing the wall or taking the unheld castle in front of them; the players
+  shoot ships and grunts.
 - A ship sinks after a number of hits (2, 3 or 5 by kind). A **frost ship's** shot leaves **ice**: nothing can be built there for the next two or three build phases.
 - A level is **cleared** at the end of a combat phase once the fleet's remaining strength has
   fallen below the level's threshold, or once the level's round limit is reached (§8). The final
   battle cleared, the campaign is won.
-- Failing to seal costs a **life** from the team's pool, as a continue does in versus; with none
-  left the level is lost, and can be retried (§9).
+- The team fails when it seals **no castle at all**: the level is lost, and a **continue** plays it
+  again from its start with more firepower; with none left the campaign is over (§9).
 - Points: ground and guns as in versus, plus hits, sinkings, grunts killed and a bonus per level
   (§11). The score runs across the whole campaign.
 
@@ -64,15 +66,17 @@ untouched.
 
 Between levels a **campaign run** (client side, like `tournamentFlow`) shows the level's result,
 saves, and builds the next level's ruleset from the campaign config, the difficulty and the
-**carry-over**: score per player, lives left, rounds played in the campaign, levels cleared,
-retries used. A level left midway is replayed from its start, as a tournament match is.
+**carry-over**: score per player, rounds played in the campaign, levels cleared, the team's
+firepower and the continues used. A level left midway is replayed from its start, as a tournament
+match is.
 
 ```
 CAMPAIGN MENU -> new (difficulty, solo or co-op room) | resume (a save)
 -> LEVEL INTRO (map preview, fleet, level number)          [v2: choose between two fronts]
 -> MATCH: castle_select -> cannon_place -> combat -> build -> ... (§4)
    -> cleared:  LEVEL SUMMARY -> save -> next level, or VICTORY after the final battle
-   -> lost:     DEFEAT -> retry the level (if allowed, §9) or back to the menu
+   -> lost:     DEFEAT -> the level again (free after its first round, else a continue, §9),
+                or the campaign's end with no continue left
 ```
 
 ## 3. Maps
@@ -295,16 +299,17 @@ right, rows top to bottom). With no wall left, ships hold fire.
   castle nearest the map's centre of land). Two players never hold the same castle.
 - **Cannons** are each player's own (they fire them), placed anywhere in the team's territory.
   Inert outside territory, as in versus.
-- **Holding castles**: at each resolution every sealed castle is assigned to a player: each
-  player's main castle to them if sealed; then each player without one takes the nearest
-  unassigned sealed castle (seat order); remaining sealed castles stay unassigned. **A player with
-  no castle assigned has failed** (§9). Cannon rewards per player as versus (`cannonReward`: the
-  main castle's reward if theirs is sealed, the extra castle reward for each other castle they were
-  assigned), and the **unassigned sealed castles' rewards are dealt one each in turn**, starting
-  with the player with the fewest cannons.
+- **Holding castles** (the user's, 2026-11-26): at each resolution every sealed castle is assigned
+  to a player: each player's main castle to them if sealed; every other sealed castle is **dealt one
+  each in turn among all the players**, starting with the player with the fewest cannons (ties by
+  seat). Cannon rewards per player as versus (`cannonReward`: the main castle's reward if theirs is
+  sealed, the extra castle reward for each other castle dealt to them). **The team fails together**,
+  and only when it holds no sealed castle at all (§9): a player holding none plays on, earning no
+  cannons that round. No player is given a gun as a floor.
 - **Pockets** (sealed ground without a castle) are territory while the team holds any sealed
   castle (versus rule, team-wide).
-- Scores are each player's own and summed for the team (§11).
+- Scores are each player's own and summed for the team (§11). The ground is shared equally among
+  all the players while the team holds a castle.
 
 **Implementation**: the sim's ownership model is one island per player. The campaign needs the
 island to belong to the team and castles to a holder. Suggested: a `holder` on each castle
@@ -339,30 +344,53 @@ enclosure flood (it is not wall) and is not damaged by fleet shots.
 - **Removed**: by a player's shot landing on its tile (§11 points); by being **walled in** — a
   piece that seals ground, pockets too, clears every grunt on it at once, the points to whoever
   placed it (the user's, 2026-11-25: building round a landing is a way to fight it); and at a
-  level's end. When a player's continue raises a new ring, grunts inside the ring's 8 × 8 are
-  removed.
+  level's end. A ring raised by a castle choice clears the grunts inside its 8 × 8.
 
 ### 6.3 Grunts walking (build phase only)
 
 Each grunt steps one tile every **48 ticks** (1.6 s), only in the build phase:
 
-- **Goal**: the nearest castle by Manhattan distance (every castle of the map, held or not); the
-  direction one of four, the one nearest the straight line to it.
+- **Goal**: the nearest castle by Manhattan distance (every castle still standing, held or not;
+  a castle taken is gone, and they make for the next, §6.5); the direction one of four, the one
+  nearest the straight line to it.
 - **Free tile ahead** (land, no wall, grunt, cannon, castle, ice): step.
 - **Blocked**: try 90° one way, then the other (counter-clockwise first); all three blocked: turn to
   face the goal and wait. Never backwards. Against a wall a grunt slides along it, re-aiming each
   step.
 - **At a castle** (the tile ahead is the castle): it stops and faces it.
 
-### 6.4 Grunts smashing (combat only)
+### 6.4 Grunts striking (combat only)
 
-Every **208 ticks** (6.9 s) per grunt, only in combat: the tile it faces, if it is team wall, is
-cleared as a shot would clear it (counted in `lostWalls`, no points to anyone). About one wall per
-grunt per battle.
+**One blow per grunt per battle**, never two, at a moment drawn for each grunt as the battle opens
+(`grunts.timing.smashWindowMs`, 0.5 s to 9.5 s of the 10 s battle, from the stream
+`campaign-smash:<grunt>:<round>`), so the grunts strike one by one rather than together, and a
+player who shoots one early saves what it faced. The blow falls on the tile the grunt faces, as its
+last step left it — a grunt never turns as a battle opens (the user's, 2026-11-26: turning every
+grunt to its castle made them far too strong):
 
-**A grunt at a castle** does nothing more in v1 than block and smash. Whether a castle with a grunt
-beside it should count as **besieged** (no cannon reward while besieged) is a lever to try in play
-(`campaign.grunts.besiegeBlocksReward`, off).
+- **team wall**: cleared as a shot would clear it (no points to anyone);
+- **a castle nobody held**: taken (§6.5);
+- anything else: nothing.
+
+A grunt that slid along a wall faces along it and strikes nothing; one that waits, blocked on three
+sides, faces its castle and strikes whatever is in the way.
+
+### 6.5 Taken castles
+
+A grunt's blow on a castle that was **not held at the resolution before the battle** (not sealed:
+`castle.enclosed`, which shots do not refresh) takes it (the user's, 2026-11-26):
+
+- The castle is **gone for the rest of the level**: removed from the castles every rule reads, its
+  tiles plain buildable land. It seals nothing, earns nothing, and nobody can choose it.
+- A **main castle** taken stays lost: its player chooses no new one, their crown is gone, and they
+  earn only what the other castles dealt to them bring (§6.1).
+- The grunts make for the next castle still standing.
+- It goes up as the Allerdickste Bertha's blast over the castle's middle, with its sound, and the
+  callout "A castle has fallen!" (`castle_taken`).
+
+A castle held at the resolution cannot be reached anyway: grunts never stand on sealed ground, and a
+piece sealing ground round them kills them. So only castles left open — ones the team was expanding
+to, ones nobody held, or a main castle the team survived without — can fall.
 
 ## 7. Ice, and the pieces
 
@@ -444,32 +472,41 @@ Every cannon counts against the threat, so a well-armed team finishes sooner; a 
 endless. The match ends with `endedBy: 'level_cleared'` (`checkGameOver`'s campaign branch, which
 must also stop the all-one-team ending of versus play).
 
-## 9. Lives, failing, difficulty
+## 9. Failing, continues, difficulty
 
-- **Lives**: a team pool, `campaign.lives[difficulty]` + `livesPerExtraPlayer` × (players − 1).
-  Starting values: Normal 3 (+1), Veteran 2 (+1). Carried over from level to level; **+1 life for
-  each level cleared**, up to the starting count (`campaign.lifePerLevel`).
-- **Failing** (§6.1: a player with no castle at the resolution) spends one life per player failing,
-  as versus play's continue: that player chooses a castle again among the free ones during the
-  coming cannon phase, a fresh ring goes up round it (grunts inside it removed), and they place the
-  opening count plus the continue bonus. **The map is not wiped** (it is shared): the walls, other
-  players' cannons, ships and ice stay. The round's points are forfeited for that player.
-- **A free first try**: a failure in a level's first round costs no life (it is easy to lose the
-  first ring to an unlucky opening).
-- **Lost**: a player failing with the pool empty loses the level for the team (`endedBy:
-'level_lost'`). The defeat screen offers **Retry level**: the level again from its start, with
-  the score and lives carried in at its start. `campaign.retries[difficulty]`: Normal unlimited,
-  Veteran 2 per campaign.
-- **Catch-up lever** (reserved, `campaign.continueShotBonus`, off): after a continue that player's
-  shots fly 25% faster, up to twice.
+(The user's, 2026-11-26, after playing: with lives spent inside a level a failure left the team on a
+ruin, few guns and the fleet still afloat, with little chance to come back. Now a failure starts the
+level over.)
+
+- **Failing**: the team fails at a resolution when it holds **no sealed castle** (§6.1); the level
+  ends at once, lost (`endedBy: 'level_lost'`). A level has no lives of its own (the team's pool of
+  continues is 0 inside the match).
+- **A continue** plays the lost level again **from its start, on the same map** (the level's seed
+  does not change): nothing of the attempt is kept — no wall, ship, grunt or ice; the score back to
+  the level's start. Each continue raises the team's **firepower** by one (below), and the level so
+  played opens with **2 cannons more** for every player (`firepower.continueCannons`).
+- **A free first round**: a level lost in its first round is played again at no cost — no continue
+  spent, no firepower gained (an unlucky opening).
+- **Continues** per campaign (`continues`): Easy without limit, Normal 4, Veteran 4, Legend none.
+  None are given back for a level cleared.
+- **Campaign over**: a level lost after its first round with no continue left ends the campaign. Its
+  save is kept as its **record**, listed apart under "Finished campaigns" and opened on its end: the
+  total and every level's points.
+
+**Firepower** (`campaign.firepower`, the team's, carried in the save from level to level): 0 at the
+start, +1 per continue up to **4**; a level cleared leaves at most **3** of it. By its value 0 to 4:
+
+| Firepower                     | 0   | 1    | 2   | 3   | 4   |
+| ----------------------------- | --- | ---- | --- | --- | --- |
+| Shot speed (`shotSpeed`)      | 1   | 1.25 | 1.5 | 1.5 | 1.5 |
+| A ship's first hit counts for | 1   | 1    | 1   | 2   | 3   |
 
 **Difficulty** is a table of levers (`campaign.difficulties`): the pool row, the frost ship
-countdown, lives, retries, the grunt allowance factor, and a score multiplier (Normal 1.0, Veteran
+countdown, the continues, the grunt allowance factor, and a score multiplier (Normal 1.0, Veteran
 1.5). **Veteran also starts at level 2** with a bonus of 500 points, skipping level 1 (six levels
-remain: 2, 3, 4, 5, a second 5 and the final battle). **Easy**: the easier pool, 4 lives, unlimited
-retries, points × 0.75. **Legend**: the harder pool, 1 life, no retries, from level 2 with 500
-points, points × 2 (Easy's and Legend's lives, retries and multipliers starting guesses, the user's
-to tune).
+remain: 2, 3, 4, 5, a second 5 and the final battle). **Easy**: the easier pool, continues without
+limit, points × 0.75. **Legend**: the harder pool, no continue, from level 2 with 500 points, points
+× 2 (Easy's and Legend's multipliers starting guesses, the user's to tune).
 
 ## 10. Between levels
 
@@ -493,9 +530,9 @@ levels cleared, so a save resumes the same offer.
 
 Per player, summed for the team, × the difficulty's multiplier:
 
-- **Each round**, banked at the resolution by every player holding a castle, as in versus:
-  ground (1 per team territory tile, **shared equally** among the players holding castles, rounded
-  down) and guns (5 per own working gun after the resolution). Forfeited by a player who failed.
+- **Each round**, banked at the resolution while the team holds a castle: ground (1 per team
+  territory tile, **shared equally** among all the players, rounded down) and guns (5 per own
+  working gun after the resolution), a player holding no castle of their own included.
 - **Hits**: 10 per hit on a ship; on sinking, 20 (raider), 40 (transport), 60 (frost ship), to the
   player whose shot sank it.
 - **Grunts**: 10 each, shot or walled in.
@@ -510,7 +547,7 @@ as `packages/tournament` does):
 
 ```ts
 const CampaignSaveSchema = z.strictObject({
-  version: z.literal(1),
+  version: z.literal(2),
   id: z.string(),
   createdAt: z.number(),
   playedAt: z.number(),
@@ -523,10 +560,11 @@ const CampaignSaveSchema = z.strictObject({
   level: z.number().int(), // the next level to play, 0-based
   carry: z.strictObject({
     scores: z.array(z.number().int()),
-    lives: z.number().int(),
     roundsPlayed: z.number().int(),
-    retriesUsed: z.number().int(),
+    firepower: z.number().int(), // the team's, kept from level to level (§9)
+    continuesUsed: z.number().int(),
   }),
+  continued: z.boolean(), // the next level is a lost one played again after a continue
   history: z.array(
     z.strictObject({
       level: z.number().int(),
@@ -537,7 +575,8 @@ const CampaignSaveSchema = z.strictObject({
       result: z.enum(['cleared', 'lost']),
     }),
   ),
-  finished: z.boolean(),
+  defeated: z.boolean(), // the last level was lost and is not yet played again
+  finished: z.boolean(), // won, or over: kept as the campaign's record
 });
 ```
 
@@ -546,7 +585,10 @@ const CampaignSaveSchema = z.strictObject({
 - `parseSave` tells another version from a damage, as the tournament's does.
 - **Resume** lists the saves (Resume campaign); a co-op save is the **host's**, resumed by the host
   opening a room with it; any people may take the seats (names in the save are labels).
-- Level seeds: `mix32(campaign seed, level, retry)`, so a retry is a fresh map of the same shape.
+- Level seeds: from the campaign's seed and the stage, `campaign-level:<stage>`, so a level played
+  again after a defeat is the same map (the user's, 2026-11-26).
+- A **finished** campaign — won, or out of continues — is kept as its record, listed apart and
+  opened on its end; only the player deletes it.
 
 ## 13. Online co-op
 
@@ -554,7 +596,7 @@ const CampaignSaveSchema = z.strictObject({
   players 1–3, or a save's carry-over and level). `RoomManager.create`, `Room` and `MatchRunner`
   get a campaign branch: **no bots** fill seats (a campaign room starts only with its seats taken,
   or the host lowers the count); the match is created from the level's ruleset; at the level's end
-  the room stays open on the summary, and the host's **Next level** (or **Retry**) starts the next
+  the room stays open on the summary, and the host's **Next level** (or **Continue**) starts the next
   match in the same room with the carry-over the host's client sends (validated by schema and
   bounds: a co-op host cheating only cheats their own team).
 - **Local**: one player runs it in `LocalMatch`, which needs a campaign path for the terrain
@@ -575,14 +617,17 @@ const CampaignSaveSchema = z.strictObject({
 - **Menu**: a **Campaign** button beside Play and the tournament's, opening the campaign screen:
   New campaign (difficulty as three cards — the third greyed until decided —, Solo or Co-op room),
   Resume (the saves: difficulty, level, score, date; Delete).
-- **Level intro** (§10), **level summary** (points by source and player, ships sunk by kind, grunts,
-  lives; Next level), **defeat** (Retry level / Back to menu, retries left), **victory** (the
-  campaign's total, levels with their points; back to menu). In the menus' frame, as the
+- **Level intro** (§10, with the continues left and the firepower), **level summary** (points by
+  source and player, ships sunk by kind, grunts; Next level), **defeat** (Play the level again when
+  lost in its first round; else Continue, firepower +1, with the continues left; or the campaign's
+  end, its total and levels, once none is left), **victory** (the campaign's total, levels with their
+  points; back to menu). Finished campaigns are listed apart in the menu, opened with View. In the menus' frame, as the
   tournament's screens are.
-- **HUD in the match**: the level and round; lives (the team's); the fleet's strength as a bar
+- **HUD in the match**: the level and round (no lives: a level has none, §9); the fleet's strength as a bar
   falling towards the level's threshold (a mark where it clears), with ship icons for the pool
   left by kind; each player's score; banners for "Ships approaching", "Transports landing",
-  "Level cleared", "Frost ship sighted" (the first of a level), as phase banners are.
+  "Level cleared", "Frost ship sighted" (the first of a level), "A castle has fallen!", as phase
+  banners are.
 
 ### 14.2 Ships: one design, three kinds
 
@@ -728,9 +773,10 @@ So a new session need not survey again; line numbers drift, the names do not.
   (`strikeWall`, `shot_impact`, then `freezeTile` and the Lullaby's effect).
 - Enclosure: `computeEnclosure`/`applyEnclosure` (`enclosure.ts`), a flood from the map border,
   8-connected, only wall-like tiles block.
-- The round: `resolveRound` (`match.ts`): enclosure, lives from the team pool (continue:
-  `wipeIsland`, starting cannons + bonus, `pieceRound = 0`), `cannonReward`, the sweep,
-  `scoreRound`, `checkGameOver`; `autoFinishCannonPhase`.
+- The round: `resolveRound` (`match.ts`): enclosure, failing (a campaign's team together, when it
+  holds no castle; versus play's lives from the team pool, a continue's `wipeIsland`, starting
+  cannons + bonus, `pieceRound = 0`), `cannonReward`, the sweep, `scoreRound`, `checkGameOver`;
+  `autoFinishCannonPhase`.
 - Hash: `hashMatchState` (`HASH_VERSION` 4); optional sections (`frozen`, lulled guns, `waves`,
   the drone's anchor) hashed only when non-empty — the pattern for `state.campaign`.
 - RNG: `streamFor(seed, name)` (`rng.ts`). Pieces: `pieceAt(ruleset, seed, round, index)`
@@ -1017,6 +1063,28 @@ beside the difficulties), its room listed in Find a game; **the host keeps the o
   cannon phase to its clock rather than having it finished (§13); the statistics count walls and
   frost by island.
 
+**After the second playtest** (the user's, 2026-11-26; grunts "very strong", and a failure in a
+level all but lost it). Every change in the campaign only, on protocol 40 and save version 2:
+
+- **Grunts strike once a battle** (§6.4): each at a moment drawn for it in 0.5–9.5 s, never twice
+  (`smashWindowMs` for `smashMs`); `nextActTick` is -1 between blows. The turn to the castle as a
+  battle opens is gone: it had made them far too strong.
+- **Taken castles** (§6.5): a grunt's blow on a castle not sealed at the resolution before removes
+  it from `state.castles` and leaves its tiles plain land, so every rule that reads the castles
+  skips it without a check of its own; the grunts make for the next. `castle_taken` carries the
+  castle; the client plays the Allerdickste Bertha's blast, its sound and a callout, and the summary
+  state counts `castlesTaken` (hashed).
+- **Continues for lives** (§9): a level has no lives (its team's pool is 0), so a failure ends it
+  as lost, the first round's too; the campaign (`run.ts`) decides what that costs: `freeRetry` when
+  lost in its first round, else `continueLevel` spends a continue and raises the firepower, which
+  the save carries (`carry.firepower`, `continued`). `levelSeed` no longer counts the losses: the
+  same map again. `campaign.firepower` replaces the comeback and its per-player `boosts`; the
+  level's ruleset carries its `shotSpeed`, `firstHitExtra` and `openingCannons`. A finished
+  campaign is kept, listed under "Finished campaigns".
+- **The team fails together** (§6.1): `castleHolders` gives each main castle to its player and
+  deals the rest among everyone, fewest guns first; `resolveRound` fails a campaign's team only
+  when no player holds a castle, and the ground is shared among all (`shareGround`).
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |
@@ -1039,9 +1107,10 @@ beside the difficulties), its room listed in Find a game; **the host keeps the o
 
 - Whether ships recycling at the coast feels right, or should be dropped (then raiders would also
   wait at the coast and be shot there).
-- Whether grunts should **besiege** castles (no reward while a grunt stands beside it, §6.4).
+- Whether grunts should **besiege** castles (no reward while a grunt stands beside it, §6.4), now
+  that they take the castles nobody held (§6.5).
 - Whether ships should damage cannons (`damagesCannons`, §5.4).
 - The repair deck (§7.4), if rebuilding among grunts and ice proves too hard.
-- The co-op scaling factors (pool 0.6, grunts 0.5, lives +1, castles +2 per extra player).
+- The co-op scaling factors (pool 0.6, grunts 0.5, castles +2 per extra player).
 - Where the third difficulty goes (§9).
 - Special towers in the campaign: off in v1; perhaps later as rewards between levels.

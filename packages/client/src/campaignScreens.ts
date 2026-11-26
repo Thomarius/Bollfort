@@ -6,10 +6,11 @@ import {
   type MapShape,
 } from '@bollfort/config';
 import {
+  continuesLeft,
+  freeRetry,
   levelOrder,
   nextLevel,
   poolFor,
-  retriesLeft,
   teamTotal,
   won,
   type CampaignSave,
@@ -68,6 +69,16 @@ function stageLine(config: CampaignConfig, save: CampaignSave): string {
   });
 }
 
+/** The team's continues left, and its firepower once a continue has raised it (CAMPAIGN §9). */
+function standing(config: CampaignConfig, save: CampaignSave): string {
+  const left = continuesLeft(config, save);
+  const continues =
+    left === null ? t('campaign.continuesAny') : t('campaign.continuesLeft', { n: left });
+  return save.carry.firepower > 0
+    ? `${continues} · ${t('campaign.firepower', { n: save.carry.firepower })}`
+    : continues;
+}
+
 function savedRow(config: CampaignConfig, entry: SavedCampaign, confirming: boolean): string {
   const id = escape(entry.id);
   const remove = confirming
@@ -86,9 +97,10 @@ function savedRow(config: CampaignConfig, entry: SavedCampaign, confirming: bool
     score: teamTotal(save),
   });
   const when = t('tournament.lastPlayed', { date: playedWhen(save.playedAt) });
+  // A finished campaign is kept as its record, opened on its end.
   const resume = confirming
     ? ''
-    : `<button class="resume" data-id="${id}">${t('campaign.resume')}</button>`;
+    : `<button class="resume" data-id="${id}">${t(save.finished ? 'campaign.view' : 'campaign.resume')}</button>`;
   return (
     `<li class="saved"><div class="saved-text"><b>${escape(save.players.map((p) => p.name).join(', '))}</b>` +
     `<small>${escape(line)}</small><small>${escape(when)}</small></div>` +
@@ -112,10 +124,14 @@ export function campaignMenuMarkup(
   const cards = CAMPAIGN_DIFFICULTIES.filter((d) => config.difficulties[d].offered)
     .map(card)
     .join('');
+  const done = (e: SavedCampaign): boolean => e.kind === 'ok' && e.save.finished;
+  const rows = (entries: readonly SavedCampaign[]): string =>
+    `<ul class="saved-list">${entries.map((e) => savedRow(config, e, e.id === confirming)).join('')}</ul>`;
+  const going = saved.filter((e) => !done(e));
+  const finished = saved.filter(done);
   const list =
-    saved.length === 0
-      ? `<p class="note">${t('campaign.none')}</p>`
-      : `<ul class="saved-list">${saved.map((e) => savedRow(config, e, e.id === confirming)).join('')}</ul>`;
+    (going.length === 0 ? `<p class="note">${t('campaign.none')}</p>` : rows(going)) +
+    (finished.length === 0 ? '' : `<h2>${t('campaign.finishedTitle')}</h2>${rows(finished)}`);
   return `
     <div class="menu campaign-menu tournament-resume">
       <h1>${t('campaign.title')}</h1>
@@ -170,13 +186,12 @@ export function introMarkup(
   notice: string | null,
 ): string {
   const final = save.stage === levelOrder(config, save).length - 1;
-  const lives = t('campaign.lives', { n: save.carry.lives });
   const score = t('campaign.score', { n: teamTotal(save) });
   return `
     <div class="menu campaign-intro">
       <h1>${escape(final ? t('campaign.finalTitle') : stageLine(config, save))}</h1>
       ${notice === null ? '' : `<p class="note warn">${escape(notice)}</p>`}
-      <p class="note">${escape(shapeName(shape))} · ${escape(difficultyName(save.difficulty))} · ${escape(lives)} · ${escape(score)}</p>
+      <p class="note">${escape(shapeName(shape))} · ${escape(difficultyName(save.difficulty))} · ${escape(standing(config, save))} · ${escape(score)}</p>
       <canvas id="campaign-map" class="campaign-map"></canvas>
       <h2>${t('campaign.fleet')}</h2>
       ${fleetLine(config, save, sails)}
@@ -187,8 +202,8 @@ export function introMarkup(
     </div>`;
 }
 
-/** What a level brought: its points, its bonus among them, the ships and grunts, the lives left. */
-function recordLines(record: LevelRecord, save: CampaignSave): string {
+/** What a level brought: its points, its bonus among them, the ships and grunts. */
+function recordLines(record: LevelRecord): string {
   const points = record.points.reduce((a, b) => a + b, 0);
   const [raiders, transports, frost] = record.sunk;
   return `
@@ -196,7 +211,6 @@ function recordLines(record: LevelRecord, save: CampaignSave): string {
         <li>${escape(t('campaign.points', { n: points }))}</li>
         <li>${escape(t('campaign.sunk', { raiders, transports, frost }))}</li>
         <li>${escape(t('campaign.grunts', { n: record.grunts }))}</li>
-        <li>${escape(t('campaign.lives', { n: save.carry.lives }))}</li>
       </ul>`;
 }
 
@@ -207,7 +221,7 @@ export function summaryMarkup(save: CampaignSave): string {
   return `
     <div class="menu campaign-summary">
       <h1>${t('campaign.cleared', { n: save.stage })}</h1>
-      ${recordLines(record, save)}
+      ${recordLines(record)}
       <p class="note">${escape(t('campaign.score', { n: teamTotal(save) }))}</p>
       <div class="split">
         <button id="next-level" class="primary">${withIcon('play', t('campaign.next'))}</button>
@@ -216,29 +230,8 @@ export function summaryMarkup(save: CampaignSave): string {
     </div>`;
 }
 
-/** A level lost: a retry while any is left, else the campaign's end. */
-export function defeatMarkup(config: CampaignConfig, save: CampaignSave, host = true): string {
-  const left = retriesLeft(config, save);
-  const retries = left === null ? t('campaign.retriesAny') : t('campaign.retriesLeft', { n: left });
-  // In a co-op room the retry is the host's, whose save it is; the others wait for it.
-  const button = host
-    ? `<div class="split"><button id="retry-level" class="primary">${withIcon('resume', t('campaign.retry'))}</button></div>`
-    : `<p class="note">${t('campaign.waitHost')}</p>`;
-  const retry =
-    save.finished || left === 0
-      ? `<p class="note">${t('campaign.over')}</p>`
-      : `<p class="note">${escape(retries)}</p>${button}`;
-  return `
-    <div class="menu campaign-defeat">
-      <h1>${t('campaign.lost', { n: save.stage + 1 })}</h1>
-      <p class="note">${escape(t('campaign.score', { n: teamTotal(save) }))}</p>
-      ${retry}
-      <button id="back" class="quiet" data-back>${withIcon('back', t('campaign.menu'))}</button>
-    </div>`;
-}
-
-/** The campaign won: its total, and each level's points. */
-export function victoryMarkup(save: CampaignSave): string {
+/** Each level cleared and its points, for a campaign's end. */
+function levelsLines(save: CampaignSave): string {
   const levels = save.history
     .filter((h) => h.result === 'cleared')
     .map(
@@ -246,11 +239,42 @@ export function victoryMarkup(save: CampaignSave): string {
         `<li>${escape(t('campaign.levelPoints', { n: i + 1, points: h.points.reduce((a, b) => a + b, 0) }))}</li>`,
     )
     .join('');
+  return levels === '' ? '' : `<ul class="campaign-record">${levels}</ul>`;
+}
+
+/**
+ * A level lost (CAMPAIGN §9): played again from its start — free when lost in its first round,
+ * else for a continue, which raises the team's firepower — or, with no continue left, the
+ * campaign's end, its total and each level cleared.
+ */
+export function defeatMarkup(config: CampaignConfig, save: CampaignSave, host = true): string {
+  const free = freeRetry(save);
+  const label = free ? t('campaign.tryAgain') : t('campaign.continueLevel');
+  // In a co-op room the choice is the host's, whose save it is; the others wait for it.
+  const button = host
+    ? `<div class="split"><button id="retry-level" class="primary">${withIcon('resume', label)}</button></div>`
+    : `<p class="note">${t('campaign.waitHost')}</p>`;
+  const next = save.finished
+    ? `<p class="note">${t('campaign.over')}</p>` +
+      `<p class="note">${escape(difficultyName(save.difficulty))} · ${escape(t('campaign.total', { n: teamTotal(save) }))}</p>` +
+      levelsLines(save)
+    : `<p class="note">${escape(free ? t('campaign.freeRetry') : standing(config, save))}</p>${button}`;
+  return `
+    <div class="menu campaign-defeat">
+      <h1>${t('campaign.lost', { n: save.stage + 1 })}</h1>
+      ${save.finished ? '' : `<p class="note">${escape(t('campaign.score', { n: teamTotal(save) }))}</p>`}
+      ${next}
+      <button id="back" class="quiet" data-back>${withIcon('back', t('campaign.menu'))}</button>
+    </div>`;
+}
+
+/** The campaign won: its total, and each level's points. */
+export function victoryMarkup(save: CampaignSave): string {
   return `
     <div class="menu campaign-victory">
       <h1>${t('campaign.victory')}</h1>
       <p class="note">${escape(difficultyName(save.difficulty))} · ${escape(t('campaign.total', { n: teamTotal(save) }))}</p>
-      <ul class="campaign-record">${levels}</ul>
+      ${levelsLines(save)}
       <button id="back" class="primary" data-back>${withIcon('back', t('campaign.menu'))}</button>
     </div>`;
 }
@@ -329,10 +353,9 @@ export function campaignRoomMarkup(
   const record = save.history.at(-1);
   const cleared =
     view.justCleared && record?.result === 'cleared'
-      ? `<h2>${t('campaign.cleared', { n: save.stage })}</h2>${recordLines(record, save)}`
+      ? `<h2>${t('campaign.cleared', { n: save.stage })}</h2>${recordLines(record)}`
       : '';
   const final = save.stage === levelOrder(config, save).length - 1;
-  const lives = t('campaign.lives', { n: save.carry.lives });
   const score = t('campaign.score', { n: teamTotal(save) });
   const me = view.seats.find((s) => s.playerId === view.humanPlayer);
   const blocked = campaignStartBlocked(view);
@@ -349,7 +372,7 @@ export function campaignRoomMarkup(
     <div class="menu campaign-intro campaign-room">
       ${cleared}
       <h1>${escape(final ? t('campaign.finalTitle') : stageLine(config, save))}</h1>
-      <p class="note">${escape(shapeName(view.shape))} · ${escape(difficultyName(save.difficulty))} · ${escape(lives)} · ${escape(score)}</p>
+      <p class="note">${escape(shapeName(view.shape))} · ${escape(difficultyName(save.difficulty))} · ${escape(standing(config, save))} · ${escape(score)}</p>
       <div class="campaign-room-body">
         <div>
           <canvas id="campaign-map" class="campaign-map"></canvas>

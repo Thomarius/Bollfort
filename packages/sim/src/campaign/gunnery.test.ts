@@ -126,6 +126,20 @@ describe("the fleet's guns", () => {
     expect(sunk).toMatchObject({ player: 0, points: 45, x: 2 * 256, y: 4 * 256 });
   });
 
+  it("counts the first hit on a ship for more with the team's firepower", () => {
+    const state = stateFromAscii(
+      BOARD,
+      rules((c) => ({ ...c, firepower: { ...c.firepower, level: 3, firstHitExtra: 1 } })),
+    );
+    // A raider takes two hits: the first counts two, and sinks it at once.
+    const result = fire(state, 0, 2, 4);
+    if (!('shot' in result)) throw new Error('no shot');
+    state.tick = result.shot.impactTick;
+    resolveImpacts(state);
+    expect(fleet(state).ships.map((s: Ship) => s.id)).toEqual([0]);
+    expect(state.events.find((e) => e.kind === 'ship_hit')).toMatchObject({ hits: 2, sunk: true });
+  });
+
   it("lets a campaign's guns fire anywhere, and never at the team's own wall", () => {
     const state = stateFromAscii(BOARD, rules());
     // The team's own wall and the open sea: versus play would refuse the first.

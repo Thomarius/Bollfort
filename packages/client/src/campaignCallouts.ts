@@ -4,7 +4,8 @@ import type { MatchEvent, MatchState } from '@bollfort/sim';
 /**
  * What a campaign calls out over the board (docs/CAMPAIGN.md §14.1): ships approaching as each
  * wave begins to arrive, troops landing as the first of a build phase come ashore, and the first
- * frost ship of a level sighted — each once, so a busy phase is not a stream of words. Pure, for
+ * frost ship of a level sighted — each once, so a busy phase is not a stream of words — and every
+ * castle the grunts take. Pure, for
  * the tests; the match screen shows what it returns (`Hud.callout`).
  */
 export class CampaignCallouts {
@@ -27,6 +28,8 @@ export class CampaignCallouts {
       this.shipsIn = phase;
       return 'campaign.shipsApproaching';
     }
+    // Each castle lost is called out: it is rare, and it matters.
+    if (event.kind === 'castle_taken') return 'campaign.castleTaken';
     if (event.kind === 'grunt_landed' && this.troopsIn !== phase) {
       this.troopsIn = phase;
       return 'campaign.troopsLanding';

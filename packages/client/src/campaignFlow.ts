@@ -6,10 +6,10 @@ import {
 } from '@bollfort/config';
 import {
   campaignRuleset,
+  continueLevel,
   levelSetup,
   newCampaign,
   recordLevel,
-  retryLevel,
   won,
   type CampaignSave,
 } from '@bollfort/campaign';
@@ -42,7 +42,7 @@ import { DEFAULT_SETTINGS, localMatchFor, localSession, type Setup } from './ses
 /**
  * Playing a campaign (docs/CAMPAIGN.md §2, §14.1, CA8): the campaign menu, a level's intro, the
  * level as a match, and what comes after it — the summary of a level cleared, a defeat with its
- * retry, the victory. The save is written the moment a level is over, before its summary shows,
+ * continue, the campaign's end. The save is written the moment a level is over, before its summary shows,
  * so nothing after it can lose the result; a level left before its end is played again from its
  * start, the save as it was.
  */
@@ -132,8 +132,8 @@ export function playCampaign(id: string, exits: CampaignExits): void {
 }
 
 /**
- * The campaign where it stands: its end once it has one — won, or lost with no retry left, the
- * save going as the end is shown — its defeat while a lost level waits to be retried, and the next
+ * The campaign where it stands: its end once it has one — won, or lost with no continue left, the
+ * save kept as its record — its defeat while a lost level waits to be played again, and the next
  * level's intro otherwise.
  */
 function showCampaign(save: CampaignSave, exits: CampaignExits, notice: string | null): void {
@@ -146,7 +146,6 @@ function showCampaign(save: CampaignSave, exits: CampaignExits, notice: string |
     return;
   }
   if (save.finished) {
-    deleteCampaign(save.id);
     app!.innerHTML = won(config, save) ? victoryMarkup(save) : defeatMarkup(config, save);
     wire({ back: () => exits.menu() });
     return;
@@ -155,7 +154,7 @@ function showCampaign(save: CampaignSave, exits: CampaignExits, notice: string |
     app!.innerHTML = defeatMarkup(config, save);
     wire({
       'retry-level': () => {
-        const retried = retryLevel(save, new Date().toISOString());
+        const retried = continueLevel(config, save, new Date().toISOString());
         const saved = writeCampaign(retried);
         showCampaign(retried, exits, saved ? null : t('campaign.couldNotSave'));
       },

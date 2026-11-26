@@ -17,10 +17,10 @@ import { streamFor } from '@bollfort/sim';
 export interface CampaignCarry {
   /** Each player's score, by player. */
   scores: number[];
-  /** The team's lives. */
-  lives: number;
   /** Rounds played in the campaign before this level. */
   roundsPlayed: number;
+  /** The team's firepower, raised by its continues (CAMPAIGN §9). */
+  firepower: number;
 }
 
 export interface CampaignLevelSetup {
@@ -32,6 +32,8 @@ export interface CampaignLevelSetup {
   /** The level's seed, from which its map's shape is drawn as its terrain is. */
   seed: number;
   carry: CampaignCarry;
+  /** The level is played again after a continue, and opens with more cannons (CAMPAIGN §9). */
+  continued: boolean;
 }
 
 function difficultyOf(
@@ -41,14 +43,12 @@ function difficultyOf(
   return config.difficulties[difficulty];
 }
 
-/** The team's lives as a campaign starts (CAMPAIGN §9). */
-export function startingLives(
+/** Continues a campaign of this difficulty has; null where they are unlimited (CAMPAIGN §9). */
+export function startingContinues(
   config: CampaignConfig,
   difficulty: CampaignDifficulty,
-  players: number,
-): number {
-  const d = difficultyOf(config, difficulty);
-  return d.lives + d.livesPerExtraPlayer * (players - 1);
+): number | null {
+  return difficultyOf(config, difficulty).continues;
 }
 
 /**
@@ -67,7 +67,7 @@ export function poolFor(
   return pool.map((n) => Math.round(n * factor)) as ShipPool;
 }
 
-/** A new campaign's carry: Veteran's start bonus to everyone, the starting lives. */
+/** A new campaign's carry: Veteran's start bonus to everyone, no firepower yet. */
 export function newCarry(
   config: CampaignConfig,
   difficulty: CampaignDifficulty,
@@ -75,8 +75,8 @@ export function newCarry(
 ): CampaignCarry {
   return {
     scores: Array.from({ length: players }, () => difficultyOf(config, difficulty).startBonus),
-    lives: startingLives(config, difficulty, players),
     roundsPlayed: 0,
+    firepower: 0,
   };
 }
 
@@ -92,7 +92,7 @@ export function campaignRuleset(
   base: Ruleset,
   setup: CampaignLevelSetup,
 ): Ruleset {
-  const { difficulty, level, players, seed, carry } = setup;
+  const { difficulty, level, players, seed, carry, continued } = setup;
   if (!Number.isInteger(players) || players < 1 || players > CAMPAIGN_MAX_PLAYERS) {
     throw new RangeError(`a campaign takes 1-${CAMPAIGN_MAX_PLAYERS} players, got ${players}`);
   }
@@ -106,6 +106,7 @@ export function campaignRuleset(
   if (shape === undefined) throw new RangeError(`campaign level ${level} has no shape`);
   const size = config.map.sizes.find((s) => s.players === players);
   if (size === undefined) throw new RangeError(`no campaign map size for ${players} players`);
+  const firepower = Math.max(0, Math.min(config.firepower.max, carry.firepower));
 
   return RulesetSchema.parse({
     ...base,
@@ -146,10 +147,18 @@ export function campaignRuleset(
         factor:
           difficultyOf(config, difficulty).gruntFactor *
           (1 + config.coopGruntFactor * (players - 1)),
-        timing: { ...config.grunts.timing },
+        timing: {
+          ...config.grunts.timing,
+          smashWindowMs: [...config.grunts.timing.smashWindowMs],
+        },
       },
       ice: { ...config.ice },
-      comeback: { ...config.comeback },
+      firepower: {
+        level: firepower,
+        shotSpeed: config.firepower.shotSpeed[firepower] as number,
+        firstHitExtra: config.firepower.firstHitExtra[firepower] as number,
+        openingCannons: continued ? config.firepower.continueCannons : 0,
+      },
       scoring: {
         hitPoints: config.scoring.hitPoints,
         gruntPoints: config.scoring.gruntPoints,
@@ -159,7 +168,6 @@ export function campaignRuleset(
       maxRounds: entry.maxRounds,
       threshold: entry.threshold * (1 + config.coopPoolFactor * (players - 1)),
       threat: { ...config.threat },
-      lives: carry.lives,
       pieceStartRound: config.pieces.levelStartRound,
       carry: { scores: [...carry.scores], roundsPlayed: carry.roundsPlayed },
     },

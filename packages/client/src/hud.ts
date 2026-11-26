@@ -544,6 +544,9 @@ export class Hud {
     const now = performance.now();
     const livesOf = (team: number, out: boolean): string => {
       if (out) return `<span class="lives out">${t('hud.out')}</span>`;
+      // A campaign level has no lives: failing ends it, and the campaign's continues play it
+      // again (docs/CAMPAIGN.md §9).
+      if (state.ruleset.campaign !== undefined) return '';
       const pool = state.teams[team];
       const total = (pool?.continuesAtStart ?? 0) + 1;
       const left = (pool?.continuesRemaining ?? 0) + 1;

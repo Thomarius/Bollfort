@@ -5,12 +5,11 @@ import { Terrain, type Castle, type MatchState, type PlayerState } from '../type
  * island, island 1: its walls and its ground are the team's, and every player stands on it
  * (`createMatch` gives each of them island 1). What is still each player's own is their main
  * castle, chosen, and their guns; the castles sealed at a resolution are handed out among them
- * here, so each player is judged by the castles they hold, as versus play judges them by their
- * island's.
+ * here, so each player earns the guns of the castles they hold. The team is judged as one: it fails
+ * only when it holds no castle at all.
  *
- * One player is the same code with one holder: their main castle if sealed, else the nearest
- * sealed one, and every other sealed castle dealt to them — every sealed castle theirs, as
- * before co-op.
+ * One player is the same code with one holder: their main castle if sealed, and every other
+ * sealed castle dealt to them — every sealed castle theirs.
  *
  * Every function here is reached only in a campaign: versus play never comes through this file.
  */
@@ -77,54 +76,30 @@ export function fallbackCastle(state: MatchState, player: PlayerState): Castle |
  * nobody's (CAMPAIGN §6.1). In turn:
  *
  * 1. each player's main castle to them, if sealed;
- * 2. each player still without one, in seat order, takes the nearest sealed castle left, measured
- *    from their main castle;
- * 3. the sealed castles left are dealt one each in turn, the player with the fewest guns first
- *    (ties by seat), among the players holding one — each a castle's reward more for them.
+ * 2. the sealed castles left are dealt one each in turn among every player still in, the player
+ *    with the fewest guns first (ties by seat) — each a castle's reward more for them.
  *
- * A player out, or still owing a choice after a continue, holds nothing. A player with nothing at
- * a resolution has failed (§9).
+ * Holding none is no failure: the team fails together, and only when it holds no castle at all
+ * (§9). A player whose main castle is breached or taken may so hold none, and earns no guns.
  */
 export function castleHolders(state: MatchState, castleEnclosed: readonly boolean[]): number[] {
   const holders = state.castles.map(() => -1);
   const sealed = (castle: Castle): boolean => castleEnclosed[castle.id] === true;
-  const byId = new Map(state.castles.map((c) => [c.id, c] as const));
-  const indexOf = new Map(state.castles.map((c, index) => [c.id, index] as const));
-  const playing = state.players.filter((p) => !p.eliminated && p.startingCastleId !== null);
-  const holding = new Set<number>();
+  const playing = state.players.filter((p) => !p.eliminated);
 
   for (const player of playing) {
-    const main = byId.get(player.startingCastleId as number);
-    if (main === undefined || !sealed(main)) continue;
-    const index = indexOf.get(main.id) as number;
-    if (holders[index] !== -1) continue;
+    const index = state.castles.findIndex((c) => c.id === player.startingCastleId);
+    const main = state.castles[index];
+    if (main === undefined || !sealed(main) || holders[index] !== -1) continue;
     holders[index] = player.id;
-    holding.add(player.id);
   }
 
-  for (const player of playing) {
-    if (holding.has(player.id)) continue;
-    const main = byId.get(player.startingCastleId as number);
-    if (main === undefined) continue;
-    let best = -1;
-    let bestDistance = Infinity;
-    state.castles.forEach((castle, index) => {
-      if (holders[index] !== -1 || !sealed(castle)) return;
-      const distance = Math.abs(castle.x - main.x) + Math.abs(castle.y - main.y);
-      if (distance < bestDistance) {
-        best = index;
-        bestDistance = distance;
-      }
-    });
-    if (best < 0) continue;
-    holders[best] = player.id;
-    holding.add(player.id);
-  }
-
-  if (holding.size === 0) return holders;
+  if (playing.length === 0) return holders;
   const guns = new Map<number, number>();
   for (const cannon of state.cannons) guns.set(cannon.owner, (guns.get(cannon.owner) ?? 0) + 1);
-  const turn = [...holding].sort((a, b) => (guns.get(a) ?? 0) - (guns.get(b) ?? 0) || a - b);
+  const turn = playing
+    .map((p) => p.id)
+    .sort((a, b) => (guns.get(a) ?? 0) - (guns.get(b) ?? 0) || a - b);
   let next = 0;
   state.castles.forEach((castle, index) => {
     if (holders[index] !== -1 || !sealed(castle)) return;

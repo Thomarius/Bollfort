@@ -105,9 +105,12 @@ export function createMatch(options: MatchOptions): MatchState {
   const teamCount = teamOfSeat.reduce((most, t) => Math.max(most, t + 1), 0);
   const { campaign } = ruleset;
   const teams: TeamState[] = Array.from({ length: teamCount }, (_, id) => {
-    // A campaign's one team brings the lives the campaign has left (CAMPAIGN §9).
+    // A campaign's team has none within a level: failing ends the level, and a continue plays
+    // it again from its start (CAMPAIGN §9).
     const pool =
-      campaign?.lives ?? teamOfSeat.filter((t) => t === id).length * ruleset.elimination.continues;
+      campaign !== undefined
+        ? 0
+        : teamOfSeat.filter((t) => t === id).length * ruleset.elimination.continues;
     return { id, continuesRemaining: pool, continuesAtStart: pool };
   });
 
@@ -194,7 +197,8 @@ export function createMatch(options: MatchOptions): MatchState {
       spawnCursor: 0,
       nextArrivalTick: 0,
       // The first wave grows by the opening guns, as every later one by the round's.
-      cannonsGiven: ruleset.cannons.startingCount * playerCount,
+      cannonsGiven:
+        (ruleset.cannons.startingCount + ruleset.campaign.firepower.openingCannons) * playerCount,
       shots: [],
       nextShotId: 0,
       nextFireTick: 0,
@@ -211,7 +215,7 @@ export function createMatch(options: MatchOptions): MatchState {
           : ruleset.campaign.fleet.frostshipEvery + 2,
       sunk: [0, 0, 0],
       gruntsKilled: 0,
-      boosts: players.map(() => 0),
+      castlesTaken: 0,
       wonInBattle: false,
       sea,
       spawnPoints: generated.spawnPoints,
@@ -356,8 +360,11 @@ function finishCastleSelect(state: MatchState): void {
   // The opening cannons are placed by the player, exactly like every later batch.
   // Round 0 here; the first combat phase starts round 1 via startNextCombat.
   state.round = 0;
+  // A campaign level played again after a continue opens with more (CAMPAIGN §9).
+  const opening =
+    state.ruleset.cannons.startingCount + (state.ruleset.campaign?.firepower.openingCannons ?? 0);
   for (const player of state.players) {
-    player.cannonsToPlace = state.ruleset.cannons.startingCount;
+    player.cannonsToPlace = opening;
   }
   enterIntermission(state, 'cannon_place');
 }
@@ -525,9 +532,14 @@ function resolveRound(state: MatchState): void {
 
   const { extraCannonsPerContinue, maxExtraCannons, resetPieceScheduleOnContinue } =
     state.ruleset.elimination;
-  const failing = state.players.filter(
-    (p) =>
-      !p.eliminated && p.enclosedCastles === 0 && state.ruleset.elimination.onZeroEnclosedCastles,
+  // A campaign's team fails together, and only when it holds no sealed castle at all: a member
+  // holding none plays on with the rest (CAMPAIGN §6.1, §9).
+  const teamHoldsNone =
+    state.campaign !== null && !state.players.some((p) => !p.eliminated && p.enclosedCastles > 0);
+  const failing = state.players.filter((p) =>
+    state.campaign !== null
+      ? !p.eliminated && teamHoldsNone
+      : !p.eliminated && p.enclosedCastles === 0 && state.ruleset.elimination.onZeroEnclosedCastles,
   );
 
   // Lives first, in seat order, from each team's pool. A member failing with the pool
@@ -538,11 +550,7 @@ function resolveRound(state: MatchState): void {
   for (const player of failing) {
     const team = state.teams[player.team] as TeamState;
     if (doomed.has(team.id)) continue;
-    // A campaign level's first round is a free try: losing the first ring to an unlucky
-    // opening costs no life (CAMPAIGN §9).
-    if (state.campaign !== null && state.round === 1) {
-      continuing.add(player.id);
-    } else if (team.continuesRemaining > 0) {
+    if (team.continuesRemaining > 0) {
       team.continuesRemaining--;
       continuing.add(player.id);
     } else {
@@ -576,18 +584,7 @@ function resolveRound(state: MatchState): void {
       // again in the coming cannon phase, and the ring is raised around it — so this is
       // a fresh start on the same ground rather than a reprieve on a ruin.
       const spent = team.continuesAtStart - team.continuesRemaining;
-      // A campaign's map is the team's and stays as it is, walls, ice and enemy alike: only the
-      // failing player's guns go, as they choose a castle again (CAMPAIGN §9).
-      if (state.campaign === null) {
-        wipeIsland(state, player.id);
-      } else {
-        removeGuns(state, player.id);
-        // A way back: their shots fly faster for each life lost, up to a limit (CAMPAIGN §9).
-        const { maxBoosts } = state.ruleset.campaign!.comeback;
-        state.campaign.boosts = state.campaign.boosts.map((n, i) =>
-          i === player.id ? Math.min(maxBoosts, n + 1) : n,
-        );
-      }
+      wipeIsland(state, player.id);
       player.startingCastleId = null;
       player.enclosedCastles = 0;
       player.openingPlacement = true;

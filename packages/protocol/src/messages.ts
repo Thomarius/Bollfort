@@ -26,9 +26,11 @@ import { SnapshotSchema } from './snapshot.js';
  * 37: the Drone Tower, its variants, its ruleset key and a player's anchor (2026-11-20). 38: the
  * Fortified Tower on trial, its variants, its ruleset key, a gun's barrels and a wave's absorbed
  * lanes (2026-11-21). 39: campaign rooms — a level's setup and the host's save, the
- * snapshot's fleet, one player in a campaign (docs/CAMPAIGN.md §13, 2026-11-25).
+ * snapshot's fleet, one player in a campaign (docs/CAMPAIGN.md §13, 2026-11-25). 40: a campaign
+ * level's continues and firepower in its setup, the grunts' taken castles in the snapshot
+ * (2026-11-26).
  */
-export const PROTOCOL_VERSION = 39;
+export const PROTOCOL_VERSION = 40;
 
 /**
  * A player's intent. The server overwrites `player` with the sender's own seat before
@@ -147,9 +149,10 @@ export const CampaignSetupSchema = z
     seed: z.number().int().nonnegative().max(0xffffffff),
     carry: z.strictObject({
       scores: z.array(z.number().int().min(-1e8).max(1e8)).max(CAMPAIGN_MAX_PLAYERS),
-      lives: z.number().int().nonnegative().max(99),
       roundsPlayed: z.number().int().nonnegative().max(9999),
+      firepower: z.number().int().nonnegative().max(99),
     }),
+    continued: z.boolean(),
   })
   .refine((setup) => setup.carry.scores.length === setup.players, {
     message: 'a score for each player',

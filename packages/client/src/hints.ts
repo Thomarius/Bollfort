@@ -36,10 +36,15 @@ export function buildHints(
   const player = state.players[humanPlayer];
   if (player === undefined || player.eliminated) return NONE;
   const gaps = cornerGaps(state, humanPlayer, live.castleEnclosed);
-  // Something sealed is a round survived; the rest is ambition, and not ours to outline.
-  if ((live.enclosedCastlesByPlayer[humanPlayer] ?? 0) > 0)
-    return { unsealed: [], cornerGaps: gaps };
-  // In a campaign the team's castles are many and shared: a player's own is the one to seal.
+  // Something sealed is a round survived; the rest is ambition, and not ours to outline. A
+  // campaign's team survives on any castle any of them holds (CAMPAIGN §6.1).
+  const held =
+    state.campaign !== null
+      ? live.enclosedCastlesByPlayer.some((n) => n > 0)
+      : (live.enclosedCastlesByPlayer[humanPlayer] ?? 0) > 0;
+  if (held) return { unsealed: [], cornerGaps: gaps };
+  // In a campaign the team's castles are many and shared: a player's own is the one to seal, or
+  // every castle standing once the grunts have taken theirs.
   const main = state.castles.find((c) => c.id === player.startingCastleId);
   return {
     unsealed:

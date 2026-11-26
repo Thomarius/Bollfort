@@ -3,6 +3,7 @@ import { defaultConfigBundle, type ArtStyle, type Ruleset, type TextKey } from '
 import { audioManifest } from './styles/data.js';
 import { styleArt } from './styles/registry.js';
 import {
+  circleOffsets,
   craterTilesOf,
   strikesOnFiring,
   footprintOf,
@@ -889,6 +890,24 @@ export async function runSession(
         case 'grunt_killed':
           scene.noteGruntKilled(event.x, event.y);
           break;
+        case 'castle_taken': {
+          // A castle falling to the grunts goes up as the Allerdickste Bertha's blast, over the
+          // castle's middle, in every look (CAMPAIGN §6.5).
+          const { castle } = event;
+          const radius = session.state.ruleset.specials.biggest?.[3]?.craterRadius ?? 2.5;
+          const x = castle.x + Math.floor(castle.w / 2);
+          const y = castle.y + Math.floor(castle.h / 2);
+          scene.noteBlast(x, y, circleOffsets(radius));
+          const tiles: { x: number; y: number; owner: number }[] = [];
+          for (let oy = 0; oy < castle.h; oy++) {
+            for (let ox = 0; ox < castle.w; ox++)
+              tiles.push({ x: castle.x + ox, y: castle.y + oy, owner: 0 });
+          }
+          scene.noteImpact(x, y, tiles);
+          if (session.humanPlayer >= 0 && !motionReduced()) scene.shake();
+          structuresChanged = true;
+          break;
+        }
         case 'ship_sunk':
           scene.noteShipSunk(event.ship, event.x, event.y);
           break;

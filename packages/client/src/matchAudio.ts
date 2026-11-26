@@ -165,6 +165,14 @@ export class MatchAudio {
         case 'ship_sunk':
           this.audio.play('tower_impact', 1, 0, this.pan(event.x / 256));
           break;
+        case 'castle_taken':
+          this.audio.play(
+            'tower_biggest_impact',
+            1,
+            0,
+            this.pan(this.stereo === null ? 0 : event.castle.x),
+          );
+          break;
         case 'wall_smashed':
           this.audio.play(
             'shot_impact',

@@ -1,11 +1,10 @@
 import { defaultConfigBundle, type CampaignLevelRules } from '@bollfort/config';
 import {
   campaignRuleset,
+  continueLevel,
   levelSetup,
   parseCampaignSave,
   recordLevel,
-  retryLevel,
-  won,
   type CampaignSave,
 } from '@bollfort/campaign';
 import type { CampaignSetup, Seat, ServerMessage } from '@bollfort/protocol';
@@ -14,7 +13,7 @@ import type { MatchState } from '@bollfort/sim';
 import { app, audio } from './app.js';
 import { browserId } from './browserId.js';
 import { drawMapPreview } from './campaignMap.js';
-import { deleteCampaign, writeCampaign } from './campaignSaves.js';
+import { writeCampaign } from './campaignSaves.js';
 import {
   campaignRoomMarkup,
   campaignStartBlocked,
@@ -112,7 +111,7 @@ export class CampaignRoom {
     on('retry-level', () => {
       const save = this.save;
       if (save === null) return;
-      const retried = retryLevel(save, new Date().toISOString());
+      const retried = continueLevel(config, save, new Date().toISOString());
       writeCampaign(retried);
       this.justCleared = false;
       sendLevel(link, retried);
@@ -123,7 +122,7 @@ export class CampaignRoom {
 
   /**
    * The level's match's ways out: on the host's page the result recorded and saved as the level
-   * ends, and its Continue sending the room on — the next level, the retry's defeat, or the end;
+   * ends, and its Continue sending the room on — the next level, the defeat, or the end;
    * on a teammate's, the wait for the host.
    */
   exits(host: boolean, link: CampaignRoomLink): MatchExits {
@@ -162,8 +161,6 @@ export class CampaignRoom {
 
 /** The room set for where the campaign stands: its next level, or none at a defeat or its end. */
 function sendLevel(link: CampaignRoomLink, save: CampaignSave): void {
-  // A campaign won is over, its save gone as its end is shown, as a solo campaign's.
-  if (save.finished && won(config, save)) deleteCampaign(save.id);
   const level = save.finished || save.defeated ? null : levelSetup(config, save);
   link.send({ type: 'campaign', level, save: JSON.stringify(save) });
 }
@@ -183,7 +180,6 @@ export function outcomeOf(state: MatchState): Parameters<typeof recordLevel>[2] 
   return {
     cleared: state.endedBy === 'level_cleared',
     scores: state.players.map((p) => p.score),
-    lives: state.teams[0]?.continuesRemaining ?? 0,
     rounds: state.round,
     shape: state.ruleset.campaign?.shape ?? 'coast',
     sunk: fleet === null ? [0, 0, 0] : [...fleet.sunk],
