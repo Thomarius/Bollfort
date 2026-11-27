@@ -21,11 +21,10 @@ export interface FleetLook {
   readonly tint?: number;
   /** A lantern's glow at each ship's stern, by night. */
   readonly lantern?: number;
-  /** Whether the style draws the fleet's shots itself, its own cannonballs. */
-  readonly drawsShots?: boolean;
   /**
-   * A ship centred on the origin, its bow up — or up and to the right, `diagonal` — with its sails
-   * marked by the hits it has taken.
+   * A ship centred on the origin, its bow up — or up and to the right, `diagonal`, asked only of a
+   * look in pixels: a drawn one is turned to every heading — with its sails marked by the hits it
+   * has taken.
    */
   ship(
     g: Graphics,
@@ -201,11 +200,10 @@ function drawPixelGrunt(g: Graphics, tile: number, art: ArtConfig, smashing: boo
   }
 }
 
-/** Medieval's fleet: pixel ships and soldiers, and its own cannonballs for their shots. */
+/** Medieval's fleet: pixel ships and soldiers. */
 export const MEDIEVAL_FLEET: FleetLook = {
   key: 'medieval',
   pixels: 16,
-  drawsShots: true,
   ship: drawPixelShip,
   grunt: drawPixelGrunt,
 };

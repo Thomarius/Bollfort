@@ -60,6 +60,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 import { gunSpan } from './fortified.js';
 
 /** Something with a place and an age: a cloud thrown up, a ring on the sea, a block pressed. */
@@ -284,6 +285,8 @@ export class SakuraTheme extends ShapeTheme implements Theme {
   readonly id = 'sakura' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.sakura;
+  /** Its campaign's ships and grunts (`fleets/sakura.ts`). */
+  readonly fleet = BASE_FLEETS.sakura;
 
   private style!: SakuraStyleConfig;
   /** Life on the outer sea (`seaLife.ts`). */

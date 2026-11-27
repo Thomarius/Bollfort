@@ -4,7 +4,6 @@ import {
   HEADINGS,
   SHIP_SIZE,
   shipPosition,
-  type FleetShot,
   type Grunt,
   type MatchState,
   type Ship,
@@ -72,10 +71,8 @@ interface GruntTrack {
   landed: boolean;
 }
 
-/** A fleet shot's ball, its shadow and the arc it rises in, against its range. */
-const BALL = 0x23201d;
+/** A grunt's shadow. */
 const SHADOW = 0x000000;
-const ARC = 0.22;
 
 export class CampaignMarks {
   readonly root = new Container({ label: 'campaign' });
@@ -214,11 +211,6 @@ export class CampaignMarks {
 
     this.drawGrunts(view, art, style, fleet?.grunts ?? [], deltaMs, moving);
 
-    // A style with cannonballs of its own draws the fleet's shots with them (`fleetShotsAsShots`).
-    if (style?.drawsShots !== true) {
-      for (const shot of fleet?.shots ?? []) this.drawBall(view, shot, now);
-    }
-
     this.water.end();
     this.ships.end();
     this.air.end();
@@ -288,23 +280,6 @@ export class CampaignMarks {
     }
   }
 
-  /** A fleet shot in flight: its ball rising and falling over the line it flies, its shadow under. */
-  private drawBall(view: ViewTransform, shot: FleetShot, now: number): void {
-    const tile = view.tile;
-    const span = Math.max(1, shot.impactTick - shot.launchTick);
-    const p = Math.min(1, Math.max(0, (now - shot.launchTick) / span));
-    const fromX = shot.fromX / 256;
-    const fromY = shot.fromY / 256;
-    const toX = shot.toX + 0.5;
-    const toY = shot.toY + 0.5;
-    const x = fromX + (toX - fromX) * p;
-    const y = fromY + (toY - fromY) * p;
-    const range = Math.hypot(toX - fromX, toY - fromY);
-    const lift = Math.sin(Math.PI * p) * range * ARC;
-    this.water.disc(tileX(view, x), tileY(view, y), tile * 0.16, SHADOW, 0.25);
-    this.air.disc(tileX(view, x), tileY(view, y - lift), tile * 0.2, BALL, 1);
-  }
-
   /** Splinters and a puff of smoke thrown out from a ship, `p` of the way through. */
   private drawHit(view: ViewTransform, x: number, y: number, p: number, hull: string): void {
     const tile = view.tile;
@@ -356,14 +331,18 @@ export class CampaignMarks {
       this.ships.place(body, tileX(view, x), tileY(view, y), { rotation, ...placed });
       return;
     }
-    const diagonal = heading % 2 === 1;
+    // A style in pixels has a diagonal sprite of its own and turns by quarters, keeping its pixels
+    // square; a drawn one is turned to the heading, as the shared ship is.
+    const pixels = style.pixels !== undefined;
+    const diagonal = pixels && heading % 2 === 1;
     const hits = Math.min(ship.hits, 4);
     const body = this.book.get(
       `ship:${style.key}:${kind}:${hits}:${diagonal ? 'd' : 's'}`,
       tile,
       (g) => style.ship(g, tile, art, kind, hits, diagonal),
     );
-    const rotation = Math.floor(heading / 2) * (Math.PI / 2) + list;
+    const rotation =
+      (pixels ? Math.floor(heading / 2) * (Math.PI / 2) : (heading * Math.PI) / 4) + list;
     const sx = this.snap(view, style, tileX(view, x), view.originX);
     const sy = this.snap(view, style, tileY(view, y), view.originY);
     this.ships.place(body, sx, sy, {
@@ -422,7 +401,7 @@ export class CampaignMarks {
  * with their square sails across the beam and a pennant. The kinds differ in length and beam
  * and in the sails' colour; a frost ship glows cold at its bow.
  */
-function drawShip(g: Graphics, tile: number, art: ArtConfig, kind: ShipKind): void {
+export function drawShip(g: Graphics, tile: number, art: ArtConfig, kind: ShipKind): void {
   const look = art.campaign;
   const length = 1.7 * tile * look.lengths[kind];
   const beam = (kind === 'transport' ? 0.82 : 0.7) * tile * (kind === 'raider' ? 1 : 1.05);
@@ -487,7 +466,7 @@ function drawShip(g: Graphics, tile: number, art: ArtConfig, kind: ShipKind): vo
  * A grunt from above, centred on its tile: a dark red tunic, a head, and a club held out the way
  * it faces — swung up ahead of it as it smashes. The same in every style, so it reads as the enemy.
  */
-function drawGrunt(
+export function drawGrunt(
   g: Graphics,
   tile: number,
   art: ArtConfig,
@@ -523,8 +502,8 @@ const FACING_STEPS: readonly (readonly [number, number])[] = [
 ];
 
 /**
- * A campaign's fleet shots as the players' shots are, for a style that draws them with its own
- * cannonballs: tiles where the fleet's are in 1/256, the ship's middle read as a gun's is (half a
+ * A campaign's fleet shots as the players' shots are, so every style draws them with its own
+ * cannonballs (`Scene.drawnState`, CA15): tiles where the fleet's are in 1/256, the ship's middle read as a gun's is (half a
  * tile in from its footprint's corner), and no owner — no player's target ring is drawn for one.
  */
 export function fleetShotsAsShots(state: MatchState): Shot[] {

@@ -70,6 +70,7 @@ import {
 } from './theme.js';
 import { outline, trace, wallGeometry } from './walls.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 
 /** Chalk: the lines on the pitch, the guns' boxes, the dust a ball raises. */
 export const CHALK = 0xf4f4ee;
@@ -199,6 +200,8 @@ export class SportsTheme extends ShapeTheme implements Theme {
   readonly id = 'sports' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.sports;
+  /** Its campaign's ships and grunts (`fleets/sports.ts`). */
+  readonly fleet = BASE_FLEETS.sports;
 
   private style!: SportsStyleConfig;
   private readonly seaLife = new SportsSeaLife();

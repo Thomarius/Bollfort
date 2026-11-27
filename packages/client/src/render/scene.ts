@@ -19,7 +19,7 @@ import type { ThemeMaker } from '../styles/definition.js';
 import { release } from './release.js';
 import { FortifiedDisplay } from './fortified.js';
 import { TowerMarks } from './towerMarks.js';
-import { CampaignMarks } from './campaignMarks.js';
+import { CampaignMarks, fleetShotsAsShots } from './campaignMarks.js';
 import {
   hex,
   playerColour,
@@ -816,10 +816,12 @@ export class Scene {
 
   /**
    * The match as the styles draw its effects and overlay: the Fortified Towers as wall with small
-   * guns (`FortifiedDisplay`), and no shot another layer draws (`withoutInstantShots`).
+   * guns (`FortifiedDisplay`), no shot another layer draws (`withoutInstantShots`), and a
+   * campaign's fleet's shots among the players', so every style fires its own cannonballs from
+   * the ships (`withFleetShots`, CA15).
    */
   private drawnState(state: MatchState): MatchState {
-    return withoutInstantShots(this.fortified.state(state));
+    return withFleetShots(withoutInstantShots(this.fortified.state(state)));
   }
 
   /**
@@ -1135,6 +1137,15 @@ export class Scene {
     this.warmTarget = null;
     this.app.destroy(true);
   }
+}
+
+/**
+ * A campaign's fleet shots added to the players' (`fleetShotsAsShots`): with no owner and no gun,
+ * so no player's marks are drawn for one, only the style's cannonball in flight.
+ */
+function withFleetShots(state: MatchState): MatchState {
+  if (state.campaign === null || state.campaign.shots.length === 0) return state;
+  return { ...state, shots: [...state.shots, ...fleetShotsAsShots(state)] };
 }
 
 /**

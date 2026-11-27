@@ -68,6 +68,7 @@ import { ShapeTheme } from './shapeTheme.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 
 /** Something with a place and an age: a column of bubbles, a cloud of silt, a crumble. */
 interface Aged {
@@ -187,6 +188,8 @@ export class UnderseaTheme extends ShapeTheme implements Theme {
   readonly id = 'undersea' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.undersea;
+  /** Its campaign's ships and grunts (`fleets/undersea.ts`). */
+  readonly fleet = BASE_FLEETS.undersea;
 
   private style!: UnderseaStyleConfig;
   private weather: Weather = 'clear';

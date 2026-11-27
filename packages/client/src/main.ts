@@ -93,6 +93,11 @@ if (params.get('icons') === 'sheet') {
   void import('./dronePreview.js')
     .then(({ showDronePreview }) => showDronePreview())
     .catch((e: unknown) => showError('drones', e));
+} else if (params.get('fleet') === 'preview') {
+  // Every style's campaign ships and grunts, enlarged and on its board (`fleetPreview.ts`).
+  void import('./fleetPreview.js')
+    .then(({ showFleetPreview }) => showFleetPreview())
+    .catch((e: unknown) => showError('fleet', e));
 } else if (params.get('fortified') === 'preview') {
   // Every style's Fortified Towers, wall with small guns on top (`fortifiedPreview.ts`).
   void import('./fortifiedPreview.js')

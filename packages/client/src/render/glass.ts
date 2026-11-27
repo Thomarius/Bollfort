@@ -59,6 +59,7 @@ import { release } from './release.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 import { gunSpan } from './fortified.js';
 
 /** How long the hourglass takes to turn over as a phase begins. */
@@ -152,6 +153,8 @@ export class GlassTheme implements Theme {
   readonly id = 'glass' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.glass;
+  /** Its campaign's ships and grunts (`fleets/glass.ts`). */
+  readonly fleet = BASE_FLEETS.glass;
 
   private art!: ArtConfig;
   private style!: GlassStyleConfig;

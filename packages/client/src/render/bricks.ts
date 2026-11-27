@@ -65,6 +65,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 
 /** A brick knocked loose by a shot or the sweep, tumbling as it falls. */
 interface Loose {
@@ -131,6 +132,8 @@ export class BricksTheme implements Theme {
   readonly id = 'bricks' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.bricks;
+  /** Its campaign's ships and grunts (`fleets/bricks.ts`). */
+  readonly fleet = BASE_FLEETS.bricks;
 
   private art!: ArtConfig;
   /** Life on the outer ocean (`seaLife.ts`). */

@@ -1092,6 +1092,18 @@ level all but lost it). Every change in the campaign only, on protocol 40 and sa
   deals the rest among everyone, fewest guns first; `resolveRound` fails a campaign's team only
   when no player holds a castle, and the ground is shared among all (`shareGround`).
 
+**CA15 drawn** (2026-11-27), for the user's look: every base style but Medieval and Night, which
+keep their pixel fleet, brings a `FleetLook` of its own (`render/fleets/<style>.ts`, the Wild
+West's in its folder; `BASE_FLEETS` in `render/fleets/index.ts`), drawn with one kit
+(`render/fleets/kit.ts`: the kinds' measures, hull forms, a bellied sail, the hits' marks, the
+transport's crew, the frost bow, a grunt's body in its tunic). The sails keep `art.campaign.sails`
+and the grunts their tunic in every look, as §14.2 asks. A drawn look is turned to all eight
+headings (a look in pixels still by quarter turns, its diagonal a sprite of its own). The fleet's
+shots are every style's own cannonballs (the user's): the scene adds them to the players' shots it
+hands the styles (`withFleetShots`), with no owner and no gun, so the shared ball is gone.
+`?fleet=preview` shows every style's ships and grunts enlarged, and on a board of its own with two
+shots in flight (`fleetPreview.ts`).
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |

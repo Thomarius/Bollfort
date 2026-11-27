@@ -57,6 +57,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 import { gunSpan } from './fortified.js';
 
 /** Something with a place and an age: a crashed plane, shreds, a flat-pack unfolding. */
@@ -174,6 +175,8 @@ export class OfficeTheme extends ShapeTheme implements Theme {
   readonly id = 'office' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.office;
+  /** Its campaign's ships and grunts (`fleets/office.ts`). */
+  readonly fleet = BASE_FLEETS.office;
 
   private style!: OfficeStyleConfig;
   private weather: Weather = 'clear';

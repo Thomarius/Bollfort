@@ -73,7 +73,6 @@ import { outline, strokePieceEdge } from './walls.js';
 import { TerrainStrips, whole, type TerrainPlan } from './terrainStrips.js';
 import { FALCON_DRONE } from './droneLooks.js';
 import { MEDIEVAL_FLEET, NIGHT_FLEET, type FleetLook } from './fleetLooks.js';
-import { fleetShotsAsShots } from './campaignMarks.js';
 import { gunSpan } from './fortified.js';
 
 interface Blast {
@@ -1525,8 +1524,8 @@ export class PixelTheme implements Theme {
     const trail = this.art.generators.fx.shotTrailLengthPx / this.art.tileSizePx;
     this.crowns.draw(view, state, this.art, frame.castleSealed);
     const above = this.aboveCrownsGfx;
-    // A campaign's fleet fires its own cannonballs, drawn as the players' are (CA9).
-    for (const shot of [...state.shots, ...fleetShotsAsShots(state)]) {
+    // A campaign's fleet's shots are among them, drawn as the players' are (`Scene.drawnState`).
+    for (const shot of state.shots) {
       const t = shotProgress(shot, now);
       const x = shot.fromX + (shot.toX - shot.fromX) * t;
       const y = shot.fromY + (shot.toY - shot.fromY) * t;

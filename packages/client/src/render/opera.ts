@@ -59,6 +59,7 @@ import { ShapeTheme } from './shapeTheme.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 import { gunSpan } from './fortified.js';
 
 /** Something with a place and an age: rings of sound, a sour note, a chord, a glissando. */
@@ -197,6 +198,8 @@ export class OperaTheme extends ShapeTheme implements Theme {
   readonly id = 'opera' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.opera;
+  /** Its campaign's ships and grunts (`fleets/opera.ts`). */
+  readonly fleet = BASE_FLEETS.opera;
 
   private style!: OperaStyleConfig;
   /** Life on the outer sea (`seaLife.ts`). */

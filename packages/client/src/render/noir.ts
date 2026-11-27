@@ -59,6 +59,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 
 /** Ink, and the paper white of a lit face. */
 export const NOIR_INK = 0x0a0a0d;
@@ -212,6 +213,8 @@ export class NoirTheme extends ShapeTheme implements Theme {
   readonly id = 'noir' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.noir;
+  /** Its campaign's ships and grunts (`fleets/noir.ts`). */
+  readonly fleet = BASE_FLEETS.noir;
 
   private style!: NoirStyleConfig;
   private weather: Weather = 'rain';

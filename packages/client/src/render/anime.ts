@@ -83,6 +83,7 @@ import {
 } from './theme.js';
 import { outline, trace, wallGeometry } from './walls.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 import { gunSpan } from './fortified.js';
 
 const WHITE = 0xffffff;
@@ -180,6 +181,8 @@ export class AnimeTheme extends ShapeTheme implements Theme {
   readonly id = 'anime' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.anime;
+  /** Its campaign's ships and grunts (`fleets/anime.ts`). */
+  readonly fleet = BASE_FLEETS.anime;
 
   private style!: AnimeStyleConfig;
   private readonly seaLife = new AnimeSeaLife();

@@ -88,6 +88,7 @@ import { WILDWEST, WILDWEST_WORDS, type WildWestStyleConfig } from './data.js';
 import { WildWestSeaLife } from './seaLife.js';
 
 import { VULTURE_DRONE } from './drone.js';
+import { WILDWEST_FLEET } from './fleet.js';
 import { gunSpan } from '../../render/fortified.js';
 
 const DEAD = 0x9a948a;
@@ -164,6 +165,8 @@ export class WildWestTheme extends ShapeTheme implements Theme {
   readonly id = 'wildwest' as const;
   /** Its drones, vultures (`drone.ts`). */
   readonly drone = VULTURE_DRONE;
+  /** Its campaign's ships and grunts (`fleet.ts`). */
+  readonly fleet = WILDWEST_FLEET;
 
   private style!: WildWestStyleConfig;
   private readonly seaLife = new WildWestSeaLife();

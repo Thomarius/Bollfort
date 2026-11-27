@@ -71,6 +71,7 @@ import { bloom } from './bloom.js';
 import { release } from './release.js';
 import { TerrainStrips, whole, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 
 /** Something with a place and an age: a flash, a fizz, a short, a puff of smoke. */
 interface Aged {
@@ -197,6 +198,8 @@ export class ElectricTheme extends ShapeTheme implements Theme {
   readonly id = 'electric' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.electric;
+  /** Its campaign's ships and grunts (`fleets/electric.ts`). */
+  readonly fleet = BASE_FLEETS.electric;
 
   private style!: ElectricStyleConfig;
   private weather: Weather = 'clear';

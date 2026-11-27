@@ -71,6 +71,7 @@ import { cannonBase } from './cannonBase.js';
 import { clearDrawn } from './clearDrawn.js';
 import { TerrainStrips, type TerrainPass, type TerrainPlan } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 import { gunSpan } from './fortified.js';
 
 /** A circuit trace on the sea floor, as tile centres in board coordinates. */
@@ -244,6 +245,8 @@ export class CyberpunkTheme implements Theme {
   readonly id = 'cyberpunk' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.cyberpunk;
+  /** Its campaign's ships and grunts (`fleets/cyberpunk.ts`). */
+  readonly fleet = BASE_FLEETS.cyberpunk;
 
   private art!: ArtConfig;
   /** Life on the outer ocean (`seaLife.ts`). */

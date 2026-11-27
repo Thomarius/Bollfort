@@ -49,6 +49,7 @@ import { clearDrawn } from './clearDrawn.js';
 import { release } from './release.js';
 import { TerrainStrips } from './terrainStrips.js';
 import { BASE_DRONES } from './droneLooks.js';
+import { BASE_FLEETS } from './fleets/index.js';
 import { gunSpan, towerUnder } from './fortified.js';
 
 interface Impact {
@@ -83,6 +84,8 @@ export class FlatTheme implements Theme {
   readonly id = 'flat' as const;
   /** Its drones (`droneLooks.ts`). */
   readonly drone = BASE_DRONES.flat;
+  /** Its campaign's ships and grunts (`fleets/flat.ts`). */
+  readonly fleet = BASE_FLEETS.flat;
 
   private art!: ArtConfig;
   /** Life on the outer ocean (`seaLife.ts`). */
