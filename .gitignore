@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# The client with the supporter styles, for the desktop app (packages/desktop/supporter.js).
+dist-supporter/
 release/
 coverage/
 *.tsbuildinfo

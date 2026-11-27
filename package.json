@@ -14,6 +14,8 @@
   ],
   "scripts": {
     "start": "npm run build && npm start -w @bollfort/server --",
+    "desktop": "npm run build -w @bollfort/client && npm start -w @bollfort/desktop --",
+    "desktop:supporter": "node packages/desktop/supporter.js",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build -w @bollfort/client && npm run build -w @bollfort/server",
     "test": "vitest run",

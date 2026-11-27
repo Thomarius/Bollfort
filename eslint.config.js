@@ -6,6 +6,7 @@ export default tseslint.config(
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
+      '**/dist-supporter/**',
       '**/release/**',
       '**/coverage/**',
       '**/*.tsbuildinfo',

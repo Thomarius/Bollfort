@@ -7,6 +7,7 @@ import { startServer } from '@bollfort/server';
 import { BrowserWindow, Menu, app, clipboard, ipcMain, screen, shell } from 'electron';
 
 import { cloudflaredBinary } from './cloudflared.js';
+import { gameStart } from './devStart.js';
 import { ServerControl, nextPort } from './control.js';
 import { checkFirewall, type FirewallStatus } from './firewall.js';
 import { Tunnel } from './tunnel.js';
@@ -35,9 +36,11 @@ const root = app.isPackaged ? process.resourcesPath : resolve(here, '..', '..', 
  * — shipped beside the client at the path it has in the repository, so it is found either way.
  */
 const icon = join(root, 'assets', 'store', 'shortcut_icon.png');
+/** `--game-params`, and from the repository `--supporter` (`devStart.ts`). */
+const start = gameStart(process.argv, app.isPackaged);
 const clientDir = app.isPackaged
   ? join(process.resourcesPath, 'client')
-  : join(root, 'packages', 'client', 'dist');
+  : join(root, 'packages', 'client', start.clientFolder);
 
 // Named, so its data sits in a folder called Bollfort, not @bollfort/desktop.
 app.setName('Bollfort');
@@ -175,7 +178,7 @@ function showPanel(): void {
 function openGame(): void {
   const state = control.state;
   if (state.status !== 'running') return;
-  const url = `http://localhost:${state.port}`;
+  const url = `http://localhost:${state.port}/${start.query}`;
   if (game !== null && !game.isDestroyed()) {
     if (gamePort !== state.port) {
       gamePort = state.port;
