@@ -10,6 +10,7 @@ import {
   levelSetup,
   newCampaign,
   recordLevel,
+  recordingTag,
   won,
   type CampaignSave,
 } from '@bollfort/campaign';
@@ -210,6 +211,7 @@ function playLevel(save: CampaignSave, ruleset: Ruleset, exits: CampaignExits): 
     name: storedName(),
     settings: DEFAULT_SETTINGS,
     ruleset,
+    campaign: recordingTag(save),
   };
   let after = save;
   let saved = true;

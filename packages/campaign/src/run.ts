@@ -187,3 +187,14 @@ export function won(config: CampaignConfig, save: CampaignSave): boolean {
 export function teamTotal(save: CampaignSave): number {
   return save.carry.scores.reduce((a, b) => a + b, 0);
 }
+
+/**
+ * What a recording of the next level says of its campaign (CA12): the save, the level's stage and
+ * which try at it this is — 1, and one more for every loss of it since, each recorded as it
+ * happened (`recordLevel`); a level left before its end is no try.
+ */
+export function recordingTag(save: CampaignSave): { id: string; stage: number; attempt: number } {
+  let lost = 0;
+  for (let i = save.history.length - 1; i >= 0 && save.history[i]?.result === 'lost'; i--) lost++;
+  return { id: save.id, stage: save.stage, attempt: lost + 1 };
+}

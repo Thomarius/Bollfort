@@ -4,6 +4,7 @@ import {
   SnapshotSchema,
   applySnapshot,
   type CampaignSetup,
+  type RecordingLine,
   type ServerMessage,
 } from '@bollfort/protocol';
 import { applyAction, createMatch, hashMatchState, step, type MatchState } from '@bollfort/sim';
@@ -52,8 +53,9 @@ class Page implements Connection {
 
 const config = defaultConfigBundle;
 
-function room(players = 2): Room {
+function room(players = 2, record?: (line: RecordingLine) => void): Room {
   return new Room({
+    ...(record === undefined ? {} : { record }),
     code: 'CAMP42',
     playerCount: players,
     ruleset: config.ruleset,
@@ -96,6 +98,26 @@ function seated(): { r: Room; host: Page; guest: Page } {
 }
 
 describe("a campaign's room (CAMPAIGN §13)", () => {
+  it('records the level under its campaign, the save and the try (CA12)', () => {
+    const lines: RecordingLine[] = [];
+    const r = room(2, (line) => lines.push(line));
+    const host = new Page('h');
+    const guest = new Page('g');
+    r.join(host, 'Thomas');
+    r.join(guest, 'Mausi');
+    const { setup, save } = firstLevel(['Thomas', 'Mausi']);
+    r.handle(host, { type: 'campaign', level: setup, save });
+    r.handle(guest, { type: 'ready', ready: true });
+    r.handle(host, { type: 'start' });
+    const header = lines[0];
+    expect(header?.kind).toBe('header');
+    expect(header?.kind === 'header' ? header.campaign : null).toEqual({
+      id: 'c-test',
+      stage: 0,
+      attempt: 1,
+    });
+  });
+
   it('tells everyone the level and passes on the host’s save', () => {
     const { host, guest } = seated();
     expect(guest.latest('room').campaign?.level?.level).toBe(0);

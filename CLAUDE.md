@@ -54,6 +54,7 @@ npm start     -w @bollfort/headless -- --matches 8 --players 3 --level 5 --stats
 npm start     -w @bollfort/headless -- --map --players 3 --seed 2   # print a map as ASCII
 npm start     -w @bollfort/headless -- --map --campaign 6 --players 1 --seed 2   # a campaign level's map
 npm start     -w @bollfort/headless -- --replay recordings/ --stats human.csv   # recorded human play
+npm start     -w @bollfort/headless -- --replay recordings/ --level-table levels.csv   # campaign levels played, a row each
 npm start     -w @bollfort/headless -- --replay recordings/ --achievements   # the Steam achievements each seat would have earned
 npm start     -w @bollfort/headless -- --matches 4 --level 6 --record /tmp/rec   # bot matches as recordings
 npx tsx tools/headless/src/placements.ts [/tmp/rec]   # where each piece's cells ended, people or bots

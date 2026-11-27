@@ -41,10 +41,13 @@ import { MatchRecorder } from '@bollfort/protocol';
 
 import { repoRoot, usageError, wholeNumber } from './cli.js';
 import { replayAchievements, replayAll } from './replay.js';
+import { summariseLevels } from './campaign.js';
 import { runTournaments } from './tournament.js';
 import { summariseStats } from './summary.js';
 import {
   RoundStats,
+  levelRows,
+  levelsCsv,
   outcomeOf,
   outcomesCsv,
   statsCsv,
@@ -79,6 +82,8 @@ interface Args {
   /** Each seat's tower, repeating: a kind, none, or `random` — drawn as a match draws a bot's. */
   towers: (TowerVariant | null | 'random')[];
   stats: string | null;
+  /** A row per campaign level played (`levelRows`), with `--replay`. */
+  levelTable: string | null;
   /** One row per match: who won, how it ended, the final scores (`MatchOutcome`). */
   outcomes: string | null;
   /** Players per team; 1 is free-for-all. Seats go into teams in order, then shuffle. */
@@ -184,7 +189,7 @@ const USAGE =
   'usage: npm start -w @bollfort/headless -- [--matches N] [--players N] [--seed N] ' +
   '[--max-ticks N] [--max-rounds N|none] [--teams N] [--level 1-10[,...]] ' +
   '[--personality offensive|dealt|...[,...]] [--specials on|off] [--special bertha2|bertha3|architect2|architect3|lightning2|lightning3|biggest2|biggest3|laser2|laser3|frost2|frost3|lullaby2|lullaby3|subwoofer2|subwoofer3|drone2|drone3|none|random[,...]] [--plans 1,0[,...]] [--set path=json ...] [--stats FILE] [--outcomes FILE] [--record DIR] [--map [--campaign 1-6 [--difficulty easy|normal|veteran|legend]]]\n' +
-  '       npm start -w @bollfort/headless -- --replay recordings/ [more files or dirs] [--stats FILE] [--achievements]\n' +
+  '       npm start -w @bollfort/headless -- --replay recordings/ [more files or dirs] [--stats FILE] [--level-table FILE] [--achievements]\n' +
   '       npm start -w @bollfort/headless -- --tournament [--help for its flags]';
 
 /**
@@ -249,6 +254,7 @@ function parseArgs(argv: string[]): Args {
     specials: values.specials === 'on',
     towers,
     stats: values.stats ?? null,
+    levelTable: values['level-table'] ?? null,
     outcomes: values.outcomes ?? null,
     maxRounds:
       values['max-rounds'] === undefined
@@ -290,6 +296,7 @@ const FLAGS = {
   'fail-on-purpose': { type: 'string' },
   set: { type: 'string', multiple: true },
   stats: { type: 'string' },
+  'level-table': { type: 'string' },
   outcomes: { type: 'string' },
   map: { type: 'boolean' },
   campaign: { type: 'string' },
@@ -435,6 +442,14 @@ if (args.replay.length > 0) {
     console.log(`\n${rows.length} row(s) written to ${args.stats}`);
   }
   summariseStats(rows);
+  // Campaign levels among them (CA12): a row each.
+  const levels = levelRows(bundle.campaign, rows);
+  summariseLevels(levels);
+  if (args.levelTable !== null) {
+    writeFileSync(args.levelTable, levelsCsv(levels), 'utf8');
+    console.log(`
+${levels.length} level(s) written to ${args.levelTable}`);
+  }
   process.exit(0);
 }
 

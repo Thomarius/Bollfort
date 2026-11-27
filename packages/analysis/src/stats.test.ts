@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { setupOfRecorded } from '@bollfort/protocol';
 
-import { piecesBudget, rowLabel, statsCsv, type StatRow } from './stats.js';
+import { NO_CAMPAIGN, piecesBudget, rowLabel, statsCsv, type StatRow } from './stats.js';
 
 describe('the pieces budget', () => {
   it('prices a bot tier’s phase, and leaves a person unrated', () => {
@@ -45,6 +45,7 @@ describe('the pieces budget', () => {
       frozenAtBuild: 0,
       repairFrozen: 0,
       sleepDealt: 0,
+      ...NO_CAMPAIGN,
     };
     const [head, line] = statsCsv([row]).trim().split('\n');
     const cells = Object.fromEntries(

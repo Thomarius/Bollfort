@@ -11,6 +11,7 @@ import {
   newCampaign,
   nextLevel,
   recordLevel,
+  recordingTag,
   won,
   type LevelOutcome,
 } from './run.js';
@@ -85,6 +86,31 @@ describe('a campaign run', () => {
       carry: { scores: [1150], firepower: 1 },
       continued: true,
     });
+  });
+
+  it('names each try at a level for its recording, a level cleared starting the count again', () => {
+    const save = campaign();
+    expect(recordingTag(save)).toEqual({ id: 'c-1', stage: 0, attempt: 1 });
+    const lost = recordLevel(config, save, outcome(false, [0], 1), NOW);
+    expect(recordingTag(continueLevel(config, lost, NOW))).toEqual({
+      id: 'c-1',
+      stage: 0,
+      attempt: 2,
+    });
+    const lostAgain = recordLevel(
+      config,
+      continueLevel(config, lost, NOW),
+      outcome(false, [0]),
+      NOW,
+    );
+    expect(recordingTag(continueLevel(config, lostAgain, NOW)).attempt).toBe(3);
+    const cleared = recordLevel(
+      config,
+      continueLevel(config, lostAgain, NOW),
+      outcome(true, [500]),
+      NOW,
+    );
+    expect(recordingTag(cleared)).toEqual({ id: 'c-1', stage: 1, attempt: 1 });
   });
 
   it('forgives a level lost in its first round: no continue spent, no firepower', () => {

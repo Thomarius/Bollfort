@@ -2,7 +2,7 @@
 
 A mode for one to three people against an enemy fleet: ships that sail in and bombard the walls,
 transports that land grunts, frost ships whose shots leave frozen ground. Levels on generated maps,
-three difficulty settings, progress saved between levels, co-operative online play. Designed with
+four difficulty settings, progress saved between levels, co-operative online play. Designed with
 the user on 2026-11-25; nothing of it is built yet. Once built and tried, this design is retired
 into the ARCHIVE as every other one is.
 
@@ -618,7 +618,7 @@ const CampaignSaveSchema = z.strictObject({
 ### 14.1 Screens
 
 - **Menu**: a **Campaign** button beside Play and the tournament's, opening the campaign screen:
-  New campaign (difficulty as three cards — the third greyed until decided —, Solo or Co-op room),
+  New campaign (difficulty as four cards, Solo or Co-op room),
   Resume (the saves: difficulty, level, score, date; Delete).
 - **Level intro** (§10, with the continues left and the firepower), **level summary** (points by
   source and player, ships sunk by kind, grunts; Next level), **defeat** (Play the level again when
@@ -726,10 +726,10 @@ seal's fanfare; new cues (ship bell, grunts landing, freezing) later, each credi
 - **AI**: none in campaign seats; `ai` must not break on campaign state (the rollout copies it or
   ignores it — no bot plays a campaign).
 - **Analysis**: per-round statistics for campaign matches (ships arrived, sunk, recycled, shots,
-  walls lost to ships and grunts, grunts landed and killed, ice tiles, failures), for balancing.
-- **Headless**: `--campaign --difficulty normal --level N --players P`, with a stand-in player
-  for measuring the fleet: a scripted defender that rebuilds the starting ring and fires at the
-  nearest ship (enough to measure the fleet's pressure; a real campaign bot is out of scope).
+  walls lost to ships and grunts, grunts landed and killed, ice tiles, failures), for balancing
+  (CA12, §16).
+- **Headless**: `--campaign N --difficulty D`, the versus bots with a gunner for the fleet (CA12,
+  §16; the scripted defender first planned here was dropped for them).
 - **Achievements**: campaign matches excluded from the existing achievements' counting
   (`matchCounts`); campaign achievements (a level cleared, the campaign won per difficulty, a
   frost ship sunk) proposed later in `docs/STEAM_ACHIEVEMENTS.md`.
@@ -1105,6 +1105,36 @@ hands the styles (`withFleetShots`), with no owner and no gun, so the shared bal
 shots in flight (`fleetPreview.ts`). The ten supporter styles bring theirs in the private package
 (`supporter/src/<style>/fleet.ts`), seen there with `?supporter=1`.
 
+**CA12 planned** (the user's, 2026-11-27), in two parts, the first before the users' session:
+
+- **Statistics** (`packages/analysis`): campaign columns in the per-player, per-round table, zero
+  in versus play — the team's, repeated on every player's row under a `team` prefix (ships arrived,
+  recycled and afloat by kind, the threat, the fleet's shots and the walls they cleared, grunts
+  landed and alive, walls smashed, castles taken, frost placed and still blocking), and the
+  player's own (shots at sea, hits on ships, sinks by kind, grunts shot and walled in, castles
+  held) — and a row per level played: difficulty, level, attempt, firepower, how it ended (the
+  threat, the round limit, lost), rounds and points by source. A campaign's recording names its
+  save and attempt in an optional `campaign` field of its header.
+- **Bots playing it headless**: the versus bots, which already choose, build and place in a
+  campaign seat, with a gunner for the fleet in place of §15.3's scripted defender. It leads a
+  ship along its present run only, misses by a model per level, and puts **transports near the
+  coast first**, the most dangerous ships (the user's). Solo only; co-op bots only if the co-op
+  factors cannot be judged in play. Single levels (`--campaign N --difficulty D`, firepower
+  settable) and whole campaigns through `run.ts`, continues and Veteran's order included; a
+  bot's own seed changes with each attempt, since a continue replays the level's.
+- **What the runs should show**: the campaign is meant to be very hard on every difficulty. A
+  Level 5 bot might win Easy, 7 Normal, 8 or 9 Veteran, 10 Legend, all rarely; what must show is
+  progress rising with the bot's level and falling with the difficulty. A level is cleared by the
+  fleet's threat almost always, its round limit very rarely. No calibration against people: the
+  campaign asks other skills of them (grunts, which ship first), and its numbers are never tuned
+  on bots alone, their results taken as indication.
+
+**CA12's statistics built** (2026-11-27): `StatRow` carries the campaign's columns
+(`CampaignColumns`, `NO_CAMPAIGN` in versus play) and a level won in a battle or by its round
+limit gets a row for that last battle; `levelRows` (`analysis/src/levels.ts`) sums a level, and
+`--replay … --level-table FILE` writes them, the console listing each. The header's `campaign`
+(`recordingTag` in `run.ts`) is written by the client and, from the host's save, by the room.
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |
@@ -1118,7 +1148,7 @@ shots in flight (`fleetPreview.ts`). The ten supporter styles bring theirs in th
 | CA9  | **Medieval and Night art**: ships, grunts, ice, sinking, HUD fleet bar and icons                                                                                                                                                            | **the user's look**                                                    |
 | CA10 | **Co-op**: castle holders, shared rewards, continues on a shared map, team scores                                                                                                                                                           | co-op tested locally with two pages                                    |
 | CA11 | **Online rooms**: `mode: 'campaign'`, next level and retry in the room, protocol 39, recordings                                                                                                                                             | **an online co-op session with the users**                             |
-| CA12 | **Balance**: statistics, headless runs, the third difficulty decided                                                                                                                                                                        | numbers set by measurement and play                                    |
+| CA12 | **Balance**: statistics, headless runs, the four difficulties' levers tuned                                                                                                                                                                 | numbers set by measurement and play                                    |
 | CA13 | **Polish**: sounds, How to play's campaign section, achievements proposed                                                                                                                                                                   | —                                                                      |
 | CA14 | **Informed choice between fronts** (§10 v2)                                                                                                                                                                                                 | **the user's play**                                                    |
 | CA15 | **Other styles' ships and grunts** — **done** 2026-11-27, the supporter styles' too, the fleet firing each style's own cannonballs                                                                                                          | per style, as time allows                                              |
@@ -1132,5 +1162,4 @@ shots in flight (`fleetPreview.ts`). The ten supporter styles bring theirs in th
 - Whether ships should damage cannons (`damagesCannons`, §5.4).
 - The repair deck (§7.4), if rebuilding among grunts and ice proves too hard.
 - The co-op scaling factors (pool 0.6, grunts 0.5, castles +2 per extra player).
-- Where the third difficulty goes (§9).
 - Special towers in the campaign: off in v1; perhaps later as rewards between levels.

@@ -1,4 +1,4 @@
-import type { MatchOutcome, StatRow } from '@bollfort/analysis';
+import { NO_CAMPAIGN, type MatchOutcome, type StatRow } from '@bollfort/analysis';
 import { describe, expect, it } from 'vitest';
 
 import { chunksOf, soakPlan, CHUNK_MATCHES } from './soakPlan.js';
@@ -42,6 +42,7 @@ function row(
     frozenAtBuild: 0,
     repairFrozen: 0,
     sleepDealt: 0,
+    ...NO_CAMPAIGN,
     ...extra,
   };
 }

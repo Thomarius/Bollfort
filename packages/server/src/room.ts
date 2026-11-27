@@ -18,7 +18,7 @@ import {
   type TerrainConfig,
 } from '@bollfort/config';
 import { Bot, botTowerOf, dealSeats, tableSlots } from '@bollfort/ai';
-import { campaignRuleset } from '@bollfort/campaign';
+import { campaignRuleset, parseCampaignSave, recordingTag } from '@bollfort/campaign';
 import {
   ActionSchema,
   MatchRecorder,
@@ -628,6 +628,20 @@ export class Room {
    * seat — the one they had, while it stays open. Sent once a match is over, it brings the
    * room back to its lobby first, as a rematch does. Refused while a match is under way.
    */
+  /**
+   * What the recording of a campaign's level says of its campaign (CA12), read from the host's
+   * save — only ever to label the file, so a save that does not parse labels nothing.
+   */
+  private campaignTag(): { campaign?: ReturnType<typeof recordingTag> } {
+    if (this.campaignSave === null) return {};
+    try {
+      const parsed = parseCampaignSave(JSON.parse(this.campaignSave));
+      return parsed.ok ? { campaign: recordingTag(parsed.save) } : {};
+    } catch {
+      return {};
+    }
+  }
+
   private setCampaign(setup: CampaignSetup | null, save: string): void {
     if (this.match !== null && !this.match.finished) return;
     let level: { setup: CampaignSetup; ruleset: Ruleset } | null = null;
@@ -939,6 +953,7 @@ export class Room {
         ruleset: level.ruleset,
         terrain: this.options.terrain,
         players: players.map((p) => ({ ...p, level: null, personality: null })),
+        ...this.campaignTag(),
       });
     }
     const match = new MatchRunner(state, new Map(), recorder, this.rng, this.seats, (message) =>

@@ -25,7 +25,8 @@ export function statsOfRecording(
   const header = lines[0];
   if (header?.kind !== 'header') throw new Error('a recording starts with its header');
   const tierOf = (player: number): Tier => setupOfRecorded(header.players[player]) ?? 'human';
-  const sampler = new RoundStats(bundle, header.id, header.seed, tierOf);
+  const attempt = header.campaign?.attempt ?? 0;
+  const sampler = new RoundStats(bundle, header.id, header.seed, tierOf, attempt);
   const replay = replayRecording(lines, (state, events) => sampler.observe(state, events));
   return { rows: sampler.rows, replay };
 }

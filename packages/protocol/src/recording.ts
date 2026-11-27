@@ -102,6 +102,18 @@ export const RecordingHeaderSchema = z.strictObject({
   tournament: z
     .strictObject({ id: z.string().min(1).max(64), step: z.number().int().nonnegative() })
     .optional(),
+  /**
+   * A campaign's level (docs/CAMPAIGN.md CA12): the campaign's save, the level's stage in it and
+   * which try at it this is, from 1. Absent from any other match, and from campaign levels
+   * recorded before it was kept; a key only added, as `tournament`.
+   */
+  campaign: z
+    .strictObject({
+      id: z.string().min(1).max(64),
+      stage: z.number().int().nonnegative(),
+      attempt: z.number().int().positive(),
+    })
+    .optional(),
 });
 export type RecordingHeader = z.infer<typeof RecordingHeaderSchema>;
 

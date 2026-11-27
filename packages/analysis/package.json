@@ -14,5 +14,8 @@
     "@bollfort/config": "*",
     "@bollfort/protocol": "*",
     "@bollfort/sim": "*"
+  },
+  "devDependencies": {
+    "@bollfort/campaign": "*"
   }
 }

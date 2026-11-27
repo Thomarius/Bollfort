@@ -113,6 +113,8 @@ export interface Setup {
   botTowers?: readonly BotTower[];
   /** The tournament the match belongs to, for its recording. */
   tournament?: { id: string; step: number };
+  /** The campaign level the match is, for its recording (`recordingTag`). */
+  campaign?: { id: string; stage: number; attempt: number };
   /** Each team's name, by team label in order, where the table names them. */
   teamNames?: readonly string[];
   /**
@@ -156,6 +158,7 @@ export function localMatchFor(setup: Setup, record = true, worker = true): Local
     ...(setup.specials === undefined ? {} : { specials: setup.specials }),
     ...(setup.botTowers === undefined ? {} : { botTowers: setup.botTowers }),
     ...(setup.tournament === undefined ? {} : { tournament: setup.tournament }),
+    ...(setup.campaign === undefined ? {} : { campaign: setup.campaign }),
     ...(setup.teamNames === undefined ? {} : { teamNames: setup.teamNames }),
     ruleset: setup.ruleset ?? applySettings(defaultConfigBundle.ruleset, setup.settings),
     ...(record ? { record: new RecordingUpload().write } : {}),

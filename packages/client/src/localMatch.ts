@@ -63,6 +63,8 @@ export interface LocalMatchOptions {
   teamNames?: readonly string[];
   /** The tournament this match is part of, for the recording's header. */
   tournament?: { id: string; step: number };
+  /** The campaign level this match is, for the recording's header. */
+  campaign?: { id: string; stage: number; attempt: number };
   ruleset?: Ruleset;
   /** Where the match's recording goes, line by line; see `recording.ts`. */
   record?: (line: RecordingLine) => void;
@@ -233,6 +235,7 @@ export class LocalMatch {
           personality: setups.get(id)?.personality ?? null,
         })),
         ...(options.tournament === undefined ? {} : { tournament: options.tournament }),
+        ...(options.campaign === undefined ? {} : { campaign: options.campaign }),
       });
     }
   }

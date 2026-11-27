@@ -6,7 +6,18 @@ import {
   type ConfigBundle,
 } from '@bollfort/config';
 import { cannonRoom, cheapestPlanFor, coverable, pocketCount } from '@bollfort/ai';
-import { Structure, isFrozen, type MatchEvent, type MatchState } from '@bollfort/sim';
+import { SHIP_KINDS, type CampaignDifficulty, type ShipKind } from '@bollfort/config';
+import {
+  Structure,
+  Terrain,
+  fleetBeaten,
+  fleetGone,
+  isFrozen,
+  threat,
+  type MatchEvent,
+  type MatchState,
+  type RoundResult,
+} from '@bollfort/sim';
 
 /** Who played a seat: a bot's level and personality, or a person, from a recording. */
 export type Tier = BotSetup | 'human';
@@ -32,7 +43,7 @@ export function rowLabel(row: Pick<StatRow, 'level' | 'personality'>): string {
  * legitimately zero mid-repair, and the sweep runs inside the same step — so the
  * cannon and wall counts here are what the next barrage will actually meet.
  */
-export interface StatRow {
+export interface StatRow extends CampaignColumns {
   /** Which match: `sim-<seed>` for a bot soak, the recording's id for a replay. */
   match: string;
   seed: number;
@@ -90,6 +101,108 @@ export interface StatRow {
   sleepDealt: number;
 }
 
+/** How a campaign level ended, on its last row; empty on every other row and in versus play. */
+export type LevelEnd = '' | 'threat' | 'round_limit' | 'lost';
+
+/**
+ * A campaign level's columns (docs/CAMPAIGN.md CA12), zero or empty in versus play. Those named
+ * `team…` are the fleet's against the whole team, the same on every player's row of a round: a
+ * campaign's players share one island, so its walls, frost and grunts are nobody's alone (and
+ * `wallTiles`, `frozenAtBuild` and the repair columns are the team's too). The rest are the
+ * player's own. A player's castles held are `enclosedCastles`, as `castleHolders` dealt them.
+ *
+ * A level won in a battle, or by its round limit, ends without a resolution: its last battle is a
+ * row of its own, sampled as the level ends, with no ground, guns nor castles' reward banked.
+ */
+export interface CampaignColumns {
+  difficulty: CampaignDifficulty | '';
+  /** 1 to 6, the level's number; 0 in versus play. */
+  campaignLevel: number;
+  /** Which try at the level this is, from 1; 0 where nothing says (a recording without it). */
+  attempt: number;
+  firepower: number;
+  levelEnd: LevelEnd;
+  /** The fleet's threat after the resolution (CAMPAIGN §8.3), the level won below its threshold. */
+  teamThreat: number;
+  teamRaidersArrived: number;
+  teamTransportsArrived: number;
+  teamFrostshipsArrived: number;
+  /** Ships that stood at the coast and went, to come again (§5.3). */
+  teamShipsRecycled: number;
+  teamRaidersAfloat: number;
+  teamTransportsAfloat: number;
+  teamFrostshipsAfloat: number;
+  teamFleetShots: number;
+  /** Walls the fleet's shots cleared. */
+  teamWallsShot: number;
+  teamGruntsLanded: number;
+  teamGruntsAlive: number;
+  teamWallsSmashed: number;
+  teamCastlesTaken: number;
+  /** Tiles a frost ship's shots froze. */
+  teamIceLaid: number;
+  /** The player's shots aimed at the sea: at ships, hit or not. */
+  shotsAtSea: number;
+  shipHits: number;
+  raidersSunk: number;
+  transportsSunk: number;
+  frostshipsSunk: number;
+  gruntsShot: number;
+  /** Grunts walled in by a piece the player laid. */
+  gruntsWalled: number;
+  /** For hits on ships and sinking them, the difficulty's factor in it. */
+  shipPoints: number;
+  gruntKillPoints: number;
+}
+
+/** A versus match's campaign columns. */
+export const NO_CAMPAIGN: Readonly<CampaignColumns> = {
+  difficulty: '',
+  campaignLevel: 0,
+  attempt: 0,
+  firepower: 0,
+  levelEnd: '',
+  teamThreat: 0,
+  teamRaidersArrived: 0,
+  teamTransportsArrived: 0,
+  teamFrostshipsArrived: 0,
+  teamShipsRecycled: 0,
+  teamRaidersAfloat: 0,
+  teamTransportsAfloat: 0,
+  teamFrostshipsAfloat: 0,
+  teamFleetShots: 0,
+  teamWallsShot: 0,
+  teamGruntsLanded: 0,
+  teamGruntsAlive: 0,
+  teamWallsSmashed: 0,
+  teamCastlesTaken: 0,
+  teamIceLaid: 0,
+  shotsAtSea: 0,
+  shipHits: 0,
+  raidersSunk: 0,
+  transportsSunk: 0,
+  frostshipsSunk: 0,
+  gruntsShot: 0,
+  gruntsWalled: 0,
+  shipPoints: 0,
+  gruntKillPoints: 0,
+};
+
+/** Columns written as text, never as numbers. */
+const TEXT_COLUMNS: ReadonlySet<string> = new Set([
+  'match',
+  'personality',
+  'special',
+  'difficulty',
+  'levelEnd',
+]);
+
+/** One more of a kind, in a count by kind in `SHIP_KINDS` order. */
+function bump(counts: number[], kind: ShipKind): void {
+  const k = SHIP_KINDS.indexOf(kind);
+  counts[k] = (counts[k] ?? 0) + 1;
+}
+
 const STAT_COLUMNS: (keyof StatRow)[] = [
   'match',
   'seed',
@@ -121,6 +234,7 @@ const STAT_COLUMNS: (keyof StatRow)[] = [
   'frozenAtBuild',
   'repairFrozen',
   'sleepDealt',
+  ...(Object.keys(NO_CAMPAIGN) as (keyof CampaignColumns)[]),
 ];
 
 /**
@@ -178,10 +292,9 @@ export function parseStatsCsv(text: string): StatRow[] {
     const raw = (column: keyof StatRow): string => cells[names.indexOf(column)] ?? '';
     const num = (column: keyof StatRow): number => Number(raw(column) || 0);
     const row = {} as Record<keyof StatRow, unknown>;
-    for (const column of STAT_COLUMNS) row[column] = num(column);
-    row.match = raw('match');
-    row.personality = raw('personality');
-    row.special = raw('special');
+    for (const column of STAT_COLUMNS) {
+      row[column] = TEXT_COLUMNS.has(column) ? raw(column) : num(column);
+    }
     row.eliminated = raw('eliminated') === 'true';
     row.level = raw('level') === '' ? null : num('level');
     row.piecesBudget = raw('piecesBudget') === '' ? null : num('piecesBudget');
@@ -207,12 +320,20 @@ export class RoundStats {
   private readonly frozenAtBuild = new Map<number, number>();
   private readonly repairFrozen = new Map<number, number>();
   private readonly sleepDealt = new Map<number, number>();
+  /** A campaign's counts since the last row, the team's and each player's. */
+  private team = teamCounts();
+  private readonly own = new Map<number, PlayerCounts>();
 
+  /**
+   * `attempt` is which try at a campaign level this is, where the caller knows it (the
+   * recording's header, the harness's run); 0 where nothing says.
+   */
   constructor(
     private readonly bundle: ConfigBundle,
     private readonly match: string,
     private readonly seed: number,
     private readonly tierOf: (player: number) => Tier,
+    private readonly attempt = 0,
   ) {}
 
   observe(state: MatchState, events: readonly MatchEvent[]): void {
@@ -238,6 +359,8 @@ export class RoundStats {
       }
     }
 
+    // Where this step's resolution put its rows, if it had one: a level lost there ends on them.
+    let resolvedFrom: number | null = null;
     for (const event of events) {
       if (event.kind === 'phase_changed' && event.phase === 'build') {
         for (const p of state.players) {
@@ -250,6 +373,10 @@ export class RoundStats {
         this.placed.set(event.player, (this.placed.get(event.player) ?? 0) + 1);
       } else if (event.kind === 'shot_fired') {
         this.fired.set(event.shot.owner, (this.fired.get(event.shot.owner) ?? 0) + 1);
+        const at = event.shot.toY * state.width + event.shot.toX;
+        if (state.campaign !== null && state.terrain[at] === Terrain.Water) {
+          this.ownOf(event.shot.owner).shotsAtSea++;
+        }
       } else if (event.kind === 'gun_slept') {
         this.sleepDealt.set(event.owner, (this.sleepDealt.get(event.owner) ?? 0) + event.ms / 1000);
       } else if (event.kind === 'walls_repaired') {
@@ -258,62 +385,253 @@ export class RoundStats {
           (this.repaired.get(event.player) ?? 0) + event.tiles.length,
         );
       } else if (event.kind === 'round_resolved') {
+        resolvedFrom = this.rows.length;
         // Sampled after the step that produced the event, so the sweep has already
         // run and these are the walls and guns the next barrage will meet.
         for (const result of event.results) {
-          let owned = 0;
-          let active = 0;
-          let towers = 0;
-          for (const cannon of state.cannons) {
-            if (cannon.owner !== result.player) continue;
-            owned++;
-            if (cannon.active) active++;
-            if (cannon.kind !== 'cannon') towers++;
-          }
-          const tier = this.tierOf(result.player);
-          this.rows.push({
-            match: this.match,
-            seed: this.seed,
-            round: event.round,
-            player: result.player,
-            level: tier === 'human' ? null : tier.level,
-            personality: tier === 'human' ? '' : personalityWords(tier.personality),
-            enclosedCastles: result.enclosedCastles,
-            cannonsAwarded: result.cannonsAwarded,
-            eliminated: result.eliminated,
-            cannonsOwned: owned,
-            cannonsActive: active,
-            cannonRoom: cannonRoom(state, result.player),
-            pockets: pocketCount(state, result.player),
-            wallTiles: wallTilesOf(state, result.player),
-            piecesPlaced: this.placed.get(result.player) ?? 0,
-            piecesBudget: piecesBudget(this.bundle, tier),
-            shotsFired: this.fired.get(result.player) ?? 0,
-            territoryPoints: result.territoryPoints,
-            gunPoints: result.gunPoints,
-            damagePoints: result.damagePoints,
-            score: state.players[result.player]?.score ?? 0,
-            repairAtBuild: this.repairAtBuild.get(result.player) ?? 0,
-            repairLeft: this.repairLeft.get(result.player) ?? 0,
-            repairStuck: this.repairStuck.get(result.player) ?? 0,
-            special: state.players[result.player]?.special ?? '',
-            towersOwned: towers,
-            wallsRepaired: this.repaired.get(result.player) ?? 0,
-            frozenAtBuild: this.frozenAtBuild.get(result.player) ?? 0,
-            repairFrozen: this.repairFrozen.get(result.player) ?? 0,
-            sleepDealt: this.sleepDealt.get(result.player) ?? 0,
-          });
+          this.rows.push(this.rowOf(state, event.round, result, result.player));
         }
-        this.placed.clear();
-        this.fired.clear();
-        this.repaired.clear();
-        this.repairAtBuild.clear();
-        this.repairLeft.clear();
-        this.repairStuck.clear();
-        this.frozenAtBuild.clear();
-        this.repairFrozen.clear();
-        this.sleepDealt.clear();
+        this.reset();
+      } else if (event.kind === 'game_over') {
+        if (state.campaign !== null) this.endLevel(state, event.endedBy, resolvedFrom);
+      } else if (state.campaign !== null) {
+        this.countFleet(state, event);
       }
     }
   }
+
+  /** A campaign's events, counted for the next row. */
+  private countFleet(state: MatchState, event: MatchEvent): void {
+    const team = this.team;
+    switch (event.kind) {
+      case 'ship_arrived':
+        bump(team.arrived, event.ship.kind);
+        return;
+      case 'ship_recycled':
+        team.recycled++;
+        return;
+      case 'fleet_fired':
+        team.fleetShots++;
+        return;
+      case 'fleet_landed':
+        if (event.destroyed !== null) team.wallsShot++;
+        return;
+      case 'grunt_landed':
+        team.gruntsLanded++;
+        return;
+      case 'wall_smashed':
+        team.wallsSmashed++;
+        return;
+      case 'castle_taken':
+        team.castlesTaken++;
+        return;
+      case 'tile_frozen':
+        if (event.owner === -1) team.iceLaid++;
+        return;
+      case 'ship_hit': {
+        const own = this.ownOf(event.player);
+        own.shipHits++;
+        // A hit that sinks is paid with the sinking, whose event carries both (`hitShips`); one
+        // that does not, as `hitShips` awards it: the difficulty's factor applied, rounded.
+        const scoring = state.ruleset.campaign?.scoring;
+        if (!event.sunk && scoring !== undefined) {
+          own.shipPoints += Math.round(scoring.hitPoints * scoring.multiplier);
+        }
+        return;
+      }
+      case 'ship_sunk': {
+        const own = this.ownOf(event.player);
+        bump(own.sunk, event.ship.kind);
+        own.shipPoints += event.points;
+        return;
+      }
+      case 'grunt_killed': {
+        if (event.player < 0) return;
+        const own = this.ownOf(event.player);
+        if (event.how === 'shot') own.gruntsShot++;
+        else own.gruntsWalled++;
+        own.gruntKillPoints += event.points;
+        return;
+      }
+      default:
+        return;
+    }
+  }
+
+  private ownOf(player: number): PlayerCounts {
+    let own = this.own.get(player);
+    if (own === undefined) this.own.set(player, (own = playerCounts()));
+    return own;
+  }
+
+  /**
+   * A campaign level's end: marked on the rows of the resolution that ended it, if one did (a
+   * loss), or on rows of their own for the battle that won it, which no resolution follows.
+   */
+  private endLevel(state: MatchState, endedBy: string, resolvedFrom: number | null): void {
+    const end: LevelEnd =
+      endedBy === 'level_lost'
+        ? 'lost'
+        : fleetBeaten(state) || fleetGone(state)
+          ? 'threat'
+          : 'round_limit';
+    let from = resolvedFrom;
+    if (from === null) {
+      from = this.rows.length;
+      for (const p of state.players) this.rows.push(this.rowOf(state, state.round, null, p.id));
+      this.reset();
+    }
+    for (let i = from; i < this.rows.length; i++) (this.rows[i] as StatRow).levelEnd = end;
+  }
+
+  /**
+   * A player's row: at a resolution, from its result; at a level's end in a battle, from the
+   * board as it stands, nothing banked.
+   */
+  private rowOf(state: MatchState, round: number, result: RoundResult | null, id: number): StatRow {
+    let owned = 0;
+    let active = 0;
+    let towers = 0;
+    for (const cannon of state.cannons) {
+      if (cannon.owner !== id) continue;
+      owned++;
+      if (cannon.active) active++;
+      if (cannon.kind !== 'cannon') towers++;
+    }
+    const tier = this.tierOf(id);
+    const player = state.players[id];
+    return {
+      match: this.match,
+      seed: this.seed,
+      round,
+      player: id,
+      level: tier === 'human' ? null : tier.level,
+      personality: tier === 'human' ? '' : personalityWords(tier.personality),
+      enclosedCastles: result?.enclosedCastles ?? player?.enclosedCastles ?? 0,
+      cannonsAwarded: result?.cannonsAwarded ?? 0,
+      eliminated: result?.eliminated ?? player?.eliminated ?? false,
+      cannonsOwned: owned,
+      cannonsActive: active,
+      cannonRoom: cannonRoom(state, id),
+      pockets: pocketCount(state, id),
+      wallTiles: wallTilesOf(state, id),
+      piecesPlaced: this.placed.get(id) ?? 0,
+      piecesBudget: piecesBudget(this.bundle, tier),
+      shotsFired: this.fired.get(id) ?? 0,
+      territoryPoints: result?.territoryPoints ?? 0,
+      gunPoints: result?.gunPoints ?? 0,
+      damagePoints: result?.damagePoints ?? 0,
+      score: player?.score ?? 0,
+      repairAtBuild: this.repairAtBuild.get(id) ?? 0,
+      repairLeft: this.repairLeft.get(id) ?? 0,
+      repairStuck: this.repairStuck.get(id) ?? 0,
+      special: player?.special ?? '',
+      towersOwned: towers,
+      wallsRepaired: this.repaired.get(id) ?? 0,
+      frozenAtBuild: this.frozenAtBuild.get(id) ?? 0,
+      repairFrozen: this.repairFrozen.get(id) ?? 0,
+      sleepDealt: this.sleepDealt.get(id) ?? 0,
+      ...this.campaignOf(state, id),
+    };
+  }
+
+  private campaignOf(state: MatchState, id: number): CampaignColumns {
+    const rules = state.ruleset.campaign;
+    const fleet = state.campaign;
+    if (rules === undefined || fleet === null) return { ...NO_CAMPAIGN };
+    const team = this.team;
+    const own = this.own.get(id) ?? playerCounts();
+    const afloat = (kind: ShipKind): number => fleet.ships.filter((s) => s.kind === kind).length;
+    return {
+      difficulty: rules.difficulty,
+      campaignLevel: rules.level + 1,
+      attempt: this.attempt,
+      firepower: rules.firepower.level,
+      levelEnd: '',
+      teamThreat: threat(state),
+      teamRaidersArrived: team.arrived[0] as number,
+      teamTransportsArrived: team.arrived[1] as number,
+      teamFrostshipsArrived: team.arrived[2] as number,
+      teamShipsRecycled: team.recycled,
+      teamRaidersAfloat: afloat('raider'),
+      teamTransportsAfloat: afloat('transport'),
+      teamFrostshipsAfloat: afloat('frostship'),
+      teamFleetShots: team.fleetShots,
+      teamWallsShot: team.wallsShot,
+      teamGruntsLanded: team.gruntsLanded,
+      teamGruntsAlive: fleet.grunts.length,
+      teamWallsSmashed: team.wallsSmashed,
+      teamCastlesTaken: team.castlesTaken,
+      teamIceLaid: team.iceLaid,
+      shotsAtSea: own.shotsAtSea,
+      shipHits: own.shipHits,
+      raidersSunk: own.sunk[0] as number,
+      transportsSunk: own.sunk[1] as number,
+      frostshipsSunk: own.sunk[2] as number,
+      gruntsShot: own.gruntsShot,
+      gruntsWalled: own.gruntsWalled,
+      shipPoints: own.shipPoints,
+      gruntKillPoints: own.gruntKillPoints,
+    };
+  }
+
+  private reset(): void {
+    this.placed.clear();
+    this.fired.clear();
+    this.repaired.clear();
+    this.repairAtBuild.clear();
+    this.repairLeft.clear();
+    this.repairStuck.clear();
+    this.frozenAtBuild.clear();
+    this.repairFrozen.clear();
+    this.sleepDealt.clear();
+    this.team = teamCounts();
+    this.own.clear();
+  }
 }
+
+/** The fleet's doings against the team since the last row. */
+interface TeamCounts {
+  /** By kind, in `SHIP_KINDS` order. */
+  arrived: number[];
+  recycled: number;
+  fleetShots: number;
+  wallsShot: number;
+  gruntsLanded: number;
+  wallsSmashed: number;
+  castlesTaken: number;
+  iceLaid: number;
+}
+
+const teamCounts = (): TeamCounts => ({
+  arrived: [0, 0, 0],
+  recycled: 0,
+  fleetShots: 0,
+  wallsShot: 0,
+  gruntsLanded: 0,
+  wallsSmashed: 0,
+  castlesTaken: 0,
+  iceLaid: 0,
+});
+
+/** A player's own against the fleet since the last row. */
+interface PlayerCounts {
+  shotsAtSea: number;
+  shipHits: number;
+  /** By kind, in `SHIP_KINDS` order. */
+  sunk: number[];
+  gruntsShot: number;
+  gruntsWalled: number;
+  shipPoints: number;
+  gruntKillPoints: number;
+}
+
+const playerCounts = (): PlayerCounts => ({
+  shotsAtSea: 0,
+  shipHits: 0,
+  sunk: [0, 0, 0],
+  gruntsShot: 0,
+  gruntsWalled: 0,
+  shipPoints: 0,
+  gruntKillPoints: 0,
+});
