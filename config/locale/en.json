@@ -1053,5 +1053,20 @@
   "campaign.freeRetry": "Lost in its first round: played again at no cost.",
   "campaign.castleTaken": "A castle has fallen!",
   "campaign.finishedTitle": "Finished campaigns",
-  "campaign.view": "View"
+  "campaign.view": "View",
+  "campaign.levelLost": "Level lost",
+  "campaign.colGround": "ground",
+  "campaign.colGuns": "guns",
+  "campaign.colShips": "ships",
+  "campaign.colGrunts": "soldiers",
+  "campaign.colBonus": "bonus",
+  "campaign.sunkKind": "{kind} sunk: {n} of {of}",
+  "campaign.gruntsOf": "Soldiers beaten: {n} of {of}",
+  "campaign.castlesTaken": "Castles taken by soldiers: {n}",
+  "campaign.campaignEnd": "To the campaign’s end",
+  "howTo.section.campaign": "Campaign",
+  "howTo.ships": "Ships shoot your walls. Aim where they are going.",
+  "howTo.shipKinds": "Sink transports at the coast first. Ice blocks building.",
+  "howTo.grunts": "Soldiers strike once a battle. Shoot or wall them in.",
+  "howTo.threat": "Sink the fleet below the line to clear the level."
 }

@@ -1,4 +1,4 @@
-import { Structure, type Phase } from '@bollfort/sim';
+import { Structure, type MatchState, type Phase } from '@bollfort/sim';
 import { describe, expect, it } from 'vitest';
 
 import { t } from './i18n.js';
@@ -31,9 +31,9 @@ describe('how to play', () => {
     expect(loopTime(1000 + 27000 + 5, 1000, 27000)).toBe(5);
   });
 
-  it('is fourteen pages of ten words or fewer, each standing still inside its own loop', () => {
+  it('is eighteen pages of ten words or fewer, each standing still inside its own loop', () => {
     const pages = HOW_TO_PLAY.flatMap((chapter) => chapter.pages);
-    expect(pages).toHaveLength(14);
+    expect(pages).toHaveLength(18);
     expect(new Set(pages.map((page) => page.caption)).size).toBe(pages.length);
     for (const page of pages) {
       expect(t(page.caption).split(/\s+/).length).toBeLessThanOrEqual(10);
@@ -77,12 +77,13 @@ describe('how to play', () => {
     expect(COMBAT.state.islandId[gun.y * COMBAT.state.width + gun.x]).toBe(1);
   });
 
-  it('is in sections, the basics first and the extras last', () => {
+  it('is in sections, the basics first, then the extras, the campaign last', () => {
     expect(HOW_TO_PLAY.map((chapter) => chapter.id)).toEqual([
       'basics',
       'building',
       'combat',
       'extras',
+      'campaign',
     ]);
     expect(HOW_TO_PLAY.every((chapter) => chapter.pages.length > 0)).toBe(true);
   });
@@ -98,6 +99,10 @@ describe('how to play', () => {
     expect(at('intermission', 'build')).toBe('building');
     expect(at('intermission')).toBe('basics');
     expect(at('game_over')).toBe('basics');
+    // A campaign level's pause opens at the campaign's pages, whatever its phase.
+    const fleet = { campaign: {} as NonNullable<MatchState['campaign']> };
+    expect(howToSectionFor({ phase: 'build', pendingPhase: null, ...fleet })).toBe('campaign');
+    expect(howToSectionFor({ phase: 'combat', pendingPhase: null, campaign: null })).toBe('combat');
   });
 
   it('rings the chosen castle alone, the island otherwise as it was', () => {

@@ -2007,32 +2007,39 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     - **Not to be built: a trophy cabinet** of the cups won (the user's, 2026-11-23): a cup won
       is shown once, at the tournament's end, and its save goes with it.
 
-14. **Campaign mode — being built, CA1–CA11 and CA15 done** (the user's, 2026-11-25; `docs/CAMPAIGN.md`): one to
-    three people against an enemy fleet — raiders, transports landing grunts, frost ships leaving
-    ice — over six levels on generated maps shared in co-op, four difficulty settings, progress
-    saved between levels, co-op online through rooms, no bots in its seats. A mode of its own:
-    nothing of it reaches versus play or tournaments. Its work packages CA1–CA15 are in
-    CAMPAIGN.md §16; CA10 and CA11 were built together (co-op in campaign rooms, protocol 39), the
-    users' online co-op session next. CA12's tools are built (2026-11-27): the campaign's columns
-    in the statistics and a row per level (`--level-table`), and bots playing levels and whole
-    campaigns headless (`--campaign N|all`), solo, with an aim of their own at the fleet; the
-    first sweep is in CAMPAIGN.md §16. Its bots hit 85–88 % of their shots at sea, surely more
-    than people: the session's recordings fit their misses before the numbers are tuned. After
-    the second playtest (2026-11-26, CAMPAIGN.md
-    §16): grunts strike once a battle at a random moment and no longer turn as it opens, they take
-    the castles nobody held; continues replay a lost level from its start with more firepower, in
-    place of lives; a co-op team fails together, only holding no castle at all; protocol 40. CA15
-    (2026-11-27, approved by the user): every style its own ships and grunts, the supporter styles'
-    in their private package, and the fleet's shots each style's own cannonballs; `?fleet=preview`
-    shows them all. **Open, for later** (CA10–CA11, 2026-11-25): co-op's
-    walls, ground and castles drawn in the first player's colour, since every style colours them by
-    island and the island is the team's; a person away holding the cannon phase to its clock (§13
-    asks it finished for them); the statistics' walls and frost counted by island. **Open, for later** (the user's, 2026-11-25): a campaign's own end
-    of a level in place of versus play's "You win" summary, which shows little of use there — the
-    level's points by source, ships sunk, grunts, castles lost, perhaps taking the level summary's
-    place; and the grunts' strength, to be judged again in play after the second playtest's
-    changes, its levers `grunts.allowance`, the difficulties' `gruntFactor`, `grunts.timing` (land,
-    breed, step, the strike's window), `threat.perGrunt` and the transports in the pools.
+14. **Campaign mode — being built** (the user's, 2026-11-25; `docs/CAMPAIGN.md`): one to three
+    people against an enemy fleet — raiders, transports landing grunts, frost ships leaving ice —
+    over six levels on generated maps shared in co-op, four difficulty settings, progress saved
+    between levels, co-op online through rooms, no bots in its seats. A mode of its own: nothing
+    of it reaches versus play or tournaments. Its work packages CA1–CA15 are in CAMPAIGN.md §16,
+    with what each built.
+
+    **Done**: CA1–CA11 and CA15 — the levels, the fleet, grunts and ice, the campaign's screens and
+    saves, co-op in rooms (protocol 39), every style's ships and grunts; the second playtest's
+    changes (2026-11-26, protocol 40: grunts strike once a battle and take unheld castles,
+    continues replay a lost level with more firepower, a co-op team fails together). On
+    2026-11-27: CA12's tools (the campaign's statistics and level table, bots playing levels and
+    whole campaigns headless, the first sweep), a person away from a co-op level played at once, a
+    level's own end screen, and How to play's Campaign tab (CA13's first part).
+
+    **Open**, in order:
+
+    1. **The users' online co-op session** (to be scheduled): the server rebuilt first
+       (`npm run build`), its recordings now carrying the campaign's columns and tags.
+    2. **CA12, the tuning**: the bots' misses at ships fitted to the people's hit rate in the
+       session's recordings (the sweep's bots hit 85–88 %), a new sweep, then the difficulties'
+       levers against the user's targets (CAMPAIGN.md §16) — never on bots alone. Level 2's round
+       limit (one try in eight runs out) to be looked at with them.
+    3. **The grunts' strength** (the user's, 2026-11-25), judged again in play after the second
+       playtest's changes: `grunts.allowance`, the difficulties' `gruntFactor`, `grunts.timing`,
+       `threat.perGrunt`, the transports in the pools.
+    4. **CA13's rest**: campaign achievements proposed in `docs/STEAM_ACHIEVEMENTS.md`; new sound
+       cues (a ship's bell, grunts landing, freezing), each credited.
+    5. **Co-op's colours** (CA10–CA11): walls, ground and castles drawn in the first player's
+       colour, since every style colours them by island and the island is the team's; a design
+       question for the user first (a team colour, or each castle its holder's).
+    6. **CA14**, the informed choice between fronts (CAMPAIGN.md §10), once the balance stands.
+    7. The open questions of CAMPAIGN.md §17, settled in play.
 
 Only open work is kept here. Finished packages move to `ARCHIVE.md` under their old
 numbers — 11.1 scoring, 11.7 team mode, 11.8 the visual pass, 11.9 the themes, 11.10 the

@@ -1062,9 +1062,9 @@ beside the difficulties), its room listed in Find a game; **the host keeps the o
   Continue sends the room on. Banners sit over each player's main castle; the team tags, one
   corner for all, are not drawn; the outline of what to seal is a player's own castle.
 - **Not done, for later**: walls, ground and castles are drawn in the first player's colour
-  (every style colours them by island, and the island is the team's); a person away holds the
-  cannon phase to its clock rather than having it finished (§13); the statistics count walls and
-  frost by island.
+  (every style colours them by island, and the island is the team's). Since done (2026-11-27,
+  below): a person away no longer holds the cannon phase to its clock (§13); the statistics'
+  walls and frost are the team's columns, said so (CA12).
 
 **After the second playtest** (the user's, 2026-11-26; grunts "very strong", and a failure in a
 level all but lost it). Every change in the campaign only, on protocol 40 and save version 2:
@@ -1168,6 +1168,33 @@ almost always (round limit 27 of 1513 levels, nearly all on level 2, about one t
 its 5 rounds). The levels lost most: 4 (45–64 %), 5 (49–57 %) and the final battle (58–71 %, but
 25 % of Legend's four tries); level 4 lands the most grunts, 47–70 a try.
 
+**Before the users' online session** (2026-11-27, the user's choices):
+
+- **A person away** (§13): once the reconnect grace (`botTakeoverDelayMs`) is over, the room plays
+  their castle choice and their guns at once, as the clock's fallback would have
+  (`awayAction`, `sim/src/campaign/away.ts`), sent as the seat's own actions, so recorded and
+  replayed as any; only their phase ends early, the others keep their time. Nothing else is played
+  for them, and versus play's fallback is untouched.
+- **A level's own end screen** (`EndScreen`'s campaign branch, `campaignEnd.ts`): the level
+  cleared or lost as its headline, what it means for the campaign under it (the score, the
+  continues left, the free try, the campaign's end; `levelEndText`), each player's points by
+  source — ground, guns, ships, soldiers, the clear bonus — and the team's in co-op, no awards,
+  the ships sunk of those that came by kind, the soldiers beaten of those that landed, the castles
+  taken, the level's points by round. Its main button leads straight on (`levelEndButton`): the
+  next level's intro, the level again (free, or for a continue), or the campaign's end; the
+  separate summary screen is gone. A co-op room's pages show the same, the host's Continue
+  sending the room on as before. `MatchLog` now counts the arrivals (a ship recycled once), the
+  grunts landed and each player's points for ships and soldiers.
+- **How to play's Campaign tab** (CA13), the last of five: ships and leading them, which ship
+  first and ice, soldiers, the threat's line, each caption ten words at most as every page's; the
+  campaign screen's How to play button and a campaign level's pause open it.
+
+**Open campaign work** (2026-11-27; PLAN §11 item 14 keeps the same list): the users' online
+co-op session; CA12's tuning — the bots' misses at ships fitted to the session's recordings, a new
+sweep, the difficulties' levers against the targets above, level 2's round limit looked at; the
+grunts' strength judged again in play; CA13's rest — achievements proposed, new sound cues; co-op's
+colours (a design question first); CA14, once the balance stands; the questions of §17.
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |
@@ -1181,8 +1208,8 @@ its 5 rounds). The levels lost most: 4 (45–64 %), 5 (49–57 %) and the final 
 | CA9  | **Medieval and Night art**: ships, grunts, ice, sinking, HUD fleet bar and icons                                                                                                                                                            | **the user's look**                                                    |
 | CA10 | **Co-op**: castle holders, shared rewards, continues on a shared map, team scores                                                                                                                                                           | co-op tested locally with two pages                                    |
 | CA11 | **Online rooms**: `mode: 'campaign'`, next level and retry in the room, protocol 39, recordings                                                                                                                                             | **an online co-op session with the users**                             |
-| CA12 | **Balance**: statistics, headless runs, the four difficulties' levers tuned                                                                                                                                                                 | numbers set by measurement and play                                    |
-| CA13 | **Polish**: sounds, How to play's campaign section, achievements proposed                                                                                                                                                                   | —                                                                      |
+| CA12 | **Balance**: statistics, headless runs (both built 2026-11-27), the four difficulties' levers tuned                                                                                                                                         | numbers set by measurement and play                                    |
+| CA13 | **Polish**: sounds, How to play's campaign section (done 2026-11-27), achievements proposed                                                                                                                                                 | —                                                                      |
 | CA14 | **Informed choice between fronts** (§10 v2)                                                                                                                                                                                                 | **the user's play**                                                    |
 | CA15 | **Other styles' ships and grunts** — **done** 2026-11-27, the supporter styles' too, the fleet firing each style's own cannonballs                                                                                                          | per style, as time allows                                              |
 

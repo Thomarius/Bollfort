@@ -18,7 +18,8 @@ import {
   defeatMarkup,
   type CampaignRoomView,
   introMarkup,
-  summaryMarkup,
+  levelEndButton,
+  levelEndText,
   victoryMarkup,
 } from './campaignScreens.js';
 
@@ -103,12 +104,29 @@ describe('the campaign screens', () => {
     expect(final).toContain('From this level on every ship takes one hit more.');
   });
 
-  it('sum a cleared level up, and offer a lost one again while continues last', () => {
-    const cleared = recordLevel(config, campaign(), outcome(true, 400), NOW);
-    const summary = summaryMarkup(cleared);
-    expect(summary).toContain('Level 1 cleared!');
-    expect(summary).toContain('Points this level: 650');
-    expect(summary).toContain('Ships sunk: 5 raiders, 1 transports, 0 frost ships');
+  it('tell a level’s end and lead on: the next level, the level again, or the campaign’s end', () => {
+    const start = campaign();
+    const cleared = recordLevel(config, start, outcome(true, 400), NOW);
+    expect(levelEndText(config, start, cleared, true)).toEqual({
+      headline: 'Level 1 cleared!',
+      line: 'Score: 650',
+    });
+    expect(levelEndButton(cleared)).toBe('campaign.next');
+    const lost = recordLevel(config, start, outcome(false, 0), NOW);
+    expect(levelEndText(config, start, lost, false)).toEqual({
+      headline: 'Level 1 lost',
+      line: 'Continues left: 4',
+    });
+    expect(levelEndButton(lost)).toBe('campaign.continueLevel');
+    const firstRound = recordLevel(config, start, outcome(false, 0, 1), NOW);
+    expect(levelEndText(config, start, firstRound, false).line).toContain(
+      'played again at no cost',
+    );
+    expect(levelEndButton(firstRound)).toBe('campaign.tryAgain');
+    const legend = campaign('legend');
+    const over = recordLevel(config, legend, outcome(false, 0), NOW);
+    expect(levelEndText(config, legend, over, false).line).toBe('The campaign is over.');
+    expect(levelEndButton(over)).toBe('campaign.campaignEnd');
 
     const veteran = recordLevel(config, campaign('veteran'), outcome(false, 0), NOW);
     expect(defeatMarkup(config, veteran)).toContain('Continues left: 4');

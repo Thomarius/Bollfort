@@ -8969,6 +8969,48 @@ body:has(.end-screen:not(.held, .peeking) .banner.summary) .bar {
   text-transform: uppercase;
 }
 
+/* A campaign level's end (docs/CAMPAIGN.md CA12): what the level means for the campaign in a
+   pill under the headline, as a tournament's line; each player's points by source, the total
+   last and strongest, the team's under them in co-op; what became of the fleet below. */
+.end-screen .summary .campaign-line {
+  display: inline-block;
+  margin: 0.4rem 0 0;
+  padding: 0.25rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.end-screen table.campaign-points td:nth-child(n + 2) {
+  color: var(--muted);
+  font-weight: 400;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.end-screen table.campaign-points td.total {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.end-screen table.campaign-points tr.team td {
+  border-top: 1px solid color-mix(in srgb, var(--muted) 45%, transparent);
+  color: var(--ink);
+}
+
+.end-screen .summary .campaign-fleet {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2rem 1.4rem;
+  margin: 0.5rem auto 0.2rem;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 15px;
+}
+
 /* Award cards: the icon before the title, as the menus' buttons carry theirs; one row of
    them, as wide as it takes — wrapping, the third had stood alone under the first two. */
 .end-screen .summary .awards {
@@ -9923,7 +9965,6 @@ img.avatar {
 /* The campaign's screens (docs/CAMPAIGN.md §14.1, CA8): working layouts in the menus' frame,
    polished after the users' play. */
 .menu.campaign-intro,
-.menu.campaign-summary,
 .menu.campaign-defeat,
 .menu.campaign-victory {
   width: min(40rem, 94vw);

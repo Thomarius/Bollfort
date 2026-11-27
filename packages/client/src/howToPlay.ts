@@ -45,10 +45,11 @@ import { howToPageShown } from './steam/achievements.js';
  * the game does; a test holds them to it. Under reduced motion each page stands still at
  * its key moment.
  *
- * The pages are in four sections, each a tab (ARCHIVE 14zq): the basics — the round, the
+ * The pages are in five sections, each a tab (ARCHIVE 14zq): the basics — the round, the
  * mouse, what is won and lost — then building, combat and the extras. The goal comes before
  * the controls, and the extras, special towers and tournaments among them, after the game
- * itself. The pause menu opens them at the section of the phase being played.
+ * itself, and last the campaign's (CA13). The pause menu opens them at the section of the phase
+ * being played, a campaign level at the campaign's.
  */
 
 /** One page: a caption, the length of its loop, where it stands still, and its picture. */
@@ -1409,8 +1410,306 @@ const tournamentPage: HowToPage = {
   },
 };
 
+// ---------------------------------------------------------------------- campaign
+
+/**
+ * The campaign's pages (docs/CAMPAIGN.md CA13): the fleet and how to hit it, which ship first,
+ * the soldiers, and what clears a level. Ships and soldiers drawn as the plain campaign layer
+ * draws them, in the art config's colours, the same in every look (§14.2).
+ */
+const FLEET_ART = art.campaign;
+
+/** A ring by the coast, two guns in it, the sea to the right. */
+export const COAST = board(`
+  ,,,,,,,,,,......
+  ,########,......
+  ,#,,,,,,#,......
+  ,#,@@,**#,......
+  ,#,@@,**#,......
+  ,#,,,,,,#,......
+  ,########,......
+  ,,,,,,,,,,......
+  ,,,,,,,,,,......
+`);
+
+/** A ship of a kind, its middle at a point, sailing `angle` from up, sunk by `sink` (0 to 1). */
+function drawShip(
+  ctx: CanvasRenderingContext2D,
+  kind: 'raider' | 'transport' | 'frostship',
+  x: number,
+  y: number,
+  t: number,
+  angle = 0,
+  sink = 0,
+): void {
+  const long = t * 1.8 * FLEET_ART.lengths[kind];
+  const wide = t * 0.9;
+  ctx.save();
+  ctx.translate(x, y + sink * t * 0.4);
+  ctx.rotate(angle + sink * 0.5);
+  ctx.globalAlpha = 1 - sink;
+  ctx.fillStyle = FLEET_ART.hull;
+  ctx.beginPath();
+  ctx.moveTo(0, -long / 2);
+  ctx.quadraticCurveTo(wide / 2, -long / 4, wide / 2, long / 2);
+  ctx.lineTo(-wide / 2, long / 2);
+  ctx.quadraticCurveTo(-wide / 2, -long / 4, 0, -long / 2);
+  ctx.fill();
+  ctx.fillStyle = FLEET_ART.deck;
+  ctx.fillRect(-wide * 0.3, -long * 0.15, wide * 0.6, long * 0.55);
+  ctx.fillStyle = FLEET_ART.sails[kind];
+  ctx.fillRect(-wide * 0.75, -long * 0.05, wide * 1.5, t * 0.32);
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+/** A soldier ashore, standing on a point, `gone` (0 to 1) as it is beaten: a puff where it stood. */
+function drawGrunt(ctx: CanvasRenderingContext2D, x: number, y: number, t: number, gone = 0): void {
+  if (gone > 0) {
+    ctx.fillStyle = INK;
+    ctx.globalAlpha = 0.6 * (1 - gone);
+    ctx.beginPath();
+    ctx.arc(x, y, t * (0.3 + 0.5 * gone), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    return;
+  }
+  const { tunic, skin, club } = FLEET_ART.grunt;
+  ctx.fillStyle = tunic;
+  ctx.fillRect(x - t * 0.22, y - t * 0.15, t * 0.44, t * 0.45);
+  ctx.fillStyle = skin;
+  ctx.beginPath();
+  ctx.arc(x, y - t * 0.3, t * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = club;
+  ctx.lineWidth = Math.max(2, t * 0.1);
+  ctx.beginPath();
+  ctx.moveTo(x + t * 0.22, y);
+  ctx.lineTo(x + t * 0.42, y - t * 0.35);
+  ctx.stroke();
+}
+
+/** A tile of a frost ship's ice. */
+function drawIce(ctx: CanvasRenderingContext2D, px: number, py: number, t: number): void {
+  ctx.fillStyle = FLEET_ART.sails.frostship;
+  ctx.fillRect(px + 1, py + 1, t - 2, t - 2);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = Math.max(1, t * 0.08);
+  ctx.beginPath();
+  ctx.moveTo(px + t * 0.25, py + t * 0.7);
+  ctx.lineTo(px + t * 0.7, py + t * 0.25);
+  ctx.stroke();
+}
+
+/** The aiming cross at a point, drawn as the combat page draws it; `click` as it is pressed. */
+function drawAim(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  t: number,
+  click: boolean,
+): void {
+  ctx.strokeStyle = click ? ACCENT : INK;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x, y, t * (click ? 0.6 : 0.8), 0, Math.PI * 2);
+  ctx.moveTo(x - t, y);
+  ctx.lineTo(x + t, y);
+  ctx.moveTo(x, y - t);
+  ctx.lineTo(x, y + t);
+  ctx.stroke();
+}
+
+/** A ball in flight from one point to another, `share` of the way, arcing as the game's do. */
+function drawBall(
+  ctx: CanvasRenderingContext2D,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  share: number,
+  t: number,
+): void {
+  if (share <= 0 || share >= 1) return;
+  const x = from.x + (to.x - from.x) * share;
+  const y = from.y + (to.y - from.y) * share - Math.sin(Math.PI * share) * t * 2.5;
+  ctx.fillStyle = INK;
+  ctx.beginPath();
+  ctx.arc(x, y, t * 0.28 * (1 + 0.5 * Math.sin(Math.PI * share)), 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/** A flash where a shot lands, `share` of the way through it. */
+function drawFlash(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  t: number,
+  share: number,
+): void {
+  if (share <= 0 || share >= 1) return;
+  ctx.fillStyle = ACCENT;
+  ctx.globalAlpha = 1 - share;
+  ctx.beginPath();
+  ctx.arc(x, y, t * (0.5 + share), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+/** A tile's middle on a fitted board. */
+function middle(
+  at: { t: number; ox: number; oy: number },
+  x: number,
+  y: number,
+): { x: number; y: number } {
+  return { x: at.ox + (x + 0.5) * at.t, y: at.oy + (y + 0.5) * at.t };
+}
+
+/**
+ * Ships: one sails down the coast and fires at the wall, which breaks; a gun fires ahead of it,
+ * the ball and the ship arriving together, and it sinks.
+ */
+const shipsPage: HowToPage = {
+  caption: 'howTo.ships',
+  loopMs: 5600,
+  stillMs: 3450,
+  draw(ctx, w, h, ms) {
+    const at = fit(COAST, w * 0.04, h * 0.04, w * 0.92, h * 0.92);
+    const t = at.t;
+    // Down the sea, a tile and a bit a second, until it is hit.
+    const hitAt = 3300;
+    const shipY = (m: number): number => 0.2 + (Math.min(m, hitAt) / 1000) * 1.3;
+    const ship = (m: number): { x: number; y: number } => middle(at, 12.5, shipY(m));
+    const wallTile = 2 * COAST.state.width + 8;
+    const broken = ms >= 1500;
+    drawBoard(ctx, COAST, at, { missing: broken ? new Set([wallTile]) : new Set() });
+    // Its shot at the wall.
+    drawBall(ctx, ship(600), middle(at, 8, 2), span(ms, 600, 1500), t);
+    drawFlash(ctx, middle(at, 8, 2).x, middle(at, 8, 2).y, t, span(ms, 1500, 2100));
+    // The person's: aimed where the ship will be, not where it is.
+    const target = ship(hitAt);
+    if (ms > 1700 && ms < 2300) drawAim(ctx, target.x, target.y, t, ms > 2000);
+    drawBall(ctx, middle(at, 6.5, 3.5), target, span(ms, 2100, hitAt), t);
+    drawFlash(ctx, target.x, target.y, t, span(ms, hitAt, hitAt + 600));
+    const at0 = ship(ms);
+    drawShip(ctx, 'raider', at0.x, at0.y, t, Math.PI, span(ms, hitAt + 200, hitAt + 1400));
+  },
+};
+
+/**
+ * Which ship first: a transport at the coast lands soldiers, one after another; a frost ship's
+ * shot leaves ice, where a piece is refused.
+ */
+const kindsPage: HowToPage = {
+  caption: 'howTo.shipKinds',
+  loopMs: 5600,
+  stillMs: 4200,
+  draw(ctx, w, h, ms) {
+    const at = fit(COAST, w * 0.04, h * 0.04, w * 0.92, h * 0.92);
+    const t = at.t;
+    drawBoard(ctx, COAST, at);
+    // The transport by the shore, its soldiers stepping off.
+    const boat = middle(at, 10.5, 7.5);
+    drawShip(ctx, 'transport', boat.x, boat.y, t, -Math.PI / 2);
+    const landed = [
+      { at: 700, x: 9, y: 7 },
+      { at: 1500, x: 9, y: 8 },
+      { at: 2300, x: 8, y: 7 },
+    ];
+    for (const g of landed) {
+      if (ms < g.at) continue;
+      const p = middle(at, g.x, g.y);
+      drawGrunt(ctx, p.x, p.y + t * 0.1, t);
+    }
+    // The frost ship, its shot leaving ice by the wall.
+    const frost = middle(at, 12.5, 2);
+    drawShip(ctx, 'frostship', frost.x, frost.y, t, Math.PI);
+    const ice = { x: 9, y: 3 };
+    drawBall(ctx, frost, middle(at, ice.x, ice.y), span(ms, 1600, 2600), t);
+    if (ms >= 2600) drawIce(ctx, at.ox + ice.x * t, at.oy + ice.y * t, t);
+    // A piece brought over it, and refused.
+    if (ms >= 3400) {
+      const p = middle(at, ice.x, ice.y);
+      ctx.globalAlpha = 0.75;
+      drawPiece(ctx, p.x, p.y, t, 0);
+      ctx.globalAlpha = 1;
+      if (ms >= 3900) verdict(ctx, false, p.x + t * 1.6, p.y - t * 1.2, t * 1.4);
+    }
+  },
+};
+
+/** Inland, a ring with its castle and a gun, and the ground a soldier walks up to it over. */
+export const MARCH = board(`
+  ,,,,,,,,,,,,,,,,
+  ,,,,,,,,,,,,,,,,
+  ,,,,,,,########,
+  ,,,,,,,#,,,,,,#,
+  ,,,,,,,#,@@**,#,
+  ,,,,,,,#,@@**,#,
+  ,,,,,,,#,,,,,,#,
+  ,,,,,,,########,
+  ,,,,,,,,,,,,,,,,
+`);
+
+/**
+ * Soldiers: one walks up to the wall while the walls are built, then, the battle on, is shot where
+ * it stands before it can strike.
+ */
+const gruntsPage: HowToPage = {
+  caption: 'howTo.grunts',
+  loopMs: 5200,
+  stillMs: 2850,
+  draw(ctx, w, h, ms) {
+    const at = fit(MARCH, w * 0.04, h * 0.04, w * 0.92, h * 0.92);
+    const t = at.t;
+    drawBoard(ctx, MARCH, at);
+    // A step a tile at a time, as they walk, to the wall's side.
+    const steps = Math.min(5, Math.floor(ms / 400));
+    const glide = Math.min(1, (ms % 400) / 250);
+    const x = 1 + Math.min(5, steps + (steps < 5 ? glide : 0));
+    const p = middle(at, x, 4);
+    const hit = 3400;
+    drawGrunt(ctx, p.x, p.y + t * 0.1, t, span(ms, hit, hit + 700));
+    if (ms > 2400 && ms < 2900) drawAim(ctx, p.x, p.y, t, ms > 2650);
+    drawBall(ctx, middle(at, 11.5, 4.5), p, span(ms, 2700, hit), t);
+    drawFlash(ctx, p.x, p.y, t, span(ms, hit, hit + 500));
+  },
+};
+
+/**
+ * What clears a level: the fleet's threat as a gauge falling as ships go down, until it is under
+ * the line.
+ */
+const threatPage: HowToPage = {
+  caption: 'howTo.threat',
+  loopMs: 5000,
+  stillMs: 3800,
+  draw(ctx, w, h, ms) {
+    const t = Math.round(h / 10);
+    // The gauge, full to the line and beyond, falling a step at each ship sunk.
+    const x0 = w * 0.12;
+    const width = w * 0.76;
+    const y0 = h * 0.22;
+    const line = 0.25;
+    const sunk = [1000, 2000, 3000].filter((at) => ms >= at + 600).length;
+    const level = 1 - sunk * 0.28;
+    ctx.fillStyle = pal.rockDark;
+    ctx.fillRect(x0, y0, width, t * 0.8);
+    ctx.fillStyle = level < line ? GOOD : BAD;
+    ctx.fillRect(x0, y0, width * level, t * 0.8);
+    ctx.fillStyle = INK;
+    ctx.fillRect(x0 + width * line - 1, y0 - t * 0.3, 3, t * 1.4);
+    // The ships beneath it, each sinking in turn.
+    [1000, 2000, 3000].forEach((at, k) => {
+      const x = x0 + width * (0.2 + 0.3 * k);
+      const kind = (['raider', 'transport', 'frostship'] as const)[k]!;
+      drawFlash(ctx, x, h * 0.6, t, span(ms, at, at + 500));
+      drawShip(ctx, kind, x, h * 0.6, t * 1.2, Math.PI / 2, span(ms, at + 100, at + 900));
+    });
+    if (level < line) verdict(ctx, true, w / 2, h * 0.86, t * 1.4);
+  },
+};
+
 /** A section of the pages, a tab of its own. */
-export type HowToSection = 'basics' | 'building' | 'combat' | 'extras';
+export type HowToSection = 'basics' | 'building' | 'combat' | 'extras' | 'campaign';
 
 export interface HowToChapter {
   id: HowToSection;
@@ -1435,13 +1734,23 @@ export const HOW_TO_PLAY: readonly HowToChapter[] = [
     title: 'howTo.section.extras',
     pages: [teamsPage, towersPage, switchPage, tournamentPage],
   },
+  // A mode of its own, after everything versus play has (CA13).
+  {
+    id: 'campaign',
+    title: 'howTo.section.campaign',
+    pages: [shipsPage, kindsPage, gruntsPage, threatPage],
+  },
 ];
 
 /**
  * The section about the phase a match is in, for the pause menu to open at; an intermission by
- * the phase it leads to, since its banner announces that one.
+ * the phase it leads to, since its banner announces that one. A campaign level's is the
+ * campaign's own, whatever its phase.
  */
-export function howToSectionFor(state: Pick<MatchState, 'phase' | 'pendingPhase'>): HowToSection {
+export function howToSectionFor(
+  state: Pick<MatchState, 'phase' | 'pendingPhase'> & Partial<Pick<MatchState, 'campaign'>>,
+): HowToSection {
+  if (state.campaign !== undefined && state.campaign !== null) return 'campaign';
   const phase = state.phase === 'intermission' ? state.pendingPhase : state.phase;
   switch (phase) {
     case 'castle_select':

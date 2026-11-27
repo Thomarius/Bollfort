@@ -17,9 +17,9 @@ import { writeCampaign } from './campaignSaves.js';
 import {
   campaignRoomMarkup,
   campaignStartBlocked,
+  levelEndText,
   type CampaignRoomView,
 } from './campaignScreens.js';
-import { t } from './i18n.js';
 import type { MatchExits } from './matchScreen.js';
 import { ServerConnection } from './net/connection.js';
 
@@ -139,9 +139,11 @@ export class CampaignRoom {
           writeCampaign(after);
         }
         this.justCleared = state.endedBy === 'level_cleared';
-        return state.endedBy === 'level_cleared'
-          ? t('campaign.cleared', { n: (before?.stage ?? 0) + 1 })
-          : '';
+        // Every page tells the level's end alike, the result reckoned from the campaign each was
+        // sent; only the host's is saved.
+        if (before === null) return '';
+        const result = after ?? recordLevel(config, before, levelOutcome(state), '');
+        return levelEndText(config, before, result, this.justCleared);
       },
       leaveConfirm: 'campaign.leaveConfirm',
       ...(host

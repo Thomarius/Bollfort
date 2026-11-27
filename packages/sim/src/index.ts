@@ -27,6 +27,7 @@ export * from './campaign/gunnery.js';
 export * from './campaign/grunts.js';
 export * from './campaign/ice.js';
 export * from './campaign/coop.js';
+export * from './campaign/away.js';
 export * from './scoring.js';
 export * from './teams.js';
 export * from './playout.js';

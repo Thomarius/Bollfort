@@ -1,3 +1,4 @@
+import { SHIP_KINDS } from '@bollfort/config';
 import { firesItself, type MatchEvent, type MatchState } from '@bollfort/sim';
 
 /**
@@ -42,6 +43,17 @@ export class MatchLog {
    */
   readonly aimed = new Map<number, number>();
   readonly aimedHits = new Map<number, number>();
+  /**
+   * A campaign level's (docs/CAMPAIGN.md CA12, its end screen): the ships that came by kind, in
+   * `SHIP_KINDS` order, the grunts that landed, and each player's points for hitting and sinking
+   * ships and for the grunts they beat, the difficulty's factor in them.
+   */
+  readonly arrived = [0, 0, 0];
+  /** The kind of each ship seen arriving, by id: a ship recycled at the coast arrives again. */
+  private readonly shipKinds = new Map<number, number>();
+  gruntsLanded = 0;
+  readonly shipPoints = new Map<number, number>();
+  readonly gruntPoints = new Map<number, number>();
   /** The aimed shots that have already counted as a hit, so a wave's lanes count once. */
   private readonly counted = new Set<number>();
   private readonly aimedShots = new Set<number>();
@@ -49,8 +61,12 @@ export class MatchLog {
   /** `state` is the match as it stands once these events have happened. */
   note(
     events: readonly MatchEvent[],
-    state: Pick<MatchState, 'players'> & Partial<Pick<MatchState, 'cannons' | 'islandId'>>,
+    state: Pick<MatchState, 'players'> &
+      Partial<Pick<MatchState, 'cannons' | 'islandId' | 'ruleset'>>,
   ): void {
+    const add = (map: Map<number, number>, player: number, n: number): void => {
+      map.set(player, (map.get(player) ?? 0) + n);
+    };
     for (const event of events) {
       switch (event.kind) {
         case 'shot_fired':
@@ -82,6 +98,36 @@ export class MatchLog {
           break;
         case 'piece_placed':
           this.pieces.set(event.player, (this.pieces.get(event.player) ?? 0) + 1);
+          break;
+        case 'ship_arrived': {
+          const k = SHIP_KINDS.indexOf(event.ship.kind);
+          this.arrived[k] = (this.arrived[k] ?? 0) + 1;
+          this.shipKinds.set(event.ship.id, k);
+          break;
+        }
+        case 'ship_recycled': {
+          // Gone to come again: counted once, when it does.
+          const k = this.shipKinds.get(event.shipId);
+          if (k !== undefined) this.arrived[k] = Math.max(0, (this.arrived[k] ?? 0) - 1);
+          break;
+        }
+        case 'grunt_landed':
+          this.gruntsLanded++;
+          break;
+        case 'ship_hit': {
+          // A hit that sinks is paid with the sinking, whose event carries both (`hitShips`); one
+          // that does not, as `hitShips` awards it.
+          const scoring = state.ruleset?.campaign?.scoring;
+          if (!event.sunk && scoring !== undefined) {
+            add(this.shipPoints, event.player, Math.round(scoring.hitPoints * scoring.multiplier));
+          }
+          break;
+        }
+        case 'ship_sunk':
+          add(this.shipPoints, event.player, event.points);
+          break;
+        case 'grunt_killed':
+          if (event.player >= 0) add(this.gruntPoints, event.player, event.points);
           break;
         case 'player_continued':
           this.livesSpent.set(event.player, (this.livesSpent.get(event.player) ?? 0) + 1);

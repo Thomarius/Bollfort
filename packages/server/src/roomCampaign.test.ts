@@ -19,6 +19,8 @@ class Page implements Connection {
   match: MatchState | null = null;
   /** The ticks whose hash the server sent, and whether this page's copy agreed. */
   readonly hashes: boolean[] = [];
+  /** The tick each phase opened on, as this page stepped into it. */
+  readonly opened: { phase: MatchState['phase']; tick: number }[] = [];
   constructor(readonly id: string) {}
   send(message: ServerMessage): void {
     // Through the wire's own schema, as a page parses every message.
@@ -38,7 +40,11 @@ class Page implements Connection {
     }
     if (message.type === 'commit' && this.match !== null) {
       for (const action of message.actions) applyAction(this.match, action);
+      const before = this.match.phase;
       step(this.match);
+      if (this.match.phase !== before) {
+        this.opened.push({ phase: this.match.phase, tick: this.match.tick });
+      }
       this.match.events = [];
       if (message.hash !== undefined) this.hashes.push(hashMatchState(this.match) === message.hash);
     }
@@ -190,14 +196,26 @@ describe("a campaign's room (CAMPAIGN §13)", () => {
     expect(host.hashes.every(Boolean)).toBe(true);
   });
 
-  it('gives a person who drops no bot: their seat waits, and they take it back', () => {
+  it('gives a person who drops no bot: their castle and guns chosen at once, they take it back', () => {
     const { r, host, guest } = seated();
     r.handle(host, { type: 'start' });
     r.leave(guest);
     // Well past the bots' takeover in a match of versus play.
     run(r, 1200);
-    const actions = host.received.flatMap((m) => (m.type === 'commit' ? m.actions : []));
-    expect(actions.filter((a) => a.player === 1 && a.kind !== 'select_castle')).toEqual([]);
+    const commits = host.received.filter((m) => m.type === 'commit');
+    const actions = commits.flatMap((m) => m.actions);
+    const away = actions.filter((a) => a.player === 1);
+    // Their castle and guns as the clock's fallback would make them (CAMPAIGN §13): nothing more,
+    // no piece laid and no shot fired for them.
+    expect(away.length).toBeGreaterThan(1);
+    expect(away.every((a) => a.kind === 'select_castle' || a.kind === 'place_cannon')).toBe(true);
+    // Made at once, the grace past, not as the clock ran out: within a few ticks of the choice and
+    // the cannon phase opening (the host, choosing nothing, holds each open to its end).
+    const tickOf = (kind: string): number =>
+      commits.find((m) => m.actions.some((a) => a.player === 1 && a.kind === kind))!.tick;
+    const opened = (phase: string): number => host.opened.find((o) => o.phase === phase)!.tick;
+    expect(tickOf('select_castle') - opened('castle_select')).toBeLessThan(5);
+    expect(tickOf('place_cannon') - opened('cannon_place')).toBeLessThan(5);
     const back = new Page('g2');
     const token = guest.latest('welcome').token;
     expect(r.join(back, 'Mausi', token)).toBe(1);

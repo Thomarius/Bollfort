@@ -1050,5 +1050,20 @@
   "campaign.freeRetry": "In der ersten Runde verloren: kostenlos noch einmal.",
   "campaign.castleTaken": "Eine Burg ist gefallen!",
   "campaign.finishedTitle": "Beendete Kampagnen",
-  "campaign.view": "Ansehen"
+  "campaign.view": "Ansehen",
+  "campaign.levelLost": "Level verloren",
+  "campaign.colGround": "Land",
+  "campaign.colGuns": "Kanonen",
+  "campaign.colShips": "Schiffe",
+  "campaign.colGrunts": "Soldaten",
+  "campaign.colBonus": "Bonus",
+  "campaign.sunkKind": "{kind} versenkt: {n} von {of}",
+  "campaign.gruntsOf": "Soldaten besiegt: {n} von {of}",
+  "campaign.castlesTaken": "Von Soldaten eingenommene Burgen: {n}",
+  "campaign.campaignEnd": "Zum Ende der Kampagne",
+  "howTo.section.campaign": "Kampagne",
+  "howTo.ships": "Schiffe beschießen deine Mauern. Ziel, wohin sie fahren.",
+  "howTo.shipKinds": "Versenk Transporter zuerst an der Küste. Eis blockiert das Bauen.",
+  "howTo.grunts": "Soldaten schlagen einmal pro Kampf zu. Abschießen oder einmauern.",
+  "howTo.threat": "Drück die Flotte unter die Linie: Level geschafft."
 }

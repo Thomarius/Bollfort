@@ -110,15 +110,19 @@ function shownOnScreen(): Promise<void> {
 export interface MatchExits {
   /**
    * Called once, as the match is first seen over, before the summary shows; a line it returns
-   * stands on the summary under the headline — a tournament's, what the result did to it.
+   * stands on the summary under the headline — a tournament's, what the result did to it — and a
+   * campaign level names its own headline too.
    */
-  finished?(state: MatchState): string | void;
+  finished?(state: MatchState): string | { headline: string; line: string } | void;
   /** Leaving before the end — paused, or watching after being knocked out. */
   leave?(): void;
   /** What Leave match asks before it goes. */
   leaveConfirm?: TextKey;
-  /** The summary's main button, in place of Rematch, and its way on. */
-  next?: { label: TextKey; go(): void };
+  /**
+   * The summary's main button, in place of Rematch, and its way on; its label asked again once the
+   * match is over, where the way on depends on how it ended (a campaign level won or lost).
+   */
+  next?: { label: TextKey | (() => TextKey); go(): void };
   /** The summary's way back, once the match is over; the menu without one. */
   back?(): void;
   /** The Rematch button's label where it is somebody else's to press. */
@@ -536,8 +540,10 @@ export async function runSession(
   };
   hud.endScreen.onLeave(leaveMatch);
   const next = exits.next;
+  const nextLabel = (): TextKey | undefined =>
+    next === undefined ? undefined : typeof next.label === 'function' ? next.label() : next.label;
   if (next !== undefined) {
-    hud.endScreen.useRematch('mine', next.label);
+    hud.endScreen.useRematch('mine', nextLabel());
     hud.endScreen.onRematch(() => {
       audio.play('select');
       // The connection is kept: a tournament's room plays its next match on it.
@@ -1389,6 +1395,11 @@ export async function runSession(
       finishedSeen = true;
       const line = exits.finished?.(session.state);
       if (typeof line === 'string' && line !== '') hud.endScreen.useContext(line);
+      if (typeof line === 'object') {
+        hud.endScreen.useHeadline(line.headline);
+        if (line.line !== '') hud.endScreen.useContext(line.line);
+      }
+      if (next !== undefined) hud.endScreen.useRematch('mine', nextLabel());
     }
     // Whose the next match is can change as the summary shows: a host who leaves takes it.
     if (next === undefined) hud.endScreen.useRematch(session.rematch, exits.waitLabel);

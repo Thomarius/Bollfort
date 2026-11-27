@@ -268,8 +268,9 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
   level with more firepower in place of lives, a co-op team failing together; every style's own
   ships and grunts, firing its own cannonballs, the supporter styles' in their package; CA12's
   tools: the campaign's statistics, and bots playing levels and whole campaigns headless, solo,
-  `FleetAim` their aim); the users' online co-op session next, its recordings to fit the bots'
-  aim at ships before CA12's numbers are read. A mode of its own: never a change to versus rules or
+  `FleetAim` their aim; a person away from a co-op level played at once, a level's own end screen,
+  How to play's Campaign tab); the users' online co-op session next, its recordings to fit the bots'
+  aim at ships before CA12's numbers are read; the open work in order in PLAN §11 item 14. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
   listed and a room's code with the real server, a tournament match's end and a person's Rematch.

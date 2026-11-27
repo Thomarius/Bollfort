@@ -1050,5 +1050,20 @@
   "campaign.freeRetry": "In de erste Rund verlorn: des kost nix.",
   "campaign.castleTaken": "E Burch is gefalle!",
   "campaign.finishedTitle": "Feldzüch, die rum sin",
-  "campaign.view": "Gucke"
+  "campaign.view": "Gucke",
+  "campaign.levelLost": "Level verlorn",
+  "campaign.colGround": "Land",
+  "campaign.colGuns": "Kanone",
+  "campaign.colShips": "Schiffe",
+  "campaign.colGrunts": "Soldate",
+  "campaign.colBonus": "Bonus",
+  "campaign.sunkKind": "{kind} versenkt: {n} vun {of}",
+  "campaign.gruntsOf": "Soldate verkloppt: {n} vun {of}",
+  "campaign.castlesTaken": "Burche, die die Soldate gehole hawwe: {n}",
+  "campaign.campaignEnd": "Zum End vum Feldzuch",
+  "howTo.section.campaign": "Feldzuch",
+  "howTo.ships": "Schiffe schieße uff dei Mauern. Ziel, wo se hiefahrn.",
+  "howTo.shipKinds": "Versenk die Truppeschiffe zuerst an de Küst. Uff Eis baut mer net.",
+  "howTo.grunts": "Soldate haue aamol pro Kampf zu. Abschieße odder eimauern.",
+  "howTo.threat": "Drück die Flott unner die Linie: Level gepackt."
 }

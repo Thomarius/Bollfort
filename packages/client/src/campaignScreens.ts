@@ -147,6 +147,7 @@ export function campaignMenuMarkup(
       <button id="start-campaign" class="primary">${withIcon('play', t('campaign.start'))}</button>
       <h2>${t('campaign.resumeTitle')}</h2>
       ${list}
+      <button id="campaign-how" class="quiet">${withIcon('help', t('menu.howToPlay'))}</button>
       <button id="back" class="quiet" data-back>${withIcon('back', t('campaign.back'))}</button>
     </div>`;
 }
@@ -214,20 +215,39 @@ function recordLines(record: LevelRecord): string {
       </ul>`;
 }
 
-/** A level cleared: its record, and on to the next. */
-export function summaryMarkup(save: CampaignSave): string {
-  const record = save.history[save.history.length - 1];
-  if (record === undefined) return '';
-  return `
-    <div class="menu campaign-summary">
-      <h1>${t('campaign.cleared', { n: save.stage })}</h1>
-      ${recordLines(record)}
-      <p class="note">${escape(t('campaign.score', { n: teamTotal(save) }))}</p>
-      <div class="split">
-        <button id="next-level" class="primary">${withIcon('play', t('campaign.next'))}</button>
-      </div>
-      <button id="back" class="quiet" data-back>${withIcon('back', t('campaign.menu'))}</button>
-    </div>`;
+/**
+ * A level just over, for its end screen (docs/CAMPAIGN.md CA12): the headline, and a line on what
+ * it means for the campaign — the score, the continues left, the free try or the campaign's end.
+ * `before` is the campaign as the level began, `after` with its result recorded.
+ */
+export function levelEndText(
+  config: CampaignConfig,
+  before: CampaignSave,
+  after: CampaignSave,
+  cleared: boolean,
+): { headline: string; line: string } {
+  const n = before.stage + 1;
+  const headline = cleared ? t('campaign.cleared', { n }) : t('campaign.lost', { n });
+  const line = after.finished
+    ? won(config, after)
+      ? t('campaign.victory')
+      : t('campaign.over')
+    : cleared
+      ? t('campaign.score', { n: teamTotal(after) })
+      : freeRetry(after)
+        ? t('campaign.freeRetry')
+        : standing(config, after);
+  return { headline, line };
+}
+
+/**
+ * Where the end screen's main button leads once a level is over: the next level; the level again,
+ * free or for a continue; or, the campaign over or won, its end.
+ */
+export function levelEndButton(after: CampaignSave): TextKey {
+  if (after.finished) return 'campaign.campaignEnd';
+  if (after.defeated) return freeRetry(after) ? 'campaign.tryAgain' : 'campaign.continueLevel';
+  return 'campaign.next';
 }
 
 /** Each level cleared and its points, for a campaign's end. */

@@ -5,7 +5,8 @@ import { t } from './i18n.js';
 import type { TextKey } from '@bollfort/config';
 import { escape } from './html.js';
 import { avatarImg } from './steam/avatars.js';
-import { defaultArtConfig } from '@bollfort/config';
+import { defaultArtConfig, defaultConfigBundle } from '@bollfort/config';
+import { campaignEndView, type CampaignEndView } from './campaignEnd.js';
 import { AWARD_ICONS, ICONS, withIcon } from './icons.js';
 import { motionReduced } from './motion.js';
 import { fitTitles } from './fitText.js';
@@ -98,6 +99,13 @@ export class EndScreen {
 
   useContext(line: string): void {
     this.context = line;
+  }
+
+  /** The headline in place of the match's own: a campaign level's, which only its flow can name. */
+  private headline: string | null = null;
+
+  useHeadline(text: string): void {
+    this.headline = text;
   }
 
   onRematch(handler: () => void): void {
@@ -275,6 +283,8 @@ export class EndScreen {
    */
   private chart(state: MatchState, humanPlayer: number): string {
     const log = this.log;
+    // A campaign's scores run on from level to level: its chart is this level's points alone.
+    const carried = (id: number): number => state.ruleset.campaign?.carry.scores[id] ?? 0;
     this.roundTips = [];
     if (log === null || log.scores.length < 2) return '';
     const teamed = isTeamMatch(state);
@@ -286,7 +296,7 @@ export class EndScreen {
     const series = groups.map((ids, key) => ({
       key,
       scores: log.scores.map((round) =>
-        ids.reduce((sum, id) => sum + (round.byPlayer[id] ?? 0), 0),
+        ids.reduce((sum, id) => sum + (round.byPlayer[id] ?? 0) - carried(id), 0),
       ),
     }));
     const rounds = log.scores.length;
@@ -381,6 +391,8 @@ export class EndScreen {
     teamed: boolean,
     avatars: ReadonlyMap<number, string>,
   ): string {
+    const level = campaignEndView(state, this.log, defaultConfigBundle.campaign);
+    if (level !== null) return this.campaignMarkup(state, humanPlayer, level, avatars);
     const text = escape(endOfMatchText(state, humanPlayer));
     const place = yourPlace(state, humanPlayer);
     // Only a log that saw the match: one that heard no resolution — a jump straight to
@@ -532,6 +544,84 @@ export class EndScreen {
         ? ''
         : `<p class="tournament-line">${ICONS.trophy}<span>${escape(this.context)}</span></p>`) +
       `${table}${this.awardsMarkup(state, humanPlayer)}${this.chart(state, humanPlayer)}` +
+      `<div class="end-buttons">${this.buttons()}</div></div>` +
+      `<div class="peek-bar"><span>${text}</span><button class="peek">${withIcon('eye', t('end.showSummary'))}</button></div>`
+    );
+  }
+
+  /**
+   * A campaign level's end (docs/CAMPAIGN.md CA12), in place of versus play's standings and
+   * awards: the level won or lost, what it means for the campaign, each player's points by where
+   * they came from — and the team's, in co-op — what became of the fleet, the level's points
+   * round by round, and the way on.
+   */
+  private campaignMarkup(
+    state: MatchState,
+    humanPlayer: number,
+    level: CampaignEndView,
+    avatars: ReadonlyMap<number, string>,
+  ): string {
+    const text = escape(
+      this.headline ?? t(level.cleared ? 'campaign.levelCleared' : 'campaign.levelLost'),
+    );
+    const cells = (r: Omit<CampaignEndView['rows'][number], 'player'>): string =>
+      [r.ground, r.guns, r.ships, r.grunts, r.bonus].map((n) => `<td>${n}</td>`).join('') +
+      `<td class="total" data-count="${r.total}">${r.total}</td>`;
+    const rows = level.rows
+      .map((r) => {
+        const name =
+          r.player === humanPlayer ? t('hud.you') : (state.players[r.player]?.name ?? '');
+        const colour = playerCssColour(r.player);
+        return (
+          `<tr class="${r.player === humanPlayer ? 'you' : ''}">` +
+          `<td class="who">${shapeSvg(playerShape(r.player), colour)}${avatarImg(avatars.get(r.player))}<span class="name">${escape(name)}</span></td>` +
+          `${cells(r)}</tr>`
+        );
+      })
+      .join('');
+    const sum = (pick: (r: CampaignEndView['rows'][number]) => number): number =>
+      level.rows.reduce((total, r) => total + pick(r), 0);
+    const team =
+      level.rows.length < 2
+        ? ''
+        : `<tr class="team"><td class="who"><span class="name">${escape(t('campaign.team'))}</span></td>` +
+          cells({
+            ground: sum((r) => r.ground),
+            guns: sum((r) => r.guns),
+            ships: sum((r) => r.ships),
+            grunts: sum((r) => r.grunts),
+            bonus: sum((r) => r.bonus),
+            total: sum((r) => r.total),
+          }) +
+          `</tr>`;
+    const heading = (key: TextKey): string => `<th>${t(key)}</th>`;
+    const head =
+      `<tr class="head"><th></th>${heading('campaign.colGround')}${heading('campaign.colGuns')}` +
+      `${heading('campaign.colShips')}${heading('campaign.colGrunts')}${heading('campaign.colBonus')}` +
+      `${heading('hud.colPoints')}</tr>`;
+    const kinds: TextKey[] = ['campaign.raiders', 'campaign.transports', 'campaign.frostships'];
+    const fleet = kinds
+      .map((kind, k) => ({ kind, n: level.sunk[k] ?? 0, of: level.arrived[k] ?? 0 }))
+      .filter((line) => line.of > 0)
+      .map(
+        (line) =>
+          `<li>${escape(t('campaign.sunkKind', { kind: t(line.kind), n: line.n, of: line.of }))}</li>`,
+      );
+    if (level.gruntsLanded > 0) {
+      fleet.push(
+        `<li>${escape(t('campaign.gruntsOf', { n: level.gruntsBeaten, of: level.gruntsLanded }))}</li>`,
+      );
+    }
+    if (level.castlesTaken > 0) {
+      fleet.push(`<li>${escape(t('campaign.castlesTaken', { n: level.castlesTaken }))}</li>`);
+    }
+    return (
+      `<div class="banner summary campaign-end">` +
+      `<h2 class="headline">${text}</h2>` +
+      (this.context === null ? '' : `<p class="campaign-line">${escape(this.context)}</p>`) +
+      `<table class="final campaign-points">${head}${rows}${team}</table>` +
+      (fleet.length === 0 ? '' : `<ul class="campaign-fleet">${fleet.join('')}</ul>`) +
+      `${this.chart(state, humanPlayer)}` +
       `<div class="end-buttons">${this.buttons()}</div></div>` +
       `<div class="peek-bar"><span>${text}</span><button class="peek">${withIcon('eye', t('end.showSummary'))}</button></div>`
     );

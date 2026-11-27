@@ -29,10 +29,12 @@ import {
   campaignMenuMarkup,
   defeatMarkup,
   introMarkup,
-  summaryMarkup,
+  levelEndButton,
+  levelEndText,
   victoryMarkup,
 } from './campaignScreens.js';
 import { t } from './i18n.js';
+import { openHowToPlay } from './howToPlay.js';
 import { drawMapPreview } from './campaignMap.js';
 import { openCampaignRoom } from './lobbyFlow.js';
 import { readCommon } from './menu.js';
@@ -110,6 +112,10 @@ export function openCampaignMenu(exits: CampaignExits, notice: string | null = n
       confirming = null;
     } else if (button.classList.contains('cancel-delete')) {
       confirming = null;
+    } else if (button.id === 'campaign-how') {
+      // How to play at the campaign's own pages (CA13), over this screen.
+      openHowToPlay(undefined, () => audio.play('select'), 'campaign');
+      return;
     } else if (button.id === 'back') {
       leave();
       exits.menu();
@@ -174,20 +180,6 @@ function showCampaign(save: CampaignSave, exits: CampaignExits, notice: string |
   });
 }
 
-/** The summary of a level just cleared, then on to the next. */
-function showSummary(save: CampaignSave, exits: CampaignExits, notice: string | null): void {
-  audio.music('music_menu');
-  if (save.finished) {
-    showCampaign(save, exits, notice);
-    return;
-  }
-  app!.innerHTML = summaryMarkup(save);
-  wire({
-    'next-level': () => showCampaign(save, exits, notice),
-    back: () => exits.menu(),
-  });
-}
-
 /** The buttons of a campaign screen, by id; each plays the click before it goes. */
 function wire(handlers: Record<string, () => void>): void {
   for (const [id, go] of Object.entries(handlers)) {
@@ -216,21 +208,26 @@ function playLevel(save: CampaignSave, ruleset: Ruleset, exits: CampaignExits): 
   let after = save;
   let saved = true;
   const matchExits: MatchExits = {
-    // Recorded and saved the moment the level is over, before its summary shows.
+    // Recorded and saved the moment the level is over, before its end screen shows.
     finished: (state) => {
       after = recordLevel(config, save, levelOutcome(state), new Date().toISOString());
       saved = writeCampaign(after);
-      return state.endedBy === 'level_cleared' ? t('campaign.cleared', { n: save.stage + 1 }) : '';
+      return levelEndText(config, save, after, state.endedBy === 'level_cleared');
     },
     // Left before the end: nothing recorded, the level played again from its start.
     leave: () => showCampaign(save, exits, t('campaign.replayNote')),
     leaveConfirm: 'campaign.leaveConfirm',
+    // The end screen leads straight on (CA12): the next level's intro, the level again — a
+    // continue spent on it unless it is free — or the campaign's end.
     next: {
-      label: 'campaign.continue',
+      label: () => levelEndButton(after),
       go: () => {
-        const notice = saved ? null : t('campaign.couldNotSave');
-        if (after.defeated || after.finished) showCampaign(after, exits, notice);
-        else showSummary(after, exits, notice);
+        let notice = saved ? null : t('campaign.couldNotSave');
+        if (after.defeated && !after.finished) {
+          const retried = continueLevel(config, after, new Date().toISOString());
+          if (!writeCampaign(retried)) notice = t('campaign.couldNotSave');
+          showCampaign(retried, exits, notice);
+        } else showCampaign(after, exits, notice);
       },
     },
     back: () => exits.menu(),

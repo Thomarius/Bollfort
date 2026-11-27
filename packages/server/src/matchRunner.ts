@@ -7,6 +7,7 @@ import {
 } from '@bollfort/protocol';
 import {
   applyAction,
+  awayAction,
   drainEvents,
   hashMatchState,
   step,
@@ -104,6 +105,16 @@ export class MatchRunner {
       return playsItself ? this.bots.get(player) : null;
     })) {
       if (rejection === null) applied.push(action);
+    }
+
+    // A campaign gives nobody's seat to a bot: a person away past the grace has their castle and
+    // guns chosen at once instead (`awayAction`, CAMPAIGN §13), the team not kept waiting.
+    if (state.campaign !== null) {
+      for (const seat of this.seats) {
+        if (seat.bot || seat.connection !== null || seat.graceTicks > 0) continue;
+        const action = awayAction(state, seat.playerId);
+        if (action !== null && applyAction(state, action) === null) applied.push(action);
+      }
     }
 
     for (const { seat, action } of this.pending) {
