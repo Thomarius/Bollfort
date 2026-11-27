@@ -19,7 +19,8 @@ import type { ThemeMaker } from '../styles/definition.js';
 import { release } from './release.js';
 import { FortifiedDisplay } from './fortified.js';
 import { TowerMarks } from './towerMarks.js';
-import { CampaignMarks, fleetShotsAsShots } from './campaignMarks.js';
+import { CampaignMarks, FleetLayer, fleetShotsAsShots } from './campaignMarks.js';
+import { DroneMarks } from './drones.js';
 import {
   hex,
   playerColour,
@@ -78,6 +79,13 @@ interface Slot {
    * to confine it (`render`): a renderer that is not WebGL's.
    */
   mask: Graphics;
+  /** The campaign's ships and grunts in this look, the top of its root (`FleetLayer`). */
+  fleet: FleetLayer;
+  /**
+   * The Drone Towers' drones and missiles in this look, put into the towers' layer while it is on
+   * screen (`applyVisibility`), where they stay between the emblems and the waves.
+   */
+  drones: DroneMarks;
   /**
    * The layers that changed while it was hidden, to be redrawn before it is shown. By
    * layer, since terrain changes only with the window and is each style's dearest drawing:
@@ -221,7 +229,10 @@ export class Scene {
    * kept last under the camera as looks come and go.
    */
   private readonly towers = new TowerMarks();
-  /** A campaign's ships, one plain layer over every look until a style draws its own (CA3). */
+  /**
+   * A campaign's ships and grunts as they move, shared by both looks; each look draws them in
+   * its own `FleetLayer`, so a wipe changes their style only as its banner passes over them.
+   */
   private readonly campaign = new CampaignMarks();
   /** The Fortified Towers as the styles draw them: wall with small guns on top. */
   private readonly fortified = new FortifiedDisplay();
@@ -256,7 +267,7 @@ export class Scene {
     this.app.ticker.autoStart = false;
     this.app.ticker.stop();
     this.app.stage.addChild(this.cameraRoot);
-    this.cameraRoot.addChild(this.campaign.root, this.towers.root);
+    this.cameraRoot.addChild(this.towers.root);
 
     const build = await this.slotFor(looks.build);
     const combat = looks.combat === looks.build ? build : await this.slotFor(looks.combat);
@@ -300,6 +311,8 @@ export class Scene {
    */
   private drop(slot: Slot): void {
     slot.theme.destroy();
+    slot.fleet.destroy();
+    slot.drones.destroy();
     release(slot.root);
     slot.mask.destroy();
     BigPool.clear();
@@ -373,6 +386,9 @@ export class Scene {
     // only the stage's short list of looks rather than every drawing in both.
     const root = new Container({ isRenderGroup: true });
     const backdrop = new Graphics();
+    // The fleet over everything of the look's, Night's darkness included, which its ships are
+    // tinted for (`FleetLook.tint`).
+    const fleet = new FleetLayer();
     root.addChild(
       backdrop,
       layers.terrain,
@@ -380,6 +396,7 @@ export class Scene {
       layers.structures,
       layers.effects,
       layers.overlay,
+      fleet.root,
     );
     // Out of sight, and off the stage, until shown (`applyVisibility`).
     root.visible = false;
@@ -399,6 +416,8 @@ export class Scene {
       backdrop,
       layers,
       mask,
+      fleet,
+      drones: new DroneMarks(),
       stale: new Set(BOARD_LAYERS),
       warming: [],
       effectsPrimed: false,
@@ -471,11 +490,17 @@ export class Scene {
       // own frame, outside its share, up to 168 ms of one, and the warming found it done
       // (PLAN §11 item 3, P1). Off the stage it is rendered only by the warming.
       if (slot.root.visible && slot.root.parent !== this.cameraRoot) {
-        // Under the campaign's ships and the towers' marks, which stay over every look.
-        this.cameraRoot.addChildAt(slot.root, this.cameraRoot.getChildIndex(this.campaign.root));
+        // Under the towers' marks, which stay over every look.
+        this.cameraRoot.addChildAt(slot.root, this.cameraRoot.getChildIndex(this.towers.root));
       } else if (!slot.root.visible && slot.root.parent !== null) {
         slot.root.parent.removeChild(slot.root);
       }
+      // Its drones in the towers' layer while it is on screen, cut at the line by the scissor
+      // with the look (`render`). A mask cuts only the look's root, so without the scissor only
+      // the arriving look's drones are shown, over both.
+      const drones = slot.root.visible && (!masked || slot === this.slots[this.shown.to]);
+      if (drones) this.towers.droneLayer.addChild(slot.drones.root);
+      else slot.drones.root.removeFromParent();
       clearDrawn(slot.mask);
       if (!masked || line === null || !slot.root.visible) {
         slot.root.mask = null;
@@ -560,6 +585,15 @@ export class Scene {
       choices: [],
       drain: [],
     });
+    slot.fleet.draw(this.campaign.frame, this.view, slot.art, slot.theme.fleet);
+    slot.drones.draw(
+      last.state,
+      this.view,
+      slot.art,
+      last.humanPlayer,
+      last.tickFraction,
+      slot.theme.drone,
+    );
     this.renderOffscreen(slot.root);
   }
 
@@ -713,17 +747,18 @@ export class Scene {
       choices,
       drain,
     };
-    // The towers' marks in the colours of the look in front, as its banner brings it, and its
-    // drones.
+    // The towers' marks in the colours of the look in front, as its banner brings it; each look's
+    // drones below in its own.
     const front = this.slots[this.shown.to];
     const art = front.art;
     this.towers.draw(state, this.view, art, humanPlayer);
     this.towers.drawWaves(state, this.view, art, tickFraction);
-    this.towers.drawDrones(state, this.view, art, humanPlayer, tickFraction, front.theme.drone);
     this.towers.drawEffects(this.view, deltaMs);
-    this.campaign.draw(state, this.view, art, tickFraction, deltaMs, front.theme.fleet);
+    const fleet = this.campaign.advance(state, tickFraction, deltaMs, art.campaign.fadeMs);
     const shown = this.drawnState(state);
     for (const slot of this.visible()) {
+      slot.fleet.draw(fleet, this.view, slot.art, slot.theme.fleet);
+      slot.drones.draw(state, this.view, slot.art, humanPlayer, tickFraction, slot.theme.drone);
       slot.theme.drawEffects(shown, this.view, {
         tickFraction,
         deltaMs,
@@ -980,19 +1015,26 @@ export class Scene {
     const restore = this.scissorScreenOnly(gl);
     gl.enable(gl.SCISSOR_TEST);
     try {
-      from.root.visible = false;
+      // Each pass with one look's board and drones, the towers' other marks over both.
+      this.showSlot(from, false);
       gl.scissor(0, height - above, width, above);
       this.app.renderer.render(this.app.stage);
-      from.root.visible = true;
-      to.root.visible = false;
+      this.showSlot(from, true);
+      this.showSlot(to, false);
       gl.scissor(0, 0, width, height - above);
       this.app.renderer.render(this.app.stage);
     } finally {
-      to.root.visible = true;
-      from.root.visible = true;
+      this.showSlot(to, true);
+      this.showSlot(from, true);
       restore();
       gl.disable(gl.SCISSOR_TEST);
     }
+  }
+
+  /** Shows or hides one look for a pass of a wipe: its board and its drones. */
+  private showSlot(slot: Slot, shown: boolean): void {
+    slot.root.visible = shown;
+    slot.drones.root.visible = shown;
   }
 
   /**

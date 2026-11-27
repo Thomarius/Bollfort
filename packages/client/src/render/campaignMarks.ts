@@ -16,10 +16,10 @@ import type { FleetLook } from './fleetLooks.js';
 import { hex, tileX, tileY, type ViewTransform } from './theme.js';
 
 /**
- * The campaign's enemy drawn plainly over every style (docs/CAMPAIGN.md §14.4), until a style
- * draws its own: the ships, one design told apart by size and sail colour, the same on every
- * board. Stamped — a ship is drawn once per kind and tile size, then only placed and turned — so
- * a fleet of twenty costs no triangulation a frame (CLAUDE.md, Drawing a style cheaply).
+ * The campaign's enemy on the board (docs/CAMPAIGN.md §14.4): its motion, shared by both looks
+ * (`CampaignMarks`), and each look's drawing of it (`FleetLayer`) — the style's own ships and
+ * grunts where it has them, and plainly where it has none: one design told apart by size and sail
+ * colour, the same on every board.
  */
 
 /** A ship gone from the match, still fading where it was last seen: recycled at the coast. */
@@ -74,14 +74,53 @@ interface GruntTrack {
 /** A grunt's shadow. */
 const SHADOW = 0x000000;
 
+/** A ship as one frame draws it, in tiles, its centre. */
+interface ShipMark {
+  ship: Ship;
+  x: number;
+  y: number;
+  heading: number;
+  alpha: number;
+  scale?: number;
+  /** How far it lists as it goes down, in radians. */
+  list?: number;
+  /** The heading's step, where it is under way and leaves a wake. */
+  wake: readonly [number, number] | null;
+  /** How far through a hit's splinters it is, where it was just hit. */
+  hit: number | null;
+}
+
+/** A grunt as one frame draws it, in tiles, its centre. */
+interface GruntMark {
+  x: number;
+  y: number;
+  bob: number;
+  alpha: number;
+  facing: number;
+  smashing: boolean;
+}
+
+/**
+ * What one frame shows of the enemy, worked out once (`CampaignMarks.advance`) and drawn in each
+ * look on screen (`FleetLayer.draw`): during a wipe both, each cut to its side of the banner.
+ */
+export interface FleetFrame {
+  ships: ShipMark[];
+  /** Foam spreading where a ship went down, radius in tiles. */
+  rings: { x: number; y: number; radius: number; alpha: number }[];
+  grunts: GruntMark[];
+  /** Puffs where grunts were killed, radius in tiles. */
+  poofs: { x: number; y: number; radius: number; alpha: number }[];
+}
+
+const NO_FLEET: FleetFrame = { ships: [], rings: [], grunts: [], poofs: [] };
+
+/**
+ * The enemy as it moves on screen: where each ship and grunt was drawn, what is fading, sinking,
+ * splintering or smashing. Shared by both looks and advanced once a frame, so a ship is at the
+ * same place in the same state either side of a banner; only the drawing is each look's own.
+ */
 export class CampaignMarks {
-  readonly root = new Container({ label: 'campaign' });
-  private readonly book = new StampBook();
-  /** Foam, wakes and shadows on the water, under the ships. */
-  private readonly water = new Discs();
-  private readonly ships = new Stamps();
-  /** Splinters, smoke and the fleet's balls in the air, over the ships. */
-  private readonly air = new Discs();
   /** Where each ship was drawn last frame, by id, so one gone fades out there. */
   private seen = new Map<number, { ship: Ship; x: number; y: number; heading: number }>();
   private leaving: Leaving[] = [];
@@ -94,10 +133,8 @@ export class CampaignMarks {
   private smashes = new Map<number, number>();
   /** Grunts just killed, where, and how long ago. */
   private poofs: { x: number; y: number; age: number }[] = [];
-
-  constructor() {
-    this.root.addChild(this.water.container, this.ships.container, this.air.container);
-  }
+  /** The last frame worked out, for a look primed before it is seen. */
+  frame: FleetFrame = NO_FLEET;
 
   /** A ship hit: splinters fly from it a moment. */
   noteHit(shipId: number): void {
@@ -127,15 +164,8 @@ export class CampaignMarks {
     });
   }
 
-  draw(
-    state: MatchState,
-    view: ViewTransform,
-    art: ArtConfig,
-    tickFraction: number,
-    deltaMs: number,
-    /** The front look's own drawing of the enemy, where it has one; the shared one otherwise. */
-    style: FleetLook | undefined = undefined,
-  ): void {
+  /** Moves everything on by `deltaMs`, and works out the frame to draw (`frame`). */
+  advance(state: MatchState, tickFraction: number, deltaMs: number, fadeMs: number): FleetFrame {
     const fleet = state.campaign;
     const idle =
       this.seen.size === 0 &&
@@ -143,15 +173,11 @@ export class CampaignMarks {
       this.sinking.length === 0 &&
       this.tracks.size === 0 &&
       this.poofs.length === 0;
-    if (fleet === null && idle) return;
-    const tile = view.tile;
-    const look = art.campaign;
-    const fadeTicks = (look.fadeMs / 1000) * state.ruleset.tickRateHz;
+    if (fleet === null && idle) return (this.frame = NO_FLEET);
+    const fadeTicks = (fadeMs / 1000) * state.ruleset.tickRateHz;
     const now = state.tick + tickFraction;
     const moving = !motionReduced();
-    this.water.begin(tile);
-    this.ships.begin();
-    this.air.begin(tile);
+    const frame: FleetFrame = { ships: [], rings: [], grunts: [], poofs: [] };
 
     const seen = new Map<number, { ship: Ship; x: number; y: number; heading: number }>();
     for (const ship of fleet?.ships ?? []) {
@@ -166,12 +192,18 @@ export class CampaignMarks {
           : [ship.run.dx, ship.run.dy];
       const heading = HEADINGS.findIndex(([dx, dy]) => dx === hx && dy === hy);
       const sailing = ship.run !== null && (b.x !== a.x || b.y !== a.y);
-      if (sailing && moving) this.drawWake(view, x, y, hx, hy, look.wake);
       const alpha = Math.min(1, (now - ship.arrivedTick) / Math.max(1, fadeTicks));
-      this.place(view, art, style, ship, x, y, heading, { alpha });
-      seen.set(ship.id, { ship, x, y, heading });
       const hit = this.hits.get(ship.id);
-      if (hit !== undefined) this.drawHit(view, x, y, hit / HIT_MS, look.hull);
+      frame.ships.push({
+        ship,
+        x,
+        y,
+        heading,
+        alpha,
+        wake: sailing && moving ? [hx, hy] : null,
+        hit: hit === undefined ? null : hit / HIT_MS,
+      });
+      seen.set(ship.id, { ship, x, y, heading });
     }
     for (const [id, age] of this.hits) {
       if (age + deltaMs >= HIT_MS || !seen.has(id)) this.hits.delete(id);
@@ -180,55 +212,52 @@ export class CampaignMarks {
 
     // Ships gone since the last frame and not sunk fade where they were: recycled at the coast.
     for (const [id, last] of this.seen) {
-      if (!seen.has(id)) this.leaving.push({ ...last, left: look.fadeMs });
+      if (!seen.has(id)) this.leaving.push({ ...last, left: fadeMs });
     }
     this.seen = seen;
     this.leaving = this.leaving.filter((l) => (l.left -= deltaMs) > 0);
     for (const l of this.leaving) {
-      const alpha = l.left / Math.max(1, look.fadeMs);
-      this.place(view, art, style, l.ship, l.x, l.y, l.heading, { alpha });
+      const alpha = l.left / Math.max(1, fadeMs);
+      frame.ships.push({ ...l, alpha, wake: null, hit: null });
     }
 
     // Sinking: it lists, settles and goes under, a ring of foam spreading where it was.
     this.sinking = this.sinking.filter((s) => (s.age += deltaMs) < SINK_MS);
     for (const s of this.sinking) {
       const p = s.age / SINK_MS;
-      const ring = moving ? 0.6 + p * 1.4 : 1.2;
-      this.water.disc(
-        tileX(view, s.x),
-        tileY(view, s.y),
-        tile * ring,
-        hex(look.wake),
-        0.5 * (1 - p),
-      );
-      this.place(view, art, style, s.ship, s.x, s.y, s.heading, {
+      frame.rings.push({
+        x: s.x,
+        y: s.y,
+        radius: moving ? 0.6 + p * 1.4 : 1.2,
+        alpha: 0.5 * (1 - p),
+      });
+      frame.ships.push({
+        ship: s.ship,
+        x: s.x,
+        y: s.y,
+        heading: s.heading,
         alpha: 1 - p,
         scale: 1 - 0.45 * p,
         list: moving ? p * 0.5 : 0,
+        wake: null,
+        hit: p < 0.4 ? p / 0.4 : null,
       });
-      if (p < 0.4) this.drawHit(view, s.x, s.y, p / 0.4, look.hull);
     }
 
-    this.drawGrunts(view, art, style, fleet?.grunts ?? [], deltaMs, moving);
-
-    this.water.end();
-    this.ships.end();
-    this.air.end();
+    this.advanceGrunts(frame, fleet?.grunts ?? [], deltaMs, moving);
+    return (this.frame = frame);
   }
 
   /**
    * The grunts: each slid from its last tile to its new one as it steps, bobbing, faded in as it
    * lands, its club brought down as it smashes; a puff where one was killed.
    */
-  private drawGrunts(
-    view: ViewTransform,
-    art: ArtConfig,
-    style: FleetLook | undefined,
+  private advanceGrunts(
+    frame: FleetFrame,
     grunts: readonly Grunt[],
     deltaMs: number,
     moving: boolean,
   ): void {
-    const tile = view.tile;
     const tracks = new Map<number, GruntTrack>();
     for (const grunt of grunts) {
       const old = this.tracks.get(grunt.id);
@@ -240,32 +269,15 @@ export class CampaignMarks {
             : { ...old, since: old.since + deltaMs };
       tracks.set(grunt.id, track);
       const p = moving ? Math.min(1, track.since / STEP_MS) : 1;
-      const x = track.fromX + (track.x - track.fromX) * p + 0.5;
       const bob = !track.landed && p < 1 ? Math.sin(p * Math.PI) * 0.12 : 0;
-      const y = track.fromY + (track.y - track.fromY) * p + 0.5 - bob;
-      const smashing = this.smashes.has(grunt.id);
-      const pose = smashing ? 'smash' : 'stand';
-      // A style's grunt is drawn facing up and turned; the shared one is drawn for each facing.
-      const body =
-        style === undefined
-          ? this.book.get(`grunt:${pose}:${grunt.facing}`, tile, (g) =>
-              drawGrunt(g, tile, art, grunt.facing, smashing),
-            )
-          : this.book.get(`grunt:${style.key}:${pose}`, tile, (g) =>
-              style.grunt(g, tile, art, smashing),
-            );
-      const alpha = track.landed ? Math.min(1, track.since / LAND_MS) : 1;
-      this.water.disc(tileX(view, x), tileY(view, y + 0.3 + bob), tile * 0.22, SHADOW, 0.2 * alpha);
-      this.ships.place(
-        body,
-        this.snap(view, style, tileX(view, x), view.originX),
-        this.snap(view, style, tileY(view, y), view.originY),
-        {
-          alpha,
-          rotation: style === undefined ? 0 : (grunt.facing * Math.PI) / 2,
-          ...(style?.tint === undefined ? {} : { tint: style.tint }),
-        },
-      );
+      frame.grunts.push({
+        x: track.fromX + (track.x - track.fromX) * p + 0.5,
+        y: track.fromY + (track.y - track.fromY) * p + 0.5 - bob,
+        bob,
+        alpha: track.landed ? Math.min(1, track.since / LAND_MS) : 1,
+        facing: grunt.facing,
+        smashing: this.smashes.has(grunt.id),
+      });
     }
     this.tracks = tracks;
     for (const [id, age] of this.smashes) {
@@ -275,9 +287,123 @@ export class CampaignMarks {
     this.poofs = this.poofs.filter((p) => (p.age += deltaMs) < POOF_MS);
     for (const poof of this.poofs) {
       const p = poof.age / POOF_MS;
-      const radius = tile * (0.2 + p * 0.45);
-      this.air.disc(tileX(view, poof.x), tileY(view, poof.y), radius, 0xb8b0a8, 0.6 * (1 - p));
+      frame.poofs.push({ x: poof.x, y: poof.y, radius: 0.2 + p * 0.45, alpha: 0.6 * (1 - p) });
     }
+  }
+}
+
+/**
+ * One look's drawing of the enemy, the top of its layers (`Scene.slotFor`): so a wipe's scissor,
+ * or its mask, cuts the ships and grunts at the banner's line with the rest of the look, and each
+ * changes style only as the banner passes over it. Stamped — a ship is drawn once per kind and
+ * tile size, then only placed and turned — so a fleet of twenty costs no triangulation a frame
+ * (CLAUDE.md, Drawing a style cheaply). A render group of its own, so its stamps coming and going
+ * every frame rebuild only its own short draw list, not the whole look's.
+ */
+export class FleetLayer {
+  readonly root = new Container({ label: 'campaign', isRenderGroup: true });
+  private readonly book = new StampBook();
+  /** Foam, wakes and shadows on the water, under the ships. */
+  private readonly water = new Discs();
+  private readonly ships = new Stamps();
+  /** Splinters, smoke and the fleet's balls in the air, over the ships. */
+  private readonly air = new Discs();
+  /** Whether anything was drawn last time, so an empty frame after an empty one costs nothing. */
+  private drawn = false;
+
+  constructor() {
+    this.root.addChild(this.water.container, this.ships.container, this.air.container);
+  }
+
+  draw(
+    frame: FleetFrame,
+    view: ViewTransform,
+    art: ArtConfig,
+    /** The look's own drawing of the enemy, where it has one; the shared one otherwise. */
+    style: FleetLook | undefined,
+  ): void {
+    const empty = frame === NO_FLEET;
+    if (empty && !this.drawn) return;
+    this.drawn = !empty;
+    const tile = view.tile;
+    const look = art.campaign;
+    this.water.begin(tile);
+    this.ships.begin();
+    this.air.begin(tile);
+    for (const s of frame.ships) {
+      if (s.wake !== null) this.drawWake(view, s.x, s.y, s.wake[0], s.wake[1], look.wake);
+    }
+    for (const ring of frame.rings) {
+      this.water.disc(
+        tileX(view, ring.x),
+        tileY(view, ring.y),
+        tile * ring.radius,
+        hex(look.wake),
+        ring.alpha,
+      );
+    }
+    for (const s of frame.ships) {
+      this.place(view, art, style, s);
+      if (s.hit !== null) this.drawHit(view, s.x, s.y, s.hit, look.hull);
+    }
+    for (const g of frame.grunts) this.placeGrunt(view, art, style, g);
+    for (const poof of frame.poofs) {
+      this.air.disc(
+        tileX(view, poof.x),
+        tileY(view, poof.y),
+        tile * poof.radius,
+        0xb8b0a8,
+        poof.alpha,
+      );
+    }
+    this.water.end();
+    this.ships.end();
+    this.air.end();
+  }
+
+  destroy(): void {
+    this.water.destroy();
+    this.ships.destroy();
+    this.air.destroy();
+    this.book.destroy();
+    this.root.destroy();
+  }
+
+  /** A grunt, its shadow under it; a style's is drawn facing up and turned. */
+  private placeGrunt(
+    view: ViewTransform,
+    art: ArtConfig,
+    style: FleetLook | undefined,
+    g: GruntMark,
+  ): void {
+    const tile = view.tile;
+    const pose = g.smashing ? 'smash' : 'stand';
+    // A style's grunt is drawn facing up and turned; the shared one is drawn for each facing.
+    const body =
+      style === undefined
+        ? this.book.get(`grunt:${pose}:${g.facing}`, tile, (d) =>
+            drawGrunt(d, tile, art, g.facing, g.smashing),
+          )
+        : this.book.get(`grunt:${style.key}:${pose}`, tile, (d) =>
+            style.grunt(d, tile, art, g.smashing),
+          );
+    this.water.disc(
+      tileX(view, g.x),
+      tileY(view, g.y + 0.3 + g.bob),
+      tile * 0.22,
+      SHADOW,
+      0.2 * g.alpha,
+    );
+    this.ships.place(
+      body,
+      this.snap(view, style, tileX(view, g.x), view.originX),
+      this.snap(view, style, tileY(view, g.y), view.originY),
+      {
+        alpha: g.alpha,
+        rotation: style === undefined ? 0 : (g.facing * Math.PI) / 2,
+        ...(style?.tint === undefined ? {} : { tint: style.tint }),
+      },
+    );
   }
 
   /** Splinters and a puff of smoke thrown out from a ship, `p` of the way through. */
@@ -304,26 +430,23 @@ export class CampaignMarks {
   }
 
   /**
-   * A ship at its centre (x, y), heading one of the eight ways. The shared drawing is turned to
-   * the heading; a style's in pixels is its straight or its diagonal sprite turned by quarter
-   * turns, its sails marked by the hits taken, on the style's pixel grid, tinted as its board is.
+   * A ship at its centre, heading one of the eight ways. The shared drawing is turned to the
+   * heading; a style's in pixels is its straight or its diagonal sprite turned by quarter turns,
+   * its sails marked by the hits taken, on the style's pixel grid, tinted as its board is.
    */
   private place(
     view: ViewTransform,
     art: ArtConfig,
     style: FleetLook | undefined,
-    ship: Ship,
-    x: number,
-    y: number,
-    heading: number,
-    options: { alpha: number; scale?: number; list?: number },
+    mark: ShipMark,
   ): void {
     const tile = view.tile;
+    const { ship, x, y, heading } = mark;
     const { kind } = ship;
-    const list = options.list ?? 0;
+    const list = mark.list ?? 0;
     const placed = {
-      alpha: options.alpha,
-      ...(options.scale === undefined ? {} : { scale: options.scale }),
+      alpha: mark.alpha,
+      ...(mark.scale === undefined ? {} : { scale: mark.scale }),
     };
     if (style === undefined) {
       const body = this.book.get(`ship:${kind}`, tile, (g) => drawShip(g, tile, art, kind));
@@ -356,8 +479,8 @@ export class CampaignMarks {
       const back = 0.55 / Math.hypot(hx, hy);
       const lx = tileX(view, x - hx * back);
       const ly = tileY(view, y - hy * back);
-      this.air.disc(lx, ly, tile * 0.4, style.lantern, 0.22 * options.alpha);
-      this.air.disc(lx, ly, tile * 0.1, style.lantern, 0.9 * options.alpha);
+      this.air.disc(lx, ly, tile * 0.4, style.lantern, 0.22 * mark.alpha);
+      this.air.disc(lx, ly, tile * 0.1, style.lantern, 0.9 * mark.alpha);
     }
   }
 

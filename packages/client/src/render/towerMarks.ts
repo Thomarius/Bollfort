@@ -22,7 +22,6 @@ import { Container, Graphics } from 'pixi.js';
 import { motionReduced } from '../motion.js';
 import { EMBLEMS } from '../towerIcons.js';
 import { clearDrawn } from './clearDrawn.js';
-import { DroneMarks, type DroneLook } from './drones.js';
 import { viewKey } from './stamps.js';
 import { drawSnowflake } from './yule.js';
 import {
@@ -528,8 +527,12 @@ export class TowerMarks {
   private wavesShown = false;
   /** The towers' emblems, drawn again only when one changes. */
   private readonly emblems = new Graphics();
-  /** The Drone Towers' drones and missiles, every frame while any tower or missile is. */
-  private readonly drones = new DroneMarks();
+  /**
+   * Where the Drone Towers' drones and missiles go, between the emblems and the waves: each look
+   * draws its own (`DroneMarks`, one a slot), and the scene puts the looks on screen here, so a
+   * wipe shows each look's drones on its own side of the banner (`Scene.render`).
+   */
+  readonly droneLayer = new Container({ label: 'drones' });
   /** The ghost's emblem, every frame while there is one. */
   private readonly ghost = new Graphics();
   /** The effects, every frame while any plays. */
@@ -547,7 +550,7 @@ export class TowerMarks {
       this.droneArea,
       this.ice,
       this.emblems,
-      this.drones.root,
+      this.droneLayer,
       this.waves,
       this.sleep,
       this.effects,
@@ -656,18 +659,6 @@ export class TowerMarks {
    * glide. Read from the match, where the waves are, so nothing is kept here; cleared once, then
    * left alone, while there are none.
    */
-  /** The Drone Towers' drones and missiles (`drones.ts`), between ticks by `tickFraction`. */
-  drawDrones(
-    state: MatchState,
-    view: ViewTransform,
-    art: ArtConfig,
-    humanPlayer: number,
-    tickFraction: number,
-    look?: DroneLook,
-  ): void {
-    this.drones.draw(state, view, art, humanPlayer, tickFraction, look);
-  }
-
   drawWaves(state: MatchState, view: ViewTransform, art: ArtConfig, tickFraction: number): void {
     if (state.waves.length === 0) {
       if (this.wavesShown) clearDrawn(this.waves);
