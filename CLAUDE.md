@@ -256,13 +256,14 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
 - **The users' play of the first supporter style** (2026-11-14), then the next styles (SP4).
 - **Campaign mode** (PLAN §11 item 14; `docs/CAMPAIGN.md`, approved 2026-11-25): one to three
   people against an enemy fleet over six levels, co-op online, saved between levels; being built,
-  CA1–CA11 done (a solo level on its own generated map against ships that sail,
+  CA1–CA11 and CA15 done (a solo level on its own generated map against ships that sail,
   fire and sink, grunts that land and smash, frost ships' ice, a level cleared by the fleet's
   threat or its round limit; a campaign of levels with its screens and saves, the menu's Campaign
   button behind `campaign.menuButton`; the first playtest's fixes; Medieval's and Night's fleet, the threat gauge, the callouts;
   co-op in campaign rooms, protocol 39, CA10 and CA11 built together; the second playtest's
   changes: grunts striking once a battle and taking unheld castles, continues that replay a lost
-  level with more firepower in place of lives, a co-op team failing together); the users' online co-op
+  level with more firepower in place of lives, a co-op team failing together; every style's own
+  ships and grunts, firing its own cannonballs, the supporter styles' in their package); the users' online co-op
   session next, then CA12. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games

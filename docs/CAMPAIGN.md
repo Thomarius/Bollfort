@@ -1092,7 +1092,7 @@ level all but lost it). Every change in the campaign only, on protocol 40 and sa
   deals the rest among everyone, fewest guns first; `resolveRound` fails a campaign's team only
   when no player holds a castle, and the ground is shared among all (`shareGround`).
 
-**CA15 drawn** (2026-11-27), for the user's look: every base style but Medieval and Night, which
+**CA15 done** (2026-11-27, approved by the user): every base style but Medieval and Night, which
 keep their pixel fleet, brings a `FleetLook` of its own (`render/fleets/<style>.ts`, the Wild
 West's in its folder; `BASE_FLEETS` in `render/fleets/index.ts`), drawn with one kit
 (`render/fleets/kit.ts`: the kinds' measures, hull forms, a bellied sail, the hits' marks, the
@@ -1102,7 +1102,8 @@ headings (a look in pixels still by quarter turns, its diagonal a sprite of its 
 shots are every style's own cannonballs (the user's): the scene adds them to the players' shots it
 hands the styles (`withFleetShots`), with no owner and no gun, so the shared ball is gone.
 `?fleet=preview` shows every style's ships and grunts enlarged, and on a board of its own with two
-shots in flight (`fleetPreview.ts`).
+shots in flight (`fleetPreview.ts`). The ten supporter styles bring theirs in the private package
+(`supporter/src/<style>/fleet.ts`), seen there with `?supporter=1`.
 
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
