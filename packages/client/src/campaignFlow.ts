@@ -9,6 +9,7 @@ import {
   continueLevel,
   levelSetup,
   newCampaign,
+  levelOutcome,
   recordLevel,
   recordingTag,
   won,
@@ -33,7 +34,6 @@ import {
 } from './campaignScreens.js';
 import { t } from './i18n.js';
 import { drawMapPreview } from './campaignMap.js';
-import { outcomeOf } from './campaignRoom.js';
 import { openCampaignRoom } from './lobbyFlow.js';
 import { readCommon } from './menu.js';
 import { runSession, type MatchExits } from './matchScreen.js';
@@ -218,7 +218,7 @@ function playLevel(save: CampaignSave, ruleset: Ruleset, exits: CampaignExits): 
   const matchExits: MatchExits = {
     // Recorded and saved the moment the level is over, before its summary shows.
     finished: (state) => {
-      after = recordLevel(config, save, outcomeOf(state), new Date().toISOString());
+      after = recordLevel(config, save, levelOutcome(state), new Date().toISOString());
       saved = writeCampaign(after);
       return state.endedBy === 'level_cleared' ? t('campaign.cleared', { n: save.stage + 1 }) : '';
     },

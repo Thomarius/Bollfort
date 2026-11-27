@@ -34,6 +34,7 @@ import {
 
 import type { IslandCentres } from './botTurn.js';
 import { rivalsOf, ticksFor } from './botTurn.js';
+import { FleetAim } from './fleetAim.js';
 import { weakestWall } from './tactics.js';
 
 /**
@@ -45,8 +46,12 @@ export class Gunner {
     private readonly playerId: number,
     private readonly profile: BotProfile,
     private readonly islands: IslandCentres,
-  ) {}
+  ) {
+    this.fleet = new FleetAim(playerId, profile);
+  }
 
+  /** Its aim at a campaign's fleet, which has no walls of rivals to breach. */
+  private readonly fleet: FleetAim;
   private nextShotTick = 0;
   /** The tick each of its guns was first seen ready since it last fired. */
   private readonly readySince = new Map<number, number>();
@@ -79,6 +84,11 @@ export class Gunner {
     }
     if (!ready || state.tick < this.nextShotTick) return null;
 
+    if (state.campaign !== null) {
+      const at = this.fleet.aim(state, rng);
+      this.nextShotTick = state.tick + ticksFor(this.profile.fireIntervalMs, state);
+      return at === null ? null : { kind: 'fire', player: this.playerId, x: at.x, y: at.y };
+    }
     const aimed = this.pickTarget(state, rng);
     this.nextShotTick = state.tick + ticksFor(this.profile.fireIntervalMs, state);
     if (aimed === null || aimed.kind !== 'fire') return aimed;

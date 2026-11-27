@@ -2013,7 +2013,12 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     saved between levels, co-op online through rooms, no bots in its seats. A mode of its own:
     nothing of it reaches versus play or tournaments. Its work packages CA1–CA15 are in
     CAMPAIGN.md §16; CA10 and CA11 were built together (co-op in campaign rooms, protocol 39), the
-    users' online co-op session next, then CA12. After the second playtest (2026-11-26, CAMPAIGN.md
+    users' online co-op session next. CA12's tools are built (2026-11-27): the campaign's columns
+    in the statistics and a row per level (`--level-table`), and bots playing levels and whole
+    campaigns headless (`--campaign N|all`), solo, with an aim of their own at the fleet; the
+    first sweep is in CAMPAIGN.md §16. Its bots hit 85–88 % of their shots at sea, surely more
+    than people: the session's recordings fit their misses before the numbers are tuned. After
+    the second playtest (2026-11-26, CAMPAIGN.md
     §16): grunts strike once a battle at a random moment and no longer turn as it opens, they take
     the castles nobody held; continues replay a lost level from its start with more firepower, in
     place of lives; a co-op team fails together, only holding no castle at all; protocol 40. CA15

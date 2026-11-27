@@ -53,6 +53,8 @@ npm start     -w @bollfort/server   # serves the built client at http://localhos
 npm start     -w @bollfort/headless -- --matches 8 --players 3 --level 5 --stats out.csv
 npm start     -w @bollfort/headless -- --map --players 3 --seed 2   # print a map as ASCII
 npm start     -w @bollfort/headless -- --map --campaign 6 --players 1 --seed 2   # a campaign level's map
+npm start     -w @bollfort/headless -- --campaign all --difficulty normal --level 5,7 --matches 10   # whole campaigns by bots, solo
+npm start     -w @bollfort/headless -- --campaign 4 --level 7 --firepower 1 --level-table l.csv   # one campaign level by bots
 npm start     -w @bollfort/headless -- --replay recordings/ --stats human.csv   # recorded human play
 npm start     -w @bollfort/headless -- --replay recordings/ --level-table levels.csv   # campaign levels played, a row each
 npm start     -w @bollfort/headless -- --replay recordings/ --achievements   # the Steam achievements each seat would have earned
@@ -264,8 +266,10 @@ history was rewritten without AI attribution lines before v0.10.0, the old hashe
   co-op in campaign rooms, protocol 39, CA10 and CA11 built together; the second playtest's
   changes: grunts striking once a battle and taking unheld castles, continues that replay a lost
   level with more firepower in place of lives, a co-op team failing together; every style's own
-  ships and grunts, firing its own cannonballs, the supporter styles' in their package); the users' online co-op
-  session next, then CA12. A mode of its own: never a change to versus rules or
+  ships and grunts, firing its own cannonballs, the supporter styles' in their package; CA12's
+  tools: the campaign's statistics, and bots playing levels and whole campaigns headless, solo,
+  `FleetAim` their aim); the users' online co-op session next, its recordings to fit the bots'
+  aim at ships before CA12's numbers are read. A mode of its own: never a change to versus rules or
   hashes. Where the design lacks a number, the local reference notes it names are the fallback.
 - **An online session** (PLAN §11 item 5, to be scheduled with the users): the open games
   listed and a room's code with the real server, a tournament match's end and a person's Rematch.

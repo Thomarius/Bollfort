@@ -41,7 +41,7 @@ import { MatchRecorder } from '@bollfort/protocol';
 
 import { repoRoot, usageError, wholeNumber } from './cli.js';
 import { replayAchievements, replayAll } from './replay.js';
-import { summariseLevels } from './campaign.js';
+import { runCampaigns, summariseLevels } from './campaign.js';
 import { runTournaments } from './tournament.js';
 import { summariseStats } from './summary.js';
 import {
@@ -70,8 +70,13 @@ interface Args {
   seed: number;
   maxTicks: number;
   map: boolean;
-  /** A campaign level, 1 to 6, whose map `--map` prints; null for versus play's. */
-  campaign: number | null;
+  /**
+   * A campaign level, 1 to 6, whose map `--map` prints or which bots play alone; `all`, whole
+   * campaigns played by bots (CA12); null for versus play.
+   */
+  campaign: number | 'all' | null;
+  /** A campaign level's firepower, as continues would have raised it. */
+  firepower: number;
   difficulty: CampaignDifficulty;
   /** Skill level per seat, repeating if shorter than the table. */
   levels: number[];
@@ -189,6 +194,7 @@ const USAGE =
   'usage: npm start -w @bollfort/headless -- [--matches N] [--players N] [--seed N] ' +
   '[--max-ticks N] [--max-rounds N|none] [--teams N] [--level 1-10[,...]] ' +
   '[--personality offensive|dealt|...[,...]] [--specials on|off] [--special bertha2|bertha3|architect2|architect3|lightning2|lightning3|biggest2|biggest3|laser2|laser3|frost2|frost3|lullaby2|lullaby3|subwoofer2|subwoofer3|drone2|drone3|none|random[,...]] [--plans 1,0[,...]] [--set path=json ...] [--stats FILE] [--outcomes FILE] [--record DIR] [--map [--campaign 1-6 [--difficulty easy|normal|veteran|legend]]]\n' +
+  '       npm start -w @bollfort/headless -- --campaign 1-6|all [--difficulty D] [--level 1-10[,...]] [--matches N] [--seed N] [--firepower 0-4] [--stats FILE] [--level-table FILE]\n' +
   '       npm start -w @bollfort/headless -- --replay recordings/ [more files or dirs] [--stats FILE] [--level-table FILE] [--achievements]\n' +
   '       npm start -w @bollfort/headless -- --tournament [--help for its flags]';
 
@@ -248,6 +254,7 @@ function parseArgs(argv: string[]): Args {
     maxTicks: number('max-ticks', 150_000, 1),
     map: values.map === true,
     campaign: campaignLevel(values.campaign),
+    firepower: number('firepower', 0, 0),
     difficulty: campaignDifficulty(values.difficulty),
     levels,
     personalities,
@@ -300,6 +307,7 @@ const FLAGS = {
   outcomes: { type: 'string' },
   map: { type: 'boolean' },
   campaign: { type: 'string' },
+  firepower: { type: 'string' },
   difficulty: { type: 'string' },
   replay: { type: 'boolean' },
   achievements: { type: 'boolean' },
@@ -453,7 +461,25 @@ ${levels.length} level(s) written to ${args.levelTable}`);
   process.exit(0);
 }
 
+if (args.campaign !== null && !args.map) {
+  // Campaign levels played by bots, solo (docs/CAMPAIGN.md CA12): each `--level` in turn.
+  if (args.players !== 1) usageError('--campaign plays one bot: co-op bots are not measured');
+  runCampaigns(bundle, {
+    campaign: args.campaign,
+    difficulty: args.difficulty,
+    levels: args.levels,
+    matches: args.matches,
+    seed: args.seed,
+    firepower: args.firepower,
+    maxTicks: args.maxTicks,
+    stats: args.stats,
+    levelTable: args.levelTable,
+  });
+  process.exit(0);
+}
+
 if (args.map && args.campaign !== null) {
+  if (args.campaign === 'all') usageError('--map prints one level: --campaign 1-6');
   // A campaign level's map (docs/CAMPAIGN.md §3): `--players` 1 to 3.
   const rules = campaignRuleset(bundle.campaign, bundle.ruleset, {
     difficulty: args.difficulty,
@@ -772,9 +798,10 @@ if (unfinished > 0) {
   );
 }
 
-/** `--campaign N`: a campaign level, 1 to 6. */
-function campaignLevel(value: string | undefined): number | null {
+/** `--campaign N`: a campaign level, 1 to 6, or `all`. */
+function campaignLevel(value: string | undefined): number | 'all' | null {
   if (value === undefined) return null;
+  if (value === 'all') return 'all';
   const level = wholeNumber('campaign', value, 1);
   if (level > CAMPAIGN_LEVELS) usageError(`--campaign wants 1-${CAMPAIGN_LEVELS}`);
   return level;

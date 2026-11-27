@@ -1,5 +1,5 @@
 import type { CampaignConfig, CampaignDifficulty } from '@bollfort/config';
-import { streamFor } from '@bollfort/sim';
+import { streamFor, type MatchState } from '@bollfort/sim';
 
 import { newCarry, startingContinues, type CampaignLevelSetup } from './ruleset.js';
 import { CAMPAIGN_SAVE_VERSION, type CampaignSave, type LevelRecord } from './save.js';
@@ -102,6 +102,19 @@ export interface LevelOutcome {
   shape: string;
   sunk: readonly [number, number, number];
   grunts: number;
+}
+
+/** How the match left the level, for the campaign's record: a page's and the harness's alike. */
+export function levelOutcome(state: MatchState): LevelOutcome {
+  const fleet = state.campaign;
+  return {
+    cleared: state.endedBy === 'level_cleared',
+    scores: state.players.map((p) => p.score),
+    rounds: state.round,
+    shape: state.ruleset.campaign?.shape ?? 'coast',
+    sunk: fleet === null ? [0, 0, 0] : [...fleet.sunk],
+    grunts: fleet?.gruntsKilled ?? 0,
+  };
 }
 
 /**

@@ -2,13 +2,13 @@ import { defaultConfigBundle, type CampaignLevelRules } from '@bollfort/config';
 import {
   campaignRuleset,
   continueLevel,
+  levelOutcome,
   levelSetup,
   parseCampaignSave,
   recordLevel,
   type CampaignSave,
 } from '@bollfort/campaign';
 import type { CampaignSetup, Seat, ServerMessage } from '@bollfort/protocol';
-import type { MatchState } from '@bollfort/sim';
 
 import { app, audio } from './app.js';
 import { browserId } from './browserId.js';
@@ -132,7 +132,7 @@ export class CampaignRoom {
       finished: (state) => {
         if (host && before !== null) {
           after = {
-            ...recordLevel(config, before, outcomeOf(state), new Date().toISOString()),
+            ...recordLevel(config, before, levelOutcome(state), new Date().toISOString()),
             // The labels in the save, the names the people played under.
             players: state.players.map((p) => ({ name: p.name })),
           };
@@ -172,19 +172,6 @@ function readSave(json: string): CampaignSave | null {
   } catch {
     return null;
   }
-}
-
-/** How the match left the level, for the campaign's record. */
-export function outcomeOf(state: MatchState): Parameters<typeof recordLevel>[2] {
-  const fleet = state.campaign;
-  return {
-    cleared: state.endedBy === 'level_cleared',
-    scores: state.players.map((p) => p.score),
-    rounds: state.round,
-    shape: state.ruleset.campaign?.shape ?? 'coast',
-    sunk: fleet === null ? [0, 0, 0] : [...fleet.sunk],
-    grunts: fleet?.gruntsKilled ?? 0,
-  };
 }
 
 /**

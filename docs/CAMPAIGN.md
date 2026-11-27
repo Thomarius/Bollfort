@@ -1135,6 +1135,39 @@ limit gets a row for that last battle; `levelRows` (`analysis/src/levels.ts`) su
 `--replay … --level-table FILE` writes them, the console listing each. The header's `campaign`
 (`recordingTag` in `run.ts`) is written by the client and, from the host's save, by the room.
 
+**CA12's bots built** (2026-11-27): `FleetAim` (`ai/src/fleetAim.ts`), the `Gunner`'s aim whenever
+the match is a campaign's, ranks as the user did — a transport at the coast or bound for it, a
+grunt facing the team's wall or an unheld castle before its blow, any other ship, any other grunt
+— leads a ship along its present run, and leaves a ship its shots in the air will sink. Its misses
+are `ownAccuracy` taken as the share of shots led right, a miss not led or led a tile off: assumed,
+to be fitted to the sessions' hits on ships for shots at sea. `--campaign N` plays one level from a
+fresh start (`--firepower`; the rounds before it as if each earlier level went to its limit, which
+from level 3 on puts the grunts' allowance and the ice at their ceiling); `--campaign all` whole
+campaigns through `run.ts`, a bot's stream drawn afresh for each try. `levelOutcome` moved from
+the client into `run.ts`, shared. **Grunts in a solo plan**: a bot's rollout steps the real sim, so
+in solo play it sees the grunts land and walk as they will; a Level 5's 13 planned phases of level
+4, among 78 grunts, were played exactly as planned, none left. A teammate's pieces would turn them
+in ways no plan sees, so co-op bots stay out.
+
+**The first sweep** (2026-11-27, ten whole campaigns per bot level and difficulty, balanced bots,
+seeds 1–10): campaigns won, stages cleared of six (mean), continues spent (mean).
+
+| Bot | Easy            | Normal         | Veteran        | Legend       |
+| --- | --------------- | -------------- | -------------- | ------------ |
+| L3  | 10/10, 6.0, 7.1 | 0/10, 3.9, 4.0 | 0/10, 2.2, 4.0 | 0/10, 1.1, — |
+| L5  | 10/10, 6.0, 3.9 | 1/10, 4.8, 4.0 | 0/10, 3.9, 4.0 | 0/10, 1.4, — |
+| L7  | 10/10, 6.0, 5.2 | 7/10, 5.6, 3.0 | 4/10, 4.9, 3.7 | 0/10, 2.1, — |
+| L9  | 10/10, 6.0, 1.7 | 9/10, 5.9, 2.7 | 6/10, 5.6, 3.0 | 0/10, 2.4, — |
+| L10 | 10/10, 6.0, 1.3 | 8/10, 5.8, 1.9 | 8/10, 5.8, 2.2 | 3/10, 3.7, — |
+
+Progress rises with the bot's level and falls with the difficulty, as the user asked; Easy, with
+continues unlimited, is always won in the end, its measure the continues spent. The wins are
+far more than the user's "very low", but the bots hit **85–88 % of their shots at sea**, which is
+very probably far above people: the sessions' recordings decide. Levels end by the threat
+almost always (round limit 27 of 1513 levels, nearly all on level 2, about one try in eight there:
+its 5 rounds). The levels lost most: 4 (45–64 %), 5 (49–57 %) and the final battle (58–71 %, but
+25 % of Legend's four tries); level 4 lands the most grunts, 47–70 a try.
+
 | #    | Package                                                                                                                                                                                                                                     | Done when                                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | CA1  | **Config and a one-player match**: `campaign.default.json` and schemas, `ruleset.campaign`, players 1, `createMatch` with campaign state, `checkGameOver`'s campaign branch, `LocalMatch` for one player, `?campaign=1&level=N&difficulty=` | a one-player match runs rounds without ending at once, on a versus map |
