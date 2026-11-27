@@ -2007,7 +2007,7 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     - **Not to be built: a trophy cabinet** of the cups won (the user's, 2026-11-23): a cup won
       is shown once, at the tournament's end, and its save goes with it.
 
-14. **Campaign mode — being built, CA1–CA11 done** (the user's, 2026-11-25; `docs/CAMPAIGN.md`): one to
+14. **Campaign mode — being built, CA1–CA11 and CA15 done** (the user's, 2026-11-25; `docs/CAMPAIGN.md`): one to
     three people against an enemy fleet — raiders, transports landing grunts, frost ships leaving
     ice — over six levels on generated maps shared in co-op, four difficulty settings, progress
     saved between levels, co-op online through rooms, no bots in its seats. A mode of its own:
@@ -2016,7 +2016,10 @@ fit (ARCHIVE 12z), its remaining steps dropped (the user's decision, 2026-10-14;
     users' online co-op session next, then CA12. After the second playtest (2026-11-26, CAMPAIGN.md
     §16): grunts strike once a battle at a random moment and no longer turn as it opens, they take
     the castles nobody held; continues replay a lost level from its start with more firepower, in
-    place of lives; a co-op team fails together, only holding no castle at all; protocol 40. **Open, for later** (CA10–CA11, 2026-11-25): co-op's
+    place of lives; a co-op team fails together, only holding no castle at all; protocol 40. CA15
+    (2026-11-27, approved by the user): every style its own ships and grunts, the supporter styles'
+    in their private package, and the fleet's shots each style's own cannonballs; `?fleet=preview`
+    shows them all. **Open, for later** (CA10–CA11, 2026-11-25): co-op's
     walls, ground and castles drawn in the first player's colour, since every style colours them by
     island and the island is the team's; a person away holding the cannon phase to its clock (§13
     asks it finished for them); the statistics' walls and frost counted by island. **Open, for later** (the user's, 2026-11-25): a campaign's own end

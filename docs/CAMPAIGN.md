@@ -29,8 +29,8 @@ orientation, not as a specification.
   bots** in campaign seats for now.
 - **The choice of the next level must mean something or not be offered** (§10): v1 goes straight
   on; an informed choice between two fronts follows as its own package.
-- **Art**: Medieval and Night first (§14); every other style gets a shared fallback drawing until
-  its own is made. **One ship design**, the three kinds told apart by size and by colours that are
+- **Art**: Medieval and Night first (§14), then every other style its own (CA15, done 2026-11-27);
+  the shared plain drawing remains for a style that brings none. **One ship design**, the three kinds told apart by size and by colours that are
   the same in every style. **Frost ships, not frost ships** (the user's, 2026-11-25): their shots
   leave the Frost Cannon's own ice blocks, drawn and refused as those are, only lasting build
   phases (§7). No new picture for it.
@@ -659,10 +659,10 @@ const CampaignSaveSchema = z.strictObject({
 
 - **Medieval and Night first**: ships, grunts, fleet shots (the style's own cannonball), sinking
   and ice in both. Night shares Medieval's drawing with its lighting.
-- **Every other style**: a **shared fallback layer** (`render/campaignMarks.ts`, like `TowerMarks`)
-  draws ships and grunts plainly, the same in every style, over the style's own board, until the
-  style gets its own. A style opts in through optional `Theme` members (`ship?`, `grunt?`), as
-  `drone?` does.
+- **Every other style** (CA15, done): its own ships and grunts, a `FleetLook` (`render/fleets/`,
+  the theme's optional `fleet`, as `drone` is), drawn by the shared layer (`render/campaignMarks.ts`)
+  with its sinking, hits and wakes; the layer's plain drawing only for a style without one. The
+  fleet's shots are every style's own cannonballs (`withFleetShots` in `scene.ts`).
 - Cheap drawing (CLAUDE.md, Drawing a style cheaply): stamps for ships and grunts, particles for
   smoke, foam and embers, nothing redrawn that has not changed. Measure with `&perf=1` at three
   players on the largest map.
@@ -1121,7 +1121,7 @@ shots in flight (`fleetPreview.ts`). The ten supporter styles bring theirs in th
 | CA12 | **Balance**: statistics, headless runs, the third difficulty decided                                                                                                                                                                        | numbers set by measurement and play                                    |
 | CA13 | **Polish**: sounds, How to play's campaign section, achievements proposed                                                                                                                                                                   | —                                                                      |
 | CA14 | **Informed choice between fronts** (§10 v2)                                                                                                                                                                                                 | **the user's play**                                                    |
-| CA15 | **Other styles' ships and grunts**                                                                                                                                                                                                          | per style, as time allows                                              |
+| CA15 | **Other styles' ships and grunts** — **done** 2026-11-27, the supporter styles' too, the fleet firing each style's own cannonballs                                                                                                          | per style, as time allows                                              |
 
 ## 17. Open questions, to settle in play
 
