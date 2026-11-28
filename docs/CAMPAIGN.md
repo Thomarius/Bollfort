@@ -247,8 +247,10 @@ Ships move **only in combat**. As combat opens, every ship without a run plans o
    `combat ticks left + 72` at that speed (6 tiles at the slowest at the battle's start, 15 at the
    fastest). It claims those tiles.
 
-When a run ends before the battle does, the ship plans the next one at once. A ship never turns
-mid-run. Its heading is re-aimed at the nearest castle at each new run.
+When a run ends before the battle does, the ship rests a whole number of seconds, 1 to 4 with
+equal chance (`fleet.timing.restMs`), then plans the next one (the user's, 2026-11-28; the
+reference's ship waits for its turn among sixteen, up to 4 s). A rest is forgotten as the next
+battle opens, when every ship sets off at once. A ship never turns mid-run. Its heading is re-aimed at the nearest castle at each new run.
 
 **The coast**: a **raider or frost ship** whose run ends next to land (an orthogonal neighbour of its
 footprint is land) during combat is **recycled** at the next build phase: it is removed and goes
@@ -1234,6 +1236,14 @@ Normal's level 4 from 0 % to 82 %. The Level 2 bot does slightly worse on level 
 Normal at firepower 1), perhaps because the continue's two cannons bring two more ships in the
 first wave. Twenty seeds a cell: ±11 points at 50 %. The bots' 85–88 % of shots at sea are very
 probably above people's, so the shape is to be read, not the levels.
+
+**A rest between runs** (2026-11-28, the user's): read again, the reference's ship-move routine
+takes one of its sixteen ship slots every quarter second, in turn, so a ship whose run ended waits
+up to 4 s for its next; its heading is fixed when it arrives, and at most seven ships are under
+sail at once. Of the three, only the wait is taken: a ship whose run ends in a battle rests 1 to
+4 whole seconds, with equal chance (`fleet.timing.restMs`), before it plans the next, where it had
+planned at once. The heading re-aimed at each run and every ship sailing stay as they are. A rest
+is not carried into the next battle. Protocol 42.
 
 **Open campaign work** (2026-11-27; PLAN §11 item 14 keeps the same list): the users' online
 co-op session; CA12's tuning — the bots' misses at ships fitted to the session's recordings, a new

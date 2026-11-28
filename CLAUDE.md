@@ -210,7 +210,7 @@ Full detail in PLAN.md §1. The parts that surprise people:
 
 The latest release is **v0.11.2** (2026-11-20): protocol 37, recording format 4; the code since is
 at protocol 41 (the Fortified Tower's 38, the campaign's rooms' 39, the campaign's continues and
-taken castles 40, a campaign level's fleet by its own rounds 41) — a test session
+taken castles 40, a campaign level's fleet by its own rounds 41, a ship's rest between runs 42) — a test session
 needs the server rebuilt and every page reloaded after either changes. Releases before v0.10.3
 were deleted with their tags, since their notes and menu named the original (ARCHIVE 15zx); the
 history was rewritten without AI attribution lines before v0.10.0, the old hashes in

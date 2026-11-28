@@ -252,6 +252,7 @@ function launch(state: MatchState, kind: ShipKind): boolean {
       heading: headingTowardsNearestCastle(state, point.x, point.y),
       run: null,
       runs: 0,
+      restUntilTick: -1,
       arrivedTick: state.tick,
       shotId: null,
       nextLandTick: 0,
@@ -301,21 +302,36 @@ function planRun(state: MatchState, ship: Ship): void {
   ship.run = run;
 }
 
-/** Ships whose runs are over stand where they ended; in a battle, they set off again at once. */
+/**
+ * Ships whose runs are over stand where they ended; in a battle, they rest a whole number of
+ * seconds drawn from `timing.restMs`, then set off again (the user's, 2026-11-28).
+ */
 function sail(state: MatchState): void {
   const fleet = fleetOf(state);
+  const inBattle = state.phase === 'combat' && state.tick < state.phaseEndTick;
   const ended = (s: Ship): boolean =>
     s.run !== null && state.tick >= s.run.startTick + s.run.tiles * s.run.ticksPerTile;
-  if (!fleet.ships.some(ended)) return;
+  const rested = (s: Ship): boolean =>
+    inBattle && s.run === null && s.restUntilTick >= 0 && state.tick >= s.restUntilTick;
+  if (!fleet.ships.some((s) => ended(s) || rested(s))) return;
   // Replaced, not changed in place, as every list a rollout might share.
   fleet.ships = fleet.ships.map((s) => ({ ...s }));
+  const rests = rulesOf(state).fleet.timing.restMs;
   for (const ship of fleet.ships) {
-    if (!ended(ship)) continue;
-    const run = ship.run as Run;
-    ship.x += run.dx * run.tiles;
-    ship.y += run.dy * run.tiles;
-    ship.run = null;
-    if (state.phase === 'combat' && state.tick < state.phaseEndTick) planRun(state, ship);
+    if (ended(ship)) {
+      const run = ship.run as Run;
+      ship.x += run.dx * run.tiles;
+      ship.y += run.dy * run.tiles;
+      ship.run = null;
+      if (inBattle) {
+        const rng = streamFor(state.seed, `campaign-rest:${ship.id}:${ship.runs}`);
+        const rest = rests[rng.nextInt(rests.length)] as number;
+        ship.restUntilTick = state.tick + ticksFor(rest, state.ruleset.tickRateHz);
+      }
+    } else if (rested(ship)) {
+      ship.restUntilTick = -1;
+      planRun(state, ship);
+    }
   }
 }
 
@@ -324,7 +340,8 @@ export function openBattle(state: MatchState): void {
   openFire(state);
   openGruntsBattle(state);
   const fleet = fleetOf(state);
-  fleet.ships = fleet.ships.map((s) => ({ ...s }));
+  // A rest left over from the last battle is forgotten: every ship sets off as this one opens.
+  fleet.ships = fleet.ships.map((s) => ({ ...s, restUntilTick: -1 }));
   for (const ship of fleet.ships) if (ship.run === null) planRun(state, ship);
 }
 

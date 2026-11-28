@@ -71,6 +71,7 @@ function ship(id: number, kind: Ship['kind'], x: number, y: number): Ship {
     heading: 0,
     run: null,
     runs: 0,
+    restUntilTick: -1,
     arrivedTick: 0,
     shotId: null,
     nextLandTick: 0,

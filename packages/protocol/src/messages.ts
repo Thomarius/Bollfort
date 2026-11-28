@@ -29,9 +29,10 @@ import { SnapshotSchema } from './snapshot.js';
  * snapshot's fleet, one player in a campaign (docs/CAMPAIGN.md §13, 2026-11-25). 40: a campaign
  * level's continues and firepower in its setup, the grunts' taken castles in the snapshot
  * (2026-11-26). 41: a campaign level's waves, grunts and ice by its own rounds, the rounds played
- * before it gone from its ruleset (2026-11-28).
+ * before it gone from its ruleset (2026-11-28). 42: a ship's rest between runs in a battle, its
+ * ruleset key and the ship's rest in the snapshot (2026-11-28).
  */
-export const PROTOCOL_VERSION = 41;
+export const PROTOCOL_VERSION = 42;
 
 /**
  * A player's intent. The server overwrites `player` with the sender's own seat before

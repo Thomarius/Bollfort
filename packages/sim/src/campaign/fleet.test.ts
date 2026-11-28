@@ -101,12 +101,60 @@ describe('the fleet', () => {
       x: 4 * 256 + Math.floor((94 * 256) / 63),
       y: 256,
     });
-    // At its run's end it stands there, and plans again while the battle lasts.
+    // At its run's end it stands there, resting before it plans again.
     for (let t = 0; t < 6 * 63; t++) {
       state.tick++;
       advanceFleet(state);
     }
-    expect(ship(state, 1)).toMatchObject({ x: 10, y: 1, runs: 2 });
+    expect(ship(state, 1)).toMatchObject({ x: 10, y: 1, run: null, runs: 1 });
+  });
+
+  it('rests one to four whole seconds after a run in a battle, then plans the next', () => {
+    const rests = new Set<number>();
+    for (let seed = 1; seed <= 40; seed++) {
+      const state = battle(stateFromAscii(CHANNEL, rules()), 3000);
+      state.seed = seed;
+      openBattle(state);
+      const end = (ship(state, 0).run?.tiles as number) * 63;
+      state.tick = end;
+      advanceFleet(state);
+      const rest = ship(state, 0).restUntilTick - end;
+      rests.add(rest);
+      // Not a tick early: it stands still until its rest is over.
+      state.tick = end + rest - 1;
+      advanceFleet(state);
+      expect(ship(state, 0)).toMatchObject({ run: null, runs: 1 });
+      state.tick = end + rest;
+      advanceFleet(state);
+      expect(ship(state, 0)).toMatchObject({ runs: 2, restUntilTick: -1 });
+    }
+    // At 30 ticks a second.
+    expect([...rests].sort((a, b) => a - b)).toEqual([30, 60, 90, 120]);
+  });
+
+  it('forgets a rest as the next battle opens, and every ship sets off at once', () => {
+    // The ship behind stops after two tiles, the one ahead of it still sailing.
+    const state = battle(
+      stateFromAscii(
+        `
+        ,,,,,,,,,,,,,,,,,,
+        SS..SS......,,,,,,
+        SS..SS......,,@@,,
+        ,,,,,,,,,,,,,,@@,,
+        `,
+        rules(),
+      ),
+      1000,
+    );
+    openBattle(state);
+    state.tick = 2 * 63;
+    advanceFleet(state);
+    expect(ship(state, 0).restUntilTick).toBeGreaterThan(state.tick);
+    state.tick++;
+    battle(state, 1000);
+    openBattle(state);
+    // Planned at once (its second run's draw), though the ship ahead still claims its way.
+    expect(ship(state, 0)).toMatchObject({ runs: 2, restUntilTick: -1 });
   });
 
   it('never turns back: with only the way it came open, it waits out the battle', () => {
@@ -126,6 +174,8 @@ describe('the fleet', () => {
     openBattle(state);
     expect(ship(state, 0).run).toMatchObject({ dx: -1, tiles: 2 });
     state.tick = 2 * 63;
+    advanceFleet(state);
+    state.tick = ship(state, 0).restUntilTick;
     advanceFleet(state);
     expect(ship(state, 0)).toMatchObject({ x: 8, run: null, runs: 2 });
   });

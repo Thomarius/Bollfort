@@ -110,6 +110,12 @@ export const FleetTimingSchema = z.strictObject({
   tileMs: z.array(z.number().int().positive()).min(1),
   /** A run may last this much beyond the battle's end. */
   runSlackMs: z.number().int().nonnegative(),
+  /**
+   * A ship whose run ends in a battle rests one of these, drawn with equal chance, before its next
+   * run (the user's, 2026-11-28: 1 to 4 whole seconds; the reference's ship waits for its turn
+   * among 16, 0 to 4 s).
+   */
+  restMs: z.array(z.number().int().nonnegative()).min(1),
 });
 export type FleetTiming = z.infer<typeof FleetTimingSchema>;
 

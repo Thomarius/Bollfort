@@ -162,6 +162,7 @@ const CampaignSnapshotSchema = z.strictObject({
         })
         .nullable(),
       runs: int.nonnegative(),
+      restUntilTick: int,
       arrivedTick: int,
       shotId: int.nonnegative().nullable(),
       nextLandTick: int,

@@ -35,6 +35,8 @@ export interface Ship {
   run: Run | null;
   /** Runs it has planned, which names each run's draw. */
   runs: number;
+  /** The tick its rest after a run in a battle ends and its next run is planned, or -1: none. */
+  restUntilTick: number;
   arrivedTick: number;
   /** Its one shot in flight, if any (CAMPAIGN §5.4). */
   shotId: number | null;
@@ -134,6 +136,7 @@ export function hashCampaign(h: Hasher, campaign: CampaignState): void {
       .i32(s.hits)
       .i32(s.heading)
       .i32(s.runs)
+      .i32(s.restUntilTick)
       .i32(s.arrivedTick)
       .nullable(s.shotId)
       .i32(s.nextLandTick);

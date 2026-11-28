@@ -13,6 +13,7 @@ function arrived(kind: Ship['kind'], id: number): MatchEvent {
     heading: 0,
     run: null,
     runs: 0,
+    restUntilTick: -1,
     arrivedTick: 0,
     shotId: null,
     nextLandTick: 0,

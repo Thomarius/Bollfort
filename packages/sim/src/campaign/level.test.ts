@@ -64,6 +64,7 @@ function solo(ruleset: Ruleset, seed = 7): MatchState {
         heading: 0,
         run: null,
         runs: 0,
+        restUntilTick: -1,
         arrivedTick: 0,
         shotId: null,
         nextLandTick: 0,

@@ -41,6 +41,7 @@ describe('campaignRuleset', () => {
           spawnStepRange: 10,
           tileMs: [2100, 1400, 1050, 850],
           runSlackMs: 2400,
+          restMs: [1000, 2000, 3000, 4000],
         },
         hitsToSink: [2, 3, 5],
         fire: { everyMs: 733, flightFactor: 1 },

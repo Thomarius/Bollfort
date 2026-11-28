@@ -184,7 +184,8 @@
       "spawnStepMin": 3,
       "spawnStepRange": 10,
       "tileMs": [2100, 1400, 1050, 850],
-      "runSlackMs": 2400
+      "runSlackMs": 2400,
+      "restMs": [1000, 2000, 3000, 4000]
     },
     "aim": {
       "base": [-10, 0, 10, 15, 0],
