@@ -77,6 +77,8 @@ interface Args {
   campaign: number | 'all' | null;
   /** A campaign level's firepower, as continues would have raised it. */
   firepower: number;
+  /** A campaign level played again after a continue: its opening cannons more (`--continued`). */
+  continued: boolean;
   difficulty: CampaignDifficulty;
   /** Skill level per seat, repeating if shorter than the table. */
   levels: number[];
@@ -194,7 +196,7 @@ const USAGE =
   'usage: npm start -w @bollfort/headless -- [--matches N] [--players N] [--seed N] ' +
   '[--max-ticks N] [--max-rounds N|none] [--teams N] [--level 1-10[,...]] ' +
   '[--personality offensive|dealt|...[,...]] [--specials on|off] [--special bertha2|bertha3|architect2|architect3|lightning2|lightning3|biggest2|biggest3|laser2|laser3|frost2|frost3|lullaby2|lullaby3|subwoofer2|subwoofer3|drone2|drone3|none|random[,...]] [--plans 1,0[,...]] [--set path=json ...] [--stats FILE] [--outcomes FILE] [--record DIR] [--map [--campaign 1-6 [--difficulty easy|normal|veteran|legend]]]\n' +
-  '       npm start -w @bollfort/headless -- --campaign 1-6|all [--difficulty D] [--level 1-10[,...]] [--matches N] [--seed N] [--firepower 0-4] [--stats FILE] [--level-table FILE]\n' +
+  '       npm start -w @bollfort/headless -- --campaign 1-6|all [--difficulty D] [--level 1-10[,...]] [--matches N] [--seed N] [--firepower 0-4 [--continued]] [--stats FILE] [--level-table FILE]\n' +
   '       npm start -w @bollfort/headless -- --replay recordings/ [more files or dirs] [--stats FILE] [--level-table FILE] [--achievements]\n' +
   '       npm start -w @bollfort/headless -- --tournament [--help for its flags]';
 
@@ -255,6 +257,7 @@ function parseArgs(argv: string[]): Args {
     map: values.map === true,
     campaign: campaignLevel(values.campaign),
     firepower: number('firepower', 0, 0),
+    continued: values.continued === true,
     difficulty: campaignDifficulty(values.difficulty),
     levels,
     personalities,
@@ -308,6 +311,7 @@ const FLAGS = {
   map: { type: 'boolean' },
   campaign: { type: 'string' },
   firepower: { type: 'string' },
+  continued: { type: 'boolean' },
   difficulty: { type: 'string' },
   replay: { type: 'boolean' },
   achievements: { type: 'boolean' },
@@ -471,6 +475,7 @@ if (args.campaign !== null && !args.map) {
     matches: args.matches,
     seed: args.seed,
     firepower: args.firepower,
+    continued: args.continued,
     maxTicks: args.maxTicks,
     stats: args.stats,
     levelTable: args.levelTable,

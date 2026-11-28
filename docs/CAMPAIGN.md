@@ -1205,6 +1205,36 @@ first battle: it lets a wave in one ship of each kind a second and stops at the 
 end, the rest arriving in the next build phase; Bollfort's arrivals at the choice's end
 (`flushArrivals`) stay, the user's choice.
 
+**The difficulty map** (2026-11-28, the user's: each level's own chance rather than how far a whole
+campaign got; `tools/headless/src/campaignSweep.ts`, the harness's `--continued`): bots of levels
+2, 4, 6, 8 and 10, balanced, on every level of every difficulty from a fresh start, at firepower 0
+to 4 (above 0 played as a continued level, its opening cannons too), 20 seeds a cell, the same
+seeds everywhere; 11,000 levels in 65 minutes on four cores, after the waves by the level's own
+rounds. The run ends by writing `sweep.html` beside its cells (`--html` again at any time): a
+heatmap per difficulty and each bot's curve across the levels or the firepower. Cleared, as a share
+of the tries past their first round; Normal (the others below it):
+
+| Level | L2 FP0 → FP4 | L4 FP0 → FP4 | L6 FP0 → FP4 | L8 FP0 → FP4 | L10 FP0 → FP4 |
+| ----- | ------------ | ------------ | ------------ | ------------ | ------------- |
+| 1     | 100 → 100    | 100 → 100    | 100 → 100    | 100 → 100    | 100 → 100     |
+| 2     | 100 → 95     | 100 → 100    | 100 → 100    | 100 → 100    | 100 → 100     |
+| 3     | 40 → 90      | 75 → 100     | 100 → 100    | 100 → 100    | 100 → 100     |
+| 4     | 0 → 82       | 25 → 85      | 60 → 100     | 90 → 100     | 95 → 100      |
+| 5     | 0 → 20       | 35 → 60      | 60 → 90      | 80 → 100     | 95 → 100      |
+| 6     | 0 → 10       | 0 → 55       | 35 → 90      | 35 → 85      | 65 → 95       |
+
+What it shows: **levels 1 and 2 are a plateau** — every bot from Level 4 clears them at every
+difficulty, level 1 in two rounds. **The steps are levels 3 → 4 and 5 → 6** (Level 6: 100, 60,
+60, 35 on Normal), level 4 and 5 alike between them. **Easy plays almost as Normal** at every
+level: its lever is the continues without limit, not the fleet. Veteran and Legend press levels 3,
+4 and the final battle (Level 6 on the final: 15 % on both at firepower 0). **Firepower buys little
+at first and much at the end**: one continue (firepower 1) moves most rows within the noise, the
+third and fourth (a first hit counting double, then treble) lift the weak bots most — the Level 2 bot on
+Normal's level 4 from 0 % to 82 %. The Level 2 bot does slightly worse on level 2 continued (100 → 84 % on
+Normal at firepower 1), perhaps because the continue's two cannons bring two more ships in the
+first wave. Twenty seeds a cell: ±11 points at 50 %. The bots' 85–88 % of shots at sea are very
+probably above people's, so the shape is to be read, not the levels.
+
 **Open campaign work** (2026-11-27; PLAN §11 item 14 keeps the same list): the users' online
 co-op session; CA12's tuning — the bots' misses at ships fitted to the session's recordings, a new
 sweep, the difficulties' levers against the targets above, level 2's round limit looked at; the

@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Campaign difficulty sweep</title>
+    <style>
+      .viz-root {
+        color-scheme: light;
+        --page: #f9f9f7;
+        --surface-1: #fcfcfb;
+        --text-primary: #0b0b0b;
+        --text-secondary: #52514e;
+        --text-muted: #898781;
+        --grid: #e1e0d9;
+        --axis: #c3c2b7;
+        --border: rgba(11, 11, 11, 0.1);
+        --series-1: #2a78d6;
+        --series-2: #eb6834;
+        --series-3: #1baf7a;
+        --series-4: #eda100;
+        --series-5: #e87ba4;
+        --empty: #f0efec;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:where(:not([data-theme='light'])) .viz-root {
+          color-scheme: dark;
+          --page: #0d0d0d;
+          --surface-1: #1a1a19;
+          --text-primary: #f0efec;
+          --text-secondary: #c3c2b7;
+          --grid: #2c2c2a;
+          --axis: #383835;
+          --border: rgba(255, 255, 255, 0.1);
+          --series-1: #3987e5;
+          --series-2: #d95926;
+          --series-3: #199e70;
+          --series-4: #c98500;
+          --series-5: #d55181;
+          --empty: #262624;
+        }
+      }
+      :root[data-theme='dark'] .viz-root {
+        color-scheme: dark;
+        --page: #0d0d0d;
+        --surface-1: #1a1a19;
+        --text-primary: #f0efec;
+        --text-secondary: #c3c2b7;
+        --grid: #2c2c2a;
+        --axis: #383835;
+        --border: rgba(255, 255, 255, 0.1);
+        --series-1: #3987e5;
+        --series-2: #d95926;
+        --series-3: #199e70;
+        --series-4: #c98500;
+        --series-5: #d55181;
+        --empty: #262624;
+      }
+      body {
+        margin: 0;
+      }
+      .viz-root {
+        background: var(--page);
+        color: var(--text-primary);
+        font:
+          14px/1.4 system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        padding: 24px 32px 48px;
+        min-height: 100vh;
+        box-sizing: border-box;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 16px;
+        margin: 0 0 4px;
+      }
+      p.note {
+        color: var(--text-secondary);
+        margin: 0 0 16px;
+        max-width: 1000px;
+      }
+      .card {
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+      }
+      .filters {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      .filters label {
+        color: var(--text-secondary);
+        font-size: 13px;
+      }
+      .seg {
+        display: inline-flex;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-left: 6px;
+      }
+      .seg button {
+        font: inherit;
+        font-size: 13px;
+        background: transparent;
+        color: var(--text-secondary);
+        border: 0;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+      .seg button + button {
+        border-left: 1px solid var(--border);
+      }
+      .seg button[aria-pressed='true'] {
+        background: var(--text-primary);
+        color: var(--surface-1);
+      }
+      .heatmaps {
+        display: flex;
+        gap: 28px;
+        flex-wrap: wrap;
+      }
+      .heat h3 {
+        font-size: 14px;
+        margin: 0 0 6px;
+        text-transform: capitalize;
+      }
+      svg text {
+        fill: var(--text-secondary);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+      }
+      svg .muted {
+        fill: var(--text-muted);
+      }
+      svg .cell:hover,
+      svg .cell:focus {
+        stroke: var(--text-primary);
+        stroke-width: 2;
+        outline: none;
+      }
+      .legend {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin: 4px 0 8px;
+        align-items: center;
+      }
+      .legend .key {
+        display: inline-block;
+        width: 16px;
+        height: 2px;
+        vertical-align: middle;
+        margin-right: 6px;
+        border-radius: 1px;
+      }
+      .ramp {
+        display: inline-block;
+        width: 160px;
+        height: 10px;
+        border-radius: 2px;
+        vertical-align: middle;
+        margin: 0 6px;
+      }
+      #tip {
+        position: fixed;
+        pointer-events: none;
+        background: var(--surface-1);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-size: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        display: none;
+        z-index: 10;
+        min-width: 160px;
+      }
+      #tip .v {
+        font-weight: 600;
+        font-size: 14px;
+      }
+      #tip .s {
+        color: var(--text-secondary);
+      }
+      #tip .row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      #tip .row .key {
+        width: 12px;
+        height: 2px;
+      }
+      .theme {
+        float: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="viz-root">
+      <div class="theme">
+        <span class="seg" id="theme"
+          ><button data-t="auto" aria-pressed="true">Auto</button
+          ><button data-t="light">Light</button><button data-t="dark">Dark</button></span
+        >
+      </div>
+      <h1>Campaign difficulty sweep</h1>
+      <p class="note">
+        Bots of levels <span id="introBots"></span> (balanced) on every campaign level of every
+        difficulty, alone and from a fresh start, at firepower <span id="introFps"></span>.
+        Firepower above 0 is played as a continued level, with the continue's two opening cannons.
+        <span id="introSeeds"></span> seeds per cell, the same seeds (maps) in every cell.
+        <b>Cleared</b> is the share of tries that got past round 1, because a level lost in its
+        first round is replayed for free. About ±<span id="introNoise"></span> points at 50%. Bots
+        hit 85–88% of their shots at sea, probably more than people do, so read the shape rather
+        than the exact levels. Thomas plays at about bot Level 6, Mausica at 2–3.
+      </p>
+
+      <div class="card">
+        <h2>Every cell, by difficulty</h2>
+        <div class="legend">
+          Cleared <span class="ramp" id="ramp"></span> 0% → 100% · a dot marks first-round losses
+          (hover for detail) · rows grouped by campaign level
+        </div>
+        <div class="heatmaps" id="heatmaps"></div>
+      </div>
+
+      <div class="card">
+        <h2>Curves</h2>
+        <div class="filters">
+          <label>Difficulty<span class="seg" id="fDiff"></span></label>
+          <label
+            >X axis<span class="seg" id="fAxis"
+              ><button data-v="level" aria-pressed="true">Campaign level</button
+              ><button data-v="fp">Firepower</button></span
+            ></label
+          >
+          <label id="fixLabel">Firepower<span class="seg" id="fFix"></span></label>
+        </div>
+        <div class="legend" id="lineLegend"></div>
+        <svg
+          id="lines"
+          width="760"
+          height="380"
+          role="img"
+          aria-label="Share cleared by bot level"
+        ></svg>
+      </div>
+      <div id="tip" role="tooltip"></div>
+    </div>
+    <script>
+      const DATA = __DATA__;
+      // Whatever the sweep played: its bots, firepowers, levels and difficulties, in order.
+      const ORDER = ['easy', 'normal', 'veteran', 'legend'];
+      const distinct = (f) => [...new Set(DATA.map(f))].sort((a, b) => a - b);
+      const DIFFS = ORDER.filter((d) => DATA.some((c) => c.d === d));
+      const BOTS = distinct((c) => c.bot);
+      const FPS = distinct((c) => c.fp);
+      const LEVELS = distinct((c) => c.lv);
+      // Five categorical slots: the curves show the first five bots, the heatmaps every one.
+      const LINE_BOTS = BOTS.slice(0, 5);
+      {
+        const list = (xs) =>
+          xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : String(xs[0]);
+        const seeds = DATA.length > 0 ? Math.min(...DATA.map((c) => c.n)) : 0;
+        document.getElementById('introBots').textContent = list(BOTS);
+        document.getElementById('introFps').textContent = list(FPS);
+        document.getElementById('introSeeds').textContent = String(seeds);
+        // One standard error at 50%, in points.
+        document.getElementById('introNoise').textContent = String(
+          Math.round(100 * Math.sqrt(0.25 / Math.max(1, seeds))),
+        );
+      }
+      const LEVEL_NAME = (l) => (l === 6 ? 'Final' : String(l));
+      const key = (d, lv, fp, bot) => `${d}|${lv}|${fp}|${bot}`;
+      const byKey = new Map(DATA.map((c) => [key(c.d, c.lv, c.fp, c.bot), c]));
+      const share = (c) => (c.n - c.lostFirst === 0 ? null : c.cleared / (c.n - c.lostFirst));
+      const NS = 'http://www.w3.org/2000/svg';
+      const el = (tag, attrs = {}, parent) => {
+        const e = document.createElementNS(NS, tag);
+        for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+        if (parent) parent.appendChild(e);
+        return e;
+      };
+      const css = (name) =>
+        getComputedStyle(document.querySelector('.viz-root')).getPropertyValue(name).trim();
+      const isDark = () => css('color-scheme') === 'dark';
+
+      // Sequential blue ramp, steps 100..700; in dark mode near zero recedes toward the dark surface.
+      const RAMP = [
+        '#cde2fb',
+        '#b7d3f6',
+        '#9ec5f4',
+        '#86b6ef',
+        '#6da7ec',
+        '#5598e7',
+        '#3987e5',
+        '#2a78d6',
+        '#256abf',
+        '#1c5cab',
+        '#184f95',
+        '#104281',
+        '#0d366b',
+      ];
+      const DARK_RAMP = [
+        '#1f2a38',
+        '#123358',
+        '#184f95',
+        '#1c5cab',
+        '#256abf',
+        '#2a78d6',
+        '#3987e5',
+        '#5598e7',
+        '#6da7ec',
+        '#86b6ef',
+        '#9ec5f4',
+        '#b7d3f6',
+        '#cde2fb',
+      ];
+      function heatColour(v) {
+        const steps = isDark() ? DARK_RAMP : RAMP;
+        const i = Math.round(v * (steps.length - 1));
+        return {
+          fill: steps[i],
+          ink: isDark() ? (i >= 8 ? '#0b0b0b' : '#f0efec') : i >= 6 ? '#ffffff' : '#0b0b0b',
+        };
+      }
+
+      const tip = document.getElementById('tip');
+      function showTip(evt, build) {
+        tip.replaceChildren();
+        build(tip);
+        tip.style.display = 'block';
+        const r = evt.target.getBoundingClientRect ? evt.target.getBoundingClientRect() : null;
+        const x = evt.clientX ?? (r ? r.right : 0),
+          y = evt.clientY ?? (r ? r.top : 0);
+        const w = tip.offsetWidth,
+          h = tip.offsetHeight;
+        tip.style.left = `${Math.min(window.innerWidth - w - 8, x + 14)}px`;
+        tip.style.top = `${Math.max(8, Math.min(window.innerHeight - h - 8, y + 14))}px`;
+      }
+      const hideTip = () => (tip.style.display = 'none');
+      const line = (parent, text, cls) => {
+        const d = document.createElement('div');
+        if (cls) d.className = cls;
+        d.textContent = text;
+        parent.appendChild(d);
+        return d;
+      };
+      function cellTip(c) {
+        return (t) => {
+          const s = share(c);
+          line(t, s === null ? '—' : `${Math.round(100 * s)}% cleared`, 'v');
+          line(t, `${c.d}, level ${LEVEL_NAME(c.lv)}, bot L${c.bot}, firepower ${c.fp}`, 's');
+          line(
+            t,
+            `${c.cleared} cleared · ${c.lost} lost later · ${c.lostFirst} lost in round 1 (of ${c.n})`,
+          );
+          line(
+            t,
+            `${c.rounds} rounds · ${c.arrived} ships arrived · ${c.grunts} grunts landed (means)`,
+          );
+        };
+      }
+
+      function drawHeatmaps() {
+        const host = document.getElementById('heatmaps');
+        host.replaceChildren();
+        const cw = 44,
+          ch = 18,
+          gap = 2,
+          groupGap = 10,
+          left = 84,
+          top = 22;
+        for (const d of DIFFS) {
+          const wrap = document.createElement('div');
+          wrap.className = 'heat';
+          const h3 = document.createElement('h3');
+          h3.textContent = d;
+          wrap.appendChild(h3);
+          const height = top + LEVELS.length * (BOTS.length * (ch + gap) + groupGap);
+          const svg = el(
+            'svg',
+            {
+              width: left + FPS.length * (cw + gap) + 4,
+              height,
+              role: 'img',
+              'aria-label': `${d}: share cleared`,
+            },
+            wrap,
+          );
+          FPS.forEach(
+            (fp, j) =>
+              (el(
+                'text',
+                { x: left + j * (cw + gap) + cw / 2, y: 14, 'text-anchor': 'middle' },
+                svg,
+              ).textContent = `FP${fp}`),
+          );
+          LEVELS.forEach((lv, g) => {
+            const y0 = top + g * (BOTS.length * (ch + gap) + groupGap);
+            const lt = el('text', { x: 0, y: y0 + ch - 4, 'font-weight': '600' }, svg);
+            lt.textContent = lv === 6 ? 'Final (6)' : `Level ${lv}`;
+            lt.style.fill = 'var(--text-primary)';
+            BOTS.forEach((bot, i) => {
+              const y = y0 + i * (ch + gap);
+              const bl = el(
+                'text',
+                { x: left - 6, y: y + ch - 5, 'text-anchor': 'end', class: 'muted' },
+                svg,
+              );
+              bl.textContent = `L${bot}`;
+              FPS.forEach((fp, j) => {
+                const x = left + j * (cw + gap);
+                const c = byKey.get(key(d, lv, fp, bot));
+                if (!c) {
+                  el('rect', { x, y, width: cw, height: ch, rx: 3, fill: 'var(--empty)' }, svg);
+                  if (i === Math.floor(BOTS.length / 2) && j === FPS.length - 1)
+                    el(
+                      'text',
+                      {
+                        x: left + (FPS.length * (cw + gap)) / 2,
+                        y: y + ch - 5,
+                        'text-anchor': 'middle',
+                        class: 'muted',
+                      },
+                      svg,
+                    ).textContent = 'not in this difficulty';
+                  return;
+                }
+                const s = share(c);
+                const col =
+                  s === null ? { fill: 'var(--empty)', ink: 'var(--text-muted)' } : heatColour(s);
+                const r = el(
+                  'rect',
+                  {
+                    x,
+                    y,
+                    width: cw,
+                    height: ch,
+                    rx: 3,
+                    fill: col.fill,
+                    class: 'cell',
+                    tabindex: 0,
+                  },
+                  svg,
+                );
+                const t = el(
+                  'text',
+                  { x: x + cw / 2, y: y + ch - 5, 'text-anchor': 'middle' },
+                  svg,
+                );
+                t.textContent = s === null ? '—' : String(Math.round(100 * s));
+                t.style.fill = col.ink;
+                t.style.pointerEvents = 'none';
+                if (c.lostFirst > 0) {
+                  const dot = el('circle', { cx: x + cw - 5, cy: y + 5, r: 2.5 }, svg);
+                  dot.style.fill = col.ink;
+                  dot.style.pointerEvents = 'none';
+                }
+                const show = (e) => showTip(e, cellTip(c));
+                r.addEventListener('pointermove', show);
+                r.addEventListener('focus', (e) => {
+                  const b = r.getBoundingClientRect();
+                  showTip({ clientX: b.right, clientY: b.top }, cellTip(c));
+                });
+                r.addEventListener('pointerleave', hideTip);
+                r.addEventListener('blur', hideTip);
+              });
+            });
+          });
+          host.appendChild(wrap);
+        }
+        const ramp = document.getElementById('ramp');
+        const stops = Array.from({ length: 11 }, (_, i) => heatColour(i / 10).fill);
+        ramp.style.background = `linear-gradient(to right, ${stops.join(',')})`;
+      }
+
+      const state = {
+        diff: DIFFS.includes('normal') ? 'normal' : DIFFS[0],
+        axis: 'level',
+        fix: FPS[0],
+      };
+      function seg(id, items, current, set) {
+        const host = document.getElementById(id);
+        host.replaceChildren();
+        for (const [v, label] of items) {
+          const b = document.createElement('button');
+          b.textContent = label;
+          b.setAttribute('aria-pressed', String(v === current));
+          b.addEventListener('click', () => set(v));
+          host.appendChild(b);
+        }
+      }
+      function drawControls() {
+        seg(
+          'fDiff',
+          DIFFS.map((d) => [d, d[0].toUpperCase() + d.slice(1)]),
+          state.diff,
+          (v) => {
+            state.diff = v;
+            if (state.axis === 'fp' && !levelsOf(v).includes(state.fix)) state.fix = levelsOf(v)[0];
+            render();
+          },
+        );
+        document.querySelectorAll('#fAxis button').forEach((b) => {
+          b.setAttribute('aria-pressed', String(b.dataset.v === state.axis));
+          b.onclick = () => {
+            state.axis = b.dataset.v;
+            state.fix =
+              state.axis === 'level'
+                ? FPS[0]
+                : levelsOf(state.diff).includes(4)
+                  ? 4
+                  : levelsOf(state.diff)[0];
+            render();
+          };
+        });
+        const fixLabel = document.getElementById('fixLabel');
+        fixLabel.firstChild.textContent = state.axis === 'level' ? 'Firepower' : 'Campaign level';
+        const items =
+          state.axis === 'level'
+            ? FPS.map((f) => [f, String(f)])
+            : levelsOf(state.diff).map((l) => [l, LEVEL_NAME(l)]);
+        seg('fFix', items, state.fix, (v) => {
+          state.fix = v;
+          render();
+        });
+      }
+      const levelsOf = (d) => LEVELS.filter((lv) => DATA.some((c) => c.d === d && c.lv === lv));
+
+      function drawLines() {
+        const svg = document.getElementById('lines');
+        svg.replaceChildren();
+        const W = 760,
+          H = 380,
+          m = { l: 48, r: 60, t: 12, b: 48 };
+        const xs = state.axis === 'level' ? levelsOf(state.diff) : FPS;
+        const xPos = (i) => m.l + (i * (W - m.l - m.r)) / (xs.length - 1);
+        const yPos = (v) => m.t + (1 - v) * (H - m.t - m.b);
+        for (let v = 0; v <= 1.0001; v += 0.25) {
+          el(
+            'line',
+            {
+              x1: m.l,
+              x2: W - m.r,
+              y1: yPos(v),
+              y2: yPos(v),
+              stroke: v === 0 ? 'var(--axis)' : 'var(--grid)',
+              'stroke-width': 1,
+            },
+            svg,
+          );
+          el(
+            'text',
+            { x: m.l - 8, y: yPos(v) + 4, 'text-anchor': 'end', class: 'muted' },
+            svg,
+          ).textContent = `${Math.round(v * 100)}%`;
+        }
+        xs.forEach(
+          (x, i) =>
+            (el(
+              'text',
+              { x: xPos(i), y: H - m.b + 22, 'text-anchor': 'middle', class: 'muted' },
+              svg,
+            ).textContent = state.axis === 'level' ? LEVEL_NAME(x) : `FP${x}`),
+        );
+        el('text', { x: (m.l + W - m.r) / 2, y: H - 4, 'text-anchor': 'middle' }, svg).textContent =
+          state.axis === 'level' ? 'Campaign level' : 'Firepower (continues)';
+        const cellAt = (bot, x) =>
+          state.axis === 'level'
+            ? byKey.get(key(state.diff, x, state.fix, bot))
+            : byKey.get(key(state.diff, state.fix, x, bot));
+        const legend = document.getElementById('lineLegend');
+        legend.replaceChildren();
+        const ends = [];
+        LINE_BOTS.forEach((bot, b) => {
+          const colour = `var(--series-${b + 1})`;
+          const pts = xs.map((x, i) => {
+            const c = cellAt(bot, x);
+            const s = c ? share(c) : null;
+            return s === null ? null : [xPos(i), yPos(s)];
+          });
+          const d = pts
+            .filter(Boolean)
+            .map((p, i) => `${i ? 'L' : 'M'}${p[0]},${p[1]}`)
+            .join('');
+          el(
+            'path',
+            { d, fill: 'none', stroke: colour, 'stroke-width': 2, 'stroke-linejoin': 'round' },
+            svg,
+          );
+          pts.forEach(
+            (p) =>
+              p &&
+              el(
+                'circle',
+                {
+                  cx: p[0],
+                  cy: p[1],
+                  r: 4,
+                  fill: colour,
+                  stroke: 'var(--surface-1)',
+                  'stroke-width': 2,
+                },
+                svg,
+              ),
+          );
+          const last = pts.filter(Boolean).at(-1);
+          if (last) ends.push({ y: last[1], x: last[0], bot, colour });
+          const item = document.createElement('span');
+          const k = document.createElement('span');
+          k.className = 'key';
+          k.style.background = colour;
+          item.appendChild(k);
+          item.appendChild(document.createTextNode(`Bot L${bot}`));
+          legend.appendChild(item);
+        });
+        // Direct labels at the line ends, nudged apart.
+        ends.sort((a, b) => a.y - b.y);
+        for (let i = 1; i < ends.length; i++)
+          if (ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
+        const floor = H - m.b - 2;
+        for (let i = ends.length - 1; i >= 0; i--) {
+          const below = i === ends.length - 1 ? floor : ends[i + 1].y - 13;
+          if (ends[i].y > below) ends[i].y = below;
+        }
+        ends.forEach((e) => {
+          const t = el('text', { x: e.x + 10, y: e.y + 4 }, svg);
+          t.textContent = `L${e.bot}`;
+          t.style.fill = 'var(--text-primary)';
+        });
+        // Crosshair with one tooltip for every series.
+        const cross = el(
+          'line',
+          { y1: m.t, y2: H - m.b, stroke: 'var(--axis)', 'stroke-width': 1, visibility: 'hidden' },
+          svg,
+        );
+        const hit = el(
+          'rect',
+          {
+            x: m.l - 20,
+            y: m.t,
+            width: W - m.l - m.r + 40,
+            height: H - m.t - m.b,
+            fill: 'transparent',
+          },
+          svg,
+        );
+        hit.addEventListener('pointermove', (evt) => {
+          const box = svg.getBoundingClientRect();
+          const px = evt.clientX - box.left;
+          let i = Math.round(((px - m.l) / (W - m.l - m.r)) * (xs.length - 1));
+          i = Math.max(0, Math.min(xs.length - 1, i));
+          cross.setAttribute('x1', xPos(i));
+          cross.setAttribute('x2', xPos(i));
+          cross.setAttribute('visibility', 'visible');
+          showTip(evt, (t) => {
+            const head =
+              state.axis === 'level'
+                ? `Level ${LEVEL_NAME(xs[i])}, firepower ${state.fix}`
+                : `Level ${LEVEL_NAME(state.fix)}, firepower ${xs[i]}`;
+            line(t, `${state.diff} · ${head}`, 's');
+            LINE_BOTS.forEach((bot, b) => {
+              const c = cellAt(bot, xs[i]);
+              const row = document.createElement('div');
+              row.className = 'row';
+              const k = document.createElement('span');
+              k.className = 'key';
+              k.style.background = `var(--series-${b + 1})`;
+              const v = document.createElement('b');
+              v.textContent = c && share(c) !== null ? `${Math.round(100 * share(c))}%` : '—';
+              const n = document.createElement('span');
+              n.className = 's';
+              n.textContent = `bot L${bot}${c && c.lostFirst ? ` (${c.lostFirst} lost in round 1)` : ''}`;
+              row.append(k, v, n);
+              t.appendChild(row);
+            });
+          });
+        });
+        hit.addEventListener('pointerleave', () => {
+          cross.setAttribute('visibility', 'hidden');
+          hideTip();
+        });
+      }
+
+      function render() {
+        drawControls();
+        drawLines();
+      }
+      document.querySelectorAll('#theme button').forEach((b) =>
+        b.addEventListener('click', () => {
+          document
+            .querySelectorAll('#theme button')
+            .forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+          if (b.dataset.t === 'auto') document.documentElement.removeAttribute('data-theme');
+          else document.documentElement.setAttribute('data-theme', b.dataset.t);
+          drawHeatmaps();
+          render();
+        }),
+      );
+      drawHeatmaps();
+      render();
+    </script>
+  </body>
+</html>

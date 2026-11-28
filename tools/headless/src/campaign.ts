@@ -40,6 +40,8 @@ export interface CampaignRun {
   seed: number;
   /** A single level's firepower, as continues would have raised it. */
   firepower: number;
+  /** A single level played again after a continue, with the continue's opening cannons. */
+  continued: boolean;
   maxTicks: number;
   stats: string | null;
   levelTable: string | null;
@@ -91,11 +93,6 @@ function playLevel(
   return state;
 }
 
-/**
- * The rounds a campaign has played before a level, as if each earlier level of the difficulty's
- * order went to its round limit — what the grunts' allowance, the waves and the ice are reckoned
- * by. From level 3 on everything it drives is at its ceiling anyway.
- */
 /** `--campaign N|all` with bots: single levels from a fresh start, or whole campaigns. */
 export function runCampaigns(bundle: ConfigBundle, run: CampaignRun): void {
   const rows: StatRow[] = [];
@@ -124,7 +121,7 @@ export function runCampaigns(bundle: ConfigBundle, run: CampaignRun): void {
             firepower: run.firepower,
             roundsPlayed: 0,
           },
-          continued: false,
+          continued: run.continued,
         };
         const id = `sim-L${botLevel}-${seed}`;
         const sampler = new RoundStats(bundle, id, seed, () => bot, 1);

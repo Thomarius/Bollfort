@@ -54,7 +54,8 @@ npm start     -w @bollfort/headless -- --matches 8 --players 3 --level 5 --stats
 npm start     -w @bollfort/headless -- --map --players 3 --seed 2   # print a map as ASCII
 npm start     -w @bollfort/headless -- --map --campaign 6 --players 1 --seed 2   # a campaign level's map
 npm start     -w @bollfort/headless -- --campaign all --difficulty normal --level 5,7 --matches 10   # whole campaigns by bots, solo
-npm start     -w @bollfort/headless -- --campaign 4 --level 7 --firepower 1 --level-table l.csv   # one campaign level by bots
+npm start     -w @bollfort/headless -- --campaign 4 --level 7 --firepower 1 --continued --level-table l.csv   # one campaign level by bots
+npx tsx tools/headless/src/campaignSweep.ts --out soaks/x [--bots 2,4,6,8,10] [--matches 20]   # every level, difficulty and firepower by bots, resumable; --summary, --html for the page
 npm start     -w @bollfort/headless -- --replay recordings/ --stats human.csv   # recorded human play
 npm start     -w @bollfort/headless -- --replay recordings/ --level-table levels.csv   # campaign levels played, a row each
 npm start     -w @bollfort/headless -- --replay recordings/ --achievements   # the Steam achievements each seat would have earned
