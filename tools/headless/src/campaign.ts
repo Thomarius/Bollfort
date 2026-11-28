@@ -96,14 +96,6 @@ function playLevel(
  * order went to its round limit — what the grunts' allowance, the waves and the ice are reckoned
  * by. From level 3 on everything it drives is at its ceiling anyway.
  */
-function roundsBefore(bundle: ConfigBundle, difficulty: CampaignDifficulty, level: number): number {
-  const order = bundle.campaign.difficulties[difficulty].levelOrder;
-  const at = order.indexOf(level);
-  return order
-    .slice(0, Math.max(0, at))
-    .reduce((sum, l) => sum + (bundle.campaign.levels[l]?.maxRounds ?? 0), 0);
-}
-
 /** `--campaign N|all` with bots: single levels from a fresh start, or whole campaigns. */
 export function runCampaigns(bundle: ConfigBundle, run: CampaignRun): void {
   const rows: StatRow[] = [];
@@ -130,7 +122,7 @@ export function runCampaigns(bundle: ConfigBundle, run: CampaignRun): void {
           carry: {
             ...carry,
             firepower: run.firepower,
-            roundsPlayed: roundsBefore(bundle, run.difficulty, level),
+            roundsPlayed: 0,
           },
           continued: false,
         };

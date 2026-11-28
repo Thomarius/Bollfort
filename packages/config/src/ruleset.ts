@@ -524,10 +524,12 @@ export const CampaignLevelSchema = z.strictObject({
   }),
   /** The first build phase deals the size schedule's pieces of this round (CAMPAIGN §7.4). */
   pieceStartRound: z.number().int().min(1),
-  /** What earlier levels left: each player's score, by player, and the rounds played. */
+  /**
+   * What earlier levels left: each player's score, by player. Not the rounds played: a level's
+   * fleet, grunts and ice count only its own (CAMPAIGN §5.2, the user's, 2026-11-28).
+   */
   carry: z.strictObject({
     scores: z.array(z.number().int()),
-    roundsPlayed: z.number().int().nonnegative(),
   }),
 });
 export type CampaignLevelRules = z.infer<typeof CampaignLevelSchema>;

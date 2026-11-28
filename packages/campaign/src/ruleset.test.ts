@@ -49,7 +49,7 @@ describe('campaignRuleset', () => {
       maxRounds: 5,
       firepower: { level: 0, shotSpeed: 1, firstHitExtra: 0, openingCannons: 0 },
       pieceStartRound: 3,
-      carry: { scores: [300], roundsPlayed: 3 },
+      carry: { scores: [300] },
     });
     // Everything else is versus play's.
     expect(ruleset.phases).toEqual(defaultRuleset.phases);

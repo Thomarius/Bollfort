@@ -64,13 +64,17 @@ describe("a frost ship's ice", () => {
     });
   });
 
-  it('lasts three build phases from the eighth round of the campaign', () => {
-    const state = stateFromAscii(
-      BOARD,
-      rules((c) => ({ ...c, carry: { ...c.carry, roundsPlayed: 8 } })),
-    );
-    freezeFromFleet(state, shotAt(1, 2));
-    expect(state.frozen[0]?.buildsLeft).toBe(3);
+  it('lasts three build phases once eight rounds of the level are played, whatever came before', () => {
+    const builds = (round: number): number | undefined => {
+      const state = stateFromAscii(BOARD, rules());
+      // The battle of `round`: the rounds before it are played.
+      state.phase = 'combat';
+      state.round = round;
+      freezeFromFleet(state, shotAt(1, 2));
+      return state.frozen[0]?.buildsLeft;
+    };
+    expect(builds(8)).toBe(2);
+    expect(builds(9)).toBe(3);
   });
 
   it('blocks pieces through its build phases, aged as each battle opens', () => {

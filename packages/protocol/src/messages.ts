@@ -28,9 +28,10 @@ import { SnapshotSchema } from './snapshot.js';
  * lanes (2026-11-21). 39: campaign rooms — a level's setup and the host's save, the
  * snapshot's fleet, one player in a campaign (docs/CAMPAIGN.md §13, 2026-11-25). 40: a campaign
  * level's continues and firepower in its setup, the grunts' taken castles in the snapshot
- * (2026-11-26).
+ * (2026-11-26). 41: a campaign level's waves, grunts and ice by its own rounds, the rounds played
+ * before it gone from its ruleset (2026-11-28).
  */
-export const PROTOCOL_VERSION = 40;
+export const PROTOCOL_VERSION = 41;
 
 /**
  * A player's intent. The server overwrites `player` with the sender's own seat before

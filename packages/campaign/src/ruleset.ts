@@ -172,7 +172,7 @@ export function campaignRuleset(
       threshold: entry.threshold * (1 + config.coopPoolFactor * (players - 1)),
       threat: { ...config.threat },
       pieceStartRound: config.pieces.levelStartRound,
-      carry: { scores: [...carry.scores], roundsPlayed: carry.roundsPlayed },
+      carry: { scores: [...carry.scores] },
     },
   });
 }

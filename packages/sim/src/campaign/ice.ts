@@ -29,8 +29,7 @@ export function freezeFromFleet(state: MatchState, shot: FleetShot): void {
   const tile = shot.toY * state.width + shot.toX;
   if (state.terrain[tile] !== Terrain.Land || state.structure[tile] !== Structure.Empty) return;
   const { early, late, lateFromRound } = (state.ruleset.campaign as CampaignLevelRules).ice;
-  const played = (state.ruleset.campaign as CampaignLevelRules).carry.roundsPlayed;
-  const builds = played + roundsInLevel(state) >= lateFromRound ? late : early;
+  const builds = roundsInLevel(state) >= lateFromRound ? late : early;
   const fresh: Freeze = {
     tile,
     share: 1,

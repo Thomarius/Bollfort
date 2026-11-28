@@ -70,12 +70,12 @@ function freeForGrunt(state: MatchState, x: number, y: number): boolean {
 }
 
 /**
- * The round's allowance (CAMPAIGN §6.2): by the rounds played in the campaign, the table's last
+ * The round's allowance (CAMPAIGN §6.2): by the rounds played in the level, the table's last
  * entry for every round after, times the level's factor for the difficulty and the players.
  */
-export function gruntAllowance(state: MatchState, roundsPlayed: number): number {
+export function gruntAllowance(state: MatchState, roundsInLevel: number): number {
   const { allowance, factor } = rulesOf(state).grunts;
-  const base = allowance[Math.min(roundsPlayed, allowance.length - 1)] as number;
+  const base = allowance[Math.min(roundsInLevel, allowance.length - 1)] as number;
   return Math.round(base * factor);
 }
 
@@ -283,10 +283,10 @@ export function advanceGrunts(state: MatchState): void {
 }
 
 /** As the walls are rebuilt: the round's allowance, and every clock of the phase started. */
-export function openGruntsBuild(state: MatchState, roundsPlayed: number): void {
+export function openGruntsBuild(state: MatchState, roundsInLevel: number): void {
   const fleet = fleetOf(state);
   const timing = rulesOf(state).grunts.timing;
-  fleet.gruntsLeft = gruntAllowance(state, roundsPlayed);
+  fleet.gruntsLeft = gruntAllowance(state, roundsInLevel);
   fleet.grunts = fleet.grunts.map((g) => ({
     ...g,
     nextStepTick: state.tick + ticks(state, timing.stepMs),

@@ -130,7 +130,7 @@ describe('the fleet', () => {
     expect(ship(state, 0)).toMatchObject({ x: 8, run: null, runs: 2 });
   });
 
-  it('draws a wave of the guns given, the level and the rounds played, capped by the pool', () => {
+  it('draws a wave of the guns given, the level and the rounds played in it, capped by the pool', () => {
     const state = stateFromAscii(CHANNEL, rules());
     state.phase = 'castle_select';
     state.round = 0;
@@ -139,33 +139,41 @@ describe('the fleet', () => {
     expect(fleet(state).wave).toEqual([3, 0, 0]);
     expect(fleet(state).pool).toEqual([7, 0, 0]);
 
-    // Level 3 (index 2), the fourth round's build phase, five rounds played before the level:
-    // 2 guns + 2 + min(8, 3) + (8 − 2) = 13, of a pool of 7 left.
+    // Level 3 (index 2), the fourth round's build phase, three rounds played in the level:
+    // 2 guns + 2 + 3 + (3 − 2) = 8.
     const later = stateFromAscii(
       CHANNEL,
-      rules((c) => ({ ...c, level: 2, carry: { ...c.carry, roundsPlayed: 5 } })),
+      rules((c) => ({ ...c, level: 2 })),
     );
     later.phase = 'build';
     later.round = 4;
-    fleet(later).pool = [5, 2, 0];
+    fleet(later).pool = [20, 0, 0];
     fleet(later).cannonsGiven = 2;
     formWave(later);
-    expect(fleet(later).wave).toEqual([5, 2, 0]);
-    expect(fleet(later).pool).toEqual([0, 0, 0]);
+    expect(fleet(later).wave).toEqual([8, 0, 0]);
+    expect(fleet(later).pool).toEqual([12, 0, 0]);
+
+    // Capped by what is left.
+    const short = stateFromAscii(
+      CHANNEL,
+      rules((c) => ({ ...c, level: 2 })),
+    );
+    short.phase = 'build';
+    short.round = 4;
+    fleet(short).pool = [5, 2, 0];
+    fleet(short).cannonsGiven = 2;
+    formWave(short);
+    expect(fleet(short).wave).toEqual([5, 2, 0]);
+    expect(fleet(short).pool).toEqual([0, 0, 0]);
   });
 
-  it('reckons a later level four rounds in from its first round: a bigger first wave', () => {
-    // Level 2's first build phase, two rounds played before it and none in it: 0 guns + 1 (the
-    // level's index) + min(2, r) + (2 − 2).
+  it("counts only the level's own rounds: a later level's head start is its ships' speed alone", () => {
+    // Level 2's first build phase, none played in it: 0 guns + 1 (the level's index) + 0 + 0,
+    // whatever the fleet's reckoning for speed (the user's, 2026-11-28).
     const wave = (roundOffset: number): number => {
       const state = stateFromAscii(
         CHANNEL,
-        rules((c) => ({
-          ...c,
-          level: 1,
-          fleet: { ...c.fleet, roundOffset },
-          carry: { ...c.carry, roundsPlayed: 2 },
-        })),
+        rules((c) => ({ ...c, level: 1, fleet: { ...c.fleet, roundOffset } })),
       );
       state.phase = 'build';
       state.round = 1;
@@ -174,9 +182,8 @@ describe('the fleet', () => {
       formWave(state);
       return fleet(state).wave[0];
     };
-    // Reckoned from 0: min(2, 0) = 0, so 1; from 4: min(2, 4) = 2, so 3.
     expect(wave(0)).toBe(1);
-    expect(wave(4)).toBe(3);
+    expect(wave(4)).toBe(1);
   });
 
   it('brings one ship of each kind a second, at the edge, while there is room', () => {

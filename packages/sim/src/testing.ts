@@ -355,7 +355,7 @@ export function campaignLevelRuleset(ruleset: Ruleset = defaultRuleset): Ruleset
       threshold: 20,
       threat: { perGrunt: 4, perCannon: 7 },
       pieceStartRound: 3,
-      carry: { scores: [0], roundsPlayed: 0 },
+      carry: { scores: [0] },
       fleet: {
         pool: [10, 0, 0],
         maxAfloat: 16,

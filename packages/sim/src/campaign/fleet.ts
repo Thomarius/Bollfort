@@ -57,9 +57,9 @@ export function roundsInLevel(state: MatchState): number {
 }
 
 /**
- * The rounds the fleet reckons played in the level: those played, and on every level but the
- * campaign's first a few more (`fleet.roundOffset`), so later levels press from their first round.
- * Never shown; `state.round` is.
+ * The rounds the fleet reckons played in the level, for its ships' speed: those played, and on
+ * every level but the campaign's first a few more (`fleet.roundOffset`), so later levels' ships are
+ * fast from their first round. Never shown; `state.round` is. The waves count the level's own.
  */
 export function fleetRounds(state: MatchState): number {
   return roundsInLevel(state) + rulesOf(state).fleet.roundOffset;
@@ -157,15 +157,16 @@ export function besideLand(state: MatchState, ship: Ship): boolean {
 
 /**
  * Draws the round's wave from the pool (CAMPAIGN §5.2): the cannons the players were given, the
- * level's index and a bonus for the rounds played, capped by what is left, each ship drawn at
- * random weighted by the counts left of each kind.
+ * level's index and a bonus for the rounds played in this level, capped by what is left, each ship
+ * drawn at random weighted by the counts left of each kind. The original counted the rounds of the
+ * whole game, so a player slow through the early levels met bigger waves later; reckoned by level,
+ * a level is as hard however the ones before it went (the user's, 2026-11-28).
  */
 export function formWave(state: MatchState): void {
   const fleet = fleetOf(state);
   const rules = rulesOf(state);
   const inLevel = roundsInLevel(state);
-  const inCampaign = rules.carry.roundsPlayed + inLevel;
-  const bonus = Math.min(inCampaign, fleetRounds(state)) + Math.max(0, inCampaign - 2);
+  const bonus = inLevel + Math.max(0, inLevel - 2);
   const left = fleet.pool[0] + fleet.pool[1] + fleet.pool[2];
   let size = Math.min(left, fleet.cannonsGiven + rules.level + bonus);
   const rng = streamFor(state.seed, `campaign-wave:${state.round}`);
@@ -358,7 +359,7 @@ export function openBuild(state: MatchState): void {
     }
   }
   formWave(state);
-  openGruntsBuild(state, rulesOf(state).carry.roundsPlayed + roundsInLevel(state));
+  openGruntsBuild(state, roundsInLevel(state));
 }
 
 /** The fleet's part of a tick: arrivals, runs ending, and its guns. */

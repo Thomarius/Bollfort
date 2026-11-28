@@ -66,7 +66,8 @@ untouched.
 
 Between levels a **campaign run** (client side, like `tournamentFlow`) shows the level's result,
 saves, and builds the next level's ruleset from the campaign config, the difficulty and the
-**carry-over**: score per player, rounds played in the campaign, levels cleared, the team's
+**carry-over**: score per player, rounds played in the campaign (a record only: no level's play
+reads it), levels cleared, the team's
 firepower and the continues used. A level left midway is replayed from its start, as a tournament
 match is.
 
@@ -210,12 +211,13 @@ sail colour**, never by a style's palette (§14.2):
   the level opens): its size is
 
   `wave = Σ players' cannons to place this round + level index + bonus`, where
-  `bonus = min(rounds played in the campaign, the fleet's rounds in this level) + max(0, rounds played in the campaign − 2)`,
+  `bonus = r + max(0, r − 2)`, r the rounds played in this level,
 
-  capped by what is left in the pool. **The fleet's rounds in this level** are those played in it,
-  plus `fleet.laterLevelRoundOffset` (4) on every level but level 1 (Veteran's first level, level 2,
-  too): later levels press from their first round, their first ships already fast (the user's,
-  2026-11-26). It is never shown; the rounds on screen count from 1 on every level. Each ship of the wave is drawn at random from the pool,
+  capped by what is left in the pool. **A level is as hard however the levels before it went**
+  (the user's, 2026-11-28): the original counted the rounds of the whole game, so a player who
+  struggled through levels 1 and 2 met level 3 with a first wave of 15 or more, the pool spent in
+  two rounds; counted by level, its waves run 5, 6, 7, 9, … and the pool lasts some five rounds.
+  The level's whole fleet, its pool, is unchanged. Each ship of the wave is drawn at random from the pool,
   weighted by the counts left of each kind. **More cannons bring more ships**: the fleet keeps up
   with the defenders.
 
@@ -236,7 +238,9 @@ Ships move **only in combat**. As combat opens, every ship without a run plans o
    relative to its heading: `[0, −1, +1, −2, +2]`, `[−1, 0, +1, +2, −2]`, `[+1, 0, −1, −2, +2]`.
    It takes the first direction whose next 2 × 2 is free water. Never backwards. None free: it
    waits this battle.
-2. **Speed**: `s = min(random(level index + the fleet's rounds in this level), 3)` (§5.2); ticks per tile from
+2. **Speed**: `s = min(random(level index + the fleet's rounds in this level), 3)`, those the rounds
+   played in it plus `fleet.laterLevelRoundOffset` (4) on every level but level 1 (Veteran's first,
+   level 2, too), so later levels' first ships are already fast (the user's, 2026-11-26); ticks per tile from
    `[64, 43, 32, 26]` (2.1 s down to 0.85 s a tile). In level 1's first round every ship is at the
    slowest; later they are faster, and from level 2 fast from the start.
 3. **Length**: one tile, then as many more in the same direction as are free water and still fit
@@ -338,7 +342,7 @@ A grunt stands on one land tile. It blocks pieces, cannons and other grunts; it 
 enclosure flood (it is not wall) and is not damaged by fleet shots.
 
 - **The round's allowance** of grunts to land, set at each build phase: by rounds played in the
-  campaign, `[5, 6, 7, 8, 9, 10, 12, 13]` (the last for every round after), times
+  level (§5.2), `[5, 6, 7, 8, 9, 10, 12, 13]` (the last for every round after), times
   `1 + 0.5 × (players − 1)` (§9 lever).
 - **Landing**: in the build phase, each transport next to free land puts one grunt on a free land
   tile beside it every **56 ticks** (1.9 s) while the allowance lasts.
@@ -408,8 +412,8 @@ enclosure flood (ice is not wall, so a ring with ice in it is open until rebuilt
 
 Ice **ages as each combat phase begins**:
 
-- in the campaign's first **8 rounds**: a new patch lasts through the next **2** build phases;
-- from round 8 on: **3** build phases.
+- in a level's first **8 rounds**: a new patch lasts through the next **2** build phases;
+- from its round 9 on: **3** build phases (by the level's own rounds, §5.2).
 
 (`campaign.ice: { early: 2, late: 3, lateFromRound: 8 }`.) Measured: the ageing at the start of
 each battle, never during a build phase, so a player always knows at a build phase's start what
@@ -1188,6 +1192,18 @@ its 5 rounds). The levels lost most: 4 (45–64 %), 5 (49–57 %) and the final 
 - **How to play's Campaign tab** (CA13), the last of five: ships and leading them, which ship
   first and ice, soldiers, the threat's line, each caption ten words at most as every page's; the
   campaign screen's How to play button and a campaign level's pause open it.
+
+**A level by its own rounds** (2026-11-28, the user's, after a level 3 whose first battle brought 15
+ships against the original's 6–10): the original reckons its waves, grunt allowance and ice by the
+rounds of the whole game, so a player slow through levels 1 and 2 was pressed hardest in level 3 —
+an arcade's way of ending a credit, not this game's. All three now count the level's own rounds
+(§5.2, §6.2, §7.2); the rounds before it left the level's ruleset (`carry.roundsPlayed`, kept in the
+save as a record; protocol 41), and `--campaign N` no longer plays a level as if the earlier ones
+went to their limits. The level's pool, its threat and its ships' head start in speed are unchanged.
+The comparison with the original's code also found why it never showed more than ten ships in a
+first battle: it lets a wave in one ship of each kind a second and stops at the castle choice's
+end, the rest arriving in the next build phase; Bollfort's arrivals at the choice's end
+(`flushArrivals`) stay, the user's choice.
 
 **Open campaign work** (2026-11-27; PLAN §11 item 14 keeps the same list): the users' online
 co-op session; CA12's tuning — the bots' misses at ships fitted to the session's recordings, a new
